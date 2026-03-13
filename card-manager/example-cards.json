@@ -1,0 +1,193 @@
+[
+  {
+    "id": "char-01",
+    "name": "Kämpfer",
+    "imageName": "kaempfer",
+    "powerPoints": 3,
+    "diamondsReward": 1,
+    "cost": {
+      "type": "identicalValues",
+      "count": 2,
+      "specificValue": null
+    },
+    "ability": {
+      "type": "threeExtraActions"
+    }
+  },
+  {
+    "id": "char-02",
+    "name": "Weiser",
+    "imageName": "weiser",
+    "powerPoints": 2,
+    "diamondsReward": 2,
+    "cost": {
+      "type": "sum",
+      "target": 10,
+      "cardCount": null
+    },
+    "ability": {
+      "type": "onesCanBeEights"
+    }
+  },
+  {
+    "id": "char-03",
+    "name": "Schelmischer Rabe",
+    "imageName": "rabe",
+    "powerPoints": 2,
+    "diamondsReward": 0,
+    "cost": {
+      "type": "run",
+      "length": 3
+    },
+    "ability": {
+      "type": "nextPlayerOneExtraAction"
+    }
+  },
+  {
+    "id": "char-04",
+    "name": "Waldhexe",
+    "imageName": "hexe",
+    "powerPoints": 4,
+    "diamondsReward": 1,
+    "cost": {
+      "type": "allEven",
+      "count": 3
+    },
+    "ability": {
+      "type": "threesCanBeAny"
+    }
+  },
+  {
+    "id": "char-05",
+    "name": "Zauberer",
+    "imageName": "zauberer",
+    "powerPoints": 3,
+    "diamondsReward": 0,
+    "cost": {
+      "type": "allOdd",
+      "count": 4
+    },
+    "ability": {
+      "type": "discardOpponentCharacter"
+    }
+  },
+  {
+    "id": "char-06",
+    "name": "Schatzsucher",
+    "imageName": "schatzsucher",
+    "powerPoints": 1,
+    "diamondsReward": 3,
+    "cost": {
+      "type": "exactValues",
+      "expected": [1, 2, 3]
+    },
+    "ability": {
+      "type": "tradeTwoForDiamond"
+    }
+  },
+  {
+    "id": "char-07",
+    "name": "Irrlicht",
+    "imageName": "irrlicht",
+    "powerPoints": 2,
+    "diamondsReward": 0,
+    "cost": {
+      "type": "identicalValues",
+      "count": 3,
+      "specificValue": 4
+    },
+    "ability": {
+      "type": "irrlicht"
+    }
+  },
+  {
+    "id": "char-08",
+    "name": "Straßenmusiker",
+    "imageName": "musiker",
+    "powerPoints": 1,
+    "diamondsReward": 1,
+    "cost": {
+      "type": "multipleIdenticalValues",
+      "counts": [2, 2],
+      "specificValues": [null, 5]
+    },
+    "ability": {
+      "type": "stealOpponentHandCard"
+    }
+  },
+  {
+    "id": "char-09",
+    "name": "Orakel",
+    "imageName": "orakel",
+    "powerPoints": 5,
+    "diamondsReward": 0,
+    "cost": {
+      "type": "sum",
+      "target": 15,
+      "cardCount": 3
+    },
+    "ability": {
+      "type": "oneExtraActionPerTurn"
+    }
+  },
+  {
+    "id": "char-10",
+    "name": "Gefangener",
+    "imageName": "gefangener",
+    "powerPoints": 1,
+    "diamondsReward": 0,
+    "cost": {
+      "type": "identicalValues",
+      "count": 1,
+      "specificValue": null
+    },
+    "ability": {
+      "type": "none"
+    }
+  },
+  {
+    "id": "char-11",
+    "name": "Wahrsager",
+    "imageName": "wahrsager",
+    "powerPoints": 2,
+    "diamondsReward": 1,
+    "cost": {
+      "type": "identicalValues",
+      "count": 3,
+      "specificValue": null
+    },
+    "ability": {
+      "type": "providesVirtualPearl",
+      "value": null
+    }
+  },
+  {
+    "id": "char-12",
+    "name": "Schattengänger",
+    "imageName": "schatten",
+    "powerPoints": 3,
+    "diamondsReward": 1,
+    "cost": {
+      "type": "run",
+      "length": 4
+    },
+    "ability": {
+      "type": "takeBackPlayedPearl"
+    }
+  },
+  {
+    "id": "char-13",
+    "name": "Bibliothekar",
+    "imageName": "bibliothekar",
+    "powerPoints": 2,
+    "diamondsReward": 2,
+    "cost": {
+      "type": "sum",
+      "target": 8,
+      "cardCount": 2
+    },
+    "ability": {
+      "type": "handLimitPlusOne"
+    }
+  }
+]

@@ -1,7 +1,7 @@
 import Foundation
 
 /// Represents a player's personal portal board (the area where cards are placed before activation).
-public struct PlayerBoard: Equatable {
+public struct PlayerBoard: Equatable, Codable {
     /// 0 to 2 cards placed on the board waiting to be activated.
     public var activeCharacters: [CharacterCard]
     public let isStartingPlayer: Bool
@@ -15,7 +15,7 @@ public struct PlayerBoard: Equatable {
 }
 
 /// Represents an individual player (Human or AI).
-public struct Player: Identifiable, Equatable {
+public struct Player: Identifiable, Equatable, Codable {
     public let id: UUID
     public let name: String
     public let isAI: Bool
@@ -33,6 +33,14 @@ public struct Player: Identifiable, Equatable {
     // Total power points from activated characters
     public var powerPoints: Int {
         activatedCharacters.reduce(0) { $0 + $1.powerPoints }
+    }
+    
+    public var handLimit: Int {
+        5 + activatedCharacters.filter { $0.ability == .handLimitPlusOne }.count
+    }
+    
+    public var actionsPerTurn: Int {
+        3 + activatedCharacters.filter { $0.ability == .oneExtraActionPerTurn }.count
     }
     
     public init(id: UUID = UUID(), name: String, isAI: Bool = false) {

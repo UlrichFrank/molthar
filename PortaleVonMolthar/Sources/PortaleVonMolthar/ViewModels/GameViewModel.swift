@@ -67,13 +67,30 @@ public class GameViewModel: ObservableObject {
     }
     
     private func checkAITurn() {
-        let currentPlayer = engine.state.players[engine.state.currentPlayerIndex]
-        if currentPlayer.isAI {
-            // TODO: Trigger AIManager logic here later
-            print("AI turn for \(currentPlayer.name) - skip for now")
-            // Temporarily auto-end AI turn to prevent halting
-            engine.endTurn()
-            updateState()
+        let playerIndex = engine.state.currentPlayerIndex
+        let currentPlayer = engine.state.players[playerIndex]
+        
+        if currentPlayer.isAI && engine.state.currentPhase != .gameFinished {
+            let playerId = currentPlayer.id
+            // Delay AI turn for better UX
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+                guard let self = self else { return }
+                
+                if let action = AIManager.shared.decideAction(state: self.engine.state, playerIndex: playerIndex) {
+                    do {
+                        try self.engine.processAction(action, for: playerId)
+                        self.updateState()
+                    } catch {
+                        print("AI Action failed: \(error) - auto-ending turn")
+                        self.engine.endTurn()
+                        self.updateState()
+                    }
+                } else {
+                    // AI has no moves or wants to end turn
+                    self.engine.endTurn()
+                    self.updateState()
+                }
+            }
         }
     }
 }
