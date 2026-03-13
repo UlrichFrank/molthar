@@ -3,7 +3,6 @@ import { Header } from './components/Header';
 import { Dashboard } from './components/Dashboard';
 import { CardList } from './components/CardList';
 import { CardEditor } from './components/CardEditor';
-import './App.css';
 
 function App() {
   const {
