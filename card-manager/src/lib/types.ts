@@ -1,7 +1,7 @@
 // Cost Types - new component-based system
 export type CostComponent = 
   | { type: 'number'; value: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 }
-  | { type: 'nTuple'; n: number; value: number }
+  | { type: 'nTuple'; n: number }
   | { type: 'evenTuple'; n: number }
   | { type: 'oddTuple'; n: number }
   | { type: 'sumTuple'; n: number; sum: number }

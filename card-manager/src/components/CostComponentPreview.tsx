@@ -11,7 +11,7 @@ export function CostComponentPreview({ component }: CostComponentPreviewProps) {
         return `${component.value}`;
       
       case 'nTuple':
-        return `${component.n}x beliebig (Wert ${component.value})`;
+        return `${component.n}x beliebig`;
       
       case 'evenTuple':
         return `${component.n}x gerade Zahl`;

@@ -12,7 +12,7 @@ import { Button } from './ui/button';
 
 const COMPONENT_TYPES = [
   { value: 'number', label: 'Einzelne Zahl (1-8)' },
-  { value: 'nTuple', label: 'N-Tupel (z.B. 2x eine beliebige Zahl)' },
+  { value: 'nTuple', label: 'N-Tupel beliebiger Zahlen (nur n einstellbar)' },
   { value: 'evenTuple', label: 'N-Tupel gerade Zahlen' },
   { value: 'oddTuple', label: 'N-Tupel ungerade Zahlen' },
   { value: 'sumTuple', label: 'N-Tupel mit Gesamtsumme' },
@@ -78,15 +78,10 @@ export function CostComponentEditor({
 
       case 'nTuple': {
         const n = parseInt(values.n);
-        const value = parseInt(values.value);
         if (isNaN(n) || n < 1) {
           newErrors.n = 'N muss eine positive Zahl sein';
-        }
-        if (isNaN(value) || value < 1 || value > 8) {
-          newErrors.value = 'Wert muss zwischen 1 und 8 sein';
-        }
-        if (Object.keys(newErrors).length === 0) {
-          onSave({ type: 'nTuple', n, value });
+        } else {
+          onSave({ type: 'nTuple', n });
         }
         break;
       }
@@ -220,33 +215,18 @@ export function CostComponentEditor({
           )}
 
           {type === 'nTuple' && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Anzahl (N)
-                </label>
-                <Input
-                  type="number"
-                  min={1}
-                  value={values.n}
-                  onChange={(e) => handleValueChange('n', e.target.value)}
-                />
-                {errors.n && <p className="text-xs text-destructive mt-1">{errors.n}</p>}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Wert (1-8)
-                </label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={8}
-                  value={values.value}
-                  onChange={(e) => handleValueChange('value', e.target.value)}
-                />
-                {errors.value && <p className="text-xs text-destructive mt-1">{errors.value}</p>}
-              </div>
-            </>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Anzahl (N)
+              </label>
+              <Input
+                type="number"
+                min={1}
+                value={values.n}
+                onChange={(e) => handleValueChange('n', e.target.value)}
+              />
+              {errors.n && <p className="text-xs text-destructive mt-1">{errors.n}</p>}
+            </div>
           )}
 
           {(type === 'evenTuple' || type === 'oddTuple') && (

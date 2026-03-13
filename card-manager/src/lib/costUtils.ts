@@ -8,7 +8,7 @@ export function costComponentToText(component: CostComponent): string {
     case 'number':
       return `${component.value}`;
     case 'nTuple':
-      return `${component.n}x ${component.value}`;
+      return `${component.n}x beliebig`;
     case 'evenTuple':
       return `${component.n}x Gerade`;
     case 'oddTuple':
@@ -53,9 +53,6 @@ export function validateCostComponent(component: CostComponent): { valid: boolea
       break;
     case 'nTuple':
       if (component.n < 1) return { valid: false, error: 'n muss mindestens 1 sein' };
-      if (![1, 2, 3, 4, 5, 6, 7, 8].includes(component.value)) {
-        return { valid: false, error: 'Zahl muss zwischen 1-8 sein' };
-      }
       break;
     case 'evenTuple':
     case 'oddTuple':

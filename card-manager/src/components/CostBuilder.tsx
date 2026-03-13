@@ -128,7 +128,7 @@ export function CostBuilder({ cost, onUpdate }: CostBuilderProps) {
                     case 'number':
                       return `${c.value}`;
                     case 'nTuple':
-                      return `${c.n}x ${c.value}`;
+                      return `${c.n}x beliebig`;
                     case 'evenTuple':
                       return `${c.n}x gerade`;
                     case 'oddTuple':

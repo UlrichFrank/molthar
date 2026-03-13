@@ -15,8 +15,7 @@ function migrateOldCost(oldCost: any): Cost {
   if (oldCost.type === 'identicalValues') {
     components.push({
       type: 'nTuple',
-      n: oldCost.count || 2,
-      value: oldCost.specificValue || 1
+      n: oldCost.count || 2
     });
   } else if (oldCost.type === 'exactValues' && oldCost.expected) {
     // exactValues [1,2,3] → convert to individual number components
@@ -45,21 +44,20 @@ function migrateOldCost(oldCost: any): Cost {
     });
   } else if (oldCost.type === 'multipleIdenticalValues') {
     // Add each tuple separately
-    if (oldCost.counts && oldCost.specificValues) {
+    if (oldCost.counts) {
       for (let i = 0; i < oldCost.counts.length; i++) {
         components.push({
           type: 'nTuple',
-          n: oldCost.counts[i],
-          value: oldCost.specificValues[i] || 1
+          n: oldCost.counts[i]
         });
       }
     }
   } else {
     // Fallback: single 2-tuple
-    components.push({ type: 'nTuple', n: 2, value: 1 });
+    components.push({ type: 'nTuple', n: 2 });
   }
 
-  return components.length > 0 ? components : [{ type: 'nTuple', n: 2, value: 1 }];
+  return components.length > 0 ? components : [{ type: 'nTuple', n: 2 }];
 }
 
 export class CardStore {
@@ -108,7 +106,7 @@ export class CardStore {
       imageName: '',
       powerPoints: 0,
       diamondsReward: 0,
-      cost: [{ type: 'nTuple', n: 2, value: 1 }],
+      cost: [{ type: 'nTuple', n: 2 }],
       ability: { type: 'none' }
     };
     this.cards.push(card);
