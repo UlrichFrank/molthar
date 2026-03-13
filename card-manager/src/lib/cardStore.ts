@@ -1,6 +1,66 @@
-import type { CharacterCard } from './types';
+import type { CharacterCard, Cost, CostComponent } from './types';
 
 const STORAGE_KEY = 'moltharCards';
+
+// Migration function: Convert old Cost format to new Cost[] format
+function migrateOldCost(oldCost: any): Cost {
+  // If already in new format (array), return as-is
+  if (Array.isArray(oldCost)) {
+    return oldCost;
+  }
+
+  const components: CostComponent[] = [];
+
+  // Convert old cost types to new components
+  if (oldCost.type === 'identicalValues') {
+    components.push({
+      type: 'nTuple',
+      n: oldCost.count || 2,
+      value: oldCost.specificValue || 1
+    });
+  } else if (oldCost.type === 'exactValues' && oldCost.expected) {
+    // exactValues [1,2,3] → convert to individual number components
+    oldCost.expected.forEach((val: number) => {
+      components.push({ type: 'number', value: val as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 });
+    });
+  } else if (oldCost.type === 'sum') {
+    components.push({
+      type: 'sumAnyTuple',
+      sum: oldCost.target || 10
+    });
+  } else if (oldCost.type === 'run') {
+    components.push({
+      type: 'run',
+      length: oldCost.length || 3
+    });
+  } else if (oldCost.type === 'allEven') {
+    components.push({
+      type: 'evenTuple',
+      n: oldCost.count || 3
+    });
+  } else if (oldCost.type === 'allOdd') {
+    components.push({
+      type: 'oddTuple',
+      n: oldCost.count || 3
+    });
+  } else if (oldCost.type === 'multipleIdenticalValues') {
+    // Add each tuple separately
+    if (oldCost.counts && oldCost.specificValues) {
+      for (let i = 0; i < oldCost.counts.length; i++) {
+        components.push({
+          type: 'nTuple',
+          n: oldCost.counts[i],
+          value: oldCost.specificValues[i] || 1
+        });
+      }
+    }
+  } else {
+    // Fallback: single 2-tuple
+    components.push({ type: 'nTuple', n: 2, value: 1 });
+  }
+
+  return components.length > 0 ? components : [{ type: 'nTuple', n: 2, value: 1 }];
+}
 
 export class CardStore {
   private cards: CharacterCard[] = [];
@@ -13,7 +73,12 @@ export class CardStore {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        this.cards = JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        // Migrate old cost format to new format
+        this.cards = parsed.map((card: any) => ({
+          ...card,
+          cost: migrateOldCost(card.cost)
+        }));
       }
     } catch (err) {
       console.error('Error loading cards from localStorage:', err);
@@ -43,7 +108,7 @@ export class CardStore {
       imageName: '',
       powerPoints: 0,
       diamondsReward: 0,
-      cost: { type: 'identicalValues', count: 2 },
+      cost: [{ type: 'nTuple', n: 2, value: 1 }],
       ability: { type: 'none' }
     };
     this.cards.push(card);

@@ -1,30 +1,29 @@
-// Cost Types - matched to Swift GameEngine.swift
-export type CostType = 
-  | 'identicalValues'
-  | 'multipleIdenticalValues'
-  | 'exactValues'
-  | 'sum'
-  | 'run'
-  | 'allEven'
-  | 'allOdd';
+// Cost Types - new component-based system
+export type CostComponent = 
+  | { type: 'number'; value: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 }
+  | { type: 'nTuple'; n: number; value: number }
+  | { type: 'evenTuple'; n: number }
+  | { type: 'oddTuple'; n: number }
+  | { type: 'sumTuple'; n: number; sum: number }
+  | { type: 'sumAnyTuple'; sum: number }
+  | { type: 'run'; length: number }
+  | { type: 'diamond' }
+  | { type: 'drillingChoice'; value1: number; value2: number };
 
-export interface Cost {
-  type: CostType;
-  // identicalValues
+// Cost is now an array of components (all required = AND)
+export type Cost = CostComponent[];
+
+// Old Cost interface (kept for migration purposes)
+export interface OldCost {
+  type: 'identicalValues' | 'multipleIdenticalValues' | 'exactValues' | 'sum' | 'run' | 'allEven' | 'allOdd';
   count?: number;
   specificValue?: number | null;
-  // multipleIdenticalValues
   counts?: number[];
   specificValues?: (number | null)[];
-  // exactValues
   expected?: number[];
-  // sum
   target?: number;
   cardCount?: number | null;
-  // run
   length?: number;
-  // allEven, allOdd
-  // (reuses count from above)
 }
 
 // Ability Types - matched to Swift GameEngine.swift
@@ -72,12 +71,4 @@ export interface AbilityInfo {
   description: string;
   category: 'red' | 'blue' | 'special' | 'none';
   hasParameters: boolean;
-}
-
-// Cost info for UI
-export interface CostInfo {
-  type: CostType;
-  label: string;
-  description: string;
-  fields: string[];
 }
