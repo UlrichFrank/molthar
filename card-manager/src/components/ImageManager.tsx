@@ -7,14 +7,21 @@ interface ImageManagerProps {
   onImageUpload: (imageName: string) => void;
 }
 
+// Simple in-memory cache for image previews
+const imageCache = new Map<string, string>();
+
 export function ImageManager({ imageName, onImageUpload }: ImageManagerProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragOverRef = useRef(false);
   const [imagePreview, setImagePreview] = useState<string>('');
 
-  // Reset preview when imageName changes (card selection changed)
+  // Load cached preview when imageName changes
   useEffect(() => {
-    setImagePreview('');
+    if (imageName && imageCache.has(imageName)) {
+      setImagePreview(imageCache.get(imageName) || '');
+    } else {
+      setImagePreview('');
+    }
   }, [imageName]);
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -56,12 +63,18 @@ export function ImageManager({ imageName, onImageUpload }: ImageManagerProps) {
   const createPreview = (file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
-      setImagePreview(e.target?.result as string);
+      const dataUrl = e.target?.result as string;
+      // Cache the preview by filename
+      imageCache.set(file.name, dataUrl);
+      setImagePreview(dataUrl);
     };
     reader.readAsDataURL(file);
   };
 
   const handleRemoveImage = () => {
+    if (imageName) {
+      imageCache.delete(imageName);
+    }
     onImageUpload('');
     setImagePreview('');
   };
