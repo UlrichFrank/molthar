@@ -2,6 +2,7 @@ import type { CharacterCard } from '../lib/types';
 import { Trash2 } from 'lucide-react';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
+import { ImageManager } from './ImageManager';
 import { CostEditor } from './CostEditor';
 import { AbilityEditor } from './AbilityEditor';
 
@@ -72,17 +73,6 @@ export function CardEditor({ card, onUpdate, onDelete }: CardEditorProps) {
 
           <div>
             <label className="block text-sm font-medium text-foreground mb-1">
-              Bildname (Assets)
-            </label>
-            <Input
-              type="text"
-              value={card.imageName}
-              onChange={(e) => handleImageNameChange(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1">
               Machtpunkte (0-5)
             </label>
             <Input
@@ -106,6 +96,14 @@ export function CardEditor({ card, onUpdate, onDelete }: CardEditorProps) {
               onChange={(e) => handleDiamondsChange(Math.max(0, Math.min(3, parseInt(e.target.value) || 0)))}
             />
           </div>
+        </div>
+
+        {/* Image Manager */}
+        <div className="mb-6 pb-6 border-b border-border">
+          <ImageManager
+            imageName={card.imageName}
+            onImageUpload={handleImageNameChange}
+          />
         </div>
 
         {/* Cost Editor */}
