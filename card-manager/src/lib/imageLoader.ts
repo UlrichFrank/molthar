@@ -1,20 +1,12 @@
 // Image loader utilities
 export async function loadAvailableImages(): Promise<string[]> {
   try {
-    const response = await fetch('/assets/');
-    const html = await response.text();
-    
-    const imageRegex = /href="([^"]+\.(jpg|jpeg|png|webp))"/gi;
-    const images: Set<string> = new Set();
-    let match;
-    
-    while ((match = imageRegex.exec(html)) !== null) {
-      images.add(match[1]);
-    }
-    
-    return Array.from(images).sort();
+    // Load image manifest from public folder
+    const response = await fetch('/assets-manifest.json');
+    const data = await response.json();
+    return data.images || [];
   } catch (error) {
-    console.error('Failed to load images from /assets:', error);
+    console.error('Failed to load image manifest:', error);
     return [];
   }
 }
