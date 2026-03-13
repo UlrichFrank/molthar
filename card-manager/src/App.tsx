@@ -38,14 +38,14 @@ function App() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50">
-        <p className="text-gray-500">Lädt...</p>
+      <div className="flex items-center justify-center h-screen bg-background">
+        <p className="text-muted-foreground">Lädt...</p>
       </div>
     );
   }
 
   return (
-    <div className="h-screen bg-gray-50 flex flex-col">
+    <div className="h-screen bg-background flex flex-col">
       <Header
         cardCount={cards.length}
         onExport={exportCards}
