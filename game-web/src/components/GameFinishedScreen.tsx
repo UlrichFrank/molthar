@@ -14,61 +14,68 @@ export function GameFinishedScreen({
   const winnerInfo = getWinnerInfo(gameState);
   const announcement = formatWinnerAnnouncement(gameState);
 
+  // Sort players by power points (descending) then diamonds (descending)
+  const sortedPlayers = [...gameState.players].sort((a, b) => {
+    if (b.portal.powerPoints !== a.portal.powerPoints) {
+      return b.portal.powerPoints - a.portal.powerPoints;
+    }
+    return b.portal.diamonds - a.portal.diamonds;
+  });
+
   return (
     <div className="game-finished-screen">
       <div className="finished-container">
-        <h1 className="finished-title">🎊 Game Over! 🎊</h1>
+        <div className="finished-header">
+          <h1 className="finished-title">🎊 Game Over! 🎊</h1>
+          <p className="finished-announcement">{announcement}</p>
+        </div>
 
+        {/* Winner Info */}
         {winnerInfo && (
-          <div className="winner-section">
-            <h2 className="winner-name">🏆 {winnerInfo.playerName} Wins! 🏆</h2>
-            <p className="winner-announcement">{announcement}</p>
+          <div className="winner-card">
+            <div className="winner-badge">👑</div>
+            <h2 className="winner-name">{winnerInfo.playerName}</h2>
+            <div className="winner-stats">
+              <div className="stat">
+                <span className="stat-label">Power Points</span>
+                <span className="stat-value">⚡{winnerInfo.powerPoints}</span>
+              </div>
+              <div className="stat">
+                <span className="stat-label">Diamonds</span>
+                <span className="stat-value">💎{winnerInfo.diamonds}</span>
+              </div>
+            </div>
           </div>
         )}
 
+        {/* Final Standings */}
         <div className="final-standings">
           <h3 className="standings-title">Final Standings</h3>
-          <table className="standings-table">
-            <thead>
-              <tr>
-                <th>Rank</th>
-                <th>Player</th>
-                <th>Power</th>
-                <th>Diamonds</th>
-              </tr>
-            </thead>
-            <tbody>
-              {gameState.players
-                .map((player, idx) => ({
-                  index: idx,
-                  name: player.name,
-                  power: player.portal.powerPoints,
-                  diamonds: player.portal.diamonds,
-                }))
-                .sort((a, b) => {
-                  if (b.power !== a.power) return b.power - a.power;
-                  return b.diamonds - a.diamonds;
-                })
-                .map((entry, rank) => (
-                  <tr
-                    key={entry.index}
-                    className={rank === 0 ? 'winner-row' : ''}
-                  >
-                    <td>#{rank + 1}</td>
-                    <td>{entry.name}</td>
-                    <td>⚡{entry.power}</td>
-                    <td>💎{entry.diamonds}</td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
+          <div className="standings-table">
+            {sortedPlayers.map((player, idx) => (
+              <div key={player.id} className={`standing-row ${idx === 0 ? 'winner' : ''}`}>
+                <div className="standing-rank">
+                  {idx === 0 && '🥇'}
+                  {idx === 1 && '🥈'}
+                  {idx === 2 && '🥉'}
+                  {idx >= 3 && `#${idx + 1}`}
+                </div>
+                <div className="standing-name">{player.name}</div>
+                <div className="standing-stats">
+                  <span className="standing-stat">⚡{player.portal.powerPoints}</span>
+                  <span className="standing-stat">💎{player.portal.diamonds}</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
+        {/* Play Again Button */}
         <button
-          className="btn btn-primary btn-large"
+          className="btn btn-large btn-success"
           onClick={onPlayAgain}
         >
-          Play Again
+          🎲 Play Again
         </button>
       </div>
     </div>
