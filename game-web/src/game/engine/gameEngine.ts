@@ -1,6 +1,7 @@
 import type { IGameState, PlayerState, GameAction } from '../../lib/types';
 import { GameActionType } from '../../lib/types';
 import { GAME_RULES, createPearlDeck } from '../../lib/constants';
+import { executeRedAbility, isRedAbilityType } from './abilitySystem';
 
 /**
  * Main game engine - handles all game logic and state mutations
@@ -263,7 +264,21 @@ export class GameEngine {
     const activatedChar = state.players[state.currentPlayer].portal.characters.splice(characterIndex, 1)[0];
     state.characterDiscardPile.push(activatedChar);
 
-    // TODO: P1.7 - Trigger red abilities if character has them
+    // Trigger red abilities if character has one
+    if (activatedChar.ability && isRedAbilityType(activatedChar.ability)) {
+      const [newState, effect] = executeRedAbility(state, activatedChar.ability, action.playerId);
+      Object.assign(state, newState);
+      
+      // Log ability execution if successful
+      if (effect.executed) {
+        state.gameLog.push({
+          type: GameActionType.UseRedAbility,
+          playerId: action.playerId,
+          payload: { abilityType: activatedChar.ability, message: effect.message },
+          timestamp: Date.now(),
+        });
+      }
+    }
 
     // Decrement action count
     state.players[state.currentPlayer].actionCount--;

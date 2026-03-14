@@ -43,6 +43,7 @@ export type AbilityType =
   | 'handLimitPlusOne'
   | 'oneExtraActionPerTurn'
   | 'providesVirtualPearl'
+  | 'decreaseWithPearl'
   | 'irrlicht';
 
 export interface Ability {
