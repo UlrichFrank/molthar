@@ -17,8 +17,10 @@ function App() {
     createNewCard,
     updateCard,
     deleteCard,
+    deleteAllCards,
     exportCards,
     importCards,
+    createCardsFromImages,
     stats,
   } = useCardManager();
 
@@ -50,6 +52,8 @@ function App() {
         onExport={exportCards}
         onImport={handleImport}
         onAddNew={createNewCard}
+        onCreateFromImages={createCardsFromImages}
+        onDeleteAll={deleteAllCards}
       />
 
       <Dashboard

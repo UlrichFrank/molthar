@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { CharacterCard } from '../lib/types';
 import { getCardStore } from '../lib/cardStore';
+import { findUnreferencedCharacterImages } from '../lib/imageLoader';
 
 export function useCardManager() {
   const [cards, setCards] = useState<CharacterCard[]>([]);
@@ -42,6 +43,17 @@ export function useCardManager() {
     }
   }, [selectedId]);
 
+  const deleteAllCards = useCallback(() => {
+    const confirmDelete = confirm(
+      `Wirklich ALLE ${cards.length} Charakterkarten löschen? Dies kann nicht rückgängig gemacht werden.`
+    );
+    if (confirmDelete) {
+      store.deleteAll();
+      setCards([]);
+      setSelectedId(null);
+    }
+  }, [cards.length]);
+
   const exportCards = useCallback(() => {
     const json = store.exportJSON();
     const blob = new Blob([json], { type: 'application/json' });
@@ -67,6 +79,31 @@ export function useCardManager() {
     reader.readAsText(file);
   }, []);
 
+  const createCardsFromImages = useCallback(async () => {
+    const existingImageNames = cards.map(c => c.imageName).filter(Boolean);
+    const unreferencedImages = await findUnreferencedCharacterImages(existingImageNames);
+    
+    if (unreferencedImages.length === 0) {
+      alert('Keine neuen Charakterkarte*.jpeg Bilder gefunden');
+      return;
+    }
+
+    const confirmCreate = confirm(
+      `${unreferencedImages.length} neue Charakterkarten erstellen?\n\n${unreferencedImages.join('\n')}`
+    );
+    
+    if (confirmCreate) {
+      const cardNames = unreferencedImages.map(image => {
+        // Extract name from "Charakterkarte1.jpeg" → "Charakter 1"
+        const match = image.match(/Charakterkarte(\d+)/i);
+        return match ? `Charakter ${match[1]}` : image;
+      });
+      
+      store.createBatch(cardNames, unreferencedImages);
+      setCards(store.getAll());
+    }
+  }, [cards]);
+
   return {
     cards,
     filteredCards,
@@ -79,8 +116,10 @@ export function useCardManager() {
     createNewCard,
     updateCard,
     deleteCard,
+    deleteAllCards,
     exportCards,
     importCards,
+    createCardsFromImages,
     stats: store.getStats(),
   };
 }

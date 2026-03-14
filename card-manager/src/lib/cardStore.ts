@@ -114,6 +114,24 @@ export class CardStore {
     return card;
   }
 
+  createBatch(names: string[], imageNames?: string[]): CharacterCard[] {
+    const createdCards = names.map((name, index) => {
+      const card: CharacterCard = {
+        id: Math.random().toString(36).substr(2, 9),
+        name,
+        imageName: imageNames?.[index] || '',
+        powerPoints: 0,
+        diamondsReward: 0,
+        cost: [{ type: 'nTuple', n: 2 }],
+        ability: { type: 'none' }
+      };
+      this.cards.push(card);
+      return card;
+    });
+    this.save();
+    return createdCards;
+  }
+
   update(id: string, card: Partial<CharacterCard>): CharacterCard | undefined {
     const index = this.cards.findIndex(c => c.id === id);
     if (index === -1) return undefined;
@@ -126,6 +144,12 @@ export class CardStore {
     const index = this.cards.findIndex(c => c.id === id);
     if (index === -1) return false;
     this.cards.splice(index, 1);
+    this.save();
+    return true;
+  }
+
+  deleteAll(): boolean {
+    this.cards = [];
     this.save();
     return true;
   }

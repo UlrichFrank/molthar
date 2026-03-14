@@ -120,7 +120,7 @@ export function CardEditor({ card, onUpdate, onDelete }: CardEditorProps) {
         </div>
 
         {/* Right column: Image */}
-        <div className="w-80 sticky top-6 h-fit">
+        <div className="flex-1 min-w-96 sticky top-6 h-fit">
           <ImageManager
             imageName={card.imageName}
             onImageUpload={handleImageNameChange}

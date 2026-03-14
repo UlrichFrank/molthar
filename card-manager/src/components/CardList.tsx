@@ -2,6 +2,7 @@ import type { CharacterCard } from '../lib/types';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { ABILITY_INFO } from '../lib/constants';
+import { naturalSort } from '../lib/utils';
 
 interface CardListProps {
   cards: CharacterCard[];
@@ -18,6 +19,8 @@ export function CardList({
   searchQuery,
   onSearchChange,
 }: CardListProps) {
+  const sortedCards = [...cards].sort((a, b) => naturalSort(a.name, b.name));
+
   return (
     <aside className="flex flex-col w-80 bg-background border-r border-border shadow-sm">
       {/* Search */}
@@ -33,12 +36,12 @@ export function CardList({
 
       {/* Cards List */}
       <ul className="flex-1 overflow-y-auto">
-        {cards.length === 0 ? (
+        {sortedCards.length === 0 ? (
           <li className="p-4 text-center text-muted-foreground text-sm">
             {searchQuery ? 'Keine Treffer' : 'Keine Charaktere'}
           </li>
         ) : (
-          cards.map((card) => (
+          sortedCards.map((card) => (
             <li key={card.id} className="border-b border-border last:border-b-0">
               <Button
                 onClick={() => onSelect(card.id)}

@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from './ui/select';
 import { loadAvailableImages, getImageUrl } from '../lib/imageLoader';
+import { naturalSort } from '../lib/utils';
 
 interface ImageManagerProps {
   imageName: string;
@@ -44,9 +45,9 @@ export function ImageManager({ imageName, onImageUpload }: ImageManagerProps) {
     onImageUpload('');
   };
 
-  const imageFiles = availableImages.filter(file =>
-    /\.(jpg|jpeg|png|webp)$/i.test(file)
-  );
+  const imageFiles = availableImages
+    .filter(file => /\.(jpg|jpeg|png|webp)$/i.test(file))
+    .sort(naturalSort);
 
   return (
     <div className="space-y-3">
@@ -55,7 +56,7 @@ export function ImageManager({ imageName, onImageUpload }: ImageManagerProps) {
       </label>
 
       {imageName && (
-        <div className="relative border-2 border-dashed rounded-lg p-4 text-center transition aspect-video flex items-center justify-center border-border bg-muted">
+        <div className="relative border-2 border-dashed rounded-lg p-4 text-center transition w-full aspect-video flex items-center justify-center border-border bg-muted">
           <img
             src={getImageUrl(imageName)}
             alt={imageName}
@@ -65,7 +66,7 @@ export function ImageManager({ imageName, onImageUpload }: ImageManagerProps) {
       )}
 
       {!imageName && (
-        <div className="relative border-2 border-dashed rounded-lg p-4 text-center transition aspect-video flex items-center justify-center border-border bg-muted">
+        <div className="relative border-2 border-dashed rounded-lg p-4 text-center transition w-full aspect-video flex items-center justify-center border-border bg-muted">
           <div className="text-center">
             <Upload className="mx-auto h-6 w-6 text-muted-foreground mb-2" />
             <p className="text-xs text-muted-foreground">Bild auswählen</p>

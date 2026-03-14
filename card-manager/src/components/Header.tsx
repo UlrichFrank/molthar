@@ -1,4 +1,4 @@
-import { Download, Upload, Plus } from 'lucide-react';
+import { Download, Upload, Plus, Image, Trash2 } from 'lucide-react';
 import { Button } from './ui/button';
 
 interface HeaderProps {
@@ -6,9 +6,11 @@ interface HeaderProps {
   onExport: () => void;
   onImport: () => void;
   onAddNew: () => void;
+  onCreateFromImages: () => void;
+  onDeleteAll: () => void;
 }
 
-export function Header({ cardCount, onExport, onImport, onAddNew }: HeaderProps) {
+export function Header({ cardCount, onExport, onImport, onAddNew, onCreateFromImages, onDeleteAll }: HeaderProps) {
   return (
     <header className="bg-background border-b border-border shadow-sm">
       <div className="max-w-full px-6 py-4 flex items-center justify-between">
@@ -27,6 +29,16 @@ export function Header({ cardCount, onExport, onImport, onAddNew }: HeaderProps)
           </Button>
 
           <Button
+            onClick={onCreateFromImages}
+            variant="outline"
+            className="gap-2"
+            title="Erstelle automatisch Karten für alle unreferenzierten CharakterKarte*.jpeg Bilder"
+          >
+            <Image size={18} />
+            Aus Bildern
+          </Button>
+
+          <Button
             onClick={onImport}
             variant="outline"
             className="gap-2"
@@ -41,6 +53,16 @@ export function Header({ cardCount, onExport, onImport, onAddNew }: HeaderProps)
           >
             <Download size={18} />
             Exportieren
+          </Button>
+
+          <Button
+            onClick={onDeleteAll}
+            variant="destructive"
+            size="icon"
+            title="Löscht ALLE Charakterkarten"
+            disabled={cardCount === 0}
+          >
+            <Trash2 size={18} />
           </Button>
         </div>
       </div>

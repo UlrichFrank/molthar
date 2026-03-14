@@ -1,10 +1,12 @@
 // Image loader utilities
+import { naturalSort } from './utils';
+
 export async function loadAvailableImages(): Promise<string[]> {
   try {
     // Load image manifest from public folder
     const response = await fetch('/assets-manifest.json');
     const data = await response.json();
-    return data.images || [];
+    return (data.images || []).sort(naturalSort);
   } catch (error) {
     console.error('Failed to load image manifest:', error);
     return [];
@@ -29,4 +31,19 @@ export async function loadImageAsDataUrl(filename: string): Promise<string> {
 
 export function getImageUrl(filename: string): string {
   return `/assets/${filename}`;
+}
+
+export async function findUnreferencedCharacterImages(existingImageNames: string[]): Promise<string[]> {
+  try {
+    const allImages = await loadAvailableImages();
+    const characterImagePattern = /^Charakterkarte\d+\.jpeg$/i;
+    const referencedSet = new Set(existingImageNames);
+    
+    return allImages
+      .filter(image => characterImagePattern.test(image) && !referencedSet.has(image))
+      .sort(naturalSort);
+  } catch (error) {
+    console.error('Error finding unreferenced character images:', error);
+    return [];
+  }
 }
