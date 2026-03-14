@@ -1,4 +1,4 @@
-import type { Ability } from '../lib/types';
+import type { Ability, AbilityTiming } from '../lib/types';
 import { Input } from './ui/input';
 import {
   Select,
@@ -8,7 +8,7 @@ import {
   SelectValue,
   SelectGroup,
 } from './ui/select';
-import { ABILITY_INFO } from '../lib/constants';
+import { ABILITY_INFO, ABILITY_TIMING_INFO } from '../lib/constants';
 
 interface AbilityEditorProps {
   ability: Ability;
@@ -17,13 +17,18 @@ interface AbilityEditorProps {
 
 export function AbilityEditor({ ability, onUpdate }: AbilityEditorProps) {
   const abilityInfo = ABILITY_INFO[ability.type];
+  const timing = ability.timing || 'duringTurn'; // Default to 'duringTurn'
 
   const handleTypeChange = (type: string) => {
-    const newAbility: Ability = { type: type as any };
+    const newAbility: Ability = { type: type as any, timing };
     if (type === 'providesVirtualPearl') {
       newAbility.value = null;
     }
     onUpdate(newAbility);
+  };
+
+  const handleTimingChange = (newTiming: string) => {
+    onUpdate({ ...ability, timing: newTiming as AbilityTiming });
   };
 
   // Group abilities by category
@@ -110,13 +115,39 @@ export function AbilityEditor({ ability, onUpdate }: AbilityEditorProps) {
             value={ability.value || ''}
             onChange={(e) => {
               const value = e.target.value ? parseInt(e.target.value) : null;
-              onUpdate({ type: 'providesVirtualPearl', value });
+              onUpdate({ type: 'providesVirtualPearl', timing, value });
             }}
             placeholder="Leer = wildcard"
           />
           <p className="text-xs text-muted-foreground mt-1">
             0 oder leer = beliebiger Wert
           </p>
+        </div>
+      )}
+
+      {/* Timing selection */}
+      {ability.type !== 'none' && (
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-2">
+            Zeitpunkt der Aktivierung
+          </label>
+          <Select value={timing} onValueChange={handleTimingChange}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(ABILITY_TIMING_INFO).map(([timingKey, timingInfo]) => (
+                <SelectItem key={timingKey} value={timingKey}>
+                  {timingInfo.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {ABILITY_TIMING_INFO[timing] && (
+            <p className="text-xs text-muted-foreground mt-1">
+              {ABILITY_TIMING_INFO[timing].description}
+            </p>
+          )}
         </div>
       )}
     </div>

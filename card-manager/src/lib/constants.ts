@@ -1,4 +1,19 @@
-import type { AbilityType, AbilityInfo } from './types';
+import type { AbilityType, AbilityInfo, AbilityTiming } from './types';
+
+export const ABILITY_TIMING_INFO: Record<AbilityTiming, { label: string; description: string }> = {
+  beforeAction: {
+    label: 'Vor der ersten Aktion',
+    description: 'Die Fähigkeit muss vor der ersten Aktion im Zug aktiviert werden',
+  },
+  duringTurn: {
+    label: 'Während des Zuges',
+    description: 'Die Fähigkeit kann zu jedem beliebigen Zeitpunkt während des Zuges aktiviert werden',
+  },
+  afterAction: {
+    label: 'Nach der letzten Aktion',
+    description: 'Die Fähigkeit wird nach der letzten Aktion im Zug aktiviert',
+  },
+};
 
 export const ABILITY_INFO: Record<AbilityType, AbilityInfo> = {
   none: {
@@ -115,6 +130,13 @@ export const ABILITY_INFO: Record<AbilityType, AbilityInfo> = {
     category: 'blue',
     hasParameters: false,
   },
+  previewCharacter: {
+    type: 'previewCharacter',
+    label: 'Oberste Charakterkarte ansehen',
+    description: 'Sieh dir die oberste Charakterkarte des Nachziehstapels an',
+    category: 'blue',
+    hasParameters: false,
+  },
   // Special
   irrlicht: {
     type: 'irrlicht',
@@ -124,48 +146,3 @@ export const ABILITY_INFO: Record<AbilityType, AbilityInfo> = {
     hasParameters: false,
   },
 };
-
-export const COST_TYPES = [
-  {
-    type: 'identicalValues' as const,
-    label: 'Gleiche Werte (Paar/Drilling/...)',
-    description: 'N Karten mit gleichem Wert, optional bestimmter Wert',
-    fields: ['count', 'specificValue'],
-  },
-  {
-    type: 'multipleIdenticalValues' as const,
-    label: 'Mehrere Paare/Drillinge',
-    description: 'z.B. 2x 3er + 2x 5er',
-    fields: ['counts', 'specificValues'],
-  },
-  {
-    type: 'exactValues' as const,
-    label: 'Exakte Werte',
-    description: 'Genau diese Werte, z.B. 1,2,3',
-    fields: ['expected'],
-  },
-  {
-    type: 'sum' as const,
-    label: 'Summe',
-    description: 'Karten mit Summe = X (optional mit bestimmter Kartenanzahl)',
-    fields: ['target', 'cardCount'],
-  },
-  {
-    type: 'run' as const,
-    label: 'Zahlenreihe',
-    description: 'Aufeinanderfolgende Werte, z.B. 3-4-5',
-    fields: ['length'],
-  },
-  {
-    type: 'allEven' as const,
-    label: 'Alle geraden Werte',
-    description: 'N gerade Perlenkarten (2,4,6,8)',
-    fields: ['count'],
-  },
-  {
-    type: 'allOdd' as const,
-    label: 'Alle ungeraden Werte',
-    description: 'N ungerade Perlenkarten (1,3,5,7)',
-    fields: ['count'],
-  },
-];

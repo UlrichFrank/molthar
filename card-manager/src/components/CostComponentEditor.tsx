@@ -12,7 +12,7 @@ import { Button } from './ui/button';
 
 const COMPONENT_TYPES = [
   { value: 'number', label: 'Einzelne Zahl (1-8)' },
-  { value: 'nTuple', label: 'N-Tupel beliebiger Zahlen (nur n einstellbar)' },
+  { value: 'nTuple', label: 'N-Tupel gleicher Zahlen (nur n einstellbar)' },
   { value: 'evenTuple', label: 'N-Tupel gerade Zahlen' },
   { value: 'oddTuple', label: 'N-Tupel ungerade Zahlen' },
   { value: 'sumTuple', label: 'N-Tupel mit Gesamtsumme' },

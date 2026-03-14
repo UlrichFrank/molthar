@@ -44,10 +44,14 @@ export type AbilityType =
   | 'oneExtraActionPerTurn'
   | 'providesVirtualPearl'
   | 'decreaseWithPearl'
+  | 'previewCharacter'
   | 'irrlicht';
+
+export type AbilityTiming = 'beforeAction' | 'duringTurn' | 'afterAction';
 
 export interface Ability {
   type: AbilityType;
+  timing?: AbilityTiming; // When the ability can be used
   value?: number | null; // Only used for providesVirtualPearl
 }
 

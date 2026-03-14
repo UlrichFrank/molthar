@@ -3,15 +3,15 @@ import { render, screen } from '@testing-library/react';
 import App from '../App';
 
 describe('App', () => {
-  it('renders the main heading', () => {
+  it('renders the game start screen', () => {
     render(<App />);
     const heading = screen.getByText(/Portale von Molthar/i);
     expect(heading).toBeDefined();
   });
 
-  it('renders button with initial count', () => {
+  it('renders start game button', () => {
     render(<App />);
-    const button = screen.getByRole('button', { name: /Count is 0/i });
+    const button = screen.getByRole('button', { name: /Start Game/i });
     expect(button).toBeDefined();
   });
 });
