@@ -2,6 +2,7 @@ import type { IGameState, PlayerState, GameAction } from '../../lib/types';
 import { GameActionType } from '../../lib/types';
 import { GAME_RULES, createPearlDeck } from '../../lib/constants';
 import { executeRedAbility, isRedAbilityType } from './abilitySystem';
+import { calculateWinner, isFinalRoundComplete } from './finalRound';
 
 /**
  * Main game engine - handles all game logic and state mutations
@@ -324,6 +325,13 @@ export class GameEngine {
     // Move to next player
     state.currentPlayer = (state.currentPlayer + 1) % state.players.length;
     state.players[state.currentPlayer].actionCount = GAME_RULES.ACTIONS_PER_TURN;
+
+    // Check if final round is complete
+    if (state.finalRoundActive && isFinalRoundComplete(state)) {
+      state.gamePhase = 'gameFinished';
+      const winnerIdx = calculateWinner(state);
+      state.winner = state.players[winnerIdx].id;
+    }
 
     // Log action
     state.gameLog.push({

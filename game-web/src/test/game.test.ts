@@ -5,6 +5,7 @@ import { GameActionType } from '../lib/types';
 import { GAME_RULES } from '../lib/constants';
 import { validateCostComponent, validateCharacterCost } from '../game/engine/costValidator';
 import { executeRedAbility, isRedAbilityType, getActiveBlueAbilities, getModifiedActionCount, getModifiedHandLimit } from '../game/engine/abilitySystem';
+import { calculateWinner, getWinnerInfo, formatWinnerAnnouncement } from '../game/engine/finalRound';
 
 // Mock character cards for testing
 const MOCK_CHARACTERS: CharacterCard[] = [
@@ -1655,3 +1656,149 @@ describe('GameEngine - P1.8: Turn End & Hand Limits', () => {
 
 
 
+
+// P1.9: Final Round & Winner Determination Tests
+describe('FinalRound - P1.9: Final Round & Winner Determination', () => {
+  let gameState: IGameState;
+
+  beforeEach(() => {
+    gameState = GameEngine.initializeGame(['Player 1', 'Player 2'], MOCK_CHARACTERS);
+  });
+
+  describe('Final Round Triggering', () => {
+    it('should trigger final round when player reaches 12+ power points', () => {
+      const charWithPower: CharacterCard = {
+        id: 'power-char',
+        name: 'Power Char',
+        cost: [{ type: 'none' } as const],
+        powerPoints: 12,
+        diamonds: 0,
+        ability: 'none',
+      };
+      gameState.players[0].portal.characters = [charWithPower];
+
+      const action: GameAction = {
+        type: GameActionType.ActivateCharacter,
+        playerId: 'player-0',
+        payload: { characterIndex: 0, pearlCardIndices: [] },
+        timestamp: Date.now(),
+      };
+
+      const newState = GameEngine.processAction(gameState, action);
+
+      expect(newState.finalRoundActive).toBe(true);
+    });
+
+    it('should set final round players in turn order', () => {
+      gameState.currentPlayer = 0;
+      gameState.players[0].portal.powerPoints = 10;
+
+      const charWithPower: CharacterCard = {
+        id: 'power-char',
+        name: 'Power Char',
+        cost: [{ type: 'none' } as const],
+        powerPoints: 2,
+        diamonds: 0,
+        ability: 'none',
+      };
+      gameState.players[0].portal.characters = [charWithPower];
+
+      const action: GameAction = {
+        type: GameActionType.ActivateCharacter,
+        playerId: 'player-0',
+        payload: { characterIndex: 0, pearlCardIndices: [] },
+        timestamp: Date.now(),
+      };
+
+      const newState = GameEngine.processAction(gameState, action);
+
+      expect(newState.finalRoundPlayers.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Winner Calculation', () => {
+    it('should select player with most power points as winner', () => {
+      gameState.players[0].portal.powerPoints = 15;
+      gameState.players[1].portal.powerPoints = 10;
+
+      const winner = calculateWinner(gameState);
+      expect(winner).toBe(0);
+    });
+
+    it('should use diamonds as tiebreaker', () => {
+      gameState.players[0].portal.powerPoints = 15;
+      gameState.players[0].portal.diamonds = 5;
+      gameState.players[1].portal.powerPoints = 15;
+      gameState.players[1].portal.diamonds = 6;
+
+      const winner = calculateWinner(gameState);
+      expect(winner).toBe(1);
+    });
+
+    it('should prefer higher power even with fewer diamonds', () => {
+      gameState.players[0].portal.powerPoints = 16;
+      gameState.players[0].portal.diamonds = 3;
+      gameState.players[1].portal.powerPoints = 15;
+      gameState.players[1].portal.diamonds = 8;
+
+      const winner = calculateWinner(gameState);
+      expect(winner).toBe(0);
+    });
+
+    it('should handle 3+ players', () => {
+      gameState = GameEngine.initializeGame(
+        ['P1', 'P2', 'P3', 'P4'],
+        MOCK_CHARACTERS
+      );
+      gameState.players[2].portal.powerPoints = 20;
+      gameState.players[2].portal.diamonds = 5;
+
+      const winner = calculateWinner(gameState);
+      expect(winner).toBe(2);
+    });
+  });
+
+  describe('Winner Info & Formatting', () => {
+    it('should provide complete winner information', () => {
+      gameState.finalRoundActive = true;
+      gameState.players[0].portal.powerPoints = 15;
+      gameState.players[0].portal.diamonds = 5;
+
+      const info = getWinnerInfo(gameState);
+
+      expect(info).toBeDefined();
+      expect(info?.playerIndex).toBe(0);
+      expect(info?.playerName).toBe('Player 1');
+      expect(info?.powerPoints).toBe(15);
+      expect(info?.diamonds).toBe(5);
+    });
+
+    it('should format winner announcement', () => {
+      gameState.finalRoundActive = true;
+      gameState.players[0].portal.powerPoints = 15;
+      gameState.players[0].portal.diamonds = 5;
+
+      const announcement = formatWinnerAnnouncement(gameState);
+
+      expect(announcement).toContain('Player 1');
+      expect(announcement).toContain('15');
+      expect(announcement).toContain('5');
+    });
+  });
+
+  describe('Game Completion', () => {
+    it('should prevent actions after game finishes', () => {
+      gameState.gamePhase = 'gameFinished';
+
+      const action: GameAction = {
+        type: GameActionType.EndTurn,
+        playerId: 'player-0',
+        timestamp: Date.now(),
+      };
+
+      expect(() => GameEngine.processAction(gameState, action)).toThrow(
+        'Game is finished'
+      );
+    });
+  });
+});
