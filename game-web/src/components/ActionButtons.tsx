@@ -2,7 +2,7 @@ import type { PlayerState } from '../lib/types';
 import '../styles/Components.css';
 
 interface ActionButtonsProps {
-  gamePhase: string;
+  gamePhase: 'takingActions' | 'discardingExcessCards' | 'gameFinished';
   actionsRemaining: number;
   selectedPearl: number | null;
   selectedCharacter: number | null;
@@ -30,86 +30,106 @@ export function ActionButtons({
 }: ActionButtonsProps) {
   const isActionPhase = gamePhase === 'takingActions';
   const isDiscardPhase = gamePhase === 'discardingExcessCards';
+  const isGameFinished = gamePhase === 'gameFinished';
+
+  const portalCharacters = currentPlayer.portal.characters;
 
   return (
     <div className="action-buttons">
+      <div className="phase-indicator">
+        <span className="phase-label">Phase:</span>
+        <span className={`phase-badge phase-${gamePhase}`}>
+          {gamePhase === 'takingActions' && `Actions (${actionsRemaining} left)`}
+          {gamePhase === 'discardingExcessCards' && 'Discard Excess Cards'}
+          {gamePhase === 'gameFinished' && 'Game Finished'}
+        </span>
+      </div>
+
       {isActionPhase && (
-        <>
+        <div className="action-phase-content">
           <div className="actions-row">
             <button
-              className="btn btn-primary"
+              className={`btn btn-primary ${selectedPearl !== null ? 'ready' : 'disabled'}`}
               onClick={onTakePearl}
               disabled={selectedPearl === null || actionsRemaining === 0}
+              title={selectedPearl === null ? 'Select a pearl card first' : 'Take the selected pearl card'}
             >
-              Take Pearl
+              💎 Take Pearl
+              {selectedPearl !== null && <span className="btn-badge">{selectedPearl + 1}</span>}
             </button>
 
             <button
-              className="btn btn-primary"
+              className={`btn btn-primary ${selectedCharacter !== null ? 'ready' : 'disabled'}`}
               onClick={onPlaceCharacter}
               disabled={selectedCharacter === null || actionsRemaining === 0}
+              title={selectedCharacter === null ? 'Select a character card first' : 'Place the selected character card'}
             >
-              Place Character
+              🎭 Place Character
+              {selectedCharacter !== null && <span className="btn-badge">{selectedCharacter + 1}</span>}
             </button>
           </div>
 
-          <div className="actions-row">
-            <div className="action-group">
-              <label>Activate Character:</label>
-              <select
-                className="character-select"
-                onChange={(e) => {
-                  if (e.target.value) {
-                    onActivateCharacter(parseInt(e.target.value));
-                    e.target.value = '';
-                  }
-                }}
-                disabled={actionsRemaining === 0 || currentPlayer.portal.characters.length === 0}
-                defaultValue=""
-              >
-                <option value="">Select from portal...</option>
-                {currentPlayer.portal.characters.map((char, idx) => (
-                  <option key={idx} value={idx}>
-                    {char.name}
-                  </option>
-                ))}
-              </select>
+          {portalCharacters.length > 0 && (
+            <div className="actions-row">
+              <div className="action-group">
+                <label className="group-label">Activate Character:</label>
+                <select
+                  className="character-select"
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      onActivateCharacter(parseInt(e.target.value));
+                      e.target.value = '';
+                    }
+                  }}
+                  disabled={actionsRemaining === 0}
+                  defaultValue=""
+                >
+                  <option value="">Choose from portal...</option>
+                  {portalCharacters.map((char, idx) => (
+                    <option key={idx} value={idx}>
+                      {char.name} (⚡{char.powerPoints})
+                    </option>
+                  ))}
+                </select>
+                <span className="help-text">Select pearls from hand first</span>
+              </div>
             </div>
+          )}
 
+          <div className="actions-row">
             <button
               className="btn btn-secondary"
               onClick={onEndTurn}
+              title="End your turn and pass to the next player"
             >
-              End Turn
+              ➡️ End Turn
             </button>
           </div>
-        </>
+        </div>
       )}
 
       {isDiscardPhase && (
-        <div className="actions-row">
+        <div className="discard-phase-content">
+          <div className="discard-info">
+            <p className="info-text">Hand exceeds limit! Select cards to discard.</p>
+          </div>
           <button
-            className="btn btn-warning"
+            className={`btn btn-warning ${selectedHandCount > 0 ? 'ready' : 'disabled'}`}
             onClick={onDiscardCards}
             disabled={selectedHandCount === 0}
+            title={selectedHandCount === 0 ? 'Select cards to discard' : `Discard ${selectedHandCount} cards`}
           >
-            Discard {selectedHandCount} Cards
+            🗑️ Discard {selectedHandCount} Card{selectedHandCount !== 1 ? 's' : ''}
+            {selectedHandCount > 0 && <span className="btn-badge">{selectedHandCount}</span>}
           </button>
         </div>
       )}
 
-      <div className="action-info">
-        {isActionPhase && (
-          <span className="info-text">
-            Actions remaining: <strong>{actionsRemaining}</strong>/3
-          </span>
-        )}
-        {isDiscardPhase && (
-          <span className="info-text">
-            Discard cards to get below hand limit
-          </span>
-        )}
-      </div>
+      {isGameFinished && (
+        <div className="finished-phase-content">
+          <p className="finished-message">Game is finished. View results on the left.</p>
+        </div>
+      )}
     </div>
   );
 }

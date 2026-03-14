@@ -129,9 +129,9 @@ export function GameBoard({
           <PlayerHand
             hand={currentPlayer.hand}
             selectedIndices={selectedHandIndices}
-            onSelectCard={onSelectHandCard}
+            phase={gameState.gamePhase}
+            onSelect={onSelectHandCard}
             onClearSelection={onClearHandSelection}
-            gamePhase={gameState.gamePhase}
           />
 
           {/* Action buttons */}
