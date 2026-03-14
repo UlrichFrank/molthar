@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { GameEngine } from '../game/engine/gameEngine';
-import type { IGameState, CharacterCard } from '../lib/types';
+import type { IGameState, CharacterCard, GameAction } from '../lib/types';
 import { GameActionType } from '../lib/types';
 import { GAME_RULES } from '../lib/constants';
 import { validateCostComponent, validateCharacterCost } from '../game/engine/costValidator';
@@ -806,4 +806,288 @@ describe('CostValidator - P1.5: Cost Component Validation', () => {
     });
   });
 });
+
+// P1.6: Activate Character Tests
+describe('GameEngine - P1.6: Activate Character', () => {
+  let gameState: IGameState;
+
+  beforeEach(() => {
+    gameState = GameEngine.initializeGame(['Player 1', 'Player 2'], MOCK_CHARACTERS);
+    // Give current player some characters in portal
+    gameState.players[0].portal.characters = [MOCK_CHARACTERS[0], MOCK_CHARACTERS[1]];
+    // Give current player some pearls in hand
+    gameState.players[0].hand = [
+      { value: 2, hasSwapSymbol: false },
+      { value: 3, hasSwapSymbol: false },
+      { value: 5, hasSwapSymbol: false },
+    ];
+  });
+
+  describe('Basic Activation', () => {
+    it('should activate a free character (no cost)', () => {
+      // Create a free character and override the beforeEach setup
+      const freeChar: CharacterCard = {
+        id: 'free-char',
+        name: 'Free Character',
+        cost: [{ type: 'none' } as const],
+        powerPoints: 3,
+        diamonds: 1,
+        ability: 'none',
+      };
+      gameState.players[0].portal.characters = [freeChar];
+
+      const initialPowerPoints = gameState.players[0].portal.powerPoints;
+      const action: GameAction = {
+        type: GameActionType.ActivateCharacter,
+        playerId: 'player-0',
+        payload: { characterIndex: 0, pearlCardIndices: [] },
+        timestamp: Date.now(),
+      };
+
+      const newState = GameEngine.processAction(gameState, action);
+
+      expect(newState.players[0].portal.powerPoints).toBe(initialPowerPoints + 3);
+      expect(newState.players[0].portal.diamonds).toBe(1);
+      expect(newState.players[0].portal.characters).toHaveLength(0);
+      expect(newState.players[0].actionCount).toBe(2); // 3 - 1
+    });
+
+    it('should activate character with cost using pearls', () => {
+      // Use character with exact cost (MOCK_CHARACTERS[0] is already in beforeEach)
+      const action: GameAction = {
+        type: GameActionType.ActivateCharacter,
+        playerId: 'player-0',
+        payload: { characterIndex: 0, pearlCardIndices: [0, 1, 2] }, // 2+3+5=10
+        timestamp: Date.now(),
+      };
+
+      const newState = GameEngine.processAction(gameState, action);
+
+      // Should have consumed pearls
+      expect(newState.players[0].hand).toHaveLength(0);
+      // Should award power points
+      expect(newState.players[0].portal.powerPoints).toBeGreaterThan(0);
+      // Should decrease action count
+      expect(newState.players[0].actionCount).toBe(2);
+    });
+
+    it('should move activated character to discard pile', () => {
+      // Override with a free character to avoid needing pearls
+      const freeChar: CharacterCard = {
+        id: 'free-test',
+        name: 'Free Test',
+        cost: [{ type: 'none' } as const],
+        powerPoints: 1,
+        diamonds: 0,
+        ability: 'none',
+      };
+      gameState.players[0].portal.characters = [freeChar];
+
+      const discardCount = gameState.characterDiscardPile.length;
+      const action: GameAction = {
+        type: GameActionType.ActivateCharacter,
+        playerId: 'player-0',
+        payload: { characterIndex: 0, pearlCardIndices: [] },
+        timestamp: Date.now(),
+      };
+
+      gameState.players[0].portal.characters = [
+        {
+          id: 'free-test',
+          name: 'Free Test',
+          cost: [{ type: 'none' } as const],
+          powerPoints: 1,
+          diamonds: 0,
+          ability: 'none',
+        },
+      ];
+
+      const newState = GameEngine.processAction(gameState, action);
+
+      expect(newState.characterDiscardPile).toHaveLength(discardCount + 1);
+      expect(newState.players[0].portal.characters).toHaveLength(0);
+    });
+  });
+
+  describe('Cost Validation', () => {
+    it('should reject activation if pearls not provided', () => {
+      // Use a character with cost (MOCK_CHARACTERS[0] has cost: number/5)
+      // This test setup already has characters with costs set up in beforeEach
+      const action: GameAction = {
+        type: GameActionType.ActivateCharacter,
+        playerId: 'player-0',
+        payload: { characterIndex: 0, pearlCardIndices: [] }, // No pearls provided
+        timestamp: Date.now(),
+      };
+
+      // This should throw because character has cost but no pearls provided
+      expect(() => GameEngine.processAction(gameState, action)).toThrow(
+        'Pearl cards required'
+      );
+    });
+
+    it('should reject activation with invalid character index', () => {
+      const action: GameAction = {
+        type: GameActionType.ActivateCharacter,
+        playerId: 'player-0',
+        payload: { characterIndex: 99, pearlCardIndices: [0] },
+        timestamp: Date.now(),
+      };
+
+      expect(() => GameEngine.processAction(gameState, action)).toThrow(
+        'Invalid character index'
+      );
+    });
+
+    it('should reject activation if no actions remaining', () => {
+      gameState.players[0].actionCount = 0;
+      gameState.players[0].portal.characters = [
+        {
+          id: 'free-test',
+          name: 'Free Test',
+          cost: [{ type: 'none' } as const],
+          powerPoints: 1,
+          diamonds: 0,
+          ability: 'none',
+        },
+      ];
+
+      const action: GameAction = {
+        type: GameActionType.ActivateCharacter,
+        playerId: 'player-0',
+        payload: { characterIndex: 0, pearlCardIndices: [] },
+        timestamp: Date.now(),
+      };
+
+      expect(() => GameEngine.processAction(gameState, action)).toThrow(
+        'No actions remaining'
+      );
+    });
+  });;
+
+  describe('Power Points & Final Round', () => {
+    it('should trigger final round when reaching 12+ power points', () => {
+      gameState.players[0].portal.powerPoints = 10;
+      gameState.players[0].portal.characters = [
+        {
+          id: 'big-char',
+          name: 'Big Character',
+          cost: [{ type: 'none' } as const],
+          powerPoints: 2, // Total: 10 + 2 = 12
+          diamonds: 0,
+          ability: 'none',
+        },
+      ];
+
+      const action: GameAction = {
+        type: GameActionType.ActivateCharacter,
+        playerId: 'player-0',
+        payload: { characterIndex: 0, pearlCardIndices: [] },
+        timestamp: Date.now(),
+      };
+
+      const newState = GameEngine.processAction(gameState, action);
+
+      expect(newState.finalRoundActive).toBe(true);
+      expect(newState.finalRoundPlayers).toHaveLength(2);
+    });
+
+    it('should not trigger final round twice', () => {
+      gameState.finalRoundActive = true;
+      gameState.finalRoundPlayers = [0, 1];
+
+      gameState.players[0].portal.characters = [
+        {
+          id: 'another-char',
+          name: 'Another Char',
+          cost: [{ type: 'none' } as const],
+          powerPoints: 1,
+          diamonds: 0,
+          ability: 'none',
+        },
+      ];
+
+      const action: GameAction = {
+        type: GameActionType.ActivateCharacter,
+        playerId: 'player-0',
+        payload: { characterIndex: 0, pearlCardIndices: [] },
+        timestamp: Date.now(),
+      };
+
+      const newState = GameEngine.processAction(gameState, action);
+
+      expect(newState.finalRoundPlayers).toHaveLength(2);
+    });
+  });
+
+  describe('Pearl Consumption', () => {
+    it('should remove pearls in reverse order', () => {
+      gameState.players[0].hand = [
+        { value: 1, hasSwapSymbol: false },
+        { value: 2, hasSwapSymbol: false },
+        { value: 3, hasSwapSymbol: false },
+        { value: 4, hasSwapSymbol: false },
+      ];
+
+      // Use a character with cost so it expects pearls
+      gameState.players[0].portal.characters = [
+        {
+          id: 'test-char',
+          name: 'Test',
+          cost: [{ type: 'number', value: 5 } as const], // Costs 5, so pearls are needed
+          powerPoints: 1,
+          diamonds: 0,
+          ability: 'none',
+        },
+      ];
+
+      const action: GameAction = {
+        type: GameActionType.ActivateCharacter,
+        playerId: 'player-0',
+        payload: { characterIndex: 0, pearlCardIndices: [3, 1] }, // Remove indices 3 and 1
+        timestamp: Date.now(),
+      };
+
+      const newState = GameEngine.processAction(gameState, action);
+
+      // After removing indices 3 and 1, should have indices 0 and 2 (values 1 and 3)
+      expect(newState.players[0].hand).toHaveLength(2);
+      expect(newState.players[0].hand[0].value).toBe(1);
+      expect(newState.players[0].hand[1].value).toBe(3);
+    });
+
+    it('should reject invalid pearl card indices', () => {
+      // Ensure we have a character with cost to trigger the error
+      gameState.players[0].portal.characters = [MOCK_CHARACTERS[0]]; // Has cost
+      
+      const action: GameAction = {
+        type: GameActionType.ActivateCharacter,
+        playerId: 'player-0',
+        payload: { characterIndex: 0, pearlCardIndices: [99] }, // Index 99 is invalid
+        timestamp: Date.now(),
+      };
+
+      expect(() => GameEngine.processAction(gameState, action)).toThrow(
+        'Invalid pearl card index'
+      );
+    });
+
+    it('should reject non-array pearlCardIndices', () => {
+      // Ensure we have a character with cost
+      gameState.players[0].portal.characters = [MOCK_CHARACTERS[0]]; // Has cost
+      
+      const action: GameAction = {
+        type: GameActionType.ActivateCharacter,
+        playerId: 'player-0',
+        payload: { characterIndex: 0, pearlCardIndices: 'not-array' } as any, // Not an array
+        timestamp: Date.now(),
+      };
+
+      expect(() => GameEngine.processAction(gameState, action)).toThrow(
+        'pearlCardIndices must be an array'
+      );
+    });
+  });
+});
+
 
