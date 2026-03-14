@@ -3,6 +3,7 @@ import { GameEngine } from '../game/engine/gameEngine';
 import type { IGameState, CharacterCard } from '../lib/types';
 import { GameActionType } from '../lib/types';
 import { GAME_RULES } from '../lib/constants';
+import { validateCostComponent, validateCharacterCost } from '../game/engine/costValidator';
 
 // Mock character cards for testing
 const MOCK_CHARACTERS: CharacterCard[] = [
@@ -501,3 +502,308 @@ describe('GameEngine - P1.2-P1.4: Pearl & Character Moves', () => {
     });
   });
 });
+
+// P1.5: Cost Validator Tests
+describe('CostValidator - P1.5: Cost Component Validation', () => {
+  const mockPearls = (values: number[]) =>
+    values.map((v) => ({ value: v as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8, hasSwapSymbol: false }));
+
+  describe('validateCostComponent - Fixed Sum (number)', () => {
+    it('should validate exact sum without diamonds', () => {
+      
+      const result = validateCostComponent(
+        mockPearls([2, 3, 5]),
+        { type: 'number', value: 10 },
+        0
+      );
+      expect(result.isValid).toBe(true);
+      expect(result.usedIndices?.length).toBe(3);
+    });
+
+    it('should validate with diamond modifier (reduces total by 1)', () => {
+      
+      const result = validateCostComponent(
+        mockPearls([2, 3, 5]),
+        { type: 'number', value: 11 },
+        1 // 1 diamond
+      );
+      expect(result.isValid).toBe(true);
+      expect(result.usedIndices?.length).toBe(3);
+    });
+
+    it('should fail if insufficient sum', () => {
+      
+      const result = validateCostComponent(mockPearls([1, 2, 3]), { type: 'number', value: 20 }, 0);
+      expect(result.isValid).toBe(false);
+    });
+
+    it('should use smallest subset', () => {
+      
+      // 5 can be made with [5] or [2,3], should prefer [5]
+      const result = validateCostComponent(
+        mockPearls([2, 3, 5]),
+        { type: 'number', value: 5 },
+        0
+      );
+      expect(result.isValid).toBe(true);
+      expect(result.usedIndices?.length).toBe(1);
+    });
+  });
+
+  describe('validateCostComponent - nTuple (identical values)', () => {
+    it('should validate n identical cards', () => {
+      
+      const result = validateCostComponent(
+        mockPearls([3, 3, 5]),
+        { type: 'nTuple', n: 2 },
+        0
+      );
+      expect(result.isValid).toBe(true);
+      expect(result.usedIndices?.length).toBe(2);
+    });
+
+    it('should fail if not enough identical cards', () => {
+      
+      const result = validateCostComponent(
+        mockPearls([3, 4, 5]),
+        { type: 'nTuple', n: 2 },
+        0
+      );
+      expect(result.isValid).toBe(false);
+    });
+
+    it('should work with 1 identical card', () => {
+      
+      const result = validateCostComponent(
+        mockPearls([3, 4, 5]),
+        { type: 'nTuple', n: 1 },
+        0
+      );
+      expect(result.isValid).toBe(true);
+    });
+  });
+
+  describe('validateCostComponent - sumAnyTuple (sum to exact)', () => {
+    it('should validate any cards summing to target', () => {
+      
+      const result = validateCostComponent(
+        mockPearls([2, 3, 5, 1]),
+        { type: 'sumAnyTuple', sum: 8 },
+        0
+      );
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should respect diamond modifier', () => {
+      
+      const result = validateCostComponent(
+        mockPearls([2, 3, 5]),
+        { type: 'sumAnyTuple', sum: 11 },
+        1 // 1 diamond
+      );
+      expect(result.isValid).toBe(true);
+    });
+  });
+
+  describe('validateCostComponent - sumTuple (sum in range)', () => {
+    it('should validate sum within range', () => {
+      
+      const result = validateCostComponent(
+        mockPearls([2, 3, 5]),
+        { type: 'sumTuple', min: 8, max: 12 },
+        0
+      );
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should fail if sum below range', () => {
+      
+      const result = validateCostComponent(
+        mockPearls([1, 2]),
+        { type: 'sumTuple', min: 8, max: 12 },
+        0
+      );
+      expect(result.isValid).toBe(false);
+    });
+
+    it('should fail if sum above range', () => {
+      
+      const result = validateCostComponent(
+        mockPearls([7, 8]),
+        { type: 'sumTuple', min: 1, max: 5 },
+        0
+      );
+      expect(result.isValid).toBe(false);
+    });
+  });
+
+  describe('validateCostComponent - run (consecutive sequence)', () => {
+    it('should validate consecutive run', () => {
+      
+      const result = validateCostComponent(
+        mockPearls([2, 3, 4, 5]),
+        { type: 'run', length: 3 },
+        0
+      );
+      expect(result.isValid).toBe(true);
+      expect(result.usedIndices?.length).toBe(3);
+    });
+
+    it('should fail if no valid run', () => {
+      
+      const result = validateCostComponent(
+        mockPearls([1, 3, 5, 7]),
+        { type: 'run', length: 3 },
+        0
+      );
+      expect(result.isValid).toBe(false);
+    });
+
+    it('should handle run of length 1', () => {
+      
+      const result = validateCostComponent(
+        mockPearls([5]),
+        { type: 'run', length: 1 },
+        0
+      );
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should find run starting at 1', () => {
+      
+      const result = validateCostComponent(
+        mockPearls([1, 2, 3]),
+        { type: 'run', length: 3 },
+        0
+      );
+      expect(result.isValid).toBe(true);
+    });
+  });
+
+  describe('validateCostComponent - evenTuple', () => {
+    it('should validate even cards', () => {
+      
+      const result = validateCostComponent(
+        mockPearls([2, 4, 6, 1, 3]),
+        { type: 'evenTuple', count: 3 },
+        0
+      );
+      expect(result.isValid).toBe(true);
+      expect(result.usedIndices?.length).toBe(3);
+    });
+
+    it('should fail if not enough even cards', () => {
+      
+      const result = validateCostComponent(
+        mockPearls([2, 1, 3, 5]),
+        { type: 'evenTuple', count: 2 },
+        0
+      );
+      expect(result.isValid).toBe(false);
+    });
+  });
+
+  describe('validateCostComponent - oddTuple', () => {
+    it('should validate odd cards', () => {
+      
+      const result = validateCostComponent(
+        mockPearls([1, 3, 5, 2, 4]),
+        { type: 'oddTuple', count: 3 },
+        0
+      );
+      expect(result.isValid).toBe(true);
+      expect(result.usedIndices?.length).toBe(3);
+    });
+
+    it('should fail if not enough odd cards', () => {
+      
+      const result = validateCostComponent(
+        mockPearls([1, 2, 4, 6]),
+        { type: 'oddTuple', count: 2 },
+        0
+      );
+      expect(result.isValid).toBe(false);
+    });
+  });
+
+  describe('validateCostComponent - drillingChoice', () => {
+    it('should validate first choice option', () => {
+      
+      const result = validateCostComponent(
+        mockPearls([3, 4, 5]),
+        { type: 'drillingChoice', val1: 3, val2: 5 },
+        0
+      );
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should validate second choice option', () => {
+      
+      const result = validateCostComponent(
+        mockPearls([4, 5, 6]),
+        { type: 'drillingChoice', val1: 3, val2: 5 },
+        0
+      );
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should fail if neither option available', () => {
+      
+      const result = validateCostComponent(
+        mockPearls([1, 2, 4]),
+        { type: 'drillingChoice', val1: 3, val2: 5 },
+        0
+      );
+      expect(result.isValid).toBe(false);
+    });
+  });
+
+  describe('validateCostComponent - none', () => {
+    it('should always be valid (free card)', () => {
+      
+      const result = validateCostComponent(mockPearls([]), { type: 'none' }, 0);
+      expect(result.isValid).toBe(true);
+      expect(result.usedIndices?.length).toBe(0);
+    });
+  });
+
+  describe('validateCharacterCost - Multiple Components', () => {
+    it('should validate character with single cost component', () => {
+      
+      const result = validateCharacterCost(
+        mockPearls([2, 3, 5]),
+        [{ type: 'number', value: 10 }],
+        0
+      );
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should validate character with 2 cost components', () => {
+      
+      const result = validateCharacterCost(
+        mockPearls([2, 3, 1, 1]),
+        [{ type: 'nTuple', n: 2 }, { type: 'number', value: 5 }],
+        0
+      );
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should fail if any component unsatisfiable', () => {
+      
+      const result = validateCharacterCost(
+        mockPearls([2, 3]),
+        [{ type: 'number', value: 20 }, { type: 'nTuple', n: 5 }],
+        0
+      );
+      expect(result.isValid).toBe(false);
+    });
+
+    it('should handle empty cost (free character)', () => {
+      
+      const result = validateCharacterCost(mockPearls([]), [], 0);
+      expect(result.isValid).toBe(true);
+      expect(result.usedIndices?.length).toBe(0);
+    });
+  });
+});
+
