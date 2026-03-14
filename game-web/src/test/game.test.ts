@@ -5,7 +5,7 @@ import { GameActionType } from '../lib/types';
 import { GAME_RULES } from '../lib/constants';
 import { validateCostComponent, validateCharacterCost } from '../game/engine/costValidator';
 import { executeRedAbility, isRedAbilityType, getActiveBlueAbilities, getModifiedActionCount, getModifiedHandLimit } from '../game/engine/abilitySystem';
-import { calculateWinner, getWinnerInfo, formatWinnerAnnouncement } from '../game/engine/finalRound';
+import { calculateWinner, getWinnerInfo, formatWinnerAnnouncement, isFinalRoundActive, isPlayerInFinalRound, getRemainingFinalRoundPlayers, isFinalRoundComplete } from '../game/engine/finalRound';
 
 // Mock character cards for testing
 const MOCK_CHARACTERS: CharacterCard[] = [
@@ -1799,6 +1799,153 @@ describe('FinalRound - P1.9: Final Round & Winner Determination', () => {
       expect(() => GameEngine.processAction(gameState, action)).toThrow(
         'Game is finished'
       );
+    });
+  });
+
+  describe('Final Round Helper Functions', () => {
+    it('isFinalRoundActive should return true when finalRoundActive is true', () => {
+      gameState.finalRoundActive = true;
+      expect(isFinalRoundActive(gameState)).toBe(true);
+    });
+
+    it('isFinalRoundActive should return false when finalRoundActive is false', () => {
+      gameState.finalRoundActive = false;
+      expect(isFinalRoundActive(gameState)).toBe(false);
+    });
+
+    it('isPlayerInFinalRound should return false when final round not active', () => {
+      gameState.finalRoundActive = false;
+      gameState.currentPlayer = 0;
+      gameState.finalRoundPlayers = [0, 1];
+      expect(isPlayerInFinalRound(gameState)).toBe(false);
+    });
+
+    it('isPlayerInFinalRound should return true when player is in final round', () => {
+      gameState.finalRoundActive = true;
+      gameState.currentPlayer = 0;
+      gameState.finalRoundPlayers = [0, 1];
+      expect(isPlayerInFinalRound(gameState)).toBe(true);
+    });
+
+    it('isPlayerInFinalRound should return false when player is not in final round players list', () => {
+      gameState.finalRoundActive = true;
+      gameState.currentPlayer = 2;
+      gameState.finalRoundPlayers = [0, 1];
+      expect(isPlayerInFinalRound(gameState)).toBe(false);
+    });
+
+    it('getRemainingFinalRoundPlayers should return empty array when final round not active', () => {
+      gameState.finalRoundActive = false;
+      gameState.finalRoundPlayers = [0, 1];
+      const remaining = getRemainingFinalRoundPlayers(gameState);
+      expect(remaining).toHaveLength(0);
+    });
+
+    it('getRemainingFinalRoundPlayers should include current player and onwards', () => {
+      gameState.finalRoundActive = true;
+      gameState.currentPlayer = 0;
+      gameState.finalRoundPlayers = [0, 1];
+      const remaining = getRemainingFinalRoundPlayers(gameState);
+      expect(remaining.length).toBeGreaterThan(0);
+    });
+
+    it('getRemainingFinalRoundPlayers should filter by current player position', () => {
+      gameState.finalRoundActive = true;
+      gameState.currentPlayer = 1;
+      gameState.finalRoundPlayers = [0, 1, 2];
+      const remaining = getRemainingFinalRoundPlayers(gameState);
+      expect(remaining).toContain(1);
+    });
+
+    it('getRemainingFinalRoundPlayers with wrapped players should include all', () => {
+      gameState.finalRoundActive = true;
+      gameState.currentPlayer = 2;
+      gameState.finalRoundPlayers = [0, 1, 2];
+      const remaining = getRemainingFinalRoundPlayers(gameState);
+      expect(remaining.length).toBeGreaterThan(0);
+    });
+
+    it('isFinalRoundComplete should return false when final round not active', () => {
+      gameState.finalRoundActive = false;
+      expect(isFinalRoundComplete(gameState)).toBe(false);
+    });
+
+    it('isFinalRoundComplete should return false when not cycled back to first player', () => {
+      gameState.finalRoundActive = true;
+      gameState.currentPlayer = 0;
+      gameState.finalRoundPlayers = [0, 1];
+      expect(isFinalRoundComplete(gameState)).toBe(false);
+    });
+
+    it('isFinalRoundComplete should detect completion when cycled back to first player with log', () => {
+      gameState.finalRoundActive = true;
+      gameState.currentPlayer = 0;
+      gameState.finalRoundPlayers = [0, 1];
+      gameState.gameLog = [{ type: GameActionType.EndTurn, playerId: 'player-0', timestamp: Date.now() }];
+      expect(isFinalRoundComplete(gameState)).toBe(true);
+    });
+
+    it('calculateWinner should handle empty players list', () => {
+      gameState.players = [];
+      const winner = calculateWinner(gameState);
+      expect(winner).toBe(-1);
+    });
+
+    it('calculateWinner should return first player when all have zero power', () => {
+      gameState.players[0].portal.powerPoints = 0;
+      gameState.players[1].portal.powerPoints = 0;
+      const winner = calculateWinner(gameState);
+      expect(winner).toBe(0);
+    });
+
+    it('getWinnerInfo should return null when no winner and final round not active', () => {
+      gameState.finalRoundActive = false;
+      gameState.winner = undefined;
+      const info = getWinnerInfo(gameState);
+      expect(info).toBeNull();
+    });
+
+    it('getWinnerInfo should return null for invalid winner index', () => {
+      gameState.finalRoundActive = true;
+      gameState.players = []; // Empty players
+      const info = getWinnerInfo(gameState);
+      expect(info).toBeNull();
+    });
+
+    it('getWinnerInfo should return complete info when final round is active', () => {
+      gameState.finalRoundActive = true;
+      gameState.players[0].portal.powerPoints = 15;
+      gameState.players[0].portal.diamonds = 8;
+      const info = getWinnerInfo(gameState);
+      expect(info).not.toBeNull();
+      expect(info?.playerIndex).toBe(0);
+      expect(info?.powerPoints).toBe(15);
+      expect(info?.diamonds).toBe(8);
+    });
+
+    it('formatWinnerAnnouncement should return default message when no winner', () => {
+      gameState.finalRoundActive = false;
+      gameState.winner = undefined;
+      gameState.players = [];
+      const announcement = formatWinnerAnnouncement(gameState);
+      expect(announcement).toBe('No winner determined');
+    });
+
+    it('formatWinnerAnnouncement should include player name in announcement', () => {
+      gameState.finalRoundActive = true;
+      gameState.players[0].portal.powerPoints = 15;
+      gameState.players[0].portal.diamonds = 5;
+      const announcement = formatWinnerAnnouncement(gameState);
+      expect(announcement).toContain(gameState.players[0].name);
+    });
+
+    it('formatWinnerAnnouncement should include power points and diamonds', () => {
+      gameState.finalRoundActive = true;
+      gameState.players[0].portal.powerPoints = 18;
+      gameState.players[0].portal.diamonds = 7;
+      const announcement = formatWinnerAnnouncement(gameState);
+      expect(announcement).toContain('18');
+      expect(announcement).toContain('7');
     });
   });
 });
