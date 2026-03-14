@@ -1,0 +1,282 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║         PORTALE VON MOLTHAR - WEB EDITION IMPLEMENTATION PLAN                ║
+║                    Complete Roadmap with Testable Steps                      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+📚 DOKUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. START_HERE.md                → Index & Quick Reference (LESE ZUERST!)
+  2. PHASE_0_SETUP.md            → Schritt-für-Schritt Phase 0 (Dev Setup)
+  3. IMPLEMENTATION_ROADMAP.md   → Kompletter 4-Phasen Plan mit Details
+  4. game-web-spec.md            → Technische Spezifikation
+  5. game-web/README.md          → Projekt-README
+
+
+🚀 QUICK START FÜR ENTWICKLER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Jetzt sofort:
+  1. Öffne START_HERE.md
+  2. Folge dem "Quick Start für Entwickler" Link
+  3. Gehe zu PHASE_0_SETUP.md
+  4. Starte mit Schritt 0.1
+
+
+⏱️  TIMELINE ÜBERSICHT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  PHASE 0: Setup & Infrastructure           2-3 Tage
+  ├─ Vite/React/TypeScript Project
+  ├─ Dependencies & Configuration
+  ├─ TypeScript Types (types.ts)
+  ├─ Game Constants (constants.ts)
+  └─ ✅ Checkpoint: pnpm run dev works
+
+  PHASE 1: Game Engine & Rules              10-12 Tage ⭐ CRITICAL
+  ├─ Game Initialization & Setup
+  ├─ Pearl & Character Decks
+  ├─ Move Validation (take, place, activate)
+  ├─ Cost Validator (9 types) ⚡ HARD
+  ├─ Ability System (14 types) ⚡ HARD
+  ├─ Turn Management & Hand Limits
+  ├─ Final Round & Winner Determination
+  └─ ✅ Checkpoint: Full game playable locally
+
+  PHASE 2: UI Components & Single-Player    10 Tage
+  ├─ GameBoard Layout & Components
+  ├─ Card & Portal Components
+  ├─ Hand Display & Selection
+  ├─ Action Panel & Buttons
+  ├─ Responsive Design (mobile/tablet/desktop)
+  ├─ Game State Display & Debugging
+  └─ ✅ Checkpoint: Responsive UI, fully playable
+
+  PHASE 3: Multiplayer & Lobby System       10 Tage
+  ├─ boardgame.io Server Setup
+  ├─ Lobby Client Integration
+  ├─ Lobby Screen (Create/Join)
+  ├─ Real-time Game Synchronization
+  ├─ Player Credentials & Security
+  └─ ✅ Checkpoint: 2 players online, sync works
+
+  PHASE 4: Polish, Testing & Deployment     5-7 Tage
+  ├─ Error Handling & Reconnection
+  ├─ Integration Tests (≥80% coverage)
+  ├─ E2E Tests (Playwright)
+  ├─ Performance Optimization (Lighthouse >90)
+  └─ ✅ Checkpoint: Live on Vercel, production ready
+
+  ═══════════════════════════════════════════════════════════
+  TOTAL:                                  37-42 Tage (6-7 Wochen)
+  ═══════════════════════════════════════════════════════════
+
+
+📋 TESTING STRATEGY PER PHASE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Phase 0: Manual validation
+           → pnpm run dev works, no errors
+
+  Phase 1: Unit Tests (Vitest)
+           → ≥80% code coverage
+           → Game rules deterministic
+           → All moves validated
+
+  Phase 2: Component Tests (Testing Library)
+           → ≥70% coverage
+           → UI responsive (375px, 768px, 1920px)
+           → Touch-friendly on mobile
+           → All interactive elements work
+
+  Phase 3: Integration Tests (Playwright)
+           → ≥70% coverage
+           → 2 players connect
+           → Game state sync in real-time
+           → Credentials prevent unauthorized moves
+
+  Phase 4: E2E Tests (Playwright) + Performance
+           → Full game flow (setup to winner)
+           → Reconnection handling
+           → Performance: Lighthouse >90
+           → Bundle < 500KB gzipped
+
+
+🎯 KRITISCHE KOMPONENTEN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ⚡ MUST GET RIGHT:
+  
+  1. Cost Validator (Phase 1, Schritt 1.5)
+     - Validiert 9 verschiedene CostComponent types
+     - Hangt Diamonds-Modifikationen
+     - Prüft Blue Ability Modifikationen
+     - Edge cases: 0-cost, negative modifiers, etc.
+     → TEST GRÜNDLICH!
+
+  2. Ability System (Phase 1, Schritt 1.7)
+     - 14 verschiedene Fähigkeiten implementieren
+     - Red vs. Blue logic unterschiedlich
+     - Irrlicht Spezialregel (neighbors aktivieren)
+     → JEDE FÄHIGKEIT ISOLIERT TESTEN!
+
+  3. Game State Immutability (Phase 1, überall)
+     - Keine Mutations, nur immutable Updates
+     - Deterministische Moves (replay-fähig)
+     - Snapshot Tests für Validierung
+     → TESTS MIT SNAPSHOTS!
+
+  4. Network Synchronization (Phase 3, Schritt 3.2-3.4)
+     - Echte Real-time Sync (websockets)
+     - Reconnection handling
+     - Credentials/Security enforcement
+     → TEST MIT NETZWERK-THROTTLING!
+
+
+📁 FOLDER STRUKTUR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  game-web/                    ← START HERE (das Projekt)
+  ├── src/
+  │   ├── game/               ← Phase 1: Game Engine
+  │   │   ├── gameEngine.ts   (Hauptlogik)
+  │   │   ├── moves.ts        (Move Validierung)
+  │   │   └── abilities.ts    (14 Ability Typen)
+  │   ├── components/         ← Phase 2: UI
+  │   │   ├── GameBoard.tsx   (Main Layout)
+  │   │   ├── cards/          (Card Components)
+  │   │   ├── portals/        (Player Portals)
+  │   │   └── lobby/          (Phase 3: Lobby)
+  │   ├── hooks/              ← Custom React Hooks
+  │   │   ├── useGame.ts      (Game State)
+  │   │   └── useNetworking.ts (Phase 3)
+  │   ├── lib/                ← Phase 0: Types & Utils
+  │   │   ├── types.ts        (GameState Interface, etc.)
+  │   │   ├── constants.ts    (Game Rules, Deck Creation)
+  │   │   └── utils.ts        (Helpers)
+  │   ├── pages/              ← Page Components
+  │   │   ├── LobbyPage.tsx
+  │   │   ├── GamePage.tsx
+  │   │   └── GameOverPage.tsx
+  │   ├── styles/             ← CSS
+  │   └── test/               ← Test Setup
+  ├── server/                 ← Phase 3: boardgame.io Server
+  ├── tests/                  ← Phase 1: Unit Tests
+  ├── e2e/                    ← Phase 4: E2E Tests
+  ├── public/
+  │   └── cards.json          ← Character Card Data
+  ├── vite.config.ts          ← Phase 0
+  ├── vitest.config.ts        ← Phase 0
+  ├── tsconfig.json           ← Phase 0
+  └── package.json            ← Phase 0
+
+
+🎮 GAME RULES KURZFASSUNG
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  2-4 Spieler, 15-30 Minuten
+  
+  ZIEL: Erreiche 12+ Machtpunkte, gewinne Final Round
+  
+  TURN STRUKTUR:
+  1. Nimm bis zu 3 Aktionen
+     - Nimm Perlenkarte von Tisch
+     - Lege Charakter auf Hand ab
+     - Aktiviere Charakter (zahlePerlenkarten)
+  2. Aktivieren gibt Machtpunkte + Diamanten
+  3. Handkartenlimit: 5 (wenn überschritten, werfe Karten ab)
+  
+  KOSTEN-SYSTEM: 9 verschiedene CostComponent types
+  - number:         Exakte Zahl (z.B. 3)
+  - nTuple:         n identische Werte (z.B. 2+2)
+  - sumAnyTuple:    Beliebige Summe (z.B. 3+7=10)
+  - sumTuple:       Summe in Range (z.B. 10-15)
+  - run:            Aufeinanderfolgende Werte (z.B. 4-5-6)
+  - evenTuple:      Nur gerade Werte (z.B. 2+4+6)
+  - oddTuple:       Nur ungerade Werte (z.B. 1+3+5+7)
+  - drillingChoice: Entweder n x val1 oder n x val2
+  - none:           Keine Kosten
+  
+  DIAMANTEN-MODIFIKATOR:
+  - Jeder Diamant erhöht Perlenwerte um +1 bei Kosten-Berechnung
+  - Z.B. {1,2,3} mit 1 Diamant = {2,3,4}
+  
+  ABILITIES: 14 verschiedene Fähigkeiten
+  - 5 Red (Instant): Extra actions, discard, steal, etc.
+  - 8 Blue (Persistent): Change values, extra actions, etc.
+  - Irrlicht: Spezialregel (Nachbarn können aktivieren)
+  
+  WIN CONDITION:
+  - Erste Spieler mit 12+ Machtpunkte triggert Final Round
+  - Alle Spieler erhalten noch einen Turn
+  - Gewinner = max Machtpunkte (Tiebreaker: max Diamanten)
+
+
+🛠️  TECH STACK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Frontend:       React 18 + TypeScript
+  Game Engine:    boardgame.io (multiplayer framework)
+  Styling:        Tailwind CSS
+  State:          Zustand (lightweight)
+  Build:          Vite (fast, HMR)
+  Testing:        Vitest + Testing Library
+  E2E:            Playwright
+  Server:         Node.js + boardgame.io Server
+  Deployment:     Vercel
+
+
+✅ IMPLEMENTATION STRATEGY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ✓ Folge dem Plan EXAKT — Keine Freestyle-Features
+  ✓ Test-first mindset — Schreibe Tests vor Code
+  ✓ Commit nach jedem Schritt — git commit mit Co-authored-by
+  ✓ Testbare Milestones — Jede Phase hat GO/NO-GO Checkpoint
+  ✓ Keine unvollständigen Features — Alles muss fertig sein
+
+
+🎯 SUCCESS CRITERIA (Phase 4 Checkpoint)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ✅ App läuft auf Vercel (https://...)
+  ✅ 2 Spieler können live gegeneinander spielen
+  ✅ Vollständiges Spiel spielbar (Setup bis Winner)
+  ✅ Responsive auf all Devices (mobile, tablet, desktop)
+  ✅ Keine Console Errors in Production
+  ✅ Lighthouse Score >90 (Performance, SEO, Accessibility)
+  ✅ E2E Tests all pass
+  ✅ Unit Tests ≥80% Coverage
+  ✅ Dokumentation komplett (Code Comments, README, etc.)
+
+
+🚨 COMMON PITFALLS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ❌ Skipping Phase 0 Setup (→ Problems später)
+  ❌ Incomplete Unit Tests (→ Phase 2-3 bugs)
+  ❌ Mutating Game State (→ Inconsistent state)
+  ❌ Not testing responsive design (→ Mobile broken)
+  ❌ Leaving Network Testing for Phase 4 (→ Too late)
+  ❌ Incomplete documentation (→ Unmaintainable)
+  ❌ Not committing regularly (→ Lost work)
+
+
+📞 NEXT STEPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. Öffne START_HERE.md
+  2. Lese "Quick Start für Entwickler"
+  3. Öffne PHASE_0_SETUP.md
+  4. Beginne mit Schritt 0.1 "Vite Setup"
+  5. Folge dem Plan Schritt-für-Schritt
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Estimated Time: 37-42 Tage (6-7 Wochen)
+Difficulty: Intermediate → Advanced
+Status: ✅ Ready to Start
+
+═══════════════════════════════════════════════════════════════════════════════
