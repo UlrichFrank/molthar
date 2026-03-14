@@ -13,7 +13,7 @@ interface GameBoardProps {
   selectedPearl: number | null;
   selectedCharacter: number | null;
   selectedHandIndices: number[];
-  error: string | null;
+  error: string | undefined;
   onSelectPearl: (index: number) => void;
   onSelectCharacter: (index: number) => void;
   onSelectHandCard: (index: number) => void;

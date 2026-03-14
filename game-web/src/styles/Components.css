@@ -515,3 +515,151 @@
   color: #22c55e;
   font-weight: bold;
 }
+
+/* Card Info Panel */
+.card-info-panel {
+  background: rgba(30, 41, 59, 0.9);
+  border: 2px solid #475569;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  min-width: 250px;
+}
+
+.card-info-panel .card-name {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.1rem;
+  color: #60a5fa;
+}
+
+.card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.detail-row .label {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.detail-row .value {
+  color: #cbd5e1;
+  font-weight: bold;
+}
+
+.detail-row .value.power {
+  color: #34d399;
+}
+
+.detail-row .value.diamonds {
+  color: #ec4899;
+}
+
+.detail-row .value.ability {
+  color: #fbbf24;
+}
+
+/* Character Info Popup */
+.cards-grid-with-info {
+  position: relative;
+  display: flex;
+  gap: 1rem;
+}
+
+.character-info-popup {
+  position: absolute;
+  right: -280px;
+  top: 0;
+  z-index: 10;
+  animation: slideIn 0.2s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 1400px) {
+  .character-info-popup {
+    right: -270px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .character-info-popup {
+    position: fixed;
+    right: 10px;
+    top: 10%;
+    z-index: 100;
+  }
+}
+
+/* Error Display */
+.error-display {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  animation: slideInError 0.3s ease;
+}
+
+.error-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: linear-gradient(135deg, #dc2626, #991b1b);
+  border: 2px solid #7f1d1d;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  color: white;
+  min-width: 300px;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.error-icon {
+  font-size: 1.25rem;
+}
+
+.error-text {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.error-close {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 1.25rem;
+  padding: 0;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.error-close:hover {
+  opacity: 1;
+}
+
+@keyframes slideInError {
+  from {
+    opacity: 0;
+    transform: translateX(400px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
