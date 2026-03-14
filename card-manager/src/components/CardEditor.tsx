@@ -37,6 +37,10 @@ export function CardEditor({ card, onUpdate, onDelete }: CardEditorProps) {
     onUpdate(card.id, { diamondsReward });
   };
 
+  const handleCardCountChange = (cardCount: number) => {
+    onUpdate(card.id, { cardCount });
+  };
+
   return (
     <div className="flex-1 bg-background border-l border-border overflow-y-auto">
       <div className="p-6 flex gap-6">
@@ -96,6 +100,18 @@ export function CardEditor({ card, onUpdate, onDelete }: CardEditorProps) {
                 max={3}
                 value={card.diamondsReward}
                 onChange={(e) => handleDiamondsChange(Math.max(0, Math.min(3, parseInt(e.target.value) || 0)))}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">
+                Anzahl Karten
+              </label>
+              <Input
+                type="number"
+                min={1}
+                value={card.cardCount}
+                onChange={(e) => handleCardCountChange(Math.max(1, parseInt(e.target.value) || 1))}
               />
             </div>
           </div>

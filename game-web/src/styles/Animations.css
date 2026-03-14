@@ -1,0 +1,281 @@
+/* ============================================
+   Global Animations
+   ============================================ */
+
+/* Fade In Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Slide In Animation */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Card Draw Animation */
+@keyframes cardDraw {
+  0% {
+    transform: translateY(50px) scale(0.9);
+    opacity: 0;
+  }
+  50% {
+    transform: translateY(0) scale(1.05);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Power Point Pulse */
+@keyframes powerPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Victory Celebration */
+@keyframes celebration {
+  0% {
+    transform: scale(0.8) rotateZ(-10deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1) rotateZ(5deg);
+  }
+  100% {
+    transform: scale(1) rotateZ(0);
+    opacity: 1;
+  }
+}
+
+/* Shake Animation (Error) */
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-5px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+/* Bounce Animation */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Glow Animation */
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+/* Spin Animation (Loading) */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   Component-Specific Animations
+   ============================================ */
+
+/* Start Screen Animation */
+.start-screen {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.start-container {
+  animation: slideInUp 0.4s ease-out;
+}
+
+.start-title {
+  animation: slideInDown 0.5s ease-out;
+}
+
+.start-form {
+  animation: slideInUp 0.6s ease-out 0.1s both;
+}
+
+.start-info {
+  animation: slideInUp 0.6s ease-out 0.2s both;
+}
+
+/* Game Board Animations */
+.game-board {
+  animation: slideInUp 0.3s ease-out;
+}
+
+.card {
+  animation: cardDraw 0.4s ease-out;
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  animation: none;
+  transform: translateY(-4px);
+}
+
+.card.selected {
+  animation: glow 0.6s ease-out;
+}
+
+/* Hand Cards */
+.hand-card {
+  animation: slideInLeft 0.3s ease-out;
+  transition: all 0.15s ease;
+}
+
+.hand-card.selected {
+  animation: powerPulse 0.4s ease-out;
+}
+
+/* Action Buttons */
+.btn {
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn.ready {
+  animation: glow 0.6s ease-out infinite;
+}
+
+/* Error Messages */
+.error-display {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.error-close:hover {
+  animation: shake 0.3s ease-out;
+}
+
+/* Finish Screen */
+.game-finished-screen {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.finished-container {
+  animation: slideInUp 0.4s ease-out;
+}
+
+.winner-card {
+  animation: celebration 0.6s ease-out;
+}
+
+.winner-badge {
+  animation: powerPulse 0.8s ease-out infinite;
+}
+
+.standing-row {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.standing-row.winner {
+  animation: celebration 0.6s ease-out;
+}
+
+/* Portal Animations */
+.player-portal {
+  animation: slideInLeft 0.4s ease-out;
+  transition: all 0.3s ease;
+}
+
+.opponent-portal {
+  animation: slideInRight 0.4s ease-out;
+  transition: all 0.3s ease;
+}
+
+/* Character Info Popup */
+.character-info-popup {
+  animation: slideInRight 0.2s ease-out;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  /* Reduce animation durations on mobile for performance */
+  .card {
+    animation-duration: 0.3s;
+  }
+
+  .hand-card {
+    animation-duration: 0.2s;
+  }
+
+  .btn {
+    animation-duration: 0.15s;
+  }
+}

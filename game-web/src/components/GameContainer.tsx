@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { GameEngine } from '../game/engine/gameEngine';
 import type { IGameState, CharacterCard } from '../lib/types';
 import { GameActionType } from '../lib/types';
+import { loadCharacterCards } from '../lib/cardLoader';
 import { GameBoard } from './GameBoard';
 import { GameStartScreen } from './GameStartScreen';
 import { GameFinishedScreen } from './GameFinishedScreen';
@@ -18,15 +19,32 @@ export function GameContainer() {
   const [selectedHandIndices, setSelectedHandIndices] = useState<number[]>([]);
   const [error, setError] = useState<string | undefined>();
 
+  // Load character cards on mount
+  useEffect(() => {
+    const loadCards = async () => {
+      const loadedCards = await loadCharacterCards();
+      
+      if (loadedCards.length === 0) {
+        console.warn('No cards loaded from cards.json, using defaults');
+        setCharacters(generateDefaultCharacters());
+      } else {
+        setCharacters(loadedCards);
+      }
+    };
+    
+    loadCards();
+  }, []);
+
   /**
    * Initialize new game with selected players
    */
   const initializeGame = (playerNames: string[]) => {
     try {
-      const mockCharacters = generateMockCharacters();
-      setCharacters(mockCharacters);
+      if (characters.length === 0) {
+        setError('No characters loaded, using defaults');
+      }
 
-      const newState = GameEngine.initializeGame(playerNames, mockCharacters);
+      const newState = GameEngine.initializeGame(playerNames, characters);
       setGameState(newState);
       setError(undefined);
       setSelectedPearl(null);
@@ -188,9 +206,9 @@ export function GameContainer() {
 }
 
 /**
- * Generate mock characters for testing
+ * Generate default characters as fallback
  */
-function generateMockCharacters(): CharacterCard[] {
+function generateDefaultCharacters(): CharacterCard[] {
   return [
     {
       id: 'char-1',

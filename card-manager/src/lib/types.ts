@@ -61,6 +61,7 @@ export interface CharacterCard {
   imageName: string;
   powerPoints: number; // 0-5
   diamondsReward: number; // 0-3
+  cardCount: number; // 1+
   cost: Cost;
   ability: Ability;
 }

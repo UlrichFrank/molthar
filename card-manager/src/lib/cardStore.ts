@@ -72,9 +72,10 @@ export class CardStore {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        // Migrate old cost format to new format
+        // Migrate old cost format to new format and add missing cardCount
         this.cards = parsed.map((card: any) => ({
           ...card,
+          cardCount: card.cardCount ?? 1,
           cost: migrateOldCost(card.cost)
         }));
       }
@@ -106,6 +107,7 @@ export class CardStore {
       imageName: '',
       powerPoints: 0,
       diamondsReward: 0,
+      cardCount: 1,
       cost: [{ type: 'nTuple', n: 2 }],
       ability: { type: 'none' }
     };
@@ -122,6 +124,7 @@ export class CardStore {
         imageName: imageNames?.[index] || '',
         powerPoints: 0,
         diamondsReward: 0,
+        cardCount: 1,
         cost: [{ type: 'nTuple', n: 2 }],
         ability: { type: 'none' }
       };

@@ -1,0 +1,164 @@
+{
+  "characters": [
+    {
+      "id": "warrior-1",
+      "name": "Warrior",
+      "cost": [{ "type": "number", "value": 5 }],
+      "powerPoints": 3,
+      "diamonds": 1,
+      "ability": "none"
+    },
+    {
+      "id": "mage-1",
+      "name": "Mage",
+      "cost": [{ "type": "number", "value": 4 }],
+      "powerPoints": 2,
+      "diamonds": 2,
+      "ability": "none"
+    },
+    {
+      "id": "knight-1",
+      "name": "Knight",
+      "cost": [{ "type": "nTuple", "n": 3 }],
+      "powerPoints": 4,
+      "diamonds": 0,
+      "ability": "none"
+    },
+    {
+      "id": "sorcerer-1",
+      "name": "Sorcerer",
+      "cost": [{ "type": "run", "length": 3 }],
+      "powerPoints": 2,
+      "diamonds": 3,
+      "ability": "none"
+    },
+    {
+      "id": "paladin-1",
+      "name": "Paladin",
+      "cost": [{ "type": "sumAnyTuple", "sum": 7 }],
+      "powerPoints": 3,
+      "diamonds": 2,
+      "ability": "none"
+    },
+    {
+      "id": "ranger-1",
+      "name": "Ranger",
+      "cost": [{ "type": "number", "value": 6 }],
+      "powerPoints": 2,
+      "diamonds": 2,
+      "ability": "none"
+    },
+    {
+      "id": "cleric-1",
+      "name": "Cleric",
+      "cost": [{ "type": "nTuple", "n": 2 }],
+      "powerPoints": 2,
+      "diamonds": 1,
+      "ability": "none"
+    },
+    {
+      "id": "thief-1",
+      "name": "Thief",
+      "cost": [{ "type": "number", "value": 3 }],
+      "powerPoints": 1,
+      "diamonds": 2,
+      "ability": "none"
+    },
+    {
+      "id": "barbarian-1",
+      "name": "Barbarian",
+      "cost": [{ "type": "sumTuple", "min": 6, "max": 8 }],
+      "powerPoints": 4,
+      "diamonds": 0,
+      "ability": "none"
+    },
+    {
+      "id": "druid-1",
+      "name": "Druid",
+      "cost": [{ "type": "evenTuple", "count": 3 }],
+      "powerPoints": 2,
+      "diamonds": 3,
+      "ability": "none"
+    },
+    {
+      "id": "bard-1",
+      "name": "Bard",
+      "cost": [{ "type": "number", "value": 4 }],
+      "powerPoints": 1,
+      "diamonds": 3,
+      "ability": "none"
+    },
+    {
+      "id": "wizard-1",
+      "name": "Wizard",
+      "cost": [{ "type": "run", "length": 4 }],
+      "powerPoints": 3,
+      "diamonds": 2,
+      "ability": "none"
+    },
+    {
+      "id": "assassin-1",
+      "name": "Assassin",
+      "cost": [{ "type": "oddTuple", "count": 3 }],
+      "powerPoints": 3,
+      "diamonds": 1,
+      "ability": "none"
+    },
+    {
+      "id": "monk-1",
+      "name": "Monk",
+      "cost": [{ "type": "number", "value": 5 }],
+      "powerPoints": 2,
+      "diamonds": 2,
+      "ability": "none"
+    },
+    {
+      "id": "guardian-1",
+      "name": "Guardian",
+      "cost": [{ "type": "sumAnyTuple", "sum": 6 }],
+      "powerPoints": 3,
+      "diamonds": 1,
+      "ability": "none"
+    },
+    {
+      "id": "shaman-1",
+      "name": "Shaman",
+      "cost": [{ "type": "nTuple", "n": 2 }],
+      "powerPoints": 2,
+      "diamonds": 2,
+      "ability": "none"
+    },
+    {
+      "id": "hunter-1",
+      "name": "Hunter",
+      "cost": [{ "type": "number", "value": 4 }],
+      "powerPoints": 2,
+      "diamonds": 1,
+      "ability": "none"
+    },
+    {
+      "id": "merchant-1",
+      "name": "Merchant",
+      "cost": [{ "type": "number", "value": 3 }],
+      "powerPoints": 1,
+      "diamonds": 4,
+      "ability": "none"
+    },
+    {
+      "id": "noble-1",
+      "name": "Noble",
+      "cost": [{ "type": "sumTuple", "min": 5, "max": 7 }],
+      "powerPoints": 3,
+      "diamonds": 2,
+      "ability": "none"
+    },
+    {
+      "id": "scholar-1",
+      "name": "Scholar",
+      "cost": [{ "type": "run", "length": 3 }],
+      "powerPoints": 2,
+      "diamonds": 2,
+      "ability": "none"
+    }
+  ]
+}
