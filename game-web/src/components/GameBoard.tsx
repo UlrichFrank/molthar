@@ -71,22 +71,22 @@ export function GameBoard({
   const actionsRemaining = gameState.gamePhase === 'takingActions' ? Math.max(0, 3 - actionsThisTurn) : 0;
 
   return (
-    <div className="game-board-container">
+    <div className="game-board-container" role="main" aria-label="Game board">
       {/* Header with game info */}
       <div className="game-header">
         <h1 className="game-title">Portale von Molthar</h1>
         <div className="game-info">
           <div className="info-item">
             <span className="label">Current Player:</span>
-            <span className="value">{currentPlayer.name}</span>
+            <span className="value" aria-label={`Current player: ${currentPlayer.name}`}>{currentPlayer.name}</span>
           </div>
           <div className="info-item">
             <span className="label">Phase:</span>
-            <span className="value phase">{gameState.gamePhase}</span>
+            <span className="value phase" aria-label={`Game phase: ${gameState.gamePhase}`}>{gameState.gamePhase}</span>
           </div>
           <div className="info-item">
             <span className="label">Actions Left:</span>
-            <span className="value">{gameState.gamePhase === 'takingActions' ? actionsRemaining : '—'}</span>
+            <span className="value" aria-label={`Actions remaining: ${gameState.gamePhase === 'takingActions' ? actionsRemaining : 'N/A'}`}>{gameState.gamePhase === 'takingActions' ? actionsRemaining : '—'}</span>
           </div>
         </div>
       </div>

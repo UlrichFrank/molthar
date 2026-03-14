@@ -65,16 +65,19 @@ export function GameStartScreen({ onStartGame }: GameStartScreenProps) {
           <p className="start-subtitle">A Game of Strategy and Fortune</p>
         </div>
 
-        <div className="start-form">
+        <div className="start-form" role="form" aria-label="Game setup form">
           {/* Player Count Selection */}
           <div className="form-section">
-            <label className="form-label">Number of Players:</label>
-            <div className="player-count-selector">
+            <label htmlFor="player-count" className="form-label">Number of Players:</label>
+            <div className="player-count-selector" role="group" aria-label="Select number of players">
               {[2, 3, 4].map((count) => (
                 <button
                   key={count}
+                  id={`player-count-${count}`}
                   className={`count-btn ${playerCount === count ? 'active' : ''}`}
                   onClick={() => handlePlayerCountChange(count)}
+                  aria-pressed={playerCount === count}
+                  aria-label={`Select ${count} players`}
                 >
                   {count}
                 </button>
@@ -89,12 +92,15 @@ export function GameStartScreen({ onStartGame }: GameStartScreenProps) {
               {playerNames.map((name, idx) => (
                 <input
                   key={idx}
+                  id={`player-name-${idx}`}
                   type="text"
                   className="player-name-input"
                   value={name}
                   onChange={(e) => handleNameChange(idx, e.target.value)}
                   placeholder={`Player ${idx + 1}`}
                   maxLength={20}
+                  aria-label={`Player ${idx + 1} name`}
+                  aria-describedby={errors.some(e => e.includes(`Player ${idx + 1}`)) ? `error-player-${idx}` : undefined}
                 />
               ))}
             </div>
@@ -102,9 +108,9 @@ export function GameStartScreen({ onStartGame }: GameStartScreenProps) {
 
           {/* Errors */}
           {errors.length > 0 && (
-            <div className="error-section">
+            <div className="error-section" role="alert" aria-live="polite">
               {errors.map((error, idx) => (
-                <div key={idx} className="error-item">
+                <div key={idx} className="error-item" id={`error-${idx}`}>
                   ⚠️ {error}
                 </div>
               ))}
@@ -115,6 +121,8 @@ export function GameStartScreen({ onStartGame }: GameStartScreenProps) {
           <button
             className="btn btn-large btn-success"
             onClick={validateAndStart}
+            data-action="confirm"
+            aria-label="Start the game"
           >
             🎲 Start Game
           </button>

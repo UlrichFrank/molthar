@@ -35,10 +35,10 @@ export function ActionButtons({
   const portalCharacters = currentPlayer.portal.characters;
 
   return (
-    <div className="action-buttons">
+    <div className="action-buttons" role="toolbar" aria-label="Game actions">
       <div className="phase-indicator">
         <span className="phase-label">Phase:</span>
-        <span className={`phase-badge phase-${gamePhase}`}>
+        <span className={`phase-badge phase-${gamePhase}`} aria-live="polite" aria-atomic="true">
           {gamePhase === 'takingActions' && `Actions (${actionsRemaining} left)`}
           {gamePhase === 'discardingExcessCards' && 'Discard Excess Cards'}
           {gamePhase === 'gameFinished' && 'Game Finished'}
@@ -53,6 +53,8 @@ export function ActionButtons({
               onClick={onTakePearl}
               disabled={selectedPearl === null || actionsRemaining === 0}
               title={selectedPearl === null ? 'Select a pearl card first' : 'Take the selected pearl card'}
+              data-action="take-pearl"
+              aria-label={`Take pearl card ${selectedPearl !== null ? `(card ${selectedPearl + 1})` : ''}`}
             >
               💎 Take Pearl
               {selectedPearl !== null && <span className="btn-badge">{selectedPearl + 1}</span>}
@@ -63,6 +65,8 @@ export function ActionButtons({
               onClick={onPlaceCharacter}
               disabled={selectedCharacter === null || actionsRemaining === 0}
               title={selectedCharacter === null ? 'Select a character card first' : 'Place the selected character card'}
+              data-action="place-character"
+              aria-label={`Place character card ${selectedCharacter !== null ? `(card ${selectedCharacter + 1})` : ''}`}
             >
               🎭 Place Character
               {selectedCharacter !== null && <span className="btn-badge">{selectedCharacter + 1}</span>}
@@ -72,8 +76,9 @@ export function ActionButtons({
           {portalCharacters.length > 0 && (
             <div className="actions-row">
               <div className="action-group">
-                <label className="group-label">Activate Character:</label>
+                <label htmlFor="character-select" className="group-label">Activate Character:</label>
                 <select
+                  id="character-select"
                   className="character-select"
                   onChange={(e) => {
                     if (e.target.value) {
@@ -83,6 +88,8 @@ export function ActionButtons({
                   }}
                   disabled={actionsRemaining === 0}
                   defaultValue=""
+                  data-action="activate-character"
+                  aria-label="Select a character from your portal to activate"
                 >
                   <option value="">Choose from portal...</option>
                   {portalCharacters.map((char, idx) => (
@@ -101,6 +108,8 @@ export function ActionButtons({
               className="btn btn-secondary"
               onClick={onEndTurn}
               title="End your turn and pass to the next player"
+              data-action="end-turn"
+              aria-label="End turn"
             >
               ➡️ End Turn
             </button>
@@ -109,7 +118,7 @@ export function ActionButtons({
       )}
 
       {isDiscardPhase && (
-        <div className="discard-phase-content">
+        <div className="discard-phase-content" role="region" aria-label="Discard phase">
           <div className="discard-info">
             <p className="info-text">Hand exceeds limit! Select cards to discard.</p>
           </div>
@@ -118,6 +127,8 @@ export function ActionButtons({
             onClick={onDiscardCards}
             disabled={selectedHandCount === 0}
             title={selectedHandCount === 0 ? 'Select cards to discard' : `Discard ${selectedHandCount} cards`}
+            data-action="discard"
+            aria-label={`Discard ${selectedHandCount} card${selectedHandCount !== 1 ? 's' : ''}`}
           >
             🗑️ Discard {selectedHandCount} Card{selectedHandCount !== 1 ? 's' : ''}
             {selectedHandCount > 0 && <span className="btn-badge">{selectedHandCount}</span>}

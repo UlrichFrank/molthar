@@ -3,6 +3,8 @@ import { GameEngine } from '../game/engine/gameEngine';
 import type { IGameState, CharacterCard } from '../lib/types';
 import { GameActionType } from '../lib/types';
 import { loadCharacterCards } from '../lib/cardLoader';
+import { setupKeyboardShortcuts } from '../lib/keyboard';
+import { createSkipLink } from '../lib/accessibility';
 import { GameBoard } from './GameBoard';
 import { GameStartScreen } from './GameStartScreen';
 import { GameFinishedScreen } from './GameFinishedScreen';
@@ -19,7 +21,7 @@ export function GameContainer() {
   const [selectedHandIndices, setSelectedHandIndices] = useState<number[]>([]);
   const [error, setError] = useState<string | undefined>();
 
-  // Load character cards on mount
+  // Load character cards and setup keyboard/accessibility on mount
   useEffect(() => {
     const loadCards = async () => {
       const loadedCards = await loadCharacterCards();
@@ -33,6 +35,29 @@ export function GameContainer() {
     };
     
     loadCards();
+
+    // Setup keyboard shortcuts
+    const unsubscribeKeyboard = setupKeyboardShortcuts({
+      onConfirm: () => {
+        // Enter key - confirm action
+        const confirmBtn = document.querySelector('[data-action="confirm"]') as HTMLButtonElement;
+        confirmBtn?.click();
+      },
+      onCancel: () => {
+        // Escape key - cancel/reset
+        const cancelBtn = document.querySelector('[data-action="cancel"]') as HTMLButtonElement;
+        cancelBtn?.click();
+      },
+    });
+
+    // Inject skip link for keyboard navigation
+    const skipLink = createSkipLink('[role="main"]');
+    document.body.insertBefore(skipLink, document.body.firstChild);
+
+    return () => {
+      unsubscribeKeyboard();
+      skipLink.remove();
+    };
   }, []);
 
   /**
