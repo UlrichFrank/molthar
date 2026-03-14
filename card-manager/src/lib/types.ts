@@ -52,7 +52,7 @@ export type AbilityTiming = 'beforeAction' | 'duringTurn' | 'afterAction';
 export interface Ability {
   type: AbilityType;
   timing?: AbilityTiming; // When the ability can be used
-  value?: number | null; // Only used for providesVirtualPearl
+  value?: number | null; // Used for providesVirtualPearl and numberAddditionalCardActions
 }
 
 export interface CharacterCard {

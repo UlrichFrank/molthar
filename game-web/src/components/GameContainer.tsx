@@ -62,7 +62,7 @@ export function GameContainer() {
           newState = GameEngine.processAction(gameState, {
             type: actionType,
             playerId,
-            payload: { pearlIndex: selectedPearl },
+            payload: { cardIndex: selectedPearl },
             timestamp: Date.now(),
           });
           setSelectedPearl(null);
@@ -76,7 +76,7 @@ export function GameContainer() {
           newState = GameEngine.processAction(gameState, {
             type: actionType,
             playerId,
-            payload: { characterIndex: selectedCharacter },
+            payload: { cardIndex: selectedCharacter },
             timestamp: Date.now(),
           });
           setSelectedCharacter(null);

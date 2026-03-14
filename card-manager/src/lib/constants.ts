@@ -50,7 +50,7 @@ export const ABILITY_INFO: Record<AbilityType, AbilityInfo> = {
     label: 'Zusätzliche benannte Karte',
     description: 'In jedem Zug hast du eine zusätzliche Karte mit einem bestimmten Wert (1-8) als Handkarte',
     category: 'blue',
-    hasParameters: false,
+    hasParameters: true,
   },
   nextPlayerOneExtraAction: {
     type: 'nextPlayerOneExtraAction',

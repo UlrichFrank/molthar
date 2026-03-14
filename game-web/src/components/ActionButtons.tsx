@@ -64,13 +64,13 @@ export function ActionButtons({
                     e.target.value = '';
                   }
                 }}
-                disabled={actionsRemaining === 0}
+                disabled={actionsRemaining === 0 || currentPlayer.portal.characters.length === 0}
                 defaultValue=""
               >
-                <option value="">Select...</option>
-                {currentPlayer.hand.map((card, idx) => (
+                <option value="">Select from portal...</option>
+                {currentPlayer.portal.characters.map((char, idx) => (
                   <option key={idx} value={idx}>
-                    {card.value}
+                    {char.name}
                   </option>
                 ))}
               </select>

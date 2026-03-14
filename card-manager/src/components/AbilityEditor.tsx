@@ -21,7 +21,7 @@ export function AbilityEditor({ ability, onUpdate }: AbilityEditorProps) {
 
   const handleTypeChange = (type: string) => {
     const newAbility: Ability = { type: type as any, timing };
-    if (type === 'providesVirtualPearl') {
+    if (type === 'providesVirtualPearl' || type === 'numberAddditionalCardActions') {
       newAbility.value = null;
     }
     onUpdate(newAbility);
@@ -121,6 +121,31 @@ export function AbilityEditor({ ability, onUpdate }: AbilityEditorProps) {
           />
           <p className="text-xs text-muted-foreground mt-1">
             0 oder leer = beliebiger Wert
+          </p>
+        </div>
+      )}
+
+      {/* numberAddditionalCardActions parameters */}
+      {ability.type === 'numberAddditionalCardActions' && (
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-1">
+            Kartenwert (1-8)
+          </label>
+          <Input
+            type="number"
+            min={1}
+            max={8}
+            value={ability.value || ''}
+            onChange={(e) => {
+              const raw = e.target.value;
+              const parsed = raw ? parseInt(raw, 10) : null;
+              const value = parsed === null ? null : Math.max(1, Math.min(8, parsed));
+              onUpdate({ type: 'numberAddditionalCardActions', timing, value });
+            }}
+            placeholder="Wert 1-8"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Bestimmt den festen Wert der zusaetzlichen Karte.
           </p>
         </div>
       )}
