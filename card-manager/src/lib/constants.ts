@@ -14,6 +14,13 @@ export const ABILITY_INFO: Record<AbilityType, AbilityInfo> = {
     label: '3 zusätzliche Aktionen',
     description: 'Gewähre dir 3 zusätzliche Aktionen diesen Zug',
     category: 'red',
+    hasParameters: true,
+  },
+  changeHandActions: {
+    type: 'changeHandActions',
+    label: 'Handkarten tauschen',
+    description: 'Lege einmalig am Ende deines Zuges deine Handkarten ab und ziehe gleiche viele neue nach',
+    category: 'blue',
     hasParameters: false,
   },
   nextPlayerOneExtraAction: {
