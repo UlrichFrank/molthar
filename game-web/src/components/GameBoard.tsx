@@ -5,6 +5,7 @@ import { PlayerPortal } from './PlayerPortal';
 import { OpponentPortals } from './OpponentPortals';
 import { PlayerHand } from './PlayerHand';
 import { ActionButtons } from './ActionButtons';
+import { GameLog } from './GameLog';
 import '../styles/GameBoard.css';
 
 interface GameBoardProps {
@@ -147,6 +148,12 @@ export function GameBoard({
             onDiscardCards={onDiscardCards}
             onEndTurn={onEndTurn}
             currentPlayer={currentPlayer}
+          />
+
+          {/* Game Log */}
+          <GameLog
+            gameLog={gameState.gameLog}
+            playerNames={new Map(gameState.players.map((p) => [p.id, p.name]))}
           />
         </div>
 

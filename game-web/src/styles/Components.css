@@ -1370,3 +1370,79 @@
     gap: 1rem;
   }
 }
+
+/* Game Log */
+.game-log {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid #334155;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  max-height: 250px;
+  display: flex;
+  flex-direction: column;
+}
+
+.log-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: #cbd5e1;
+  font-weight: bold;
+}
+
+.log-entries {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.log-entry {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem;
+  background: rgba(30, 41, 59, 0.5);
+  border-left: 2px solid #475569;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.log-player {
+  color: #60a5fa;
+  font-weight: 600;
+  min-width: 80px;
+}
+
+.log-action {
+  color: #cbd5e1;
+  flex: 1;
+}
+
+.log-empty {
+  text-align: center;
+  color: #64748b;
+  font-size: 0.8rem;
+  padding: 1rem 0;
+  font-style: italic;
+}
+
+/* Scrollbar Styling */
+.log-entries::-webkit-scrollbar {
+  width: 6px;
+}
+
+.log-entries::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.5);
+  border-radius: 3px;
+}
+
+.log-entries::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 3px;
+}
+
+.log-entries::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
