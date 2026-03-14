@@ -1400,5 +1400,258 @@ describe('AbilitySystem - P1.7: Red & Blue Abilities', () => {
   });
 });
 
+// P1.8: Turn End & Hand Limits Tests
+describe('GameEngine - P1.8: Turn End & Hand Limits', () => {
+  let gameState: IGameState;
+
+  beforeEach(() => {
+    gameState = GameEngine.initializeGame(['Player 1', 'Player 2'], MOCK_CHARACTERS);
+  });
+
+  describe('discardingExcessCards Phase', () => {
+    it('should trigger discard phase when hand exceeds limit on turn end', () => {
+      gameState.players[0].hand = Array(6)
+        .fill(null)
+        .map((_, i) => ({ value: (i % 8) + 1 as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8, hasSwapSymbol: false }));
+
+      const action: GameAction = {
+        type: GameActionType.EndTurn,
+        playerId: 'player-0',
+        timestamp: Date.now(),
+      };
+
+      const newState = GameEngine.processAction(gameState, action);
+
+      expect(newState.gamePhase).toBe('discardingExcessCards');
+    });
+
+    it('should not trigger discard phase when hand is within limit', () => {
+      gameState.players[0].hand = [
+        { value: 2, hasSwapSymbol: false },
+        { value: 3, hasSwapSymbol: false },
+      ];
+
+      const action: GameAction = {
+        type: GameActionType.EndTurn,
+        playerId: 'player-0',
+        timestamp: Date.now(),
+      };
+
+      const newState = GameEngine.processAction(gameState, action);
+
+      expect(newState.gamePhase).toBe('takingActions');
+      expect(newState.currentPlayer).toBe(1);
+    });
+
+    it('should not trigger discard phase when hand equals limit', () => {
+      gameState.players[0].hand = Array(5)
+        .fill(null)
+        .map((_, i) => ({ value: (i % 8) + 1 as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8, hasSwapSymbol: false }));
+
+      const action: GameAction = {
+        type: GameActionType.EndTurn,
+        playerId: 'player-0',
+        timestamp: Date.now(),
+      };
+
+      const newState = GameEngine.processAction(gameState, action);
+
+      expect(newState.gamePhase).toBe('takingActions');
+    });
+  });
+
+  describe('discardCards Move', () => {
+    beforeEach(() => {
+      // Setup player with 6 cards (needs to discard 1)
+      gameState.players[0].hand = Array(6)
+        .fill(null)
+        .map((_, i) => ({ value: (i % 8) + 1 as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8, hasSwapSymbol: false }));
+      gameState.gamePhase = 'discardingExcessCards';
+    });
+
+    it('should discard correct number of cards', () => {
+      const initialLength = gameState.players[0].hand.length;
+      const initialDiscardLength = gameState.pearlDiscardPile.length;
+
+      const action: GameAction = {
+        type: GameActionType.DiscardCards,
+        playerId: 'player-0',
+        payload: { cardIndices: [0] }, // Discard 1 card
+        timestamp: Date.now(),
+      };
+
+      const newState = GameEngine.processAction(gameState, action);
+
+      expect(newState.players[0].hand.length).toBe(initialLength - 1);
+      expect(newState.pearlDiscardPile.length).toBe(initialDiscardLength + 1);
+    });
+
+    it('should reject if wrong number of cards to discard', () => {
+      const action: GameAction = {
+        type: GameActionType.DiscardCards,
+        playerId: 'player-0',
+        payload: { cardIndices: [0, 1] }, // Need to discard 1, not 2
+        timestamp: Date.now(),
+      };
+
+      expect(() => GameEngine.processAction(gameState, action)).toThrow(
+        'Must discard exactly 1 cards'
+      );
+    });
+
+    it('should reject invalid card indices', () => {
+      const action: GameAction = {
+        type: GameActionType.DiscardCards,
+        playerId: 'player-0',
+        payload: { cardIndices: [99] },
+        timestamp: Date.now(),
+      };
+
+      expect(() => GameEngine.processAction(gameState, action)).toThrow(
+        'Invalid card index'
+      );
+    });
+
+    it('should reject duplicate indices', () => {
+      gameState.players[0].hand = Array(7)
+        .fill(null)
+        .map((_, i) => ({ value: (i % 8) + 1 as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8, hasSwapSymbol: false }));
+
+      const action: GameAction = {
+        type: GameActionType.DiscardCards,
+        playerId: 'player-0',
+        payload: { cardIndices: [0, 0] }, // Duplicate index 0 (need to discard 2 cards: 7-5=2)
+        timestamp: Date.now(),
+      };
+
+      expect(() => GameEngine.processAction(gameState, action)).toThrow(
+        'Duplicate card indices'
+      );
+    });
+
+    it('should reject non-array cardIndices', () => {
+      const action: GameAction = {
+        type: GameActionType.DiscardCards,
+        playerId: 'player-0',
+        payload: { cardIndices: 'not-array' } as any,
+        timestamp: Date.now(),
+      };
+
+      expect(() => GameEngine.processAction(gameState, action)).toThrow(
+        'cardIndices must be an array'
+      );
+    });
+
+    it('should move to next player after discarding', () => {
+      const action: GameAction = {
+        type: GameActionType.DiscardCards,
+        playerId: 'player-0',
+        payload: { cardIndices: [0] },
+        timestamp: Date.now(),
+      };
+
+      const newState = GameEngine.processAction(gameState, action);
+
+      expect(newState.currentPlayer).toBe(1);
+    });
+
+    it('should reset game phase to takingActions', () => {
+      const action: GameAction = {
+        type: GameActionType.DiscardCards,
+        playerId: 'player-0',
+        payload: { cardIndices: [0] },
+        timestamp: Date.now(),
+      };
+
+      const newState = GameEngine.processAction(gameState, action);
+
+      expect(newState.gamePhase).toBe('takingActions');
+    });
+
+    it('should reset action count for next player', () => {
+      const action: GameAction = {
+        type: GameActionType.DiscardCards,
+        playerId: 'player-0',
+        payload: { cardIndices: [0] },
+        timestamp: Date.now(),
+      };
+
+      const newState = GameEngine.processAction(gameState, action);
+
+      expect(newState.players[1].actionCount).toBe(GAME_RULES.ACTIONS_PER_TURN);
+    });
+
+    it('should remove cards in reverse order', () => {
+      gameState.players[0].hand = [
+        { value: 1, hasSwapSymbol: false },
+        { value: 2, hasSwapSymbol: false },
+        { value: 3, hasSwapSymbol: false },
+        { value: 4, hasSwapSymbol: false },
+        { value: 5, hasSwapSymbol: false },
+        { value: 6, hasSwapSymbol: false },
+        { value: 7, hasSwapSymbol: false }, // 7 cards, needs to discard 2
+      ];
+
+      const action: GameAction = {
+        type: GameActionType.DiscardCards,
+        playerId: 'player-0',
+        payload: { cardIndices: [6, 2] }, // Remove last and middle (indices 6 and 2)
+        timestamp: Date.now(),
+      };
+
+      const newState = GameEngine.processAction(gameState, action);
+
+      // After removing indices 6 and 2, should have values 1, 2, 4, 5, 6
+      expect(newState.players[0].hand).toHaveLength(5);
+      expect(newState.players[0].hand.map((c) => c.value)).toEqual([1, 2, 4, 5, 6]);
+    });
+
+    it('should respect handLimitPlusOne ability', () => {
+      const blueChar: CharacterCard = {
+        id: 'hand-limit',
+        name: 'Hand Limit',
+        cost: [{ type: 'none' } as const],
+        powerPoints: 1,
+        diamonds: 0,
+        ability: 'handLimitPlusOne',
+      };
+      gameState.players[0].portal.characters = [blueChar];
+      gameState.players[0].hand = Array(7)
+        .fill(null)
+        .map((_, i) => ({ value: (i % 8) + 1 as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8, hasSwapSymbol: false }));
+      gameState.gamePhase = 'discardingExcessCards';
+
+      const action: GameAction = {
+        type: GameActionType.DiscardCards,
+        playerId: 'player-0',
+        payload: { cardIndices: [0] }, // Discard 1 (7-6=1 since limit is now 6)
+        timestamp: Date.now(),
+      };
+
+      const newState = GameEngine.processAction(gameState, action);
+
+      expect(newState.players[0].hand.length).toBe(6);
+    });
+
+    it('should log the discard action', () => {
+      const initialLogLength = gameState.gameLog.length;
+
+      const action: GameAction = {
+        type: GameActionType.DiscardCards,
+        playerId: 'player-0',
+        payload: { cardIndices: [0] },
+        timestamp: Date.now(),
+      };
+
+      const newState = GameEngine.processAction(gameState, action);
+
+      expect(newState.gameLog.length).toBeGreaterThan(initialLogLength);
+      const lastLog = newState.gameLog[newState.gameLog.length - 1];
+      expect(lastLog.type).toBe(GameActionType.DiscardCards);
+    });
+  });
+});
+
+
 
 

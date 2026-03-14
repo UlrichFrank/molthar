@@ -108,6 +108,13 @@ export const ABILITY_INFO: Record<AbilityType, AbilityInfo> = {
     category: 'blue',
     hasParameters: true,
   },
+  decreaseWithPearl: {
+    type: 'decreaseWithPearl',
+    label: 'Kartenwert -1',
+    description: 'Verringere unter Einsatz einer Perle den Wert einer Karte um 1',
+    category: 'blue',
+    hasParameters: false,
+  },
   // Special
   irrlicht: {
     type: 'irrlicht',

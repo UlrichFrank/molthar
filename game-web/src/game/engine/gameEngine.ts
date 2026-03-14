@@ -335,11 +335,71 @@ export class GameEngine {
   }
 
   /**
-   * Discard excess cards (stub for Phase 1.8)
+   * Discard excess cards when hand exceeds limit
+   * Player must discard down to hand limit (or modified limit from abilities)
    */
-  private static discardCards(_state: IGameState, _action: GameAction): IGameState {
-    // TODO: Implement in P1.8
-    throw new Error('discardCards not yet implemented');
+  private static discardCards(state: IGameState, action: GameAction): IGameState {
+    const { cardIndices } = action.payload || {};
+
+    if (!Array.isArray(cardIndices)) {
+      throw new Error('cardIndices must be an array');
+    }
+
+    const player = state.players[state.currentPlayer];
+    
+    // Get the modified hand limit (considering blue abilities)
+    let handLimit = GAME_RULES.HAND_LIMIT;
+    // TODO: Use getModifiedHandLimit() from abilitySystem once integrated
+    if (player.portal.characters.some((c) => c.ability === 'handLimitPlusOne')) {
+      handLimit += 1;
+    }
+
+    const cardsToDiscard = player.hand.length - handLimit;
+
+    // Validate number of cards to discard
+    if (cardIndices.length !== cardsToDiscard) {
+      throw new Error(
+        `Must discard exactly ${cardsToDiscard} cards (have ${player.hand.length}, limit is ${handLimit})`
+      );
+    }
+
+    // Validate all indices are valid
+    for (const idx of cardIndices) {
+      if (idx < 0 || idx >= player.hand.length) {
+        throw new Error(`Invalid card index: ${idx}`);
+      }
+    }
+
+    // Validate no duplicate indices
+    const uniqueIndices = new Set(cardIndices);
+    if (uniqueIndices.size !== cardIndices.length) {
+      throw new Error('Duplicate card indices');
+    }
+
+    // Remove cards in reverse order to maintain indices
+    const sortedIndices = [...cardIndices].sort((a, b) => b - a);
+    const discardedCards: typeof player.hand = [];
+    
+    for (const idx of sortedIndices) {
+      const card = player.hand.splice(idx, 1)[0];
+      discardedCards.push(card);
+    }
+
+    // Add discarded cards to discard pile
+    state.pearlDiscardPile.push(...discardedCards);
+
+    // Move to next player and reset action count
+    state.currentPlayer = (state.currentPlayer + 1) % state.players.length;
+    state.players[state.currentPlayer].actionCount = GAME_RULES.ACTIONS_PER_TURN;
+    state.gamePhase = 'takingActions';
+
+    // Log action
+    state.gameLog.push({
+      ...action,
+      timestamp: Date.now(),
+    });
+
+    return state;
   }
 
   /**
