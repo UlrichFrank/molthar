@@ -270,3 +270,144 @@
     padding: 1rem;
   }
 }
+
+/* Responsive Design Enhancements */
+
+@media (max-width: 1280px) {
+  .game-board {
+    gap: 1rem;
+  }
+
+  .left-panel,
+  .center-panel,
+  .right-panel {
+    gap: 1rem;
+  }
+
+  .card-value {
+    font-size: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .game-board {
+    grid-template-columns: 1fr 1.2fr;
+  }
+
+  .right-panel {
+    grid-column: 1 / -1;
+    overflow-x: auto;
+  }
+
+  .opponent-portal {
+    flex-basis: calc(33.333% - 0.5rem);
+  }
+
+  .card-value {
+    font-size: 1.25rem;
+  }
+
+  .hand-grid {
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .game-board {
+    grid-template-columns: 1fr;
+    padding: 0.75rem;
+  }
+
+  .left-panel,
+  .center-panel,
+  .right-panel {
+    gap: 0.75rem;
+  }
+
+  .cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .card-value {
+    font-size: 1rem;
+  }
+
+  .section-title {
+    font-size: 0.9rem;
+  }
+
+  .hand-grid {
+    grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+  }
+
+  .opponent-portal {
+    flex-basis: calc(50% - 0.35rem);
+  }
+
+  .game-log {
+    max-height: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .game-board {
+    padding: 0.5rem;
+  }
+
+  .cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.4rem;
+  }
+
+  .card {
+    padding: 0.4rem;
+    font-size: 0.9rem;
+  }
+
+  .card-value {
+    font-size: 0.9rem;
+  }
+
+  .section-title {
+    font-size: 0.85rem;
+  }
+
+  .player-portal {
+    padding: 0.75rem;
+  }
+
+  .opponent-portal {
+    flex-basis: calc(100% - 0.35rem);
+    padding: 0.5rem;
+  }
+
+  .hand-grid {
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+    gap: 0.35rem;
+  }
+
+  .hand-card {
+    font-size: 1.2rem;
+  }
+
+  .card-value-large {
+    font-size: 1.5rem;
+  }
+
+  .action-buttons {
+    padding: 0.75rem;
+  }
+
+  .actions-row {
+    gap: 0.35rem;
+  }
+
+  .btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+  }
+}
