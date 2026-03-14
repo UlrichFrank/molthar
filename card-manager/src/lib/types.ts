@@ -30,6 +30,8 @@ export interface OldCost {
 export type AbilityType =
   | 'none'
   | 'threeExtraActions'
+  | 'anyAddditionalCardActions'
+  | 'numberAddditionalCardActions'
   | 'changeHandActions'
   | 'nextPlayerOneExtraAction'
   | 'discardOpponentCharacter'
