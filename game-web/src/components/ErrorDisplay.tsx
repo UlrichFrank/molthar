@@ -2,41 +2,72 @@ import { useState, useEffect } from 'react';
 import '../styles/Components.css';
 
 interface ErrorDisplayProps {
-  error?: string;
+  message?: string | undefined;
+  error?: string | undefined;
   onDismiss?: () => void;
+  type?: 'error' | 'warning' | 'info';
+  duration?: number;
 }
 
-export function ErrorDisplay({ error, onDismiss }: ErrorDisplayProps) {
-  const [visible, setVisible] = useState(!!error);
+export function ErrorDisplay({
+  message,
+  error,
+  onDismiss,
+  type = 'error',
+  duration = 5000,
+}: ErrorDisplayProps) {
+  const [visible, setVisible] = useState(!!message || !!error);
+  const displayMessage = message || error;
 
   useEffect(() => {
-    setVisible(!!error);
-    if (error) {
+    if (!displayMessage) {
+      setVisible(false);
+      return;
+    }
+
+    setVisible(true);
+
+    if (duration > 0) {
       const timer = setTimeout(() => {
         setVisible(false);
         onDismiss?.();
-      }, 5000);
+      }, duration);
+
       return () => clearTimeout(timer);
     }
-  }, [error, onDismiss]);
+  }, [displayMessage, duration, onDismiss]);
 
-  if (!visible || !error) return null;
+  if (!visible || !displayMessage) {
+    return null;
+  }
+
+  const icon = {
+    error: '❌',
+    warning: '⚠️',
+    info: 'ℹ️',
+  }[type];
 
   return (
-    <div className="error-display">
+    <div
+      className={`error-display error-display-${type}`}
+      role="alert"
+      aria-live="polite"
+      aria-atomic="true"
+    >
       <div className="error-content">
-        <span className="error-icon">⚠️</span>
-        <span className="error-text">{error}</span>
-        <button
-          className="error-close"
-          onClick={() => {
-            setVisible(false);
-            onDismiss?.();
-          }}
-        >
-          ✕
-        </button>
+        <span className="error-icon">{icon}</span>
+        <p className="error-text">{displayMessage}</p>
       </div>
+      <button
+        className="error-dismiss"
+        onClick={() => {
+          setVisible(false);
+          onDismiss?.();
+        }}
+        aria-label="Dismiss error message"
+      >
+        ✕
+      </button>
     </div>
   );
 }
