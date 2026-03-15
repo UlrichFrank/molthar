@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createGameRoom, listGameRooms } from '../lib/game-client';
+import { createGameRoom, listGameRooms, joinGameRoom } from '../lib/game-client';
 import '../styles/lobby.css';
 
 interface LobbyProps {
@@ -23,6 +23,10 @@ export function Lobby(props: LobbyProps) {
   const [aiDifficulty, setAIDifficulty] = useState(3);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<'create' | 'join'>('create');
+  const [joinRoomID, setJoinRoomID] = useState('');
+  const [availableRooms, setAvailableRooms] = useState<any[]>([]);
+  const [loadingRooms, setLoadingRooms] = useState(false);
   
   const serverURL = props.serverURL || 'http://localhost:3001';
   
@@ -53,6 +57,42 @@ export function Lobby(props: LobbyProps) {
       setIsLoading(false);
     }
   };
+
+  const loadRooms = async () => {
+    setLoadingRooms(true);
+    setError(null);
+    try {
+      const rooms = await listGameRooms(serverURL);
+      setAvailableRooms(rooms.filter(r => r.status === 'waiting'));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load rooms';
+      setError(message);
+    } finally {
+      setLoadingRooms(false);
+    }
+  };
+
+  const handleJoinRoom = async (roomID: string) => {
+    if (!playerName.trim()) {
+      setError('Please enter your name');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await joinGameRoom(serverURL, roomID, playerName);
+      if (props.onRoomCreated) {
+        props.onRoomCreated(result.roomID, result.playerID, result.credential);
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to join room';
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   return (
     <div className="lobby">
@@ -63,94 +103,158 @@ export function Lobby(props: LobbyProps) {
         </div>
         
         <div className="lobby-content">
-          {/* Player Setup Section */}
-          <div className="setup-section">
-            <h2>Create New Game</h2>
-            
-            {error && (
-              <div className="error-message">
-                <span>⚠️</span> {error}
-              </div>
-            )}
-            
-            {/* Player Name */}
-            <div className="form-group">
-              <label htmlFor="player-name">Your Name</label>
-              <input
-                id="player-name"
-                type="text"
-                value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
-                placeholder="Enter your name"
-                maxLength={20}
-                disabled={isLoading}
-              />
-            </div>
-            
-            {/* Number of Players */}
-            <div className="form-group">
-              <label htmlFor="num-players">Number of Players</label>
-              <select
-                id="num-players"
-                value={numPlayers}
-                onChange={(e) => setNumPlayers(parseInt(e.target.value))}
-                disabled={isLoading}
-              >
-                <option value={2}>2 Players</option>
-                <option value={3}>3 Players</option>
-                <option value={4}>4 Players</option>
-                <option value={5}>5 Players</option>
-              </select>
-            </div>
-            
-            {/* Include AI */}
-            <div className="form-group checkbox">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={includeAI}
-                  onChange={(e) => setIncludeAI(e.target.checked)}
-                  disabled={isLoading}
-                />
-                Include AI Opponent
-              </label>
-            </div>
-            
-            {/* AI Difficulty */}
-            {includeAI && (
-              <div className="form-group">
-                <label htmlFor="ai-difficulty">AI Difficulty</label>
-                <div className="difficulty-selector">
-                  {[
-                    { level: 1, name: 'Easy (25%)', desc: 'Conservative' },
-                    { level: 2, name: 'Moderate (40%)', desc: 'Aggressive' },
-                    { level: 3, name: 'Medium (50%)', desc: 'Balanced' },
-                    { level: 4, name: 'Hard (60%)', desc: 'Adaptive' },
-                    { level: 5, name: 'Expert (75%)', desc: 'Monte Carlo' }
-                  ].map(({ level, name, desc }) => (
-                    <button
-                      key={level}
-                      className={`difficulty-btn ${aiDifficulty === level ? 'selected' : ''}`}
-                      onClick={() => setAIDifficulty(level)}
-                      disabled={isLoading}
-                      title={desc}
-                    >
-                      {name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            {/* Create Room Button */}
+          {/* Mode Selector */}
+          <div className="mode-selector">
             <button
-              onClick={handleCreateRoom}
-              className="btn btn-primary"
-              disabled={!playerName.trim() || isLoading}
+              className={`mode-btn ${mode === 'create' ? 'active' : ''}`}
+              onClick={() => setMode('create')}
+              disabled={isLoading}
             >
-              {isLoading ? '⏳ Creating...' : '🎮 Create Game Room'}
+              ✨ Create Game
+            </button>
+            <button
+              className={`mode-btn ${mode === 'join' ? 'active' : ''}`}
+              onClick={() => { setMode('join'); loadRooms(); }}
+              disabled={isLoading}
+            >
+              🚪 Join Game
             </button>
           </div>
+
+          {error && (
+            <div className="error-message">
+              <span>⚠️</span> {error}
+            </div>
+          )}
+
+          {/* Player Name - Always Shown */}
+          <div className="form-group">
+            <label htmlFor="player-name">Your Name</label>
+            <input
+              id="player-name"
+              type="text"
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+              placeholder="Enter your name"
+              maxLength={20}
+              disabled={isLoading}
+            />
+          </div>
+
+          {/* Create Mode */}
+          {mode === 'create' && (
+            <div className="setup-section">
+              <h2>Create New Game</h2>
+              
+              {/* Number of Players */}
+              <div className="form-group">
+                <label htmlFor="num-players">Number of Players</label>
+                <select
+                  id="num-players"
+                  value={numPlayers}
+                  onChange={(e) => setNumPlayers(parseInt(e.target.value))}
+                  disabled={isLoading}
+                >
+                  <option value={2}>2 Players</option>
+                  <option value={3}>3 Players</option>
+                  <option value={4}>4 Players</option>
+                  <option value={5}>5 Players</option>
+                </select>
+              </div>
+              
+              {/* Include AI */}
+              <div className="form-group checkbox">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={includeAI}
+                    onChange={(e) => setIncludeAI(e.target.checked)}
+                    disabled={isLoading}
+                  />
+                  Include AI Opponent
+                </label>
+              </div>
+              
+              {/* AI Difficulty */}
+              {includeAI && (
+                <div className="form-group">
+                  <label htmlFor="ai-difficulty">AI Difficulty</label>
+                  <div className="difficulty-selector">
+                    {[
+                      { level: 1, name: 'Easy (25%)', desc: 'Conservative' },
+                      { level: 2, name: 'Moderate (40%)', desc: 'Aggressive' },
+                      { level: 3, name: 'Medium (50%)', desc: 'Balanced' },
+                      { level: 4, name: 'Hard (60%)', desc: 'Adaptive' },
+                      { level: 5, name: 'Expert (75%)', desc: 'Monte Carlo' }
+                    ].map(({ level, name, desc }) => (
+                      <button
+                        key={level}
+                        className={`difficulty-btn ${aiDifficulty === level ? 'selected' : ''}`}
+                        onClick={() => setAIDifficulty(level)}
+                        disabled={isLoading}
+                        title={desc}
+                      >
+                        {name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Create Room Button */}
+              <button
+                onClick={handleCreateRoom}
+                className="btn btn-primary"
+                disabled={!playerName.trim() || isLoading}
+              >
+                {isLoading ? '⏳ Creating...' : '🎮 Create Game Room'}
+              </button>
+            </div>
+          )}
+
+          {/* Join Mode */}
+          {mode === 'join' && (
+            <div className="join-section">
+              <h2>Available Games</h2>
+              
+              {loadingRooms ? (
+                <div className="loading">Loading rooms...</div>
+              ) : availableRooms.length === 0 ? (
+                <div className="no-rooms">
+                  <p>No available rooms</p>
+                  <p className="hint">Create a new game or try again in a moment</p>
+                </div>
+              ) : (
+                <div className="rooms-list">
+                  {availableRooms.map((room) => (
+                    <div key={room.roomID} className="room-item">
+                      <div className="room-info">
+                        <div className="room-id">🎲 {room.roomID.substring(0, 20)}...</div>
+                        <div className="room-players">
+                          👥 {room.players}/{room.maxPlayers} players
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleJoinRoom(room.roomID)}
+                        className="btn btn-secondary"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? '⏳' : '➕'} Join
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              <button
+                onClick={loadRooms}
+                className="btn btn-secondary"
+                disabled={loadingRooms || isLoading}
+              >
+                🔄 Refresh
+              </button>
+            </div>
+          )}
           
           {/* Game Info */}
           <div className="game-info">
