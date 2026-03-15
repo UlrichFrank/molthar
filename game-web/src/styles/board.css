@@ -120,6 +120,11 @@
 .deck-button {
   font-size: 0.9rem;
   line-height: 1.2;
+  color: transparent;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .character-card {
