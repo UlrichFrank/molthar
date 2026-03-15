@@ -136,16 +136,27 @@
 }
 
 .character-card {
-  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-  padding: 0.8rem;
+  background: none;
+  padding: 0;
   text-align: center;
+  border: 3px solid #e8a76b;
+  border-radius: 8px;
+  width: 120px;
+  aspect-ratio: 59 / 92;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .character-card.card-with-image {
   padding: 0;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .character-card:disabled {
@@ -320,6 +331,10 @@
 .activated-character.card-with-image {
   background-size: contain;
   background-position: center;
+}
+
+.activated-character.rotated {
+  transform: rotate(180deg);
 }
 
 .activated-character .activated-badge {
@@ -530,6 +545,13 @@
   border: 2px solid #ffd700;
   border-radius: 4px;
   position: relative;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.opponent-char-card.rotated {
+  transform: rotate(180deg);
 }
 
 .opponent-char-card .card-stats-overlay {

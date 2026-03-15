@@ -159,9 +159,9 @@ export function Board(props: BoardProps) {
                 {player.portal.map((char, idx) => (
                   <button
                     key={char.id} 
-                    className="activated-character card-with-image"
+                    className={`activated-character card-with-image ${char.activated ? 'rotated' : ''}`}
                     style={{
-                      backgroundImage: `url(${getCharacterCardImage(char.name || `Character ${char.characterId}`)})`,
+                      backgroundImage: `url(${getCharacterCardImage(char.characterId)})`,
                     }}
                     onClick={() => {
                       if (isActive && G.actionCount < 3) {
@@ -169,7 +169,7 @@ export function Board(props: BoardProps) {
                       }
                     }}
                     disabled={!isActive || G.actionCount >= 3}
-                    title={`${char.name} - Click to deactivate${isActive && G.actionCount < 3 ? ' (1 action)' : ''}`}
+                    title={`Character ${char.characterId} - Click to deactivate${isActive && G.actionCount < 3 ? ' (1 action)' : ''}`}
                   >
                     <span className={`activated-badge active`}>✓</span>
                   </button>
@@ -261,16 +261,12 @@ export function Board(props: BoardProps) {
                           {p.portal.map((char, idx) => (
                             <div
                               key={idx}
-                              className="opponent-char-card card-with-image"
+                              className={`opponent-char-card card-with-image ${char.activated ? 'rotated' : ''}`}
                               style={{
-                                backgroundImage: `url(${getCharacterCardImage(char.name || `Character ${char.characterId}`)})`,
+                                backgroundImage: `url(${getCharacterCardImage(char.characterId)})`,
                               }}
-                              title={char.name}
+                              title={`Character ${char.characterId}`}
                             >
-                              <div className="card-stats-overlay">
-                                <div className="card-power">⚡ {char.powerPoints || 0}</div>
-                                <div className="card-diamond">💎 {char.diamonds || 0}</div>
-                              </div>
                             </div>
                           ))}
                         </div>
