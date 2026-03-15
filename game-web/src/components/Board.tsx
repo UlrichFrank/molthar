@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
 import type { GameState } from '@portale-von-molthar/shared';
+import { getCostSummary, describeCost, canPotentiallySatisfyCost } from '../lib/cost-helper';
 import '../styles/board.css';
 
 interface BoardProps {
@@ -114,21 +115,28 @@ export function Board(props: BoardProps) {
                   style={{
                     backgroundImage: `url(${getCharacterCardImage(card.name)})`,
                   }}
-                  title={`${card.name} - ⚡${card.powerPoints} 💎${card.diamonds}`}
+                  title={`${card.name} - ⚡${card.powerPoints} 💎${card.diamonds} - ${describeCost(card.cost)}`}
                 >
                   {/* Overlay with stats */}
                   <div className="card-stats-overlay">
                     <div className="card-power">⚡ {card.powerPoints}</div>
                     <div className="card-diamond">💎 {card.diamonds}</div>
                   </div>
+                  {/* Cost overlay */}
+                  <div className="card-cost-overlay">
+                    {getCostSummary(card.cost)}
+                  </div>
                   {isActive && G.actionCount < 3 && player && player.portal.length < 2 && (
                     <button
-                      className="activate-btn"
+                      className={`activate-btn ${
+                        canPotentiallySatisfyCost(card.cost, player.hand) ? 'available' : 'unavailable'
+                      }`}
                       onClick={(e) => {
                         e.stopPropagation();
                         // TODO: Implement cost validation UI
                         moves.activateCharacter(idx, []);
                       }}
+                      title={describeCost(card.cost)}
                     >
                       Activate
                     </button>
