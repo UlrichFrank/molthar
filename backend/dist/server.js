@@ -18,6 +18,8 @@ const isDev = process.env.NODE_ENV === 'development';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 // In-memory room storage (TODO: migrate to database)
 const rooms = new Map();
+// Track move history per room
+const moveHistory = new Map();
 // Middleware
 app.use(cors({
     origin: FRONTEND_URL,
@@ -184,6 +186,90 @@ app.post('/api/rooms/:roomID/join', (req, res) => {
         res.status(500).json({ error: 'Failed to join room' });
     }
 });
+// Submit a move to a room
+app.post('/api/rooms/:roomID/moves', (req, res) => {
+    try {
+        const { roomID } = req.params;
+        const { playerID, moveName, payload, gameState } = req.body;
+        const room = rooms.get(roomID);
+        if (!room) {
+            res.status(404).json({ error: 'Room not found' });
+            return;
+        }
+        // Verify player is in room
+        const player = room.players.find((p) => p.id === playerID);
+        if (!player) {
+            res.status(403).json({ error: 'Player not in room' });
+            return;
+        }
+        // Store move in history
+        if (!moveHistory.has(roomID)) {
+            moveHistory.set(roomID, []);
+        }
+        const moves = moveHistory.get(roomID);
+        moves.push({ playerID, move: moveName, payload });
+        // Update shared game state
+        room.gameState = gameState;
+        logger.info(`📝 Move in room ${roomID}: ${moveName} from player ${playerID}`);
+        res.json({
+            success: true,
+            moveID: moves.length - 1,
+            timestamp: new Date().toISOString(),
+            message: `Move ${moveName} recorded`,
+        });
+    }
+    catch (err) {
+        logger.error('Failed to submit move:', err);
+        res.status(500).json({ error: 'Failed to submit move' });
+    }
+});
+// Get game state for a room
+app.get('/api/rooms/:roomID/state', (req, res) => {
+    try {
+        const { roomID } = req.params;
+        const room = rooms.get(roomID);
+        if (!room) {
+            res.status(404).json({ error: 'Room not found' });
+            return;
+        }
+        if (!room.gameState) {
+            res.status(400).json({ error: 'Game not yet initialized' });
+            return;
+        }
+        res.json({
+            gameState: room.gameState,
+            roomID,
+            status: room.status,
+            timestamp: new Date().toISOString(),
+        });
+    }
+    catch (err) {
+        logger.error('Failed to fetch game state:', err);
+        res.status(500).json({ error: 'Failed to fetch game state' });
+    }
+});
+// Get move history for a room
+app.get('/api/rooms/:roomID/moves', (req, res) => {
+    try {
+        const { roomID } = req.params;
+        const room = rooms.get(roomID);
+        if (!room) {
+            res.status(404).json({ error: 'Room not found' });
+            return;
+        }
+        const moves = moveHistory.get(roomID) || [];
+        res.json({
+            roomID,
+            moves,
+            count: moves.length,
+            timestamp: new Date().toISOString(),
+        });
+    }
+    catch (err) {
+        logger.error('Failed to fetch moves:', err);
+        res.status(500).json({ error: 'Failed to fetch moves' });
+    }
+});
 // Error handling
 app.use((err, _req, res) => {
     logger.error('Server error:', err);
@@ -202,6 +288,9 @@ httpServer.listen(PORT, () => {
     logger.info(`   POST /api/rooms - Create new room`);
     logger.info(`   GET  /api/rooms/:roomID - Get room details`);
     logger.info(`   POST /api/rooms/:roomID/join - Join existing room`);
+    logger.info(`   POST /api/rooms/:roomID/moves - Submit game move`);
+    logger.info(`   GET  /api/rooms/:roomID/state - Get game state`);
+    logger.info(`   GET  /api/rooms/:roomID/moves - Get move history`);
     logger.info(`🔗 Frontend: ${FRONTEND_URL}`);
     logger.info(`🌐 CORS enabled for: ${FRONTEND_URL}`);
 });

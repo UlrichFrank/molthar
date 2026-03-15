@@ -177,6 +177,66 @@ export async function getGameRoom(serverURL: string, roomID: string): Promise<Ro
 }
 
 /**
+ * Submit a game move to the server
+ */
+export async function submitMove(
+  serverURL: string,
+  roomID: string,
+  playerID: string,
+  moveName: string,
+  payload: any,
+  gameState: any
+) {
+  const response = await fetch(`${serverURL}/api/rooms/${roomID}/moves`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      playerID,
+      moveName,
+      payload,
+      gameState,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || `Failed to submit move: ${response.statusText}`);
+  }
+
+  return await response.json();
+}
+
+/**
+ * Get game state from server
+ */
+export async function getGameState(serverURL: string, roomID: string) {
+  const response = await fetch(`${serverURL}/api/rooms/${roomID}/state`);
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || `Failed to fetch game state: ${response.statusText}`);
+  }
+
+  return await response.json();
+}
+
+/**
+ * Get move history from server
+ */
+export async function getMoveHistory(serverURL: string, roomID: string) {
+  const response = await fetch(`${serverURL}/api/rooms/${roomID}/moves`);
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || `Failed to fetch moves: ${response.statusText}`);
+  }
+
+  return await response.json();
+}
+
+/**
  * Start polling for room updates
  * Calls callback whenever room state changes
  */
@@ -199,6 +259,37 @@ export function startRoomPolling(
       }
     } catch (err) {
       logger('warn', `Failed to poll room: ${err}`);
+    }
+  }, interval);
+
+  // Return cleanup function
+  return () => clearInterval(pollInterval);
+}
+
+/**
+ * Start polling for game state updates
+ * Calls callback whenever game state changes
+ */
+export function startGameStatePolling(
+  serverURL: string,
+  roomID: string,
+  interval: number = 1000,
+  callback: (gameState: any) => void
+): () => void {
+  let lastState: string | null = null;
+  
+  const pollInterval = setInterval(async () => {
+    try {
+      const result = await getGameState(serverURL, roomID);
+      
+      // Only call callback if state changed
+      const stateStr = JSON.stringify(result.gameState);
+      if (stateStr !== lastState) {
+        lastState = stateStr;
+        callback(result.gameState);
+      }
+    } catch (err) {
+      logger('warn', `Failed to poll game state: ${err}`);
     }
   }, interval);
 
