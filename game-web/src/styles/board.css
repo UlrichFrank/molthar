@@ -51,28 +51,14 @@
 .face-up-area {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
-}
-
-.pearl-slots,
-.character-slots {
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 12px;
-  padding: 1.5rem;
-}
-
-.pearl-slots h3,
-.character-slots h3 {
-  margin: 0 0 1rem 0;
-  font-size: 1.3rem;
-  text-align: center;
-}
-
-.slots {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
-  justify-items: center;
+}
+
+.face-up-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 .card {

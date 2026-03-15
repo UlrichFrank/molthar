@@ -85,79 +85,75 @@ export function Board(props: BoardProps) {
       <div className="board-content">
         {/* Face-up Cards Area */}
         <div className="face-up-area">
-          <div className="pearl-slots">
-            <h3>Pearl Cards</h3>
-            <div className="slots">
-              {G.pearlSlots.map((card, idx) => (
-                <button
-                  key={idx}
-                  className="card pearl-card card-with-image"
-                  onClick={() => isActive && moves.takePearlCard(idx)}
-                  disabled={!isActive || G.actionCount >= 3}
-                  style={{
-                    backgroundImage: `url(${getPearlCardImage(card.value)})`,
-                  }}
-                  title={`Pearl Card ${card.value}${card.hasSwapSymbol ? ' (with swap symbol)' : ''}`}
-                >
-                  {/* Keep text as fallback */}
-                  <span className="card-fallback">
-                    <span className="value">{card.value}</span>
-                    {card.hasSwapSymbol && <span className="swap">♻</span>}
-                  </span>
-                </button>
-              ))}
+          {/* Pearl Cards Row */}
+          <div className="face-up-row">
+            <button
+              className="card deck-button card-with-image"
+              onClick={() => isActive && moves.takePearlCard(-1)}
+              disabled={!isActive || G.actionCount >= 3}
+              style={{
+                backgroundImage: `url(${getCardBackImage('pearl')})`,
+              }}
+              title="Pearl Card Deck"
+            >
+              🎴<br/>Deck
+            </button>
+            {G.pearlSlots.map((card, idx) => (
               <button
-                className="card deck-button card-with-image"
-                onClick={() => isActive && moves.takePearlCard(-1)}
+                key={idx}
+                className="card pearl-card card-with-image"
+                onClick={() => isActive && moves.takePearlCard(idx)}
                 disabled={!isActive || G.actionCount >= 3}
                 style={{
-                  backgroundImage: `url(${getCardBackImage('pearl')})`,
+                  backgroundImage: `url(${getPearlCardImage(card.value)})`,
                 }}
-                title="Pearl Card Deck"
+                title={`Pearl Card ${card.value}${card.hasSwapSymbol ? ' (with swap symbol)' : ''}`}
               >
-                🎴<br/>Deck
+                {/* Keep text as fallback */}
+                <span className="card-fallback">
+                  <span className="value">{card.value}</span>
+                  {card.hasSwapSymbol && <span className="swap">♻</span>}
+                </span>
               </button>
-            </div>
+            ))}
           </div>
           
-          <div className="character-slots">
-            <h3>Character Cards</h3>
-            <div className="slots">
-              {G.characterSlots.map((card, idx) => (
-                <button
-                  key={idx}
-                  className="card character-card card-with-image"
-                  style={{
-                    backgroundImage: `url(${getCharacterCardImage(card.name)})`,
-                  }}
-                  disabled={!isActive || G.actionCount >= 3}
-                  title={`${card.name} - ⚡${card.powerPoints} 💎${card.diamonds}${isActive && G.actionCount < 3 ? ' - Click to take' : ''}`}
-                  onClick={() => {
-                    // TODO: Implement takeCharacterCard move
-                    console.log('Character card click - move not yet implemented');
-                  }}
-                >
-                  {/* Keep text as fallback */}
-                  <span className="card-fallback">
-                    <span className="name">{card.name}</span>
-                  </span>
-                </button>
-              ))}
+          {/* Character Cards Row */}
+          <div className="face-up-row">
+            <button
+              className="card deck-button card-with-image"
+              disabled={!isActive || G.actionCount >= 3}
+              style={{
+                backgroundImage: `url(${getCardBackImage('character')})`,
+              }}
+              title="Character Card Deck"
+              onClick={() => {
+                // TODO: Implement takeCharacterCard from deck move
+                console.log('Character deck click - move not yet implemented');
+              }}
+            >
+              🎴<br/>Deck
+            </button>
+            {G.characterSlots.map((card, idx) => (
               <button
-                className="card deck-button card-with-image"
-                disabled={!isActive || G.actionCount >= 3}
+                key={idx}
+                className="card character-card card-with-image"
                 style={{
-                  backgroundImage: `url(${getCardBackImage('character')})`,
+                  backgroundImage: `url(${getCharacterCardImage(card.name)})`,
                 }}
-                title="Character Card Deck"
+                disabled={!isActive || G.actionCount >= 3}
+                title={`${card.name} - ⚡${card.powerPoints} 💎${card.diamonds}${isActive && G.actionCount < 3 ? ' - Click to take' : ''}`}
                 onClick={() => {
-                  // TODO: Implement takeCharacterCard from deck move
-                  console.log('Character deck click - move not yet implemented');
+                  // TODO: Implement takeCharacterCard move
+                  console.log('Character card click - move not yet implemented');
                 }}
               >
-                🎴<br/>Deck
+                {/* Keep text as fallback */}
+                <span className="card-fallback">
+                  <span className="name">{card.name}</span>
+                </span>
               </button>
-            </div>
+            ))}
           </div>
         </div>
         
