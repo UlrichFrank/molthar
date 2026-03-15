@@ -8,12 +8,6 @@ importers:
 
   backend:
     dependencies:
-      '@portale-von-molthar/shared':
-        specifier: workspace:*
-        version: link:../shared
-      boardgame.io:
-        specifier: ^0.50.2
-        version: 0.50.2
       cors:
         specifier: ^2.8.5
         version: 2.8.6
@@ -23,9 +17,6 @@ importers:
       express:
         specifier: ^4.18.2
         version: 4.22.1
-      socket.io:
-        specifier: ^4.7.2
-        version: 4.8.3
       uuid:
         specifier: ^9.0.1
         version: 9.0.1
