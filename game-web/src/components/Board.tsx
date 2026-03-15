@@ -124,25 +124,31 @@ export function Board(props: BoardProps) {
             <h3>Character Cards</h3>
             <div className="slots">
               {G.characterSlots.map((card, idx) => (
-                <div
+                <button
                   key={idx}
                   className="card character-card card-with-image"
                   style={{
                     backgroundImage: `url(${getCharacterCardImage(card.name)})`,
                   }}
-                  title={`${card.name} - ⚡${card.powerPoints} 💎${card.diamonds} - ${describeCost(card.cost)}`}
+                  disabled={true}
+                  title={`${card.name} - ⚡${card.powerPoints} 💎${card.diamonds}`}
                 >
-                  {/* Overlay with stats */}
-                  <div className="card-stats-overlay">
-                    <div className="card-power">⚡ {card.powerPoints}</div>
-                    <div className="card-diamond">💎 {card.diamonds}</div>
-                  </div>
-                  {/* Cost overlay */}
-                  <div className="card-cost-overlay">
-                    {getCostSummary(card.cost)}
-                  </div>
-                </div>
+                  {/* Keep text as fallback */}
+                  <span className="card-fallback">
+                    <span className="name">{card.name}</span>
+                  </span>
+                </button>
               ))}
+              <button
+                className="card deck-button card-with-image"
+                disabled={true}
+                style={{
+                  backgroundImage: `url(${getCardBackImage('character')})`,
+                }}
+                title="Character Card Deck"
+              >
+                🎴<br/>Deck
+              </button>
             </div>
           </div>
         </div>
