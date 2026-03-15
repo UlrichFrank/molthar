@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react';
 import type { GameState, CharacterCard } from '@portale-von-molthar/shared';
 import { getCostSummary, describeCost, canPotentiallySatisfyCost } from '../lib/cost-helper';
 import { CostPaymentDialog } from './CostPaymentDialog';
+import { CharacterActivationDialog } from './CharacterActivationDialog';
 import '../styles/board.css';
 
 interface BoardProps {
@@ -63,6 +64,7 @@ export function Board(props: BoardProps) {
   const currentPlayer = G.players[ctx.currentPlayer];
   const player = playerID ? G.players[playerID] : null;
   const [selectedCharacterSlot, setSelectedCharacterSlot] = useState<number | null>(null);
+  const [selectedPortalSlotIndex, setSelectedPortalSlotIndex] = useState<number | null>(null);
   const [showCostDialog, setShowCostDialog] = useState(false);
   
   return (
@@ -121,19 +123,12 @@ export function Board(props: BoardProps) {
             <h3>Character Cards</h3>
             <div className="slots">
               {G.characterSlots.map((card, idx) => (
-                <button
+                <div
                   key={idx}
                   className="card character-card card-with-image"
                   style={{
                     backgroundImage: `url(${getCharacterCardImage(card.name)})`,
                   }}
-                  onClick={() => {
-                    if (isActive && G.actionCount < 3 && player && player.portal.length < 2) {
-                      setSelectedCharacterSlot(idx);
-                      setShowCostDialog(true);
-                    }
-                  }}
-                  disabled={!isActive || G.actionCount >= 3 || !player || player.portal.length >= 2}
                   title={`${card.name} - ⚡${card.powerPoints} 💎${card.diamonds} - ${describeCost(card.cost)}`}
                 >
                   {/* Overlay with stats */}
@@ -145,14 +140,7 @@ export function Board(props: BoardProps) {
                   <div className="card-cost-overlay">
                     {getCostSummary(card.cost)}
                   </div>
-                  {isActive && G.actionCount < 3 && player && player.portal.length < 2 && (
-                    <div className={`activate-indicator ${
-                      canPotentiallySatisfyCost(card.cost, player.hand) ? 'available' : 'unavailable'
-                    }`}>
-                      {canPotentiallySatisfyCost(card.cost, player.hand) ? '✓' : '✗'}
-                    </div>
-                  )}
-                </button>
+                </div>
               ))}
             </div>
           </div>
@@ -193,9 +181,20 @@ export function Board(props: BoardProps) {
                           <span className={`activated-badge active`}>✓</span>
                         </button>
                       ) : (
-                        <div className="empty-portal-slot">
+                        <button
+                          className="empty-portal-slot"
+                          onClick={() => {
+                            if (isActive && G.actionCount < 3 && G.characterSlots.length > 0) {
+                              setSelectedPortalSlotIndex(slotIdx);
+                              setSelectedCharacterSlot(0); // Start with first character
+                              setShowCostDialog(true);
+                            }
+                          }}
+                          disabled={!isActive || G.actionCount >= 3 || G.characterSlots.length === 0}
+                          title="Click to activate a character"
+                        >
                           <span className="slot-label">Slot {slotIdx + 1}</span>
-                        </div>
+                        </button>
                       )}
                     </div>
                   ))}
@@ -337,19 +336,25 @@ export function Board(props: BoardProps) {
         </div>
       )}
 
-      {/* Cost Payment Dialog */}
-      {showCostDialog && selectedCharacterSlot !== null && G.characterSlots[selectedCharacterSlot] && player && (
-        <CostPaymentDialog
-          character={G.characterSlots[selectedCharacterSlot]}
+      {/* Character Activation Dialog (for empty portal slots) */}
+      {showCostDialog && selectedPortalSlotIndex !== null && player && (
+        <CharacterActivationDialog
+          availableCharacters={G.characterSlots.map((card, idx) => ({
+            card,
+            slotIndex: idx,
+          }))}
           hand={player.hand}
           diamonds={player.diamonds}
-          onPay={(usedCardIndices) => {
-            moves.activateCharacter(selectedCharacterSlot, usedCardIndices);
+          portalSlotIndex={selectedPortalSlotIndex}
+          onActivate={(characterSlotIndex, usedCardIndices) => {
+            moves.activateCharacter(characterSlotIndex, usedCardIndices);
             setShowCostDialog(false);
+            setSelectedPortalSlotIndex(null);
             setSelectedCharacterSlot(null);
           }}
           onCancel={() => {
             setShowCostDialog(false);
+            setSelectedPortalSlotIndex(null);
             setSelectedCharacterSlot(null);
           }}
         />
