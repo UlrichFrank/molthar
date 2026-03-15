@@ -12,18 +12,32 @@ import 'dotenv/config';
 import { v4 as uuidv4 } from 'uuid';
 import { logger } from './utils/logger.js';
 import { MoveValidator } from './moveValidator.js';
+import { PortaleVonMolthar } from '@portale-von-molthar/shared';
 const app = express();
 const httpServer = createServer(app);
-const PORT = parseInt(process.env.PORT || '8000');
+const PORT = parseInt(process.env.PORT || '3001');
 const isDev = process.env.NODE_ENV === 'development';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 // In-memory room storage (TODO: migrate to database)
 const rooms = new Map();
 // Track move history per room
 const moveHistory = new Map();
-// Middleware
+// Middleware - Allow any localhost port in development
 app.use(cors({
-    origin: FRONTEND_URL,
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin)
+            return callback(null, true);
+        // In development, allow any localhost port
+        if (isDev && origin.startsWith('http://localhost:')) {
+            return callback(null, true);
+        }
+        // In production, use FRONTEND_URL
+        if (origin === FRONTEND_URL) {
+            return callback(null, true);
+        }
+        callback(new Error('CORS not allowed'));
+    },
     methods: ['GET', 'POST', 'OPTIONS'],
     credentials: true,
 }));
@@ -80,7 +94,17 @@ app.post('/api/rooms', (req, res) => {
         const roomID = `room-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         const playerID = '0'; // First player is always ID 0
         const credential = uuidv4();
-        // Create room
+        // Create room with initial game state
+        let gameState;
+        try {
+            if (PortaleVonMolthar.setup) {
+                gameState = PortaleVonMolthar.setup({ playOrder: ['0'] });
+            }
+        }
+        catch (setupErr) {
+            logger.warn('Failed to initialize game state:', setupErr);
+            gameState = undefined;
+        }
         const room = {
             id: roomID,
             createdAt: new Date().toISOString(),
@@ -96,6 +120,7 @@ app.post('/api/rooms', (req, res) => {
             status: 'waiting',
             aiDifficulty: includeAI ? aiDifficulty : null,
             includeAI,
+            gameState,
         };
         rooms.set(roomID, room);
         logger.info(`🆕 Room created: ${roomID} (${playerName}, ${numPlayers} players, AI: ${includeAI})`);
