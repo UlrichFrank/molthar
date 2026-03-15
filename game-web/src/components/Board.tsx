@@ -163,7 +163,7 @@ export function Board(props: BoardProps) {
           
           {/* Other Players */}
           <div className="other-players">
-            {G.playerOrder
+            {(G.playerOrder || Object.keys(G.players))
               .filter(pId => pId !== playerID)
               .map(pId => {
                 const p = G.players[pId];

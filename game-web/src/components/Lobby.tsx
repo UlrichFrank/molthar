@@ -1,9 +1,10 @@
 import { useState } from 'react';
+import { createGameRoom, listGameRooms } from '../lib/game-client';
 import '../styles/lobby.css';
 
 interface LobbyProps {
-  gameServer?: string;
-  lobbyServer?: string;
+  serverURL?: string;
+  onRoomCreated?: (roomID: string, playerID: string, credential: string) => void;
 }
 
 /**
@@ -21,28 +22,33 @@ export function Lobby(props: LobbyProps) {
   const [includeAI, setIncludeAI] = useState(false);
   const [aiDifficulty, setAIDifficulty] = useState(3);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  const serverURL = props.serverURL || 'http://localhost:3001';
   
   const handleCreateRoom = async () => {
     if (!playerName.trim()) {
-      alert('Please enter your name');
+      setError('Please enter your name');
       return;
     }
     
     setIsLoading(true);
+    setError(null);
+    
     try {
-      // TODO: Integrate with actual boardgame.io server
-      // This is a placeholder for the actual implementation
-      console.log('Creating room:', {
+      const room = await createGameRoom(serverURL, {
         playerName,
         numPlayers,
         includeAI,
-        aiDifficulty
+        aiDifficulty: includeAI ? aiDifficulty : undefined,
       });
       
-      alert(`Room created! (Implementation pending)`);
+      if (props.onRoomCreated) {
+        props.onRoomCreated(room.roomID, room.playerID, room.credential);
+      }
     } catch (err) {
-      console.error('Failed to create room:', err);
-      alert('Failed to create room');
+      const message = err instanceof Error ? err.message : 'Failed to create room';
+      setError(message);
     } finally {
       setIsLoading(false);
     }
@@ -60,6 +66,12 @@ export function Lobby(props: LobbyProps) {
           {/* Player Setup Section */}
           <div className="setup-section">
             <h2>Create New Game</h2>
+            
+            {error && (
+              <div className="error-message">
+                <span>⚠️</span> {error}
+              </div>
+            )}
             
             {/* Player Name */}
             <div className="form-group">
@@ -136,14 +148,8 @@ export function Lobby(props: LobbyProps) {
               className="btn btn-primary"
               disabled={!playerName.trim() || isLoading}
             >
-              {isLoading ? 'Creating...' : 'Create Game Room'}
+              {isLoading ? '⏳ Creating...' : '🎮 Create Game Room'}
             </button>
-          </div>
-          
-          {/* Available Rooms Section */}
-          <div className="rooms-section">
-            <h2>Available Rooms</h2>
-            <p className="no-rooms">No rooms available. Create one above!</p>
           </div>
           
           {/* Game Info */}

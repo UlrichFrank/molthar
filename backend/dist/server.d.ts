@@ -1,11 +1,9 @@
 /**
- * Portale von Molthar - Backend Server (boardgame.io)
+ * Portale von Molthar - Backend Server
  *
- * This server:
- * - Hosts the game engine and state management
- * - Manages multiplayer rooms and player connections
- * - Validates and processes game moves
- * - Broadcasts state updates to all connected clients
+ * Express server for room management and game coordination.
+ * Note: Using REST API pattern instead of full boardgame.io server
+ * for simplicity. The game logic runs client-side with local state.
  */
 import 'dotenv/config';
 declare const httpServer: import("http").Server<typeof import("http").IncomingMessage, typeof import("http").ServerResponse>;
