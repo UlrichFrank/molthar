@@ -96,7 +96,7 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  min-height: 150px;
+  aspect-ratio: 92 / 59;
   padding: 0;
 }
 
@@ -300,8 +300,8 @@
 }
 
 .hand-card {
-  width: 60px;
-  height: 90px;
+  width: 92px;
+  aspect-ratio: 92 / 59;
   border: 2px solid #fff;
   border-radius: 4px;
   background-size: cover;
