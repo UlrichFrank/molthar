@@ -263,7 +263,7 @@ app.post('/api/rooms/:roomID/join', (req, res) => {
 app.post('/api/rooms/:roomID/moves', (req, res) => {
   try {
     const { roomID } = req.params;
-    const { playerID, moveName, payload, gameState } = req.body;
+    const { playerID, moveName, payload } = req.body;
 
     const room = rooms.get(roomID);
     if (!room) {
@@ -278,12 +278,20 @@ app.post('/api/rooms/:roomID/moves', (req, res) => {
       return;
     }
 
+    // Make sure game state exists
+    if (!room.gameState) {
+      res.status(400).json({ error: 'Game not initialized' });
+      return;
+    }
+
+    const currentGameState = room.gameState;
+
     // Validate move (server-side validation)
     const moveValidation = MoveValidator.validateMove(
       moveName,
       playerID,
       payload,
-      gameState as GameState
+      currentGameState
     );
 
     if (!moveValidation.valid) {
@@ -295,24 +303,72 @@ app.post('/api/rooms/:roomID/moves', (req, res) => {
       return;
     }
 
-    // Store move in history
-    if (!moveHistory.has(roomID)) {
-      moveHistory.set(roomID, []);
+    // Apply the move to the game state
+    try {
+      const moveFunction = (PortaleVonMolthar.moves as any)[moveName];
+      if (!moveFunction) {
+        res.status(400).json({ error: `Unknown move: ${moveName}` });
+        return;
+      }
+
+      // Create a mock context object for the move
+      const ctx = {
+        currentPlayer: currentGameState.playerOrder[0],
+        numPlayers: currentGameState.playerOrder.length,
+        playOrder: currentGameState.playerOrder,
+      };
+
+      // Apply the move to get the new state
+      const newGameState = JSON.parse(JSON.stringify(currentGameState)); // Deep copy
+      moveFunction(newGameState, ctx, payload);
+
+      // Check if turn is ending
+      let shouldAdvanceTurn = false;
+      if (moveName === 'endTurn') {
+        shouldAdvanceTurn = true;
+      }
+
+      // Advance turn to next player if move was endTurn
+      if (shouldAdvanceTurn) {
+        const currentIndex = newGameState.playerOrder.indexOf(currentGameState.playerOrder[0]);
+        const nextIndex = (currentIndex + 1) % newGameState.playerOrder.length;
+        const nextPlayer = newGameState.playerOrder[nextIndex];
+        
+        // Move next player to front of playerOrder (indicates current player)
+        newGameState.playerOrder.splice(nextIndex, 1);
+        newGameState.playerOrder.unshift(nextPlayer);
+        newGameState.actionCount = 0;
+      } else {
+        // Increment action count for non-endTurn moves
+        newGameState.actionCount = (newGameState.actionCount || 0) + 1;
+      }
+
+      // Save the new game state
+      room.gameState = newGameState;
+
+      // Store move in history
+      if (!moveHistory.has(roomID)) {
+        moveHistory.set(roomID, []);
+      }
+      const moves = moveHistory.get(roomID)!;
+      moves.push({ playerID, move: moveName, payload });
+
+      logger.info(`📝 Move in room ${roomID}: ${moveName} from player ${playerID}`);
+
+      res.json({
+        success: true,
+        moveID: moves.length - 1,
+        timestamp: new Date().toISOString(),
+        message: `Move ${moveName} recorded`,
+        gameState: newGameState,
+      });
+    } catch (moveErr) {
+      logger.error('Error applying move:', moveErr);
+      res.status(500).json({ 
+        error: 'Error applying move',
+        details: moveErr instanceof Error ? moveErr.message : 'Unknown error'
+      });
     }
-    const moves = moveHistory.get(roomID)!;
-    moves.push({ playerID, move: moveName, payload });
-
-    // Update shared game state
-    room.gameState = gameState;
-
-    logger.info(`📝 Move in room ${roomID}: ${moveName} from player ${playerID}`);
-
-    res.json({
-      success: true,
-      moveID: moves.length - 1,
-      timestamp: new Date().toISOString(),
-      message: `Move ${moveName} recorded`,
-    });
   } catch (err) {
     logger.error('Failed to submit move:', err);
     res.status(500).json({ error: 'Failed to submit move' });

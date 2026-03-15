@@ -184,8 +184,7 @@ export async function submitMove(
   roomID: string,
   playerID: string,
   moveName: string,
-  payload: any,
-  gameState: any
+  payload: any
 ) {
   const response = await fetch(`${serverURL}/api/rooms/${roomID}/moves`, {
     method: 'POST',
@@ -196,7 +195,6 @@ export async function submitMove(
       playerID,
       moveName,
       payload,
-      gameState,
     }),
   });
 

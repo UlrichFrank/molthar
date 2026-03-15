@@ -32,7 +32,7 @@ export function App() {
     moveName: string,
     payload: any
   ) => {
-    if (!session?.gameState || !session?.connection) {
+    if (!session?.connection) {
       showError('Game session not initialized');
       return;
     }
@@ -46,8 +46,7 @@ export function App() {
         roomID,
         playerID,
         moveName,
-        payload,
-        session.gameState
+        payload
       );
 
       // Show success toast
