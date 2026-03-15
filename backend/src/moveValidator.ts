@@ -40,6 +40,9 @@ export class MoveValidator {
       case 'activateCharacter':
         return this.validateActivateCharacter(playerID, payload, gameState);
       
+      case 'deactivateCharacter':
+        return this.validateDeactivateCharacter(playerID, payload, gameState);
+      
       case 'replacePearlSlots':
         return this.validateReplacePearlSlots(playerID, payload, gameState);
       
@@ -146,6 +149,35 @@ export class MoveValidator {
     // Check if there are enough cards to replace
     if (!gameState.pearlSlots || gameState.pearlSlots.length === 0) {
       return { valid: false, error: 'No pearl slots to replace' };
+    }
+
+    return { valid: true };
+  }
+
+  /**
+   * Validate deactivateCharacter move
+   */
+  private static validateDeactivateCharacter(
+    playerID: string,
+    payload: any,
+    gameState: GameState
+  ): MoveValidationResult {
+    const player = gameState.players[playerID];
+
+    if (!payload || typeof payload.portalIndex !== 'number') {
+      return { valid: false, error: 'Invalid payload for deactivateCharacter' };
+    }
+
+    const { portalIndex } = payload;
+
+    // Check if action count allows this move
+    if (gameState.actionCount >= 3) {
+      return { valid: false, error: 'No more actions available this turn' };
+    }
+
+    // Check if portal index is valid
+    if (portalIndex < 0 || !player.portal || portalIndex >= player.portal.length) {
+      return { valid: false, error: 'Invalid portal index' };
     }
 
     return { valid: true };

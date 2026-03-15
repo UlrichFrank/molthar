@@ -26,6 +26,10 @@ export declare class MoveValidator {
      */
     private static validateReplacePearlSlots;
     /**
+     * Validate deactivateCharacter move
+     */
+    private static validateDeactivateCharacter;
+    /**
      * Validate endTurn move
      */
     private static validateEndTurn;

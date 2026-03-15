@@ -152,17 +152,23 @@ export function Board(props: BoardProps) {
             <div className={`player-area ${playerID === ctx.currentPlayer ? 'active' : ''}`}>
               <h3>My Portal</h3>
               <div className="portal">
-                {player.portal.map(char => (
-                  <div 
+                {player.portal.map((char, idx) => (
+                  <button
                     key={char.id} 
                     className="activated-character card-with-image"
                     style={{
                       backgroundImage: `url(${getCharacterCardImage(char.name || `Character ${char.characterId}`)})`,
                     }}
-                    title={`${char.name} - Activated`}
+                    onClick={() => {
+                      if (isActive && G.actionCount < 3) {
+                        moves.deactivateCharacter(idx);
+                      }
+                    }}
+                    disabled={!isActive || G.actionCount >= 3}
+                    title={`${char.name} - Click to deactivate${isActive && G.actionCount < 3 ? ' (1 action)' : ''}`}
                   >
                     <span className={`activated-badge active`}>✓</span>
-                  </div>
+                  </button>
                 ))}
                 {player.portal.length < 2 && (
                   <div className="empty-slot">+</div>

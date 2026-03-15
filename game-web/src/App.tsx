@@ -183,6 +183,8 @@ export function App() {
             takePearlCard: (slotIndex: number) => handleMoveSubmission('takePearlCard', { slotIndex }),
             activateCharacter: (characterSlotIndex: number, pearlCardIndices: number[]) =>
               handleMoveSubmission('activateCharacter', { characterSlotIndex, pearlCardIndices }),
+            deactivateCharacter: (portalIndex: number) =>
+              handleMoveSubmission('deactivateCharacter', { portalIndex }),
             replacePearlSlots: () => handleMoveSubmission('replacePearlSlots', {}),
             endTurn: () => handleMoveSubmission('endTurn', {}),
           }}
