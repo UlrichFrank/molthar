@@ -94,7 +94,7 @@ describe('useLocalStorage Hook', () => {
 
   it('handles localStorage quota exceeded', () => {
     const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
       throw new Error('QuotaExceededError');
     });
 
@@ -107,6 +107,7 @@ describe('useLocalStorage Hook', () => {
     expect(consoleSpy).toHaveBeenCalled();
 
     consoleSpy.mockRestore();
+    setItemSpy.mockRestore();
   });
 
   it('persists value across hook instances', () => {

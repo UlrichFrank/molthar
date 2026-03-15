@@ -19,7 +19,7 @@ describe('Toast Component', () => {
     expect(screen.getByText('Success!')).toBeInTheDocument();
   });
 
-  it('calls onDismiss when close button clicked', () => {
+  it('calls onDismiss when close button clicked', async () => {
     const onDismiss = vi.fn();
     const toast = {
       id: '1',
@@ -32,7 +32,9 @@ describe('Toast Component', () => {
     const closeBtn = screen.getByRole('button', { name: /close/i });
     fireEvent.click(closeBtn);
 
-    expect(onDismiss).toHaveBeenCalledWith('1');
+    await waitFor(() => {
+      expect(onDismiss).toHaveBeenCalledWith('1');
+    });
   });
 
   it('auto-dismisses after duration', async () => {

@@ -5,6 +5,8 @@ import { GameActionType } from '../lib/types';
 import { loadCharacterCards } from '../lib/cardLoader';
 import { setupKeyboardShortcuts } from '../lib/keyboard';
 import { createSkipLink } from '../lib/accessibility';
+import { useToast } from '../hooks/useToast';
+import { ToastContainer } from './Toast';
 import { GameBoard } from './GameBoard';
 import { GameStartScreen } from './GameStartScreen';
 import { GameFinishedScreen } from './GameFinishedScreen';
@@ -20,6 +22,7 @@ export function GameContainer() {
   const [selectedCharacter, setSelectedCharacter] = useState<number | null>(null);
   const [selectedHandIndices, setSelectedHandIndices] = useState<number[]>([]);
   const [error, setError] = useState<string | undefined>();
+  const { toasts, removeToast, success, info } = useToast();
 
   // Load character cards and setup keyboard/accessibility on mount
   useEffect(() => {
@@ -101,6 +104,7 @@ export function GameContainer() {
             payload: { cardIndex: selectedPearl },
             timestamp: Date.now(),
           });
+          success('Pearl card taken!', 2000);
           setSelectedPearl(null);
           break;
 
@@ -115,6 +119,7 @@ export function GameContainer() {
             payload: { cardIndex: selectedCharacter },
             timestamp: Date.now(),
           });
+          success('Character placed!', 2000);
           setSelectedCharacter(null);
           break;
 
@@ -136,6 +141,7 @@ export function GameContainer() {
             },
             timestamp: Date.now(),
           });
+          success('Character activated!', 2000);
           setSelectedHandIndices([]);
           break;
 
@@ -150,6 +156,7 @@ export function GameContainer() {
             payload: { indices: selectedHandIndices },
             timestamp: Date.now(),
           });
+          info('Cards discarded', 2000);
           setSelectedHandIndices([]);
           break;
 
@@ -160,6 +167,7 @@ export function GameContainer() {
             payload: {},
             timestamp: Date.now(),
           });
+          info(`Turn ended for ${gameState.players[gameState.currentPlayer].name}`, 2000);
           break;
 
         default:
@@ -226,6 +234,7 @@ export function GameContainer() {
         onEndTurn={() => handleAction(GameActionType.EndTurn)}
       />
       <ErrorDisplay error={error} onDismiss={() => setError(undefined)} />
+      <ToastContainer toasts={toasts} onDismiss={removeToast} />
     </>
   );
 }

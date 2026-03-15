@@ -186,7 +186,9 @@ export function createSkipLink(targetSelector: string): HTMLElement {
     const target = document.querySelector(targetSelector) as HTMLElement;
     if (target) {
       target.focus();
-      target.scrollIntoView();
+      if (target.scrollIntoView) {
+        target.scrollIntoView();
+      }
     }
   });
 

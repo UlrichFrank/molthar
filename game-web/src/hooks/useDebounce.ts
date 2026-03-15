@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 /**
  * Debounce a value with configurable delay
@@ -26,19 +26,25 @@ export function useDebouncedCallback<TArgs extends any[], TResult>(
   callback: (...args: TArgs) => TResult,
   delay: number = 500
 ): (...args: TArgs) => void {
-  const [timeoutId, setTimeoutId] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const debouncedCallback = (...args: TArgs) => {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
+    if (timeoutIdRef.current) {
+      clearTimeout(timeoutIdRef.current);
     }
 
-    const newTimeoutId = setTimeout(() => {
+    timeoutIdRef.current = setTimeout(() => {
       callback(...args);
     }, delay);
-
-    setTimeoutId(newTimeoutId);
   };
+
+  useEffect(() => {
+    return () => {
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current);
+      }
+    };
+  }, []);
 
   return debouncedCallback;
 }
@@ -51,15 +57,15 @@ export function useDebouncedAsync<TArgs extends any[], TResult>(
   asyncFn: (...args: TArgs) => Promise<TResult>,
   delay: number = 500
 ): (...args: TArgs) => Promise<TResult | undefined> {
-  const [timeoutId, setTimeoutId] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const debouncedAsync = (...args: TArgs): Promise<TResult | undefined> => {
     return new Promise((resolve) => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current);
       }
 
-      const newTimeoutId = setTimeout(async () => {
+      timeoutIdRef.current = setTimeout(async () => {
         try {
           const result = await asyncFn(...args);
           resolve(result);
@@ -68,10 +74,16 @@ export function useDebouncedAsync<TArgs extends any[], TResult>(
           resolve(undefined);
         }
       }, delay);
-
-      setTimeoutId(newTimeoutId);
     });
   };
+
+  useEffect(() => {
+    return () => {
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current);
+      }
+    };
+  }, []);
 
   return debouncedAsync;
 }
