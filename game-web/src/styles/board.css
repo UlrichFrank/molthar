@@ -481,6 +481,75 @@
   font-size: 1.2rem;
 }
 
+/* Other Player Portal Display */
+.other-portal {
+  margin: 0.8rem 0;
+  padding: 0.8rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+}
+
+.portal-label {
+  display: block;
+  font-size: 0.9rem;
+  color: #ffd700;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.portal-cards {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.opponent-char-card {
+  width: 60px;
+  aspect-ratio: 92 / 59;
+  border: 2px solid #ffd700;
+  border-radius: 4px;
+  position: relative;
+}
+
+.opponent-char-card .card-stats-overlay {
+  font-size: 0.7rem;
+  padding: 0.2rem;
+}
+
+.no-portal {
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+}
+
+/* Other Player Hand Display */
+.other-hand {
+  margin: 0.8rem 0;
+  padding: 0.8rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+}
+
+.hand-label {
+  display: block;
+  font-size: 0.9rem;
+  color: #87ceeb;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.hidden-cards {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.hidden-card {
+  width: 40px;
+  aspect-ratio: 92 / 59;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 2px;
+}
+
 /* Final Round Banner */
 .final-round-banner {
   padding: 1rem;

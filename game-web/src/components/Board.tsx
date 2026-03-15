@@ -242,10 +242,42 @@ export function Board(props: BoardProps) {
                       <span className="stat">💎 {p.diamonds}</span>
                       <span className="stat">🃏 {p.hand.length}</span>
                     </div>
-                    <div className="portal-preview">
-                      {p.portal.map((char, idx) => (
-                        <span key={idx} className="char-indicator">●</span>
-                      ))}
+                    
+                    {/* Other Player's Portal */}
+                    <div className="other-portal">
+                      <span className="portal-label">Portal:</span>
+                      {p.portal.length > 0 ? (
+                        <div className="portal-cards">
+                          {p.portal.map((char, idx) => (
+                            <div
+                              key={idx}
+                              className="opponent-char-card card-with-image"
+                              style={{
+                                backgroundImage: `url(${getCharacterCardImage(char.name || `Character ${char.characterId}`)})`,
+                              }}
+                              title={char.name}
+                            >
+                              <div className="card-stats-overlay">
+                                <div className="card-power">⚡ {char.powerPoints || 0}</div>
+                                <div className="card-diamond">💎 {char.diamonds || 0}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="no-portal">-</span>
+                      )}
+                    </div>
+                    
+                    {/* Other Player's Hand (hidden) */}
+                    <div className="other-hand">
+                      <span className="hand-label">Hand: {p.hand.length} card{p.hand.length !== 1 ? 's' : ''}</span>
+                      <div className="hidden-cards">
+                        {p.hand.map((_, idx) => (
+                          <div key={idx} className="hidden-card card-with-image" style={{ backgroundImage: `url(${getCardBackImage('pearl')})` }}>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 );
