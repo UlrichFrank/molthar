@@ -180,6 +180,8 @@ export function App() {
           }}
           moves={{
             takePearlCard: (slotIndex: number) => handleMoveSubmission('takePearlCard', { slotIndex }),
+            takeCharacterCard: (slotIndex: number, replacedSlotIndex?: number) =>
+              handleMoveSubmission('takeCharacterCard', { slotIndex, replacedSlotIndex }),
             activateCharacter: (characterSlotIndex: number, pearlCardIndices: number[]) =>
               handleMoveSubmission('activateCharacter', { characterSlotIndex, pearlCardIndices }),
             deactivateCharacter: (portalIndex: number) =>

@@ -274,6 +274,9 @@ app.post('/api/rooms/:roomID/moves', (req, res) => {
                 case 'takePearlCard':
                     moveFunction(newGameState, ctx, payload.slotIndex);
                     break;
+                case 'takeCharacterCard':
+                    moveFunction(newGameState, ctx, payload.slotIndex, payload.replacedSlotIndex);
+                    break;
                 case 'activateCharacter':
                     moveFunction(newGameState, ctx, payload.characterSlotIndex, payload.pearlCardIndices);
                     break;
