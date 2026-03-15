@@ -5,6 +5,7 @@ interface ErrorDisplayProps {
   message?: string | undefined;
   error?: string | undefined;
   onDismiss?: () => void;
+  onRetry?: () => void;
   type?: 'error' | 'warning' | 'info';
   duration?: number;
 }
@@ -13,6 +14,7 @@ export function ErrorDisplay({
   message,
   error,
   onDismiss,
+  onRetry,
   type = 'error',
   duration = 5000,
 }: ErrorDisplayProps) {
@@ -58,16 +60,30 @@ export function ErrorDisplay({
         <span className="error-icon">{icon}</span>
         <p className="error-text">{displayMessage}</p>
       </div>
-      <button
-        className="error-dismiss"
-        onClick={() => {
-          setVisible(false);
-          onDismiss?.();
-        }}
-        aria-label="Dismiss error message"
-      >
-        ✕
-      </button>
+      <div className="error-actions">
+        {onRetry && (
+          <button
+            className="error-retry"
+            onClick={() => {
+              onRetry();
+              setVisible(false);
+            }}
+            aria-label="Retry the action"
+          >
+            🔄 Retry
+          </button>
+        )}
+        <button
+          className="error-dismiss"
+          onClick={() => {
+            setVisible(false);
+            onDismiss?.();
+          }}
+          aria-label="Dismiss error message"
+        >
+          ✕
+        </button>
+      </div>
     </div>
   );
 }

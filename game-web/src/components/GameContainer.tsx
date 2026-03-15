@@ -30,6 +30,26 @@ export function GameContainer() {
   const { toasts, removeToast, success, info } = useToast();
   const [savedGameState, setSavedGameState] = useLocalStorage<IGameState | null>('gameState', null);
 
+  /**
+   * Retry loading character cards
+   */
+  const retryLoadCards = async () => {
+    try {
+      const loadedCards = await loadCharacterCards();
+      
+      if (loadedCards.length === 0) {
+        console.warn('No cards loaded from cards.json, using defaults');
+        setCharacters(generateDefaultCharacters());
+      } else {
+        setCharacters(loadedCards);
+      }
+      setError(undefined);
+      success('Cards loaded successfully!', 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load cards');
+    }
+  };
+
   // Load character cards and setup keyboard/accessibility on mount
   useEffect(() => {
     const loadCards = async () => {
@@ -204,6 +224,15 @@ export function GameContainer() {
   };
 
   /**
+   * Retry the last failed action
+   */
+  const retryLastAction = () => {
+    if (pendingAction) {
+      pendingAction();
+    }
+  };
+
+  /**
    * Handle dialog confirmation
    */
   const handleDialogConfirm = () => {
@@ -241,7 +270,11 @@ export function GameContainer() {
           onResumeGame={resumeGame}
           canResume={savedGameState !== null && savedGameState.gamePhase !== 'gameFinished'}
         />
-        <ErrorDisplay error={error} onDismiss={() => setError(undefined)} />
+        <ErrorDisplay 
+          error={error} 
+          onDismiss={() => setError(undefined)}
+          onRetry={retryLoadCards}
+        />
       </>
     );
   }
@@ -287,7 +320,11 @@ export function GameContainer() {
         onDiscardCards={() => handleAction(GameActionType.DiscardCards)}
         onEndTurn={() => handleAction(GameActionType.EndTurn)}
       />
-      <ErrorDisplay error={error} onDismiss={() => setError(undefined)} />
+      <ErrorDisplay 
+        error={error} 
+        onDismiss={() => setError(undefined)}
+        onRetry={retryLastAction}
+      />
       <ToastContainer toasts={toasts} onDismiss={removeToast} />
       <ConfirmDialog
         isOpen={dialogOpen}
