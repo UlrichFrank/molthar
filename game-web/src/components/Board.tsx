@@ -10,6 +10,33 @@ interface BoardProps {
   isActive: boolean;
 }
 
+// Helper function to get pearl card image path
+function getPearlCardImage(value: number): string {
+  return `/assets/Perlenkarte${value}.jpeg`;
+}
+
+// Helper function to get character card image path
+function getCharacterCardImage(cardName: string): string {
+  // Card names are like "Character 1", "Character 2", etc.
+  // Assets are named "Charakterkarte1.jpeg", "Charakterkarte2.jpeg", etc.
+  const match = cardName.match(/(\d+)/);
+  if (match) {
+    const num = match[1];
+    return `/assets/Charakterkarte${num}.jpeg`;
+  }
+  // Fallback to generic back image
+  return '/assets/Charakterkarte Hinten.jpeg';
+}
+
+// Helper function to get card back image
+function getCardBackImage(type: 'pearl' | 'character'): string {
+  if (type === 'pearl') {
+    return '/assets/Perlenkarte Hinten.jpeg';
+  } else {
+    return '/assets/Charakterkarte Hinten.jpeg';
+  }
+}
+
 /**
  * Main game board component
  * Displays:
@@ -48,18 +75,29 @@ export function Board(props: BoardProps) {
               {G.pearlSlots.map((card, idx) => (
                 <button
                   key={idx}
-                  className="card pearl-card"
+                  className="card pearl-card card-with-image"
                   onClick={() => isActive && moves.takePearlCard(idx)}
                   disabled={!isActive || G.actionCount >= 3}
+                  style={{
+                    backgroundImage: `url(${getPearlCardImage(card.value)})`,
+                  }}
+                  title={`Pearl Card ${card.value}${card.hasSwapSymbol ? ' (with swap symbol)' : ''}`}
                 >
-                  <span className="value">{card.value}</span>
-                  {card.hasSwapSymbol && <span className="swap">♻</span>}
+                  {/* Keep text as fallback */}
+                  <span className="card-fallback">
+                    <span className="value">{card.value}</span>
+                    {card.hasSwapSymbol && <span className="swap">♻</span>}
+                  </span>
                 </button>
               ))}
               <button
-                className="card deck-button"
+                className="card deck-button card-with-image"
                 onClick={() => isActive && moves.takePearlCard(-1)}
                 disabled={!isActive || G.actionCount >= 3}
+                style={{
+                  backgroundImage: `url(${getCardBackImage('pearl')})`,
+                }}
+                title="Pearl Card Deck"
               >
                 🎴<br/>Deck
               </button>
@@ -72,15 +110,22 @@ export function Board(props: BoardProps) {
               {G.characterSlots.map((card, idx) => (
                 <div
                   key={idx}
-                  className="card character-card"
+                  className="card character-card card-with-image"
+                  style={{
+                    backgroundImage: `url(${getCharacterCardImage(card.name)})`,
+                  }}
+                  title={`${card.name} - ⚡${card.powerPoints} 💎${card.diamonds}`}
                 >
-                  <div className="card-title">{card.name}</div>
-                  <div className="card-power">⚡ {card.powerPoints}</div>
-                  <div className="card-diamond">💎 {card.diamonds}</div>
+                  {/* Overlay with stats */}
+                  <div className="card-stats-overlay">
+                    <div className="card-power">⚡ {card.powerPoints}</div>
+                    <div className="card-diamond">💎 {card.diamonds}</div>
+                  </div>
                   {isActive && G.actionCount < 3 && player && player.portal.length < 2 && (
                     <button
                       className="activate-btn"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         // TODO: Implement cost validation UI
                         moves.activateCharacter(idx, []);
                       }}
