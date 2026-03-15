@@ -147,11 +147,15 @@ export function Board(props: BoardProps) {
               <h3>My Portal</h3>
               <div className="portal">
                 {player.portal.map(char => (
-                  <div key={char.id} className="activated-character">
-                    <div className="char-id">{char.characterId}</div>
-                    <span className={`activated-badge ${char.activated ? 'active' : ''}`}>
-                      {char.activated ? '🔄' : '⭕'}
-                    </span>
+                  <div 
+                    key={char.id} 
+                    className="activated-character card-with-image"
+                    style={{
+                      backgroundImage: `url(${getCharacterCardImage(char.name || `Character ${char.characterId}`)})`,
+                    }}
+                    title={`${char.name} - Activated`}
+                  >
+                    <span className={`activated-badge active`}>✓</span>
                   </div>
                 ))}
                 {player.portal.length < 2 && (
@@ -174,10 +178,16 @@ export function Board(props: BoardProps) {
                 <h4>Hand ({player.hand.length}/5)</h4>
                 <div className="cards">
                   {player.hand.map((card, idx) => (
-                    <span key={idx} className="card-value">
-                      {card.value}
-                      {card.hasSwapSymbol && '♻'}
-                    </span>
+                    <div 
+                      key={idx} 
+                      className="hand-card card-with-image"
+                      style={{
+                        backgroundImage: `url(${getPearlCardImage(card.value)})`,
+                      }}
+                      title={`Pearl Card ${card.value}${card.hasSwapSymbol ? ' (Swap)' : ''}`}
+                    >
+                      {card.hasSwapSymbol && <span className="swap-indicator">♻</span>}
+                    </div>
                   ))}
                 </div>
               </div>
