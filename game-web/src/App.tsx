@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Lobby } from './components/Lobby';
 import { Board } from './components/Board';
+import { Toast, ToastContainer } from './components/Toast';
 import { PortaleVonMolthar, type GameState } from '@portale-von-molthar/shared';
 import { startRoomPolling, submitMove, startGameStatePolling } from './lib/game-client';
+import { useToastManager } from './hooks/useToastManager';
 import './App.css';
 
 interface GameConnection {
@@ -24,13 +26,14 @@ export function App() {
   const [session, setSession] = useState<GameSession | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { toasts, dismissToast, success: showSuccess, error: showError, info: showInfo } = useToastManager();
 
   const handleMoveSubmission = async (
     moveName: string,
     payload: any
   ) => {
     if (!session?.gameState || !session?.connection) {
-      setError('Game session not initialized');
+      showError('Game session not initialized');
       return;
     }
 
@@ -38,7 +41,7 @@ export function App() {
       const { serverURL, roomID, playerID } = session.connection;
       
       // Submit move to backend
-      await submitMove(
+      const result = await submitMove(
         serverURL,
         roomID,
         playerID,
@@ -47,11 +50,14 @@ export function App() {
         session.gameState
       );
 
-      // Log move submission (game state will be updated via polling)
+      // Show success toast
+      showSuccess(`${moveName} successful`);
+      
       console.log(`Move submitted: ${moveName}`, payload);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to submit move';
-      setError(message);
+      showError(message);
+      console.error('Move submission error:', err);
     }
   };
 
@@ -148,6 +154,8 @@ export function App() {
   // Show board if in a game session
   return (
     <div className="app-container">
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+      
       {error && (
         <div className="error-banner">
           <span>⚠️ {error}</span>
