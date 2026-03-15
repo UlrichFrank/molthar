@@ -113,7 +113,7 @@
 .hand-card-selector {
   background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
   border: 3px solid #999;
-  border-radius: 20px;
+  border-radius: 16px;
   padding: 0.5rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -172,7 +172,7 @@
   font-size: 1rem;
   font-weight: bold;
   border: 2px solid #333;
-  border-radius: 20px;
+  border-radius: 16px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
