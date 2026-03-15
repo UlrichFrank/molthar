@@ -320,7 +320,27 @@ app.post('/api/rooms/:roomID/moves', (req, res) => {
 
       // Apply the move to get the new state
       const newGameState = JSON.parse(JSON.stringify(currentGameState)); // Deep copy
-      moveFunction(newGameState, ctx, payload);
+      
+      // Call move with appropriate arguments based on move type
+      switch (moveName) {
+        case 'takePearlCard':
+          moveFunction(newGameState, ctx, payload.slotIndex);
+          break;
+        case 'activateCharacter':
+          moveFunction(newGameState, ctx, payload.characterSlotIndex, payload.pearlCardIndices);
+          break;
+        case 'deactivateCharacter':
+          moveFunction(newGameState, ctx, payload.portalIndex);
+          break;
+        case 'replacePearlSlots':
+          moveFunction(newGameState, ctx);
+          break;
+        case 'endTurn':
+          moveFunction(newGameState, ctx);
+          break;
+        default:
+          moveFunction(newGameState, ctx, payload);
+      }
 
       // Check if turn is ending
       let shouldAdvanceTurn = false;
@@ -338,9 +358,6 @@ app.post('/api/rooms/:roomID/moves', (req, res) => {
         newGameState.playerOrder.splice(nextIndex, 1);
         newGameState.playerOrder.unshift(nextPlayer);
         newGameState.actionCount = 0;
-      } else {
-        // Increment action count for non-endTurn moves
-        newGameState.actionCount = (newGameState.actionCount || 0) + 1;
       }
 
       // Save the new game state
