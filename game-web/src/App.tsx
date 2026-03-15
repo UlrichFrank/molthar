@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Lobby } from './components/Lobby';
 import { Board } from './components/Board';
 import { PortaleVonMolthar, type GameState } from '@portale-von-molthar/shared';
-import { startRoomPolling } from './lib/game-client';
+import { startRoomPolling, submitMove, startGameStatePolling } from './lib/game-client';
 import './App.css';
 
 interface GameConnection {
@@ -17,12 +17,43 @@ interface GameSession {
   gameState: GameState | null;
   allPlayers: { id: string; name: string }[];
   roomStatus: 'waiting' | 'playing' | 'finished';
+  stopPolling?: (() => void)[];
 }
 
 export function App() {
   const [session, setSession] = useState<GameSession | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleMoveSubmission = async (
+    moveName: string,
+    payload: any
+  ) => {
+    if (!session?.gameState || !session?.connection) {
+      setError('Game session not initialized');
+      return;
+    }
+
+    try {
+      const { serverURL, roomID, playerID } = session.connection;
+      
+      // Submit move to backend
+      await submitMove(
+        serverURL,
+        roomID,
+        playerID,
+        moveName,
+        payload,
+        session.gameState
+      );
+
+      // Log move submission (game state will be updated via polling)
+      console.log(`Move submitted: ${moveName}`, payload);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to submit move';
+      setError(message);
+    }
+  };
 
   const handleRoomCreated = async (roomID: string, playerID: string, credential: string) => {
     setIsConnecting(true);
@@ -42,22 +73,25 @@ export function App() {
       // Set player names (will be updated as others join)
       initialState.players[playerID].name = 'You';
       
+      const stopPollingFunctions: (() => void)[] = [];
+      
       const newSession: GameSession = {
         connection: { roomID, playerID, credential, serverURL },
         gameState: initialState,
         allPlayers: [{ id: playerID, name: 'You' }],
         roomStatus: 'waiting',
+        stopPolling: stopPollingFunctions,
       };
       
       setSession(newSession);
       
       // Start polling for room updates
-      const stopPolling = startRoomPolling(
+      const stopRoomPolling = startRoomPolling(
         serverURL,
         roomID,
         1000,
         (room) => {
-          // Update players list
+          // Update players list and room status
           setSession((prevSession) => {
             if (!prevSession) return null;
             return {
@@ -69,8 +103,26 @@ export function App() {
         }
       );
       
-      // Store cleanup function (optional, for manual cleanup)
-      (window as any).stopRoomPolling = stopPolling;
+      stopPollingFunctions.push(stopRoomPolling);
+
+      // Start polling for game state updates (only when game is playing)
+      const stopGameStatePolling = startGameStatePolling(
+        serverURL,
+        roomID,
+        1000,
+        (gameState) => {
+          // Update game state from server
+          setSession((prevSession) => {
+            if (!prevSession) return null;
+            return {
+              ...prevSession,
+              gameState,
+            };
+          });
+        }
+      );
+
+      stopPollingFunctions.push(stopGameStatePolling);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to initialize game';
       setError(message);
@@ -80,9 +132,9 @@ export function App() {
   };
 
   const handleLeaveGame = () => {
-    // Stop polling
-    if ((window as any).stopRoomPolling) {
-      (window as any).stopRoomPolling();
+    // Stop all polling
+    if (session?.stopPolling) {
+      session.stopPolling.forEach((stop) => stop());
     }
     setSession(null);
     setError(null);
@@ -119,7 +171,13 @@ export function App() {
             playOrder: session.allPlayers.map((p) => p.id),
             turn: 0,
           }}
-          moves={{}}
+          moves={{
+            takePearlCard: (slotIndex: number) => handleMoveSubmission('takePearlCard', { slotIndex }),
+            activateCharacter: (characterSlotIndex: number, pearlCardIndices: number[]) =>
+              handleMoveSubmission('activateCharacter', { characterSlotIndex, pearlCardIndices }),
+            replacePearlSlots: () => handleMoveSubmission('replacePearlSlots', {}),
+            endTurn: () => handleMoveSubmission('endTurn', {}),
+          }}
           playerID={session.connection.playerID}
           isActive={true}
         />
