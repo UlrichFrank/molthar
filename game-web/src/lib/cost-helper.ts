@@ -53,16 +53,93 @@ export function canPotentiallySatisfyCost(
     return true; // Free cost
   }
 
-  // For simple 'number' costs, check if sum is possible
-  const numberCost = cost.find(c => c.type === 'number');
-  if (numberCost && numberCost.value) {
-    const handSum = hand.reduce((sum, card) => sum + card.value, 0);
-    return handSum >= numberCost.value;
+  // Check each cost requirement
+  for (const component of cost) {
+    switch (component.type) {
+      case 'number':
+        // Check if hand sum is sufficient
+        const handSum = hand.reduce((sum, card) => sum + card.value, 0);
+        if (handSum < component.value!) {
+          return false;
+        }
+        break;
+
+      case 'nTuple':
+        // Check if we have n cards of same value
+        const valueCounts = countCardsByValue(hand);
+        if (!Object.values(valueCounts).some(count => count >= component.n!)) {
+          return false;
+        }
+        break;
+
+      case 'run':
+        // Check if we have consecutive sequence of length n
+        if (!hasConsecutiveRun(hand, component.length || 0)) {
+          return false;
+        }
+        break;
+
+      case 'diamond':
+        // Diamonds reduce cost, not add to it
+        // This is handled by cost calculation, skip for now
+        break;
+
+      // For other complex types, optimistically return true
+      case 'sumAnyTuple':
+      case 'sumTuple':
+      case 'evenTuple':
+      case 'oddTuple':
+      case 'drillingChoice':
+      default:
+        return true; // Let server validate
+    }
   }
 
-  // For other costs, we can't easily check without full validation
-  // So we optimistically return true (server will validate)
   return true;
+}
+
+/**
+ * Count how many cards of each value are in hand
+ */
+function countCardsByValue(
+  hand: Array<{ value: number; hasSwapSymbol: boolean }>
+): Record<number, number> {
+  const counts: Record<number, number> = {};
+  for (const card of hand) {
+    counts[card.value] = (counts[card.value] || 0) + 1;
+  }
+  return counts;
+}
+
+/**
+ * Check if hand has a consecutive run of n cards
+ */
+function hasConsecutiveRun(
+  hand: Array<{ value: number; hasSwapSymbol: boolean }>,
+  length: number
+): boolean {
+  if (length <= 0 || hand.length < length) {
+    return false;
+  }
+
+  // Get unique values in sorted order
+  const values = [...new Set(hand.map(c => c.value))].sort((a, b) => a - b);
+
+  // Check for consecutive sequence
+  for (let i = 0; i <= values.length - length; i++) {
+    let isConsecutive = true;
+    for (let j = 0; j < length - 1; j++) {
+      if (values[i + j + 1] !== values[i + j] + 1) {
+        isConsecutive = false;
+        break;
+      }
+    }
+    if (isConsecutive) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
