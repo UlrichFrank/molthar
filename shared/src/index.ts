@@ -1,2 +1,2 @@
 export * from './game/types.js';
-export { PortaleVonMolthar } from './game/index.js';
+export { PortaleVonMolthar, validateCostPayment } from './game/index.js';
