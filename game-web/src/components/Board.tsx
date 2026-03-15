@@ -65,6 +65,7 @@ export function Board(props: BoardProps) {
   const player = playerID ? G.players[playerID] : null;
   const [selectedCharacterSlot, setSelectedCharacterSlot] = useState<number | null>(null);
   const [selectedPortalSlotIndex, setSelectedPortalSlotIndex] = useState<number | null>(null);
+  const [selectedCharacterCard, setSelectedCharacterCard] = useState<any>(null);
   const [showCostDialog, setShowCostDialog] = useState(false);
   
   return (
@@ -172,29 +173,22 @@ export function Board(props: BoardProps) {
                           }}
                           onClick={() => {
                             if (isActive && G.actionCount < 3) {
-                              moves.deactivateCharacter(slotIdx);
+                              setSelectedPortalSlotIndex(slotIdx);
+                              setShowCostDialog(true);
                             }
                           }}
                           disabled={!isActive || G.actionCount >= 3}
-                          title={`Character ${player.portal[slotIdx].characterId} - Click to deactivate${isActive && G.actionCount < 3 ? ' (1 action)' : ''}`}
+                          title={`Character ${player.portal[slotIdx].characterId} - Click to activate${isActive && G.actionCount < 3 ? ' (1 action)' : ''}`}
                         >
                           <span className={`activated-badge active`}>✓</span>
                         </button>
                       ) : (
-                        <button
+                        <div
                           className="empty-portal-slot"
-                          onClick={() => {
-                            if (isActive && G.actionCount < 3 && G.characterSlots.length > 0) {
-                              setSelectedPortalSlotIndex(slotIdx);
-                              setSelectedCharacterSlot(0); // Start with first character
-                              setShowCostDialog(true);
-                            }
-                          }}
-                          disabled={!isActive || G.actionCount >= 3 || G.characterSlots.length === 0}
-                          title="Click to activate a character"
+                          title="Empty portal slot"
                         >
                           <span className="slot-label">Slot {slotIdx + 1}</span>
-                        </button>
+                        </div>
                       )}
                     </div>
                   ))}
