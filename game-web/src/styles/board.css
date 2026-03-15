@@ -299,6 +299,109 @@
   flex-wrap: wrap;
 }
 
+/* Portal Display with Background Image */
+.portal-display {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: 3px solid #8b6f47;
+  border-radius: 8px;
+  padding: 2rem;
+  margin: 1rem 0;
+  min-height: 300px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.portal-characters {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.portal-slot {
+  position: relative;
+  min-width: 140px;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.character-placement {
+  border: 3px solid #ffd700;
+  border-radius: 8px;
+  width: 120px;
+  aspect-ratio: 59 / 92;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: none;
+  padding: 0;
+}
+
+.character-placement:not(:disabled) {
+  cursor: pointer;
+}
+
+.character-placement:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.character-placement:not(:disabled):hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+}
+
+.character-placement.card-with-image {
+  background-size: contain;
+  background-position: center;
+}
+
+.character-placement.rotated {
+  transform: rotate(180deg);
+}
+
+.character-placement .activated-badge {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: #4CAF50;
+  color: white;
+  border: 2px solid white;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.empty-portal-slot {
+  width: 120px;
+  aspect-ratio: 59 / 92;
+  border: 3px dashed rgba(255, 255, 255, 0.4);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: bold;
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.9rem;
+}
+
 .activated-character {
   border: 3px solid #ffd700;
   border-radius: 8px;

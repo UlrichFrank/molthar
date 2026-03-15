@@ -30,6 +30,15 @@ function getCharacterCardImage(cardName: string): string {
   return '/assets/Charakterkarte Hinten.jpeg';
 }
 
+// Helper function to get portal background image
+function getPortalImage(playerIndex: number, isStartingPlayer: boolean): string {
+  const portalNum = playerIndex + 1;
+  if (isStartingPlayer) {
+    return `/assets/Portal-Startspieler${portalNum}.jpeg`;
+  }
+  return `/assets/Portal${portalNum}.jpeg`;
+}
+
 // Helper function to get card back image
 function getCardBackImage(type: 'pearl' | 'character'): string {
   if (type === 'pearl') {
@@ -155,28 +164,42 @@ export function Board(props: BoardProps) {
           {player && (
             <div className={`player-area ${playerID === ctx.currentPlayer ? 'active' : ''}`}>
               <h3>My Portal</h3>
-              <div className="portal">
-                {player.portal.map((char, idx) => (
-                  <button
-                    key={char.id} 
-                    className={`activated-character card-with-image ${char.activated ? 'rotated' : ''}`}
-                    style={{
-                      backgroundImage: `url(${getCharacterCardImage(char.characterId)})`,
-                    }}
-                    onClick={() => {
-                      if (isActive && G.actionCount < 3) {
-                        moves.deactivateCharacter(idx);
-                      }
-                    }}
-                    disabled={!isActive || G.actionCount >= 3}
-                    title={`Character ${char.characterId} - Click to deactivate${isActive && G.actionCount < 3 ? ' (1 action)' : ''}`}
-                  >
-                    <span className={`activated-badge active`}>✓</span>
-                  </button>
-                ))}
-                {player.portal.length < 2 && (
-                  <div className="empty-slot">+</div>
-                )}
+              
+              {/* Portal Background with Character Placement */}
+              <div 
+                className="portal-display"
+                style={{
+                  backgroundImage: `url(${getPortalImage(parseInt(playerID || '0'), G.playerOrder[0] === playerID)})`,
+                }}
+              >
+                <div className="portal-characters">
+                  {/* Character Card Slots */}
+                  {[0, 1].map((slotIdx) => (
+                    <div key={slotIdx} className="portal-slot">
+                      {player.portal[slotIdx] ? (
+                        <button
+                          className={`character-placement card-with-image ${player.portal[slotIdx].activated ? 'rotated' : ''}`}
+                          style={{
+                            backgroundImage: `url(${getCharacterCardImage(player.portal[slotIdx].characterId)})`,
+                          }}
+                          onClick={() => {
+                            if (isActive && G.actionCount < 3) {
+                              moves.deactivateCharacter(slotIdx);
+                            }
+                          }}
+                          disabled={!isActive || G.actionCount >= 3}
+                          title={`Character ${player.portal[slotIdx].characterId} - Click to deactivate${isActive && G.actionCount < 3 ? ' (1 action)' : ''}`}
+                        >
+                          <span className={`activated-badge active`}>✓</span>
+                        </button>
+                      ) : (
+                        <div className="empty-portal-slot">
+                          <span className="slot-label">Slot {slotIdx + 1}</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
               
               <div className="player-stats">
