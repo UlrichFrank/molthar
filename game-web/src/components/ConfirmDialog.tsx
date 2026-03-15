@@ -8,6 +8,7 @@ interface ConfirmDialogProps {
   confirmText?: string;
   cancelText?: string;
   isDangerous?: boolean;
+  isOpen?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -18,6 +19,7 @@ export function ConfirmDialog({
   confirmText = 'Confirm',
   cancelText = 'Cancel',
   isDangerous = false,
+  isOpen = true,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -26,6 +28,8 @@ export function ConfirmDialog({
   const messageId = generateId('message');
 
   useEffect(() => {
+    if (!isOpen) return;
+
     // Focus first button (cancel by default to prevent accidental confirmation)
     const cancelBtn = document.querySelector(`#${dialogId} [data-action="cancel"]`) as HTMLButtonElement;
     if (cancelBtn) {
@@ -38,7 +42,9 @@ export function ConfirmDialog({
       const unsubscribe = focusManager.trapFocus(dialog);
       return () => unsubscribe?.();
     }
-  }, [dialogId]);
+  }, [dialogId, isOpen]);
+
+  if (!isOpen) return null;
 
   return (
     <div className="dialog-overlay" onClick={onCancel}>

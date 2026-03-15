@@ -6,7 +6,9 @@ import { loadCharacterCards } from '../lib/cardLoader';
 import { setupKeyboardShortcuts } from '../lib/keyboard';
 import { createSkipLink } from '../lib/accessibility';
 import { useToast } from '../hooks/useToast';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 import { ToastContainer } from './Toast';
+import { ConfirmDialog } from './ConfirmDialog';
 import { GameBoard } from './GameBoard';
 import { GameStartScreen } from './GameStartScreen';
 import { GameFinishedScreen } from './GameFinishedScreen';
@@ -22,7 +24,11 @@ export function GameContainer() {
   const [selectedCharacter, setSelectedCharacter] = useState<number | null>(null);
   const [selectedHandIndices, setSelectedHandIndices] = useState<number[]>([]);
   const [error, setError] = useState<string | undefined>();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMessage, setDialogMessage] = useState('');
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
   const { toasts, removeToast, success, info } = useToast();
+  const [savedGameState, setSavedGameState] = useLocalStorage<IGameState | null>('gameState', null);
 
   // Load character cards and setup keyboard/accessibility on mount
   useEffect(() => {
@@ -86,7 +92,7 @@ export function GameContainer() {
   /**
    * Execute a game action
    */
-  const handleAction = (actionType: GameActionType, payload?: Record<string, unknown>) => {
+  const executeAction = (actionType: GameActionType, payload?: Record<string, unknown>) => {
     if (!gameState) return;
 
     try {
@@ -168,6 +174,7 @@ export function GameContainer() {
             timestamp: Date.now(),
           });
           info(`Turn ended for ${gameState.players[gameState.currentPlayer].name}`, 2000);
+          setSavedGameState(newState);
           break;
 
         default:
@@ -182,11 +189,58 @@ export function GameContainer() {
     }
   };
 
+  /**
+   * Handle action with optional confirmation dialog
+   */
+  const handleAction = (actionType: GameActionType, payload?: Record<string, unknown>) => {
+    if (actionType === GameActionType.EndTurn) {
+      // Show confirmation dialog for end turn
+      setDialogMessage('End your turn?');
+      setPendingAction(() => () => executeAction(actionType, payload));
+      setDialogOpen(true);
+    } else {
+      executeAction(actionType, payload);
+    }
+  };
+
+  /**
+   * Handle dialog confirmation
+   */
+  const handleDialogConfirm = () => {
+    if (pendingAction) {
+      pendingAction();
+    }
+    setDialogOpen(false);
+    setPendingAction(null);
+  };
+
+  /**
+   * Handle dialog cancellation
+   */
+  const handleDialogCancel = () => {
+    setDialogOpen(false);
+    setPendingAction(null);
+  };
+
+  /**
+   * Resume a previously saved game
+   */
+  const resumeGame = () => {
+    if (savedGameState) {
+      setGameState(savedGameState);
+      setError(undefined);
+    }
+  };
+
   // Show start screen if no game initialized
   if (!gameState) {
     return (
       <>
-        <GameStartScreen onStartGame={initializeGame} />
+        <GameStartScreen 
+          onStartGame={initializeGame}
+          onResumeGame={resumeGame}
+          canResume={savedGameState !== null && savedGameState.gamePhase !== 'gameFinished'}
+        />
         <ErrorDisplay error={error} onDismiss={() => setError(undefined)} />
       </>
     );
@@ -235,6 +289,15 @@ export function GameContainer() {
       />
       <ErrorDisplay error={error} onDismiss={() => setError(undefined)} />
       <ToastContainer toasts={toasts} onDismiss={removeToast} />
+      <ConfirmDialog
+        isOpen={dialogOpen}
+        title="Confirm Action"
+        message={dialogMessage}
+        confirmText="Yes"
+        cancelText="Cancel"
+        onConfirm={handleDialogConfirm}
+        onCancel={handleDialogCancel}
+      />
     </>
   );
 }

@@ -3,11 +3,13 @@ import '../styles/Components.css';
 
 interface GameStartScreenProps {
   onStartGame: (playerNames: string[]) => void;
+  onResumeGame?: () => void;
+  canResume?: boolean;
 }
 
 const DEFAULT_NAMES = ['Player 1', 'Player 2', 'Player 3', 'Player 4'];
 
-export function GameStartScreen({ onStartGame }: GameStartScreenProps) {
+export function GameStartScreen({ onStartGame, onResumeGame, canResume }: GameStartScreenProps) {
   const [playerCount, setPlayerCount] = useState(2);
   const [playerNames, setPlayerNames] = useState<string[]>([...DEFAULT_NAMES]);
   const [errors, setErrors] = useState<string[]>([]);
@@ -117,15 +119,26 @@ export function GameStartScreen({ onStartGame }: GameStartScreenProps) {
             </div>
           )}
 
-          {/* Start Button */}
-          <button
-            className="btn btn-large btn-success"
-            onClick={validateAndStart}
-            data-action="confirm"
-            aria-label="Start the game"
-          >
-            🎲 Start Game
-          </button>
+          {/* Start/Resume Buttons */}
+          <div className="button-group">
+            <button
+              className="btn btn-large btn-success"
+              onClick={validateAndStart}
+              data-action="confirm"
+              aria-label="Start the game"
+            >
+              🎲 Start Game
+            </button>
+            {canResume && onResumeGame && (
+              <button
+                className="btn btn-large btn-primary"
+                onClick={onResumeGame}
+                aria-label="Resume the previous game"
+              >
+                ▶️ Resume Game
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Game Info */}
