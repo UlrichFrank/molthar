@@ -95,7 +95,7 @@
 }
 
 .card-with-image {
-  background-size: cover;
+  background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
   aspect-ratio: 59 / 92;
@@ -318,7 +318,7 @@
 }
 
 .activated-character.card-with-image {
-  background-size: cover;
+  background-size: contain;
   background-position: center;
 }
 
@@ -361,7 +361,7 @@
   aspect-ratio: 59 / 92;
   border: 2px solid #fff;
   border-radius: 4px;
-  background-size: cover;
+  background-size: contain;
   background-position: center;
   position: relative;
   cursor: pointer;
