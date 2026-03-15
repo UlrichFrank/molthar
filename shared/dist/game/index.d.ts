@@ -19,6 +19,7 @@ export declare const PortaleVonMolthar: {
      */
     moves: {
         takePearlCard(G: GameState, ctx: any, slotIndex: number): void;
+        takeCharacterCard(G: GameState, ctx: any, slotIndex: number, replacedSlotIndex?: number): void;
         activateCharacter(G: GameState, ctx: any, slotIndex: number, usedCards?: number[]): void;
         replacePearlSlots(G: GameState, ctx: any): void;
         discardCards(G: GameState, ctx: any, cardIndices?: number[]): void;

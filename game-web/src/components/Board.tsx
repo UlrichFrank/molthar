@@ -3,6 +3,7 @@ import type { GameState, CharacterCard } from '@portale-von-molthar/shared';
 import { getCostSummary, describeCost, canPotentiallySatisfyCost } from '../lib/cost-helper';
 import { CostPaymentDialog } from './CostPaymentDialog';
 import { CharacterActivationDialog } from './CharacterActivationDialog';
+import { CharacterReplacementDialog } from './CharacterReplacementDialog';
 import '../styles/board.css';
 
 interface BoardProps {
@@ -67,6 +68,8 @@ export function Board(props: BoardProps) {
   const [selectedPortalSlotIndex, setSelectedPortalSlotIndex] = useState<number | null>(null);
   const [selectedCharacterCard, setSelectedCharacterCard] = useState<any>(null);
   const [showCostDialog, setShowCostDialog] = useState(false);
+  const [pendingCharacterCard, setPendingCharacterCard] = useState<CharacterCard | null>(null);
+  const [showReplacementDialog, setShowReplacementDialog] = useState(false);
   
   return (
     <div className="board">
@@ -128,8 +131,22 @@ export function Board(props: BoardProps) {
               }}
               title="Character Card Deck"
               onClick={() => {
-                // TODO: Implement takeCharacterCard from deck move
-                console.log('Character deck click - move not yet implemented');
+                if (isActive && G.actionCount < 3) {
+                  // Get the character card from deck
+                  const cardToBeTaken = G.characterDeck[G.characterDeck.length - 1];
+                  if (cardToBeTaken) {
+                    setPendingCharacterCard(cardToBeTaken);
+                    // Check if portal has free slots
+                    if (player && player.portal.length < 2) {
+                      // Free slot - take directly
+                      moves.takeCharacterCard(-1);
+                      setPendingCharacterCard(null);
+                    } else {
+                      // Both slots full - show replacement dialog
+                      setShowReplacementDialog(true);
+                    }
+                  }
+                }
               }}
             >
               🎴<br/>Deck
@@ -144,8 +161,19 @@ export function Board(props: BoardProps) {
                 disabled={!isActive || G.actionCount >= 3}
                 title={`${card.name} - ⚡${card.powerPoints} 💎${card.diamonds}${isActive && G.actionCount < 3 ? ' - Click to take' : ''}`}
                 onClick={() => {
-                  // TODO: Implement takeCharacterCard move
-                  console.log('Character card click - move not yet implemented');
+                  if (isActive && G.actionCount < 3) {
+                    // Get the character card being taken from face-up slot
+                    setPendingCharacterCard(card);
+                    // Check if portal has free slots
+                    if (player && player.portal.length < 2) {
+                      // Free slot - take directly
+                      moves.takeCharacterCard(idx);
+                      setPendingCharacterCard(null);
+                    } else {
+                      // Both slots full - show replacement dialog
+                      setShowReplacementDialog(true);
+                    }
+                  }
                 }}
               >
                 {/* Keep text as fallback */}
@@ -360,6 +388,32 @@ export function Board(props: BoardProps) {
             setShowCostDialog(false);
             setSelectedPortalSlotIndex(null);
             setSelectedCharacterSlot(null);
+          }}
+        />
+      )}
+
+      {/* Character Replacement Dialog (when both portal slots are full) */}
+      {showReplacementDialog && pendingCharacterCard && player && (
+        <CharacterReplacementDialog
+          newCard={pendingCharacterCard}
+          portalCards={player.portal}
+          onSelect={(replacedSlotIndex) => {
+            // Get the slot index of the character card to take
+            let slotIndexToTake = -1;
+            for (let i = 0; i < G.characterSlots.length; i++) {
+              if (G.characterSlots[i] === pendingCharacterCard) {
+                slotIndexToTake = i;
+                break;
+              }
+            }
+            // If not found in characterSlots, it's from deck (slotIndex = -1)
+            moves.takeCharacterCard(slotIndexToTake, replacedSlotIndex);
+            setShowReplacementDialog(false);
+            setPendingCharacterCard(null);
+          }}
+          onCancel={() => {
+            setShowReplacementDialog(false);
+            setPendingCharacterCard(null);
           }}
         />
       )}

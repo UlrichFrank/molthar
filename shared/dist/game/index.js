@@ -118,6 +118,71 @@ export const PortaleVonMolthar = {
                 }
             }
         },
+        takeCharacterCard(G, ctx, slotIndex, replacedSlotIndex) {
+            const player = G.players[ctx.currentPlayer];
+            if (!player) {
+                return;
+            }
+            // Check if player has already taken 3 actions this turn
+            if (G.actionCount >= 3) {
+                return;
+            }
+            // Get card from slot or deck
+            let card;
+            if (slotIndex >= 0 && slotIndex < 2) {
+                card = G.characterSlots[slotIndex];
+                G.characterSlots.splice(slotIndex, 1);
+            }
+            else if (slotIndex === -1) {
+                card = G.characterDeck.pop();
+            }
+            else {
+                return;
+            }
+            if (!card) {
+                return;
+            }
+            // Create ActivatedCharacter from CharacterCard
+            const activatedCharacter = {
+                id: `${player.id}-${Date.now()}-${Math.random()}`,
+                characterId: card.name,
+                activated: false,
+            };
+            // Handle portal placement
+            if (player.portal.length < 2) {
+                // Free slot available - add directly
+                player.portal.push(activatedCharacter);
+            }
+            else if (replacedSlotIndex !== undefined && replacedSlotIndex >= 0 && replacedSlotIndex < 2) {
+                // Both slots full - replace specified slot
+                const replaced = player.portal[replacedSlotIndex];
+                if (replaced) {
+                    G.characterDiscardPile.push(card);
+                }
+                player.portal[replacedSlotIndex] = activatedCharacter;
+            }
+            else {
+                // Both slots full but no replacement specified - invalid
+                return;
+            }
+            G.actionCount++;
+            // Refill character slots
+            while (G.characterSlots.length < 2) {
+                let refillCard = G.characterDeck.pop();
+                if (!refillCard && G.characterDiscardPile.length > 0) {
+                    // Reshuffle discard pile
+                    G.characterDeck = G.characterDiscardPile.splice(0);
+                    shuffleArray(G.characterDeck);
+                    refillCard = G.characterDeck.pop();
+                }
+                if (refillCard) {
+                    G.characterSlots.push(refillCard);
+                }
+                else {
+                    break;
+                }
+            }
+        },
         activateCharacter(G, ctx, slotIndex, usedCards) {
             const player = G.players[ctx.currentPlayer];
             if (!player) {
