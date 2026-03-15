@@ -238,7 +238,17 @@ app.post('/api/rooms/:roomID/join', (req, res) => {
     // If room is full, start the game
     if (room.players.length === room.maxPlayers) {
       room.status = 'playing';
-      logger.info(`🎮 Game starting in room ${roomID}`);
+      
+      // Initialize game state with all players
+      try {
+        const playOrder = room.players.map((_, i) => String(i));
+        if (PortaleVonMolthar.setup) {
+          room.gameState = PortaleVonMolthar.setup({ playOrder });
+        }
+        logger.info(`🎮 Game starting in room ${roomID} with players: ${playOrder.join(', ')}`);
+      } catch (setupErr) {
+        logger.error(`Failed to initialize game state for room ${roomID}:`, setupErr);
+      }
     }
 
     res.json({
