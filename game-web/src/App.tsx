@@ -166,9 +166,9 @@ export function App() {
         <Board
           G={session.gameState}
           ctx={{
-            currentPlayer: session.connection.playerID,
+            currentPlayer: session.gameState.playerOrder[0],
             numPlayers: session.allPlayers.length,
-            playOrder: session.allPlayers.map((p) => p.id),
+            playOrder: session.gameState.playerOrder,
             turn: 0,
           }}
           moves={{
@@ -179,7 +179,7 @@ export function App() {
             endTurn: () => handleMoveSubmission('endTurn', {}),
           }}
           playerID={session.connection.playerID}
-          isActive={true}
+          isActive={session.gameState.playerOrder[0] === session.connection.playerID}
         />
       ) : (
         <div className="game-loading">
