@@ -1,6 +1,7 @@
-import React, { useContext } from 'react';
-import type { GameState } from '@portale-von-molthar/shared';
+import React, { useContext, useState } from 'react';
+import type { GameState, CharacterCard } from '@portale-von-molthar/shared';
 import { getCostSummary, describeCost, canPotentiallySatisfyCost } from '../lib/cost-helper';
+import { CostPaymentDialog } from './CostPaymentDialog';
 import '../styles/board.css';
 
 interface BoardProps {
@@ -52,6 +53,8 @@ export function Board(props: BoardProps) {
   const { G, ctx, moves, playerID, isActive } = props;
   const currentPlayer = G.players[ctx.currentPlayer];
   const player = playerID ? G.players[playerID] : null;
+  const [selectedCharacterSlot, setSelectedCharacterSlot] = useState<number | null>(null);
+  const [showCostDialog, setShowCostDialog] = useState(false);
   
   return (
     <div className="board">
@@ -117,7 +120,8 @@ export function Board(props: BoardProps) {
                   }}
                   onClick={() => {
                     if (isActive && G.actionCount < 3 && player && player.portal.length < 2) {
-                      moves.activateCharacter(idx, []);
+                      setSelectedCharacterSlot(idx);
+                      setShowCostDialog(true);
                     }
                   }}
                   disabled={!isActive || G.actionCount >= 3 || !player || player.portal.length >= 2}
@@ -312,6 +316,24 @@ export function Board(props: BoardProps) {
             <span className="turn-value">{G.players[G.playerOrder[0]]?.name || 'Unknown'}</span>
           </div>
         </div>
+      )}
+
+      {/* Cost Payment Dialog */}
+      {showCostDialog && selectedCharacterSlot !== null && G.characterSlots[selectedCharacterSlot] && player && (
+        <CostPaymentDialog
+          character={G.characterSlots[selectedCharacterSlot]}
+          hand={player.hand}
+          diamonds={player.diamonds}
+          onPay={(usedCardIndices) => {
+            moves.activateCharacter(selectedCharacterSlot, usedCardIndices);
+            setShowCostDialog(false);
+            setSelectedCharacterSlot(null);
+          }}
+          onCancel={() => {
+            setShowCostDialog(false);
+            setSelectedCharacterSlot(null);
+          }}
+        />
       )}
     </div>
   );

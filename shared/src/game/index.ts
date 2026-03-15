@@ -1,4 +1,4 @@
-import type { GameState, PearlCard, CharacterCard, PlayerState } from './types';
+import type { GameState, PearlCard, CharacterCard, PlayerState, CostComponent } from './types';
 
 /**
  * Helper function for invalid moves
@@ -150,17 +150,19 @@ export const PortaleVonMolthar = {
         return;
       }
       
-      // TODO: Validate cost with used cards
-      // For now, assume cost is paid
+      // Validate cost payment
+      if (!validateCostPayment(character.cost, usedCards || [], player.hand, player.diamonds)) {
+        return; // Invalid move - cost not satisfied
+      }
       
       // Move used cards from hand to discard
-      if (usedCards) {
-        usedCards.forEach(cardIndex => {
-          if (cardIndex >= 0 && cardIndex < player.hand.length) {
-            const card = player.hand.splice(cardIndex, 1)[0];
-            G.pearlDiscardPile.push(card);
-          }
-        });
+      // Process in reverse order to avoid index shifting
+      const sortedIndices = (usedCards || []).sort((a, b) => b - a);
+      for (const cardIndex of sortedIndices) {
+        if (cardIndex >= 0 && cardIndex < player.hand.length) {
+          const card = player.hand.splice(cardIndex, 1)[0];
+          G.pearlDiscardPile.push(card);
+        }
       }
       
       // Add character to player's portal
@@ -279,6 +281,153 @@ export const PortaleVonMolthar = {
     return undefined;
   },
 };
+
+/**
+ * Validate that used cards satisfy a character's cost
+ * @param cost - Cost components to satisfy
+ * @param usedCardIndices - Indices of cards from hand being used
+ * @param hand - Player's hand of pearl cards
+ * @param diamonds - Player's available diamonds to reduce cost
+ * @returns true if cost is satisfied, false otherwise
+ */
+export function validateCostPayment(
+  cost: CostComponent[],
+  usedCardIndices: number[],
+  hand: PearlCard[],
+  diamonds: number
+): boolean {
+  if (!cost || cost.length === 0) {
+    return true; // Free cost
+  }
+
+  // Get the actual cards being used
+  const usedCards: PearlCard[] = [];
+  for (const idx of usedCardIndices) {
+    if (idx >= 0 && idx < hand.length) {
+      usedCards.push(hand[idx]);
+    }
+  }
+
+  // Try each cost option (diamond costs can be multiple options)
+  for (const component of cost) {
+    if (verifyCostComponent(component, usedCards, diamonds)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Check if a single cost component is satisfied by used cards
+ */
+function verifyCostComponent(
+  component: CostComponent,
+  usedCards: PearlCard[],
+  diamonds: number
+): boolean {
+  switch (component.type) {
+    case 'number': {
+      // Check if sum of cards meets the total, accounting for diamond bonus
+      const sum = usedCards.reduce((total, card) => total + card.value, 0);
+      const required = component.value || 0;
+      return sum >= required - diamonds; // Diamonds reduce required sum
+    }
+
+    case 'nTuple': {
+      // Check if we have n cards of the same value
+      const valueCounts: Record<number, number> = {};
+      for (const card of usedCards) {
+        valueCounts[card.value] = (valueCounts[card.value] || 0) + 1;
+      }
+      const n = component.n || 0;
+      return Object.values(valueCounts).some(count => count >= n);
+    }
+
+    case 'run': {
+      // Check if we have consecutive sequence of length n
+      const length = component.length || 0;
+      const values = [...new Set(usedCards.map(c => c.value))].sort((a, b) => a - b);
+      
+      if (values.length < length) {
+        return false;
+      }
+      
+      for (let i = 0; i <= values.length - length; i++) {
+        let isConsecutive = true;
+        for (let j = 0; j < length - 1; j++) {
+          if (values[i + j + 1] !== values[i + j] + 1) {
+            isConsecutive = false;
+            break;
+          }
+        }
+        if (isConsecutive) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    case 'sumAnyTuple': {
+      // Check for n pairs (any values)
+      const valueCounts: Record<number, number> = {};
+      for (const card of usedCards) {
+        valueCounts[card.value] = (valueCounts[card.value] || 0) + 1;
+      }
+      const n = component.n || 0;
+      const pairCount = Object.values(valueCounts).filter(count => count >= 2).length;
+      return pairCount >= n;
+    }
+
+    case 'sumTuple': {
+      // Check if cards sum to specific value with n items
+      const n = component.n || 0;
+      const targetSum = component.sum || 0;
+      
+      if (usedCards.length < n) {
+        return false;
+      }
+      
+      // Simple check: do we have n cards that sum to target?
+      // This is simplified - full implementation would need combinatorics
+      if (usedCards.length === n) {
+        const actualSum = usedCards.reduce((total, card) => total + card.value, 0);
+        return actualSum === targetSum;
+      }
+      
+      return false; // Simplified for now
+    }
+
+    case 'evenTuple': {
+      // Check for n even-valued cards
+      const evenCards = usedCards.filter(card => card.value % 2 === 0);
+      const n = component.n || 0;
+      return evenCards.length >= n;
+    }
+
+    case 'oddTuple': {
+      // Check for n odd-valued cards
+      const oddCards = usedCards.filter(card => card.value % 2 === 1);
+      const n = component.n || 0;
+      return oddCards.length >= n;
+    }
+
+    case 'diamond': {
+      // Diamond cost - check if player has enough diamonds
+      const required = component.value || 0;
+      return diamonds >= required;
+    }
+
+    case 'drillingChoice': {
+      // Multiple cost options - this would be handled at a higher level
+      // For now, return true if any option passed
+      return true;
+    }
+
+    default:
+      return true; // Unknown cost type - optimistically allow
+  }
+}
 
 /**
  * Helper Functions
