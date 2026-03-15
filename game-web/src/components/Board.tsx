@@ -109,12 +109,18 @@ export function Board(props: BoardProps) {
             <h3>Character Cards</h3>
             <div className="slots">
               {G.characterSlots.map((card, idx) => (
-                <div
+                <button
                   key={idx}
                   className="card character-card card-with-image"
                   style={{
                     backgroundImage: `url(${getCharacterCardImage(card.name)})`,
                   }}
+                  onClick={() => {
+                    if (isActive && G.actionCount < 3 && player && player.portal.length < 2) {
+                      moves.activateCharacter(idx, []);
+                    }
+                  }}
+                  disabled={!isActive || G.actionCount >= 3 || !player || player.portal.length >= 2}
                   title={`${card.name} - ⚡${card.powerPoints} 💎${card.diamonds} - ${describeCost(card.cost)}`}
                 >
                   {/* Overlay with stats */}
@@ -127,21 +133,13 @@ export function Board(props: BoardProps) {
                     {getCostSummary(card.cost)}
                   </div>
                   {isActive && G.actionCount < 3 && player && player.portal.length < 2 && (
-                    <button
-                      className={`activate-btn ${
-                        canPotentiallySatisfyCost(card.cost, player.hand) ? 'available' : 'unavailable'
-                      }`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // TODO: Implement cost validation UI
-                        moves.activateCharacter(idx, []);
-                      }}
-                      title={describeCost(card.cost)}
-                    >
-                      Activate
-                    </button>
+                    <div className={`activate-indicator ${
+                      canPotentiallySatisfyCost(card.cost, player.hand) ? 'available' : 'unavailable'
+                    }`}>
+                      {canPotentiallySatisfyCost(card.cost, player.hand) ? '✓' : '✗'}
+                    </div>
                   )}
-                </div>
+                </button>
               ))}
             </div>
           </div>
