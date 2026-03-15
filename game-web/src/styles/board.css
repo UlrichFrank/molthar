@@ -568,15 +568,75 @@
   border-radius: 2px;
 }
 
+/* Game Status Footer */
+.game-status-footer {
+  padding: 0;
+  border-top: 2px solid rgba(255, 255, 255, 0.2);
+}
+
 /* Final Round Banner */
 .final-round-banner {
-  padding: 1rem;
-  background: #ff9800;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff9800 100%);
   color: white;
   font-weight: bold;
   font-size: 1.2rem;
   text-align: center;
-  border-top: 3px solid #fff;
+  border: none;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.banner-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.banner-icon {
+  font-size: 3rem;
+  display: block;
+}
+
+.banner-text h2 {
+  margin: 0;
+  font-size: 2rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.banner-text p {
+  margin: 0.5rem 0 0 0;
+  font-size: 1rem;
+  opacity: 0.95;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+/* Turn Indicator */
+.turn-indicator {
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  color: white;
+  font-size: 0.95rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.turn-label {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.turn-value {
+  font-weight: bold;
+  color: #ffd700;
 }
 
 /* Responsive */

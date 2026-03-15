@@ -293,9 +293,24 @@ export function Board(props: BoardProps) {
       </div>
       
       {/* Game Status */}
-      {G.finalRound && (
-        <div className="final-round-banner">
-          🎯 FINAL ROUND - {G.players[G.finalRoundStartingPlayer || ''].name} triggered it!
+      {G.finalRound ? (
+        <div className="game-status-footer">
+          <div className="final-round-banner">
+            <div className="banner-content">
+              <span className="banner-icon">🎯</span>
+              <div className="banner-text">
+                <h2>FINAL ROUND!</h2>
+                <p>{G.players[G.finalRoundStartingPlayer || '']?.name || 'Player'} triggered the final round</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="game-status-footer">
+          <div className="turn-indicator">
+            <span className="turn-label">Current Turn:</span>
+            <span className="turn-value">{G.players[G.playerOrder[0]]?.name || 'Unknown'}</span>
+          </div>
         </div>
       )}
     </div>
