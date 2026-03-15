@@ -13,6 +13,7 @@ import 'dotenv/config';
 import { v4 as uuidv4 } from 'uuid';
 
 import { logger } from './utils/logger.js';
+import { MoveValidator } from './moveValidator.js';
 import type { GameState } from '@portale-von-molthar/shared';
 
 interface Player {
@@ -247,6 +248,23 @@ app.post('/api/rooms/:roomID/moves', (req, res) => {
     const player = room.players.find((p: Player) => p.id === playerID);
     if (!player) {
       res.status(403).json({ error: 'Player not in room' });
+      return;
+    }
+
+    // Validate move (server-side validation)
+    const moveValidation = MoveValidator.validateMove(
+      moveName,
+      playerID,
+      payload,
+      gameState as GameState
+    );
+
+    if (!moveValidation.valid) {
+      res.status(400).json({
+        error: moveValidation.error || 'Invalid move',
+        moveName,
+        playerID,
+      });
       return;
     }
 
