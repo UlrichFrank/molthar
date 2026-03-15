@@ -130,8 +130,12 @@ export function Board(props: BoardProps) {
                   style={{
                     backgroundImage: `url(${getCharacterCardImage(card.name)})`,
                   }}
-                  disabled={true}
-                  title={`${card.name} - ⚡${card.powerPoints} 💎${card.diamonds}`}
+                  disabled={!isActive || G.actionCount >= 3}
+                  title={`${card.name} - ⚡${card.powerPoints} 💎${card.diamonds}${isActive && G.actionCount < 3 ? ' - Click to take' : ''}`}
+                  onClick={() => {
+                    // TODO: Implement takeCharacterCard move
+                    console.log('Character card click - move not yet implemented');
+                  }}
                 >
                   {/* Keep text as fallback */}
                   <span className="card-fallback">
@@ -141,11 +145,15 @@ export function Board(props: BoardProps) {
               ))}
               <button
                 className="card deck-button card-with-image"
-                disabled={true}
+                disabled={!isActive || G.actionCount >= 3}
                 style={{
                   backgroundImage: `url(${getCardBackImage('character')})`,
                 }}
                 title="Character Card Deck"
+                onClick={() => {
+                  // TODO: Implement takeCharacterCard from deck move
+                  console.log('Character deck click - move not yet implemented');
+                }}
               >
                 🎴<br/>Deck
               </button>

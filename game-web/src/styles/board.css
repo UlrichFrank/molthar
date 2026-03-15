@@ -77,8 +77,8 @@
 
 .card {
   background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
-  border: 3px solid #fff;
-  border-radius: 24px;
+  border: none;
+  border-radius: 20px;
   padding: 1rem;
   color: #333;
   font-size: 1.2rem;
@@ -92,6 +92,7 @@
   align-items: center;
   justify-content: center;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .card-with-image {
@@ -139,14 +140,15 @@
   background: none;
   padding: 0;
   text-align: center;
-  border: 3px solid #e8a76b;
-  border-radius: 24px;
+  border: none;
+  border-radius: 20px;
   width: 120px;
   aspect-ratio: 59 / 92;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
 .character-card.card-with-image {
@@ -305,7 +307,7 @@
   background-position: center;
   background-repeat: no-repeat;
   border: 3px solid #8b6f47;
-  border-radius: 24px;
+  border-radius: 20px;
   padding: 2rem;
   margin: 1rem 0;
   min-height: 300px;
@@ -332,8 +334,8 @@
 }
 
 .character-placement {
-  border: 3px solid #ffd700;
-  border-radius: 24px;
+  border: none;
+  border-radius: 20px;
   width: 120px;
   aspect-ratio: 59 / 92;
   position: relative;
@@ -344,6 +346,7 @@
   transition: all 0.2s ease;
   background: none;
   padding: 0;
+  overflow: hidden;
 }
 
 .character-placement:not(:disabled) {
@@ -390,7 +393,7 @@
   width: 120px;
   aspect-ratio: 59 / 92;
   border: 3px dashed rgba(255, 255, 255, 0.4);
-  border-radius: 24px;
+  border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -403,8 +406,8 @@
 }
 
 .activated-character {
-  border: 3px solid #ffd700;
-  border-radius: 24px;
+  border: none;
+  border-radius: 20px;
   width: 120px;
   aspect-ratio: 59 / 92;
   position: relative;
@@ -415,6 +418,7 @@
   transition: all 0.2s ease;
   background: none;
   padding: 0;
+  overflow: hidden;
 }
 
 .activated-character:not(:disabled) {
@@ -460,7 +464,7 @@
 .hand {
   background: rgba(0, 0, 0, 0.3);
   padding: 1rem;
-  border-radius: 24px;
+  border-radius: 20px;
   margin: 1rem 0;
 }
 
@@ -546,7 +550,7 @@
 .action-btn {
   padding: 0.8rem 1.5rem;
   border: none;
-  border-radius: 24px;
+  border-radius: 20px;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -583,7 +587,7 @@
 .player-info {
   background: rgba(0, 0, 0, 0.4);
   padding: 1rem;
-  border-radius: 24px;
+  border-radius: 20px;
   border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
@@ -625,7 +629,7 @@
   margin: 0.8rem 0;
   padding: 0.8rem;
   background: rgba(0, 0, 0, 0.2);
-  border-radius: 24px;
+  border-radius: 20px;
 }
 
 .portal-label {
@@ -645,12 +649,13 @@
 .opponent-char-card {
   width: 60px;
   aspect-ratio: 59 / 92;
-  border: 2px solid #ffd700;
+  border: none;
   border-radius: 4px;
   position: relative;
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
+  overflow: hidden;
 }
 
 .opponent-char-card.rotated {
@@ -672,7 +677,7 @@
   margin: 0.8rem 0;
   padding: 0.8rem;
   background: rgba(0, 0, 0, 0.2);
-  border-radius: 24px;
+  border-radius: 20px;
 }
 
 .hand-label {
