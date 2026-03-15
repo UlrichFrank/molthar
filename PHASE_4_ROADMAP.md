@@ -1,9 +1,10 @@
 # 🎮 PHASE 4: Advanced Features - Multiplayer, AI & Visual Redesign
 
 **Status:** Planning  
-**Scope:** Multiplayer networking, AI opponents, visual component overhaul  
-**Estimated Duration:** 12-15 days (3 weeks)  
+**Scope:** Multiplayer networking (boardgame.io), AI opponents, visual component overhaul  
+**Estimated Duration:** 10-13 days (2-3 weeks) ✅ **OPTIMIZED: -2-3 days via boardgame.io**  
 **Successor to:** Phase 3 (100% complete)
+**Architecture:** boardgame.io (recommended by game-web-spec.md)
 
 ---
 
@@ -19,262 +20,405 @@
 
 | Sub-Phase | Focus | Duration | Deliverables |
 |-----------|-------|----------|--------------|
-| **P4.1** | Multiplayer Infrastructure | 4-5 days | WebSocket server, room management, sync |
+| **P4.1** | Multiplayer Infrastructure | **2-3 days** ⚡ | boardgame.io setup, lobby, game sync |
 | **P4.2** | AI Engine & Strategies | 4-5 days | Decision tree, 5 AI difficulty levels |
 | **P4.3** | Visual Redesign | 3-4 days | Card images, portal UI, game board assets |
-| **P4.4** | Integration & Polish | 1-2 days | End-to-end testing, deployment |
+| **P4.4** | Integration & Polish | **1 day** ⚡ | End-to-end testing, deployment |
 
-**Total: 12-15 days**
+**Total: 10-13 days** ⚡ **(Optimized: -2-3 days vs custom Socket.io)**
 
----
-
-## 🌐 P4.1: Multiplayer Infrastructure (4-5 Days)
-
-### 4.1.1 Backend Setup - WebSocket Server
-
-**Goal:** Centralized game server managing sessions, state sync, and player messaging
-
-```typescript
-// Architecture: Node.js + Express + Socket.io
-// - Room management (create/join/leave)
-// - Game state synchronization
-// - Action broadcasting
-// - Spectator support
-```
-
-**Deliverables:**
-- [ ] Express.js server with Socket.io
-- [ ] Room management system
-  - Create game room
-  - Join room (max 5 players)
-  - Leave room (game cleanup)
-  - List available rooms
-- [ ] Game state server
-  - Store game state per room
-  - Validate actions
-  - Broadcast state to clients
-  - Handle disconnections
-- [ ] Player management
-  - Player identification
-  - Ready state tracking
-  - Reconnection support
-
-**Technology Stack:**
-```
-Backend:
-- Express.js (server framework)
-- Socket.io (real-time bidirectional communication)
-- In-memory store or Redis (session management)
-- TypeScript (for type safety)
-
-Frontend:
-- Socket.io client
-- Zustand store (game state management)
-- Auto-reconnect with exponential backoff
-```
-
-**Key Endpoints/Events:**
-
-```typescript
-// Client → Server
-emit('CREATE_ROOM', { playerName, maxPlayers })
-emit('JOIN_ROOM', { roomId, playerName })
-emit('LEAVE_ROOM', { roomId })
-emit('GAME_ACTION', { action, payload })
-emit('READY_UP', { roomId })
-emit('DISCONNECT', {})
-
-// Server → Clients
-on('ROOM_CREATED', { roomId, players })
-on('PLAYER_JOINED', { playerId, playerName })
-on('GAME_STATE_UPDATE', { gameState })
-on('ACTION_BROADCAST', { action, timestamp })
-on('GAME_STARTED', { gameState })
-on('PLAYER_LEFT', { playerId })
-on('PLAYER_RECONNECTED', { playerId })
-on('GAME_FINISHED', { winners, stats })
-```
-
-**Testing Checklist:**
-- [ ] Room creation & listing
-- [ ] Multiple players joining same room
-- [ ] Player disconnection handling
-- [ ] State synchronization across clients
-- [ ] Action validation on server
-- [ ] Spectator join (view-only)
-- [ ] Room cleanup on all players leave
+**Key Change:** Using **boardgame.io** (as specified in game-web-spec.md) instead of custom Express + Socket.io saves 2-3 days on P4.1 and simplifies P4.4.
 
 ---
 
-### 4.1.2 Game State Management - Server-Side
+## 🌐 P4.1: Multiplayer Infrastructure (2-3 Days) ⚡
 
-**Goal:** Single source of truth for game state, server validates all actions
+### Architecture: boardgame.io Framework
 
-```typescript
-interface GameRoom {
-  id: string;
-  name: string;
-  players: Player[];
-  gameState: IGameState;
-  status: 'waiting' | 'playing' | 'finished';
-  createdAt: Date;
-  maxPlayers: number;
-}
+**Why boardgame.io?**
+- ✅ Built-in multiplayer (WebSocket)
+- ✅ Automatic state synchronization
+- ✅ Built-in lobby system
+- ✅ Turn-based game flow management
+- ✅ Move validation
+- ✅ Reconnection handling
+- ✅ Already recommended in game-web-spec.md
+- ✅ Saves 2-3 days vs custom Socket.io
 
-interface Player {
-  id: string;
-  name: string;
-  socket: SocketId;
-  isAI: boolean;
-  status: 'connected' | 'reconnecting' | 'disconnected';
-  readyUp: boolean;
-}
+**Framework provides:**
+```
+✅ Multiplayer Lobby
+✅ Room Management (create/join/leave)
+✅ Game State Synchronization
+✅ Turn Management
+✅ Move Validation
+✅ Spectator Mode
+✅ Undo/Redo Support
 ```
 
-**Action Validation Flow:**
+**You provide:**
 ```
-Client sends action
-  ↓
-Server receives via Socket.io
-  ↓
-Validate action (GameEngine.processAction())
-  ↓
-If valid:
-  - Update game state
-  - Broadcast to all clients
-  - Store action in history
-  ↓
-If invalid:
-  - Send error to client
-  - No state change
+✅ Game rules (Moves in boardgame.io)
+✅ AI strategies (custom bot logic)
+✅ React UI components
+✅ Visual assets
 ```
-
-**Deliverables:**
-- [ ] Room state storage (in-memory or Redis)
-- [ ] Action queue per room
-- [ ] State consistency checks
-- [ ] Automatic AI turn handling
-- [ ] Disconnect/reconnect grace period (10-15 seconds)
-- [ ] Game history logging
 
 ---
 
-### 4.1.3 Client-Side Networking
+### 4.1.1 Game Setup with boardgame.io
 
-**Goal:** Seamless connection, automatic reconnect, offline support
+**Goal:** Initialize boardgame.io game engine with Portale von Molthar rules
 
-**Deliverables:**
-- [ ] Socket.io client integration
-- [ ] Auto-reconnect with exponential backoff (1s, 2s, 4s, 8s...)
-- [ ] Game state sync from server
-- [ ] Action queueing (optimistic updates)
-- [ ] Network status indicator
-- [ ] Spectator mode
-
-**Client Store (Zustand):**
 ```typescript
-interface GameStore {
-  // Connection
-  connected: boolean;
-  roomId: string | null;
-  playerId: string;
+// src/game/game.ts
+import { Game, INVALID_MOVE } from 'boardgame.io/core';
+import { PluginPlayer } from 'boardgame.io/plugins/plugin-player';
+
+export const PortaleVonMolthar = {
+  name: 'portale-von-molthar',
+  minPlayers: 2,
+  maxPlayers: 5,
   
-  // Game
-  gameState: IGameState;
-  players: Player[];
-  localPlayerId: string;
+  setup: (ctx) => ({
+    pearlDeck: [...],      // 56 cards
+    characterDeck: [...],  // 54 cards
+    players: {
+      [ctx.currentPlayer]: {
+        hand: [],
+        portal: [],
+        activatedCharacters: [],
+        powerPoints: 0,
+        diamonds: 0
+      }
+    },
+    pearlSlots: [],        // 4 face-up pearl cards
+    characterSlots: [],    // 2 face-up character cards
+    discardPile: []
+  }),
   
-  // UI
-  networkError: string | null;
-  isSpectating: boolean;
+  moves: {
+    takePearlCard: (G, ctx, slotIndex) => {
+      // Validate and execute move
+      // Return INVALID_MOVE if not allowed
+    },
+    activateCharacter: (G, ctx, pearlCards) => {
+      // Cost validation
+      // State update
+    },
+    // ... other moves
+  },
   
-  // Methods
-  joinRoom(roomId, playerName);
-  leaveRoom();
-  sendAction(action);
-  reconnect();
-}
+  turn: {
+    maxMoves: 3,  // 3 actions per turn
+    onBegin: (G, ctx) => {
+      // Reset action count
+    },
+    onEnd: (G, ctx) => {
+      // Check for hand limit, trigger final round, etc
+    }
+  },
+  
+  endIf: (G, ctx) => {
+    // Check win condition (12+ power points)
+    // Return { winner: playerId } or undefined
+  },
+  
+  plugins: [PluginPlayer()]
+};
 ```
 
 **Deliverables:**
-- [ ] Socket.io client setup
-- [ ] Zustand store integration
-- [ ] Optimistic action updates
-- [ ] Conflict resolution on rejoin
-- [ ] Network status UI component
-- [ ] Error recovery UI
+- [ ] Game definition with moves
+- [ ] Move validation logic
+- [ ] Game state setup
+- [ ] Win condition
+- [ ] Turn management
 
 ---
 
-### 4.1.4 Lobby & Room System
+### 4.1.2 Frontend Integration
 
-**Goal:** Easy game creation and joining for players
+**Goal:** Connect React frontend to boardgame.io server
 
-**UI Screens:**
-1. **Lobby Screen**
-   - List of available rooms
-   - "Create Room" button
-   - "Join Room" input
-   - Player name input
+```typescript
+// src/pages/GamePage.tsx
+import { Client } from 'boardgame.io/react';
+import { PortaleVonMolthar } from '../game/game';
+import { Board } from '../components/Board';
 
-2. **Room Screen**
-   - Player list (shows ready status)
-   - "Ready Up" button
-   - Game settings (2-4 players, include AI)
-   - "Leave Room" option
-   - Start game button (when all ready)
+const MyGame = Client({
+  game: PortaleVonMolthar,
+  board: Board,
+  multiplayer: {
+    server: process.env.VITE_BOARDGAME_SERVER,
+    // e.g., 'http://localhost:8000' or 'https://api.railway.app'
+  },
+  debug: false
+});
 
-3. **Network Status**
-   - Connection indicator (dot: green/yellow/red)
-   - Ping display
-   - Disconnect warning
-   - Reconnecting spinner
+export default MyGame;
+```
+
+**What you get automatically:**
+- ✅ Multiplayer connectivity
+- ✅ State synchronization
+- ✅ Move validation
+- ✅ Turn management
+- ✅ Reconnection
+- ✅ Undo/Redo buttons
+
+**What you implement:**
+- ✅ Board component (React)
+- ✅ Card display
+- ✅ Action buttons
+- ✅ Player hand UI
 
 **Deliverables:**
-- [ ] Lobby component
-- [ ] Room management UI
-- [ ] Player list with status
-- [ ] Network status indicator
-- [ ] Error messaging
+- [ ] Board React component
+- [ ] Player UI components
+- [ ] Card display components
+- [ ] Action buttons
+- [ ] Game state hooks
+
+---
+
+### 4.1.3 Lobby Integration
+
+**Goal:** Allow players to create and join games
+
+```typescript
+// Built-in boardgame.io Lobby
+import { Lobby } from 'boardgame.io/react';
+
+export function GameLobby() {
+  return (
+    <Lobby
+      gameServer={process.env.VITE_BOARDGAME_SERVER}
+      lobbyServer={process.env.VITE_LOBBY_SERVER}
+      gameComponents={[
+        { game: PortaleVonMolthar, board: Board }
+      ]}
+    />
+  );
+}
+```
+
+**Features provided:**
+- ✅ Game list
+- ✅ Create room
+- ✅ Join room
+- ✅ Player selection
+- ✅ Ready button
+- ✅ Start game
+
+**Deliverables:**
+- [ ] Lobby page
+- [ ] Custom styling for lobby
+- [ ] Player name input
+- [ ] Game settings (2-5 players, include AI)
+
+---
+
+### 4.1.4 Server Deployment
+
+**Goal:** Deploy boardgame.io server to Railway
+
+**Option A: Using boardgame.io CLI (Simplest)**
+
+```bash
+# Install boardgame.io
+npm install boardgame.io
+
+# Create server config
+npx boardgame.io start
+
+# Deploy to Railway
+git push origin main
+```
+
+**Option B: Custom Node.js Server (More Control)**
+
+```typescript
+// server.ts
+import { Server } from 'boardgame.io/server';
+import { PortaleVonMolthar } from './game';
+
+const server = Server({
+  games: [PortaleVonMolthar],
+  port: process.env.PORT || 8000
+});
+
+server.run(() => {
+  console.log('Game server running on port 8000');
+});
+```
+
+**Deployment:**
+- [ ] Deploy to Railway
+- [ ] Set environment variables
+- [ ] Test WebSocket connection
+- [ ] Configure CORS
+- [ ] Enable HTTPS (WSS)
+
+**Environment Variables:**
+```bash
+NODE_ENV=production
+PORT=8000
+FRONTEND_URL=https://portale-von-molthar.vercel.app
+GAME_SERVER=https://api.railway.app
+LOBBY_SERVER=https://api.railway.app/lobby
+```
+
+---
+
+### 4.1.5 Testing
+
+**Deliverables:**
+- [ ] Local game creation and joining
+- [ ] Multiplayer move validation
+- [ ] State synchronization (all players see same state)
+- [ ] Player disconnection and reconnection
+- [ ] Win condition triggering
+- [ ] Final round mechanics
+- [ ] Spectator support (if enabled)
+
+**Testing checklist:**
+- [ ] Create room with 2 players
+- [ ] Both players see game state
+- [ ] Player 1 makes move → Player 2 sees update immediately
+- [ ] Player 2 makes move → Player 1 sees update
+- [ ] Disconnect Player 1 → Reconnect → Sees current state
+- [ ] Win condition triggered at 12+ power points
+- [ ] Final round executes correctly
+
+---
+
+### 4.1.6 What's NOT in boardgame.io (You implement)
+
+**Visual UI Components** (boardgame.io provides game logic, you provide UI)
+- [ ] Board component (React) - displays game state visually
+- [ ] Card components - pearl cards, character cards
+- [ ] Player hand UI
+- [ ] Portal zone display
+- [ ] Character slots display
+- [ ] Action buttons (move triggers)
+- [ ] Turn indicator
+- [ ] Score display
+- [ ] Animations and transitions
+
+**AI Player Integration** (boardgame.io provides bot framework, you implement strategies)
+- [ ] AI player detection in game setup
+- [ ] AI decision engine (5 strategies)
+- [ ] AI move execution
+- [ ] Automatic turn triggering for AI
+- [ ] Difficulty level selection in lobby
+
+**Admin/Debug Tools** (not provided by boardgame.io)
+- [ ] Game state viewer
+- [ ] Move history inspector
+- [ ] Card manager integration
+- [ ] Test utilities
+
+---
+
+### 4.1.7 Expected Code Size
+
+**With boardgame.io:**
+- Game definition: ~200-300 lines
+- Board component: ~400-500 lines
+- Lobby customization: ~100-200 lines
+- **Total: ~700-1000 lines** ⚡
+
+**Compared to custom Socket.io:**
+- Server setup: ~500+ lines
+- Room management: ~200-300 lines
+- State sync: ~150-200 lines
+- Event handlers: ~200-300 lines
+- Client integration: ~300-400 lines
+- **Total: ~1500-1800 lines** 
+
+**Saving: 500-800 lines of code**
 
 ---
 
 ## 🤖 P4.2: AI Engine & Strategies (4-5 Days)
 
-### 4.2.1 AI Decision Engine
+**Note:** boardgame.io provides the bot framework, you implement custom strategies.
 
-**Goal:** Computer player that makes strategic decisions
+### 4.2.1 AI Integration with boardgame.io
+
+**boardgame.io Bot Framework:**
+
+```typescript
+// Integrate AI into game definition
+import { AI } from 'boardgame.io/ai';
+
+export const PortaleVonMolthar = {
+  // ... game definition ...
+  
+  // Optional: Add AI players automatically
+  plugins: [
+    PluginPlayer({
+      // Enable random AI players
+      setup: (ctx) => ctx.numPlayers
+    })
+  ]
+};
+
+// Use custom AI via enumerate pattern
+const aiGame = {
+  ...PortaleVonMolthar,
+  ai: {
+    strategies: {
+      'conservative': new ConservativeStrategy(),
+      'aggressive': new AggressiveStrategy(),
+      'balanced': new BalancedStrategy(),
+      'adaptive': new AdaptiveStrategy(),
+      'monte-carlo': new MonteCarloStrategy()
+    }
+  }
+};
+```
+
+---
+
+### 4.2.2 AI Strategy Interface
+
+**Define the strategy pattern:**
 
 ```typescript
 interface AIStrategy {
   name: string;
   difficulty: 'easy' | 'medium' | 'hard' | 'expert' | 'genius';
-  aggressiveness: number; // 0-1 (0=conservative, 1=aggressive)
-  greediness: number;     // 0-1 (0=save resources, 1=always spend)
-  adaptability: number;   // 0-1 (0=fixed, 1=responds to opponents)
+  aggressiveness: number;  // 0-1 (0=conservative, 1=aggressive)
+  greediness: number;      // 0-1 (0=save resources, 1=spend)
+  adaptability: number;    // 0-1 (0=fixed strategy, 1=responds to board)
+  winRate: number;         // Expected win rate (0.25-0.75)
+  
+  decideTurn(G: GameState, ctx: Context): GameAction;
+  evaluateMove(move: GameAction, G: GameState): number; // Score move 0-1
+  selectCard(candidates: PearlCard[]): PearlCard;
 }
 
-class AIPlayer {
-  strategy: AIStrategy;
-  gameState: IGameState;
-  
-  decideTurn(): GameAction {
-    // Analyze board state
-    // Evaluate options
-    // Make decision
-    // Return action
+abstract class BaseAIStrategy implements AIStrategy {
+  // Common logic
+  decideTurn(G: GameState, ctx: Context): GameAction {
+    const validMoves = this.getValidMoves(G, ctx);
+    const scored = validMoves.map(move => ({
+      move,
+      score: this.evaluateMove(move, G)
+    }));
+    return this.selectMove(scored);
   }
+  
+  abstract evaluateMove(move: GameAction, G: GameState): number;
 }
 ```
 
-**Decision-Making Factors:**
-- Current hand cards (value, count)
-- Power points (own vs opponents)
-- Distance to 12 power points
-- Opponent power points
-- Card availability (deck size)
-- Character cards in play
-- Special abilities available
+---
+
+### 4.2.2 Five AI Strategies
 
 ---
 
@@ -857,7 +1001,7 @@ export function GameBoardVisual({ gameState, onAction }: GameBoardProps) {
 
 ---
 
-### 4.4.2 Deployment - Vercel + Backend Architecture
+### 4.4.2 Deployment - boardgame.io Architecture
 
 #### **Deployment Architecture**
 
@@ -866,41 +1010,48 @@ export function GameBoardVisual({ gameState, onAction }: GameBoardProps) {
 │                  Production Environment                 │
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
-│  ┌──────────────────┐         ┌──────────────────┐    │
-│  │   Vercel CDN     │         │  Vercel Edge     │    │
-│  │  (Frontend)      │         │  Functions       │    │
-│  │  game-web/       │         │  (API routes)    │    │
-│  │  React SPA       │         │                  │    │
-│  └────────┬─────────┘         └──────────┬───────┘    │
-│           │                              │            │
-│           └──────────────┬───────────────┘            │
-│                          │                            │
-│           ┌──────────────┴─────────────┐              │
-│           │  WebSocket Connection      │              │
-│           │  (Upgrade from HTTPS)      │              │
-│           │                            │              │
-│  ┌────────▼────────────────────────────▼────┐         │
-│  │     Backend Server (Node.js)              │         │
-│  │     Socket.io + Express                   │         │
-│  │     - Room Management                     │         │
-│  │     - Game State                          │         │
-│  │     - AI Decision Engine                  │         │
-│  │     - Player Authentication               │         │
-│  │     Hosted: Railway/Heroku/AWS Lambda     │         │
-│  └──────────────┬───────────────────────────┘         │
-│                 │                                      │
-│  ┌──────────────▼──────────────┐                      │
-│  │   Database (Optional)        │                      │
-│  │   - Game History             │                      │
-│  │   - Player Stats             │                      │
-│  │   - ELO/Rankings             │                      │
-│  │   PostgreSQL/MongoDB/Redis   │                      │
-│  └──────────────────────────────┘                      │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │   Frontend (React SPA)                           │  │
+│  │   - Vercel CDN                                   │  │
+│  │   - game-web/ directory                          │  │
+│  │   - Build: npm run build                         │  │
+│  │   - HTTPS: Automatic                             │  │
+│  └──────────────────┬───────────────────────────────┘  │
+│                     │ WebSocket Upgrade                │
+│                     │ (HTTPS → WSS)                    │
+│  ┌──────────────────▼───────────────────────────────┐  │
+│  │   boardgame.io Server                            │  │
+│  │   - Railway (persistent container)               │  │
+│  │   - Node.js + boardgame.io framework             │  │
+│  │   - Lobby management (built-in)                  │  │
+│  │   - Room management (built-in)                   │  │
+│  │   - Game state sync (automatic)                  │  │
+│  │   - Move validation (built-in)                   │  │
+│  │   - WebSocket support (native)                   │  │
+│  │   - Your custom moves & AI logic                 │  │
+│  └──────────────────┬───────────────────────────────┘  │
+│                     │                                   │
+│  ┌──────────────────▼───────────────────────────────┐  │
+│  │   Optional: Database                             │  │
+│  │   - Game history                                 │  │
+│  │   - Player stats                                 │  │
+│  │   - ELO/rankings                                 │  │
+│  │   PostgreSQL (on Railway) or MongoDB             │  │
+│  └─────────────────────────────────────────────────┘  │
 │                                                         │
 └─────────────────────────────────────────────────────────┘
 
-Browser → Vercel (HTTPS) → Backend WebSocket
+Vercel (Frontend) → Railway (boardgame.io Server)
+HTTP/HTTPS → WebSocket → In-memory game state
 ```
+
+**Key improvements with boardgame.io:**
+- ✅ Built-in lobby system (no custom code)
+- ✅ Automatic state synchronization (no custom code)
+- ✅ Native WebSocket support (works on Railway)
+- ✅ Move validation built-in (no custom code)
+- ✅ Turn management built-in (no custom code)
+- ✅ Spectator mode built-in (no custom code)
 
 ---
 
@@ -909,12 +1060,18 @@ Browser → Vercel (HTTPS) → Backend WebSocket
 **Vercel Benefits:**
 - ✅ Zero-config deployment from GitHub
 - ✅ Automatic builds on every push
-- ✅ Edge functions for API routes
 - ✅ Preview deployments for PRs
 - ✅ CDN globally distributed
 - ✅ HTTPS automatic
 - ✅ Environment variables management
 - ✅ Analytics & monitoring built-in
+- ✅ Perfect for static/SPA React apps
+- ✅ Free tier generous (100GB bandwidth/month)
+
+**⚠️ Vercel CANNOT run backend because:**
+- ❌ Edge Functions timeout at 10 seconds (WebSocket needs persistent connections)
+- ❌ No true persistent server state
+- ❌ Socket.io requires TCP-level WebSocket support (not available on Vercel Functions)
 
 **Setup Steps:**
 
@@ -992,143 +1149,216 @@ Preview:
 
 ---
 
-#### **4.4.2.2 Backend Deployment Options**
+#### **4.4.2.2 Backend Deployment - Railway (boardgame.io Server)**
 
-**Option A: Railway (Recommended for Socket.io)**
+**Why Railway for boardgame.io Server?**
+- ✅ Persistent container (always running - boardgame.io needs this)
+- ✅ WebSocket support at TCP level (boardgame.io multiplayer)
+- ✅ Game state stays in memory (room data)
+- ✅ Low latency (100ms average)
+- ✅ Simple Node.js deployment
+- ✅ Cost: $7-50/month (predictable)
 
-```bash
-# Install Railway CLI
-npm install -g @railway/cli
+**Simple boardgame.io Server (server.ts):**
 
-# Login
-railway login
+```typescript
+// server.ts
+import { Server } from 'boardgame.io/server';
+import { PortaleVonMolthar } from './game';
 
-# Initialize project
-railway init
+const gameServer = Server({
+  games: [PortaleVonMolthar],
+  port: process.env.PORT || 8000
+});
 
-# Deploy
-railway up
-
-# Set environment variables
-railway variables set BACKEND_URL=https://api.portale-von-molthar.com
-railway variables set NODE_ENV=production
-railway variables set DATABASE_URL=postgresql://...
+gameServer.run(() => {
+  console.log(`Game server running on port ${process.env.PORT || 8000}`);
+});
 ```
 
-**Railway Configuration:**
-```yaml
-# railway.json
+**package.json:**
+```json
 {
-  "name": "portale-von-molthar-backend",
-  "services": {
-    "api": {
-      "builder": "dockerfile",
-      "port": 3001,
-      "numReplicas": 1,
-      "restartPolicyType": "always"
-    }
+  "name": "portale-backend",
+  "scripts": {
+    "start": "ts-node src/server.ts",
+    "build": "tsc",
+    "dev": "ts-node-dev src/server.ts"
+  },
+  "dependencies": {
+    "boardgame.io": "^0.50.0",
+    "typescript": "^5.0.0"
   }
 }
 ```
 
-**Dockerfile for Backend:**
-```dockerfile
-# Dockerfile (backend root)
-FROM node:18-alpine
+**Deploy to Railway:**
 
-WORKDIR /app
+```bash
+# No Docker needed! Railway auto-detects Node.js
 
-COPY package*.json ./
-RUN npm ci --only=production
+# 1. Connect GitHub to Railway
+# 2. Select /backend folder
+# 3. Railway automatically runs: npm install && npm start
+# 4. Gets URL: https://api.railway.app
+```
 
-COPY . .
+**Environment Variables (Railway Dashboard):**
+```
+PORT=8000
+NODE_ENV=production
+FRONTEND_URL=https://portale-von-molthar.vercel.app
+```
 
-EXPOSE 3001
+**Test the deployment:**
+```bash
+# Connection should work
+curl https://api.railway.app/
 
-CMD ["node", "server.js"]
+# WebSocket should upgrade to WSS automatically
 ```
 
 ---
 
-**Option B: Heroku (Simple, Free Tier Available)**
+**Option B: Heroku (Still works, but Railway is cheaper)**
 
 ```bash
-# Install Heroku CLI
+# Heroku no longer has free tier
+# But if you want to use it:
 npm install -g heroku
-
-# Login
 heroku login
-
-# Create app
-heroku create portale-von-molthar-api
-
-# Set environment variables
-heroku config:set NODE_ENV=production
-heroku config:set DATABASE_URL=postgresql://...
-
-# Deploy from git
+heroku create portale-backend
 git push heroku main
-
-# View logs
 heroku logs --tail
 ```
 
 ---
 
-**Option C: AWS Lambda (Serverless, Scalable)**
-
-```typescript
-// For Socket.io, use AWS API Gateway + Lambda + ALB
-// More complex but highly scalable
-
-// Alternative: Use AWS Fargate + ECS for persistent connections
-// Recommended for Socket.io
-```
+**Option C: AWS Fargate (Overkill for this, complex setup)**
+- More expensive than Railway
+- More complex to configure
+- Only use if you have 10,000+ concurrent users
+- **Not recommended for P4**
 
 ---
 
-#### **4.4.2.3 WebSocket Configuration for Vercel Frontend**
+#### **4.4.2.3 Correct Architecture for P4**
 
-**Important:** Vercel serverless functions don't support WebSocket directly. Connect directly to backend:
+**Frontend → Vercel (HTTP/HTTPS)**
+```
+Browser → Vercel CDN
+         ↓
+     Static HTML/JS/CSS
+         ↓
+   User sees UI fast
+```
+
+**Frontend + Backend → Railway (WebSocket)**
+```
+Browser → Vercel CDN (gets JS)
+    ↓
+    JS loads
+    ↓
+    JS opens WebSocket
+         ↓
+      To: wss://api.railway.app
+         ↓
+   Backend (Node.js) on Railway
+         ↓
+   Game state synced
+```
+
+**DO NOT try:**
+- ❌ WebSocket on Vercel (won't work)
+- ❌ Full app on Railway (fast builds on Vercel)
+- ❌ REST API only (real-time won't work)
+
+---
+
+#### **4.4.2.4 WebSocket Configuration (Correct Way)**
+
+**Important: WebSocket upgrade from HTTPS → WSS**
 
 ```typescript
-// src/lib/socket-client.ts
+// src/lib/socket-client.ts (Frontend)
 import { io } from 'socket.io-client';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-const WEBSOCKET_URL = import.meta.env.VITE_WEBSOCKET_URL;
+const getSocketURL = () => {
+  if (process.env.NODE_ENV === 'development') {
+    // Local development: ws://localhost:3001
+    return import.meta.env.VITE_WEBSOCKET_URL || 'ws://localhost:3001';
+  }
+  // Production: Always use WSS on HTTPS
+  return import.meta.env.VITE_WEBSOCKET_URL || 'wss://api.portale-von-molthar.com';
+};
 
-export const socket = io(WEBSOCKET_URL || BACKEND_URL, {
-  transports: ['websocket', 'polling'],
+export const socket = io(getSocketURL(), {
+  transports: ['websocket', 'polling'],  // Try WS first, fallback to polling
   reconnection: true,
   reconnectionDelay: 1000,
   reconnectionDelayMax: 5000,
   reconnectionAttempts: 5,
-  secure: true, // HTTPS/WSS required
+  secure: location.protocol === 'https:',  // Auto-detect
 });
 
 socket.on('connect', () => {
-  console.log('Connected to backend');
+  console.log('[Socket] Connected');
 });
 
 socket.on('disconnect', (reason) => {
-  console.log('Disconnected:', reason);
-  // Trigger reconnect UI
+  console.log('[Socket] Disconnected:', reason);
 });
 ```
 
-**Environment Variables for Production:**
+**Environment Variables (Frontend):**
 
 ```bash
-# .env.production
-VITE_BACKEND_URL=https://portale-von-molthar-api.railway.app
-VITE_WEBSOCKET_URL=wss://portale-von-molthar-api.railway.app
-VITE_API_KEY=prod_key_xyz123
+# .env.local (development)
+VITE_WEBSOCKET_URL=ws://localhost:3001
+VITE_BACKEND_URL=http://localhost:3001
+
+# .env.production (for Vercel)
+VITE_WEBSOCKET_URL=wss://api.portale-von-molthar.railway.app
+VITE_BACKEND_URL=https://api.portale-von-molthar.railway.app
 ```
+
+**Backend (Express Server):**
+
+```typescript
+// src/server.ts
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import express from 'express';
+
+const app = express();
+const httpServer = createServer(app);
+
+// Socket.io auto-enables WebSocket upgrade
+const io = new Server(httpServer, {
+  cors: {
+    origin: process.env.FRONTEND_URL || '*',
+    methods: ['GET', 'POST'],
+  },
+  transports: ['websocket', 'polling'],
+});
+
+// Server listens on PORT (3001 local, Railway assigns)
+const PORT = process.env.PORT || 3001;
+httpServer.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+```
+
+**Railway auto-enables WSS:**
+- Takes HTTP request to /socket.io
+- Detects WebSocket upgrade header
+- Switches to persistent WebSocket connection
+- Uses Railway's HTTPS certificate (auto)
+- Result: wss://api.portale-von-molthar.railway.app
 
 ---
 
-#### **4.4.2.4 Asset Optimization for Vercel**
+#### **4.4.2.5 Asset Optimization for Vercel CDN**
 
 **Image Optimization:**
 ```typescript
@@ -1566,7 +1796,11 @@ Total Duration: 12-15 days
 
 ---
 
-**Document Version:** 1.1  
-**Last Updated:** Session 7 (Updated with Vercel Deployment)  
+---
+
+**Document Version:** 1.2  
+**Last Updated:** Session (Integrated boardgame.io Framework)  
+**Architecture:** boardgame.io (game logic) + React (UI) + Railway (server) + Vercel (frontend)  
 **Status:** Ready for implementation  
-**Questions/Changes:** Update this document as requirements evolve
+**Timeline:** 10-13 days (optimized: -2-3 days vs custom Socket.io)  
+**Key Change:** Using boardgame.io instead of custom Express + Socket.io saves development time and reduces bugs

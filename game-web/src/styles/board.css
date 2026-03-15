@@ -1,0 +1,383 @@
+/* Board Game Component Styles */
+
+.board {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.board-header {
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.board-header h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.game-info {
+  display: flex;
+  gap: 2rem;
+  font-size: 1.1rem;
+}
+
+.current-player {
+  font-weight: bold;
+  color: #ffd700;
+}
+
+.action-count {
+  color: #87ceeb;
+}
+
+.board-content {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+/* Face-up Cards Area */
+.face-up-area {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.pearl-slots,
+.character-slots {
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.pearl-slots h3,
+.character-slots h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.3rem;
+  text-align: center;
+}
+
+.slots {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.card {
+  background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+  border: 3px solid #fff;
+  border-radius: 8px;
+  padding: 1rem;
+  color: #333;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.card:hover:not(:disabled) {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pearl-card .value {
+  font-size: 2rem;
+  display: block;
+}
+
+.pearl-card .swap {
+  font-size: 1rem;
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  color: #ff4444;
+}
+
+.deck-button {
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+
+.character-card {
+  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+  padding: 0.8rem;
+  text-align: center;
+}
+
+.character-card .card-title {
+  font-weight: bold;
+  margin-bottom: 0.4rem;
+}
+
+.character-card .card-power,
+.character-card .card-diamond {
+  font-size: 0.9rem;
+  margin: 0.2rem 0;
+}
+
+.activate-btn {
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.activate-btn:hover {
+  background: #45a049;
+}
+
+/* Players Area */
+.players-area {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.player-area {
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+.player-area.active {
+  border-color: #ffd700;
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.player-area h3 {
+  margin: 0 0 1rem 0;
+}
+
+.portal {
+  display: flex;
+  gap: 1rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+
+.activated-character {
+  background: #4CAF50;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  padding: 0.8rem;
+  min-width: 60px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.activated-character .activated-badge {
+  font-size: 1.2rem;
+  margin-left: 0.4rem;
+}
+
+.empty-slot {
+  border: 2px dashed #fff;
+  border-radius: 8px;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.player-stats {
+  display: flex;
+  gap: 2rem;
+  margin: 1rem 0;
+  font-size: 1.1rem;
+}
+
+.stat {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.stat .label {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.stat .value {
+  font-weight: bold;
+  color: #ffd700;
+}
+
+.hand {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.hand h4 {
+  margin: 0 0 0.5rem 0;
+}
+
+.cards {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.card-value {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  border: 1px solid #fff;
+  font-weight: bold;
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.action-btn.primary {
+  background: #4CAF50;
+  color: white;
+}
+
+.action-btn.primary:hover {
+  background: #45a049;
+  transform: scale(1.05);
+}
+
+.action-btn.secondary {
+  background: #2196F3;
+  color: white;
+}
+
+.action-btn.secondary:hover {
+  background: #0b7dda;
+  transform: scale(1.05);
+}
+
+/* Other Players */
+.other-players {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.player-info {
+  background: rgba(0, 0, 0, 0.4);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.player-info.active {
+  border-color: #ffd700;
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.player-info .name {
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.ai-badge {
+  margin-left: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.stats-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.portal-preview {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.char-indicator {
+  color: #4CAF50;
+  font-size: 1.2rem;
+}
+
+/* Final Round Banner */
+.final-round-banner {
+  padding: 1rem;
+  background: #ff9800;
+  color: white;
+  font-weight: bold;
+  font-size: 1.2rem;
+  text-align: center;
+  border-top: 3px solid #fff;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .board-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .board-header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .board-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .game-info {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .slots {
+    grid-template-columns: 1fr;
+  }
+  
+  .player-area {
+    padding: 1rem;
+  }
+}

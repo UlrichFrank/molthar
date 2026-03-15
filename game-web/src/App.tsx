@@ -1,14 +1,24 @@
-import { GameContainer } from './components/GameContainer';
-import { ErrorBoundary } from './components/ErrorBoundary';
+import { useState } from 'react';
+import { Lobby } from './components/Lobby';
+import { Board } from './components/Board';
 import './App.css';
-import './styles/Animations.css';
-import './styles/Accessibility.css';
 
-function App() {
+export function App() {
+  const [gameState, setGameState] = useState<any>(null);
+  const [playerID, setPlayerID] = useState<string | null>(null);
+
+  if (!gameState) {
+    return <Lobby />;
+  }
+
   return (
-    <ErrorBoundary>
-      <GameContainer />
-    </ErrorBoundary>
+    <Board
+      G={gameState}
+      ctx={{}}
+      moves={{}}
+      playerID={playerID}
+      isActive={true}
+    />
   );
 }
 

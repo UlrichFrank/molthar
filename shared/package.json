@@ -1,0 +1,20 @@
+{
+  "name": "@portale-von-molthar/shared",
+  "version": "1.0.0",
+  "description": "Shared game logic and types",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js",
+    "./game": "./dist/game/index.js",
+    "./types": "./dist/game/types.js"
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "boardgame.io": "^0.50.2",
+    "typescript": "^5.3.3"
+  }
+}

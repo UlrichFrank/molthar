@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
     "lint": "eslint .",
     "format": "prettier --write src/",
     "preview": "vite preview",
@@ -15,6 +15,7 @@
     "test:coverage": "vitest --coverage"
   },
   "dependencies": {
+    "@portale-von-molthar/shared": "workspace:*",
     "axios": "^1.13.6",
     "boardgame.io": "^0.50.2",
     "react": "^19.2.4",
