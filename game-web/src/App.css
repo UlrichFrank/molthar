@@ -146,3 +146,102 @@
 .player-list li:first-child {
   border-left-color: #27ae60;
 }
+
+/* Lobby Styles */
+.lobby-container {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #1a1a2e;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.lobby-container h1 {
+  text-align: center;
+  color: #16c784;
+  margin-bottom: 2rem;
+}
+
+.lobby-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.lobby-section h2 {
+  color: #fff;
+  margin: 0 0 1rem 0;
+  font-size: 1.2rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  color: #ccc;
+  margin-bottom: 0.5rem;
+}
+
+.lobby-container input,
+.lobby-container select {
+  width: 100%;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.lobby-container input:focus,
+.lobby-container select:focus {
+  outline: none;
+  border-color: #16c784;
+}
+
+.lobby-container button {
+  width: 100%;
+  padding: 1rem;
+  background: #16c784;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.lobby-container button:hover {
+  background: #14b876;
+}
+
+.lobby-container button:active {
+  transform: scale(0.98);
+}
+
+.game-container {
+  position: relative;
+}
+
+.leave-game-btn {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 1000;
+  font-weight: bold;
+}
+
+.leave-game-btn:hover {
+  background: #d32f2f;
+}

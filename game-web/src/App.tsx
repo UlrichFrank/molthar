@@ -1,216 +1,171 @@
-import { useState } from 'react';
-import { Lobby } from './components/Lobby';
+import React, { useState } from 'react';
+import { Client } from 'boardgame.io/react';
+import { SocketIO } from 'boardgame.io/multiplayer';
+import { PortaleVonMolthar } from '@portale-von-molthar/shared';
 import { Board } from './components/Board';
-import { Toast, ToastContainer } from './components/Toast';
-import { PortaleVonMolthar, type GameState } from '@portale-von-molthar/shared';
-import { startRoomPolling, submitMove, startGameStatePolling } from './lib/game-client';
-import { useToastManager } from './hooks/useToastManager';
 import './App.css';
 
-interface GameConnection {
-  roomID: string;
-  playerID: string;
-  credential: string;
-  serverURL: string;
-}
+/**
+ * boardgame.io React Client for Portale von Molthar
+ * 
+ * This replaces the custom client with proper boardgame.io integration:
+ * - Automatic state synchronization
+ * - Built-in move handling
+ * - Socket.IO multiplayer
+ * - Lobby integration
+ */
 
-interface GameSession {
-  connection: GameConnection;
-  gameState: GameState | null;
-  allPlayers: { id: string; name: string }[];
-  roomStatus: 'waiting' | 'playing' | 'finished';
-  stopPolling?: (() => void)[];
-}
+// Create the boardgame.io client
+const PortaleClient = Client({
+  game: PortaleVonMolthar,
+  board: Board,
+  numPlayers: 2,
+  multiplayer: SocketIO({ server: 'http://localhost:3001' }),
+  debug: process.env.NODE_ENV === 'development',
+});
 
-export function App() {
-  const [session, setSession] = useState<GameSession | null>(null);
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { toasts, dismissToast, success: showSuccess, error: showError, info: showInfo } = useToastManager();
+/**
+ * Lobby Component for creating/joining games
+ */
+function LobbyScreen() {
+  const [playerName, setPlayerName] = useState('');
+  const [matchID, setMatchID] = useState('');
+  const [playerID, setPlayerID] = useState<string>('0');
+  const [credentials, setCredentials] = useState('');
+  const [isInGame, setIsInGame] = useState(false);
+  const [numPlayers, setNumPlayers] = useState(2);
 
-  const handleMoveSubmission = async (
-    moveName: string,
-    payload: any
-  ) => {
-    if (!session?.connection) {
-      showError('Game session not initialized');
+  const createMatch = async () => {
+    try {
+      const response = await fetch('http://localhost:3001/games/portale-von-molthar/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ numPlayers }),
+      });
+      
+      const data = await response.json();
+      setMatchID(data.matchID);
+      
+      // Join as player 0
+      await joinMatch(data.matchID, '0');
+    } catch (error) {
+      console.error('Failed to create match:', error);
+      alert('Failed to create game. Make sure the server is running on port 3001.');
+    }
+  };
+
+  const joinMatch = async (matchId: string, playerId: string) => {
+    try {
+      const response = await fetch(
+        `http://localhost:3001/games/portale-von-molthar/${matchId}/join`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            playerID: playerId,
+            playerName: playerName || `Player ${parseInt(playerId) + 1}`,
+          }),
+        }
+      );
+
+      const data = await response.json();
+      setCredentials(data.playerCredentials);
+      setPlayerID(playerId);
+      setMatchID(matchId);
+      setIsInGame(true);
+    } catch (error) {
+      console.error('Failed to join match:', error);
+      alert('Failed to join game. Check the match ID.');
+    }
+  };
+
+  const handleJoinExisting = () => {
+    if (!matchID || playerID === undefined) {
+      alert('Please enter match ID and player ID');
       return;
     }
-
-    try {
-      const { serverURL, roomID, playerID } = session.connection;
-      
-      // Submit move to backend
-      const result = await submitMove(
-        serverURL,
-        roomID,
-        playerID,
-        moveName,
-        payload
-      );
-
-      // Show success toast
-      showSuccess(`${moveName} successful`);
-      
-      console.log(`Move submitted: ${moveName}`, payload);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to submit move';
-      showError(message);
-      console.error('Move submission error:', err);
-    }
+    joinMatch(matchID, playerID);
   };
 
-  const handleRoomCreated = async (roomID: string, playerID: string, credential: string) => {
-    setIsConnecting(true);
-    setError(null);
-    
-    try {
-      const serverURL = 'http://localhost:3001';
-
-      // Initialize game state
-      const ctx = {
-        playOrder: [playerID, ...Array.from({ length: 1 }, (_, i) => String(i + 1))],
-        numPlayers: 2,
-      };
-      
-      const initialState = PortaleVonMolthar.setup?.(ctx) as GameState;
-      
-      // Set player names (will be updated as others join)
-      initialState.players[playerID].name = 'You';
-      
-      const stopPollingFunctions: (() => void)[] = [];
-      
-      const newSession: GameSession = {
-        connection: { roomID, playerID, credential, serverURL },
-        gameState: initialState,
-        allPlayers: [{ id: playerID, name: 'You' }],
-        roomStatus: 'waiting',
-        stopPolling: stopPollingFunctions,
-      };
-      
-      setSession(newSession);
-      
-      // Start polling for room updates
-      const stopRoomPolling = startRoomPolling(
-        serverURL,
-        roomID,
-        1000,
-        (room) => {
-          // Update players list and room status
-          setSession((prevSession) => {
-            if (!prevSession) return null;
-            return {
-              ...prevSession,
-              allPlayers: room.players,
-              roomStatus: room.status as 'waiting' | 'playing' | 'finished',
-            };
-          });
-        }
-      );
-      
-      stopPollingFunctions.push(stopRoomPolling);
-
-      // Start polling for game state updates (only when game is playing)
-      const stopGameStatePolling = startGameStatePolling(
-        serverURL,
-        roomID,
-        1000,
-        (gameState) => {
-          // Update game state from server
-          setSession((prevSession) => {
-            if (!prevSession) return null;
-            return {
-              ...prevSession,
-              gameState,
-            };
-          });
-        }
-      );
-
-      stopPollingFunctions.push(stopGameStatePolling);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to initialize game';
-      setError(message);
-    } finally {
-      setIsConnecting(false);
-    }
-  };
-
-  const handleLeaveGame = () => {
-    // Stop all polling
-    if (session?.stopPolling) {
-      session.stopPolling.forEach((stop) => stop());
-    }
-    setSession(null);
-    setError(null);
-  };
-
-  // Show lobby if not in a game session
-  if (!session) {
-    return <Lobby onRoomCreated={handleRoomCreated} />;
+  if (isInGame) {
+    return (
+      <div className="game-container">
+        <PortaleClient
+          matchID={matchID}
+          playerID={playerID}
+          credentials={credentials}
+        />
+        <button
+          className="leave-game-btn"
+          onClick={() => {
+            setIsInGame(false);
+            setMatchID('');
+            setCredentials('');
+          }}
+        >
+          Leave Game
+        </button>
+      </div>
+    );
   }
 
-  // Show board if in a game session
   return (
-    <div className="app-container">
-      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+    <div className="lobby-container">
+      <h1>Portale von Molthar</h1>
       
-      {error && (
-        <div className="error-banner">
-          <span>⚠️ {error}</span>
-          <button onClick={() => setError(null)}>✕</button>
-        </div>
-      )}
-      
-      {isConnecting && (
-        <div className="loading-overlay">
-          <div className="spinner">⏳</div>
-          <p>Connecting to game...</p>
-        </div>
-      )}
-      
-      {session.gameState && session.roomStatus === 'playing' ? (
-        <Board
-          G={session.gameState}
-          ctx={{
-            currentPlayer: session.gameState.playerOrder[0],
-            numPlayers: session.allPlayers.length,
-            playOrder: session.gameState.playerOrder,
-            turn: 0,
-          }}
-          moves={{
-            takePearlCard: (slotIndex: number) => handleMoveSubmission('takePearlCard', { slotIndex }),
-            takeCharacterCard: (slotIndex: number, replacedSlotIndex?: number) =>
-              handleMoveSubmission('takeCharacterCard', { slotIndex, replacedSlotIndex }),
-            activateCharacter: (characterSlotIndex: number, pearlCardIndices: number[]) =>
-              handleMoveSubmission('activateCharacter', { characterSlotIndex, pearlCardIndices }),
-            deactivateCharacter: (portalIndex: number) =>
-              handleMoveSubmission('deactivateCharacter', { portalIndex }),
-            replacePearlSlots: () => handleMoveSubmission('replacePearlSlots', {}),
-            endTurn: () => handleMoveSubmission('endTurn', {}),
-          }}
-          playerID={session.connection.playerID}
-          isActive={session.gameState.playerOrder[0] === session.connection.playerID}
+      <div className="lobby-section">
+        <h2>Player Name</h2>
+        <input
+          type="text"
+          placeholder="Enter your name"
+          value={playerName}
+          onChange={(e) => setPlayerName(e.target.value)}
         />
-      ) : (
-        <div className="game-loading">
-          <h2>Waiting for players...</h2>
-          <div className="player-list">
-            <h3>Players in room ({session.allPlayers.length})</h3>
-            <ul>
-              {session.allPlayers.map((p) => (
-                <li key={p.id}>{p.name} (ID: {p.id})</li>
-              ))}
-            </ul>
-          </div>
-          <p>Room: {session.connection.roomID}</p>
-          <button onClick={handleLeaveGame} className="btn btn-secondary">
-            Leave Game
-          </button>
+      </div>
+
+      <div className="lobby-section">
+        <h2>Create New Game</h2>
+        <div className="form-group">
+          <label>Number of Players:</label>
+          <select value={numPlayers} onChange={(e) => setNumPlayers(parseInt(e.target.value))}>
+            <option value={2}>2 Players</option>
+            <option value={3}>3 Players</option>
+            <option value={4}>4 Players</option>
+            <option value={5}>5 Players</option>
+          </select>
         </div>
-      )}
+        <button onClick={createMatch}>Create Game</button>
+      </div>
+
+      <div className="lobby-section">
+        <h2>Join Existing Game</h2>
+        <div className="form-group">
+          <label>Match ID:</label>
+          <input
+            type="text"
+            placeholder="Enter match ID"
+            value={matchID}
+            onChange={(e) => setMatchID(e.target.value)}
+          />
+        </div>
+        <div className="form-group">
+          <label>Player Slot:</label>
+          <select value={playerID} onChange={(e) => setPlayerID(e.target.value)}>
+            <option value="0">Player 1</option>
+            <option value="1">Player 2</option>
+            <option value="2">Player 3</option>
+            <option value="3">Player 4</option>
+            <option value="4">Player 5</option>
+          </select>
+        </div>
+        <button onClick={handleJoinExisting}>Join Game</button>
+      </div>
     </div>
   );
+}
+
+function App() {
+  return <LobbyScreen />;
 }
 
 export default App;
