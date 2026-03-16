@@ -52,7 +52,7 @@ build-all:
 # Start backend only
 backend: build
 	@echo "$(BLUE)Starting backend on localhost:3001...$(NC)"
-	cd backend && node dist/server.js
+	cd backend && node dist/server-bgio.js
 
 # Start frontend only
 frontend:
@@ -67,7 +67,7 @@ dev: build-all
 	@echo ""
 	@echo "Press Ctrl+C to stop all services"
 	@echo ""
-	@(cd backend && node dist/server.js) & \
+	@(cd backend && node dist/server-bgio.js) & \
 	BACKEND_PID=$$!; \
 	(cd game-web && pnpm run dev) & \
 	FRONTEND_PID=$$!; \

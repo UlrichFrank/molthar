@@ -13,7 +13,7 @@ export declare const PortaleVonMolthar: {
     /**
      * Setup: Initialize game state
      */
-    setup: (ctx: any) => GameState;
+    setup: ({ ctx }: any) => GameState;
     /**
      * Moves: Player actions
      */

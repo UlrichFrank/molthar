@@ -1,3 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.PortaleVonMolthar = void 0;
+exports.validateCostPayment = validateCostPayment;
+exports.createPearlDeck = createPearlDeck;
+exports.createCharacterDeck = createCharacterDeck;
+exports.shuffleArray = shuffleArray;
 /**
  * Helper function for invalid moves
  */
@@ -5,14 +12,14 @@
  * PortaleVonMolthar - Complete boardgame.io implementation
  * Turn-based card game with 2-5 players
  */
-export const PortaleVonMolthar = {
+exports.PortaleVonMolthar = {
     name: 'portale-von-molthar',
     minPlayers: 2,
     maxPlayers: 5,
     /**
      * Setup: Initialize game state
      */
-    setup: (ctx) => {
+    setup: ({ ctx }) => {
         const playerIds = ctx.playOrder;
         const pearlDeck = createPearlDeck();
         const characterDeck = createCharacterDeck();
@@ -321,7 +328,7 @@ export const PortaleVonMolthar = {
  * @param diamonds - Player's available diamonds to reduce cost
  * @returns true if cost is satisfied, false otherwise
  */
-export function validateCostPayment(cost, usedCardIndices, hand, diamonds) {
+function validateCostPayment(cost, usedCardIndices, hand, diamonds) {
     if (!cost || cost.length === 0) {
         return true; // Free cost
     }
@@ -435,7 +442,7 @@ function verifyCostComponent(component, usedCards, diamonds) {
 /**
  * Helper Functions
  */
-export function createPearlDeck() {
+function createPearlDeck() {
     const deck = [];
     // Create 7 copies of each value 1-8
     for (let value = 1; value <= 8; value++) {
@@ -449,7 +456,7 @@ export function createPearlDeck() {
     }
     return deck;
 }
-export function createCharacterDeck() {
+function createCharacterDeck() {
     // Placeholder: 54 character cards
     const deck = [];
     for (let i = 0; i < 54; i++) {
@@ -469,7 +476,7 @@ export function createCharacterDeck() {
     }
     return deck;
 }
-export function shuffleArray(array) {
+function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [array[i], array[j]] = [array[j], array[i]];

@@ -16,7 +16,7 @@ export const PortaleVonMolthar = {
   /**
    * Setup: Initialize game state
    */
-  setup: (ctx: any): GameState => {
+  setup: ({ ctx }: any): GameState => {
     const playerIds = ctx.playOrder;
     const pearlDeck = createPearlDeck();
     const characterDeck = createCharacterDeck();
