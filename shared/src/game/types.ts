@@ -50,8 +50,8 @@ export interface CharacterAbility {
  */
 export interface ActivatedCharacter {
   id: string;
-  characterId: string;
-  activated: boolean; // true = rotated 180°
+  card: CharacterCard;  // full card data needed for activation
+  activated: boolean; // true = ability used (rotated 180°)
 }
 
 /**

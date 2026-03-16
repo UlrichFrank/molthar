@@ -43,7 +43,7 @@ export interface CharacterAbility {
  */
 export interface ActivatedCharacter {
     id: string;
-    characterId: string;
+    card: CharacterCard;
     activated: boolean;
 }
 /**

@@ -10,6 +10,7 @@ interface BoardProps {
   G: GameState;
   ctx: any; // boardgame.io context
   moves: any;
+  events: any;
   playerID: string | null;
   isActive: boolean;
 }
@@ -61,7 +62,7 @@ function getCardBackImage(type: 'pearl' | 'character'): string {
  * - Action buttons
  */
 export function Board(props: BoardProps) {
-  const { G, ctx, moves, playerID, isActive } = props;
+  const { G, ctx, moves, events, playerID, isActive } = props;
   const currentPlayer = G.players[ctx.currentPlayer];
   const player = playerID ? G.players[playerID] : null;
   const [selectedCharacterSlot, setSelectedCharacterSlot] = useState<number | null>(null);
@@ -159,18 +160,14 @@ export function Board(props: BoardProps) {
                   backgroundImage: `url(${getCharacterCardImage(card.name)})`,
                 }}
                 disabled={!isActive || G.actionCount >= 3}
-                title={`${card.name} - ⚡${card.powerPoints} 💎${card.diamonds}${isActive && G.actionCount < 3 ? ' - Click to take' : ''}`}
+                title={`${card.name} - ⚡${card.powerPoints} 💎${card.diamonds}${isActive && G.actionCount < 3 ? ' - Ins Portal nehmen' : ''}`}
                 onClick={() => {
                   if (isActive && G.actionCount < 3) {
-                    // Get the character card being taken from face-up slot
-                    setPendingCharacterCard(card);
-                    // Check if portal has free slots
                     if (player && player.portal.length < 2) {
-                      // Free slot - take directly
                       moves.takeCharacterCard(idx);
-                      setPendingCharacterCard(null);
                     } else {
-                      // Both slots full - show replacement dialog
+                      setPendingCharacterCard(card);
+                      setSelectedCharacterSlot(idx);
                       setShowReplacementDialog(true);
                     }
                   }
@@ -207,19 +204,17 @@ export function Board(props: BoardProps) {
                         <button
                           className={`character-placement card-with-image ${player.portal[slotIdx].activated ? 'rotated' : ''}`}
                           style={{
-                            backgroundImage: `url(${getCharacterCardImage(player.portal[slotIdx].characterId)})`,
+                            backgroundImage: `url(${getCharacterCardImage(player.portal[slotIdx].card.name)})`,
                           }}
                           onClick={() => {
-                            if (isActive && G.actionCount < 3) {
+                            if (isActive && G.actionCount < 3 && !player.portal[slotIdx].activated) {
                               setSelectedPortalSlotIndex(slotIdx);
                               setShowCostDialog(true);
                             }
                           }}
-                          disabled={!isActive || G.actionCount >= 3}
-                          title={`Character ${player.portal[slotIdx].characterId} - Click to activate${isActive && G.actionCount < 3 ? ' (1 action)' : ''}`}
-                        >
-                          <span className={`activated-badge active`}>✓</span>
-                        </button>
+                          disabled={!isActive || G.actionCount >= 3 || player.portal[slotIdx].activated}
+                          title={`${player.portal[slotIdx].card.name} - ⚡${player.portal[slotIdx].card.powerPoints} 💎${player.portal[slotIdx].card.diamonds}${player.portal[slotIdx].activated ? ' (aktiviert)' : ' - Klicken zum Aktivieren'}`}
+                        />
                       ) : (
                         <div
                           className="empty-portal-slot"
@@ -276,7 +271,7 @@ export function Board(props: BoardProps) {
                     </>
                   )}
                   <button
-                    onClick={() => moves.endTurn()}
+                    onClick={() => events.endTurn()}
                     className="action-btn primary"
                   >
                     End Turn
@@ -317,9 +312,9 @@ export function Board(props: BoardProps) {
                               key={idx}
                               className={`opponent-char-card card-with-image ${char.activated ? 'rotated' : ''}`}
                               style={{
-                                backgroundImage: `url(${getCharacterCardImage(char.characterId)})`,
+                                backgroundImage: `url(${getCharacterCardImage(char.card.name)})`,
                               }}
-                              title={`Character ${char.characterId}`}
+                              title={`Character ${char.card.name}`}
                             >
                             </div>
                           ))}
@@ -368,52 +363,39 @@ export function Board(props: BoardProps) {
         </div>
       )}
 
-      {/* Character Activation Dialog (for empty portal slots) */}
-      {showCostDialog && selectedPortalSlotIndex !== null && player && (
-        <CharacterActivationDialog
-          availableCharacters={G.characterSlots.map((card, idx) => ({
-            card,
-            slotIndex: idx,
-          }))}
+      {/* Cost Payment Dialog for activating a portal card */}
+      {showCostDialog && selectedPortalSlotIndex !== null && player?.portal[selectedPortalSlotIndex] && (
+        <CostPaymentDialog
+          character={player.portal[selectedPortalSlotIndex].card}
           hand={player.hand}
           diamonds={player.diamonds}
-          portalSlotIndex={selectedPortalSlotIndex}
-          onActivate={(characterSlotIndex, usedCardIndices) => {
-            moves.activateCharacter(characterSlotIndex, usedCardIndices);
+          onPay={(usedCardIndices) => {
+            moves.activatePortalCard(selectedPortalSlotIndex, usedCardIndices);
             setShowCostDialog(false);
             setSelectedPortalSlotIndex(null);
-            setSelectedCharacterSlot(null);
           }}
           onCancel={() => {
             setShowCostDialog(false);
             setSelectedPortalSlotIndex(null);
-            setSelectedCharacterSlot(null);
           }}
         />
       )}
 
       {/* Character Replacement Dialog (when both portal slots are full) */}
-      {showReplacementDialog && pendingCharacterCard && player && (
+      {showReplacementDialog && pendingCharacterCard && selectedCharacterSlot !== null && player && (
         <CharacterReplacementDialog
           newCard={pendingCharacterCard}
-          portalCards={player.portal}
+          portalCards={player.portal.map(p => p.card)}
           onSelect={(replacedSlotIndex) => {
-            // Get the slot index of the character card to take
-            let slotIndexToTake = -1;
-            for (let i = 0; i < G.characterSlots.length; i++) {
-              if (G.characterSlots[i] === pendingCharacterCard) {
-                slotIndexToTake = i;
-                break;
-              }
-            }
-            // If not found in characterSlots, it's from deck (slotIndex = -1)
-            moves.takeCharacterCard(slotIndexToTake, replacedSlotIndex);
+            moves.takeCharacterCard(selectedCharacterSlot, replacedSlotIndex);
             setShowReplacementDialog(false);
             setPendingCharacterCard(null);
+            setSelectedCharacterSlot(null);
           }}
           onCancel={() => {
             setShowReplacementDialog(false);
             setPendingCharacterCard(null);
+            setSelectedCharacterSlot(null);
           }}
         />
       )}

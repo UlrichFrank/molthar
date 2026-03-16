@@ -26,10 +26,10 @@ export declare const PortaleVonMolthar: {
             G: GameState;
             ctx: any;
         }, slotIndex: number, replacedSlotIndex?: number): void;
-        activateCharacter({ G, ctx }: {
+        activatePortalCard({ G, ctx }: {
             G: GameState;
             ctx: any;
-        }, slotIndex: number, usedCards?: number[]): void;
+        }, portalSlotIndex: number, usedCards?: number[]): void;
         replacePearlSlots({ G, ctx }: {
             G: GameState;
             ctx: any;

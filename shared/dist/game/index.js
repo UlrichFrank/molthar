@@ -127,16 +127,13 @@ exports.PortaleVonMolthar = {
         },
         takeCharacterCard({ G, ctx }, slotIndex, replacedSlotIndex) {
             const player = G.players[ctx.currentPlayer];
-            if (!player) {
+            if (!player)
                 return;
-            }
-            // Check if player has already taken 3 actions this turn
-            if (G.actionCount >= 3) {
+            if (G.actionCount >= 3)
                 return;
-            }
-            // Get card from slot or deck
+            // Get card from face-up slot or deck
             let card;
-            if (slotIndex >= 0 && slotIndex < 2) {
+            if (slotIndex >= 0 && slotIndex < G.characterSlots.length) {
                 card = G.characterSlots[slotIndex];
                 G.characterSlots.splice(slotIndex, 1);
             }
@@ -146,101 +143,69 @@ exports.PortaleVonMolthar = {
             else {
                 return;
             }
-            if (!card) {
+            if (!card)
                 return;
-            }
-            // Create ActivatedCharacter from CharacterCard
-            const activatedCharacter = {
+            const portalEntry = {
                 id: `${player.id}-${Date.now()}-${Math.random()}`,
-                characterId: card.name,
+                card,
                 activated: false,
             };
-            // Handle portal placement
             if (player.portal.length < 2) {
-                // Free slot available - add directly
-                player.portal.push(activatedCharacter);
+                player.portal.push(portalEntry);
             }
             else if (replacedSlotIndex !== undefined && replacedSlotIndex >= 0 && replacedSlotIndex < 2) {
-                // Both slots full - replace specified slot
                 const replaced = player.portal[replacedSlotIndex];
                 if (replaced) {
-                    G.characterDiscardPile.push(card);
+                    G.characterDiscardPile.push(replaced.card);
                 }
-                player.portal[replacedSlotIndex] = activatedCharacter;
+                player.portal[replacedSlotIndex] = portalEntry;
             }
             else {
-                // Both slots full but no replacement specified - invalid
                 return;
             }
             G.actionCount++;
-            // Refill character slots
+            // Refill character slots to 2
             while (G.characterSlots.length < 2) {
                 let refillCard = G.characterDeck.pop();
                 if (!refillCard && G.characterDiscardPile.length > 0) {
-                    // Reshuffle discard pile
                     G.characterDeck = G.characterDiscardPile.splice(0);
                     shuffleArray(G.characterDeck);
                     refillCard = G.characterDeck.pop();
                 }
-                if (refillCard) {
+                if (refillCard)
                     G.characterSlots.push(refillCard);
-                }
-                else {
+                else
                     break;
-                }
             }
         },
-        activateCharacter({ G, ctx }, slotIndex, usedCards) {
+        activatePortalCard({ G, ctx }, portalSlotIndex, usedCards) {
             const player = G.players[ctx.currentPlayer];
-            if (!player) {
+            if (!player)
+                return;
+            if (G.actionCount >= 3)
+                return;
+            const entry = player.portal[portalSlotIndex];
+            if (!entry)
+                return;
+            if (entry.activated)
+                return; // already activated
+            if (!validateCostPayment(entry.card.cost, usedCards || [], player.hand, player.diamonds)) {
                 return;
             }
-            if (G.actionCount >= 3) {
-                return;
-            }
-            if (slotIndex < 0 || slotIndex >= G.characterSlots.length) {
-                return;
-            }
-            if (player.portal.length >= 2) {
-                return;
-            }
-            const character = G.characterSlots[slotIndex];
-            if (!character) {
-                return;
-            }
-            // Validate cost payment
-            if (!validateCostPayment(character.cost, usedCards || [], player.hand, player.diamonds)) {
-                return; // Invalid move - cost not satisfied
-            }
-            // Move used cards from hand to discard
-            // Process in reverse order to avoid index shifting
+            // Discard used pearl cards (reverse order to preserve indices)
             const sortedIndices = (usedCards || []).sort((a, b) => b - a);
-            for (const cardIndex of sortedIndices) {
-                if (cardIndex >= 0 && cardIndex < player.hand.length) {
-                    const card = player.hand.splice(cardIndex, 1)[0];
-                    G.pearlDiscardPile.push(card);
+            for (const idx of sortedIndices) {
+                if (idx >= 0 && idx < player.hand.length) {
+                    G.pearlDiscardPile.push(player.hand.splice(idx, 1)[0]);
                 }
             }
-            // Add character to player's portal
-            player.portal.push({
-                id: `${ctx.currentPlayer}-${Date.now()}`,
-                characterId: character.id,
-                activated: false,
-            });
-            // Add power points and diamonds
-            player.powerPoints += character.powerPoints;
-            player.diamonds += character.diamonds;
+            entry.activated = true;
+            player.powerPoints += entry.card.powerPoints;
+            player.diamonds += entry.card.diamonds;
             G.actionCount++;
-            // Check if final round should be triggered
             if (player.powerPoints >= 12 && !G.finalRound) {
                 G.finalRound = true;
                 G.finalRoundStartingPlayer = ctx.currentPlayer;
-            }
-            // Remove character from slots and refill
-            G.characterSlots.splice(slotIndex, 1);
-            const refillCard = G.characterDeck.pop();
-            if (refillCard) {
-                G.characterSlots.push(refillCard);
             }
         },
         replacePearlSlots({ G, ctx }) {
