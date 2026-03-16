@@ -1,3 +1,4 @@
+"use strict";
 /**
  * Portale von Molthar - Backend Server
  *
@@ -5,16 +6,22 @@
  * Note: Using REST API pattern instead of full boardgame.io server
  * for simplicity. The game logic runs client-side with local state.
  */
-import express from 'express';
-import { createServer } from 'http';
-import cors from 'cors';
-import 'dotenv/config';
-import { v4 as uuidv4 } from 'uuid';
-import { logger } from './utils/logger.js';
-import { MoveValidator } from './moveValidator.js';
-import { PortaleVonMolthar } from '@portale-von-molthar/shared';
-const app = express();
-const httpServer = createServer(app);
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.httpServer = void 0;
+const express_1 = __importDefault(require("express"));
+const http_1 = require("http");
+const cors_1 = __importDefault(require("cors"));
+require("dotenv/config");
+const uuid_1 = require("uuid");
+const logger_js_1 = require("./utils/logger.js");
+const moveValidator_js_1 = require("./moveValidator.js");
+const shared_1 = require("@portale-von-molthar/shared");
+const app = (0, express_1.default)();
+const httpServer = (0, http_1.createServer)(app);
+exports.httpServer = httpServer;
 const PORT = parseInt(process.env.PORT || '3001');
 const isDev = process.env.NODE_ENV === 'development';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
@@ -23,7 +30,7 @@ const rooms = new Map();
 // Track move history per room
 const moveHistory = new Map();
 // Middleware - Allow any localhost port in development
-app.use(cors({
+app.use((0, cors_1.default)({
     origin: (origin, callback) => {
         // Allow requests with no origin (like mobile apps or curl requests)
         if (!origin)
@@ -41,7 +48,7 @@ app.use(cors({
     methods: ['GET', 'POST', 'OPTIONS'],
     credentials: true,
 }));
-app.use(express.json());
+app.use(express_1.default.json());
 // Health check endpoint
 app.get('/health', (_req, res) => {
     res.json({
@@ -69,7 +76,7 @@ app.get('/api/rooms', (_req, res) => {
         });
     }
     catch (err) {
-        logger.error('Failed to fetch rooms:', err);
+        logger_js_1.logger.error('Failed to fetch rooms:', err);
         res.status(500).json({ error: 'Failed to fetch rooms' });
     }
 });
@@ -93,16 +100,16 @@ app.post('/api/rooms', (req, res) => {
         // Generate room ID and credentials
         const roomID = `room-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         const playerID = '0'; // First player is always ID 0
-        const credential = uuidv4();
+        const credential = (0, uuid_1.v4)();
         // Create room with initial game state
         let gameState;
         try {
-            if (PortaleVonMolthar.setup) {
-                gameState = PortaleVonMolthar.setup({ playOrder: ['0'] });
+            if (shared_1.PortaleVonMolthar.setup) {
+                gameState = shared_1.PortaleVonMolthar.setup({ playOrder: ['0'] });
             }
         }
         catch (setupErr) {
-            logger.warn('Failed to initialize game state:', setupErr);
+            logger_js_1.logger.warn('Failed to initialize game state:', setupErr);
             gameState = undefined;
         }
         const room = {
@@ -123,7 +130,7 @@ app.post('/api/rooms', (req, res) => {
             gameState,
         };
         rooms.set(roomID, room);
-        logger.info(`🆕 Room created: ${roomID} (${playerName}, ${numPlayers} players, AI: ${includeAI})`);
+        logger_js_1.logger.info(`🆕 Room created: ${roomID} (${playerName}, ${numPlayers} players, AI: ${includeAI})`);
         res.json({
             roomID,
             playerID,
@@ -132,7 +139,7 @@ app.post('/api/rooms', (req, res) => {
         });
     }
     catch (err) {
-        logger.error('Failed to create room:', err);
+        logger_js_1.logger.error('Failed to create room:', err);
         res.status(500).json({ error: 'Failed to create room' });
     }
 });
@@ -158,7 +165,7 @@ app.get('/api/rooms/:roomID', (req, res) => {
         });
     }
     catch (err) {
-        logger.error('Failed to fetch room:', err);
+        logger_js_1.logger.error('Failed to fetch room:', err);
         res.status(500).json({ error: 'Failed to fetch room' });
     }
 });
@@ -181,27 +188,27 @@ app.post('/api/rooms/:roomID/join', (req, res) => {
             return;
         }
         const playerID = String(room.players.length);
-        const credential = uuidv4();
+        const credential = (0, uuid_1.v4)();
         room.players.push({
             id: playerID,
             name: playerName,
             credential,
             isAI: false,
         });
-        logger.info(`👤 Player joined room ${roomID}: ${playerName} (ID: ${playerID})`);
+        logger_js_1.logger.info(`👤 Player joined room ${roomID}: ${playerName} (ID: ${playerID})`);
         // If room is full, start the game
         if (room.players.length === room.maxPlayers) {
             room.status = 'playing';
             // Initialize game state with all players
             try {
                 const playOrder = room.players.map((_, i) => String(i));
-                if (PortaleVonMolthar.setup) {
-                    room.gameState = PortaleVonMolthar.setup({ playOrder });
+                if (shared_1.PortaleVonMolthar.setup) {
+                    room.gameState = shared_1.PortaleVonMolthar.setup({ playOrder });
                 }
-                logger.info(`🎮 Game starting in room ${roomID} with players: ${playOrder.join(', ')}`);
+                logger_js_1.logger.info(`🎮 Game starting in room ${roomID} with players: ${playOrder.join(', ')}`);
             }
             catch (setupErr) {
-                logger.error(`Failed to initialize game state for room ${roomID}:`, setupErr);
+                logger_js_1.logger.error(`Failed to initialize game state for room ${roomID}:`, setupErr);
             }
         }
         res.json({
@@ -218,7 +225,7 @@ app.post('/api/rooms/:roomID/join', (req, res) => {
         });
     }
     catch (err) {
-        logger.error('Failed to join room:', err);
+        logger_js_1.logger.error('Failed to join room:', err);
         res.status(500).json({ error: 'Failed to join room' });
     }
 });
@@ -245,7 +252,7 @@ app.post('/api/rooms/:roomID/moves', (req, res) => {
         }
         const currentGameState = room.gameState;
         // Validate move (server-side validation)
-        const moveValidation = MoveValidator.validateMove(moveName, playerID, payload, currentGameState);
+        const moveValidation = moveValidator_js_1.MoveValidator.validateMove(moveName, playerID, payload, currentGameState);
         if (!moveValidation.valid) {
             res.status(400).json({
                 error: moveValidation.error || 'Invalid move',
@@ -256,8 +263,10 @@ app.post('/api/rooms/:roomID/moves', (req, res) => {
         }
         // Apply the move to the game state
         try {
-            const moveFunction = PortaleVonMolthar.moves[moveName];
+            const moveFunction = shared_1.PortaleVonMolthar.moves[moveName];
             if (!moveFunction) {
+                const availableMoves = Object.keys(shared_1.PortaleVonMolthar.moves).join(', ');
+                console.error(`[DEBUG] Move '${moveName}' not found. Available moves: ${availableMoves}`);
                 res.status(400).json({ error: `Unknown move: ${moveName}` });
                 return;
             }
@@ -315,7 +324,7 @@ app.post('/api/rooms/:roomID/moves', (req, res) => {
             }
             const moves = moveHistory.get(roomID);
             moves.push({ playerID, move: moveName, payload });
-            logger.info(`📝 Move in room ${roomID}: ${moveName} from player ${playerID}`);
+            logger_js_1.logger.info(`📝 Move in room ${roomID}: ${moveName} from player ${playerID}`);
             res.json({
                 success: true,
                 moveID: moves.length - 1,
@@ -325,7 +334,7 @@ app.post('/api/rooms/:roomID/moves', (req, res) => {
             });
         }
         catch (moveErr) {
-            logger.error('Error applying move:', moveErr);
+            logger_js_1.logger.error('Error applying move:', moveErr);
             res.status(500).json({
                 error: 'Error applying move',
                 details: moveErr instanceof Error ? moveErr.message : 'Unknown error'
@@ -333,7 +342,7 @@ app.post('/api/rooms/:roomID/moves', (req, res) => {
         }
     }
     catch (err) {
-        logger.error('Failed to submit move:', err);
+        logger_js_1.logger.error('Failed to submit move:', err);
         res.status(500).json({ error: 'Failed to submit move' });
     }
 });
@@ -358,7 +367,7 @@ app.get('/api/rooms/:roomID/state', (req, res) => {
         });
     }
     catch (err) {
-        logger.error('Failed to fetch game state:', err);
+        logger_js_1.logger.error('Failed to fetch game state:', err);
         res.status(500).json({ error: 'Failed to fetch game state' });
     }
 });
@@ -380,13 +389,13 @@ app.get('/api/rooms/:roomID/moves', (req, res) => {
         });
     }
     catch (err) {
-        logger.error('Failed to fetch moves:', err);
+        logger_js_1.logger.error('Failed to fetch moves:', err);
         res.status(500).json({ error: 'Failed to fetch moves' });
     }
 });
 // Error handling
 app.use((err, _req, res) => {
-    logger.error('Server error:', err);
+    logger_js_1.logger.error('Server error:', err);
     res.status(500).json({
         error: 'Internal server error',
         message: isDev ? err.message : undefined,
@@ -394,27 +403,26 @@ app.use((err, _req, res) => {
 });
 // Start server
 httpServer.listen(PORT, () => {
-    logger.info(`🚀 Portale von Molthar server running on port ${PORT}`);
-    logger.info(`📍 HTTP server: http://localhost:${PORT}`);
-    logger.info(`🏥 Health check: http://localhost:${PORT}/health`);
-    logger.info(`📋 API endpoints:`);
-    logger.info(`   GET  /api/rooms - List active rooms`);
-    logger.info(`   POST /api/rooms - Create new room`);
-    logger.info(`   GET  /api/rooms/:roomID - Get room details`);
-    logger.info(`   POST /api/rooms/:roomID/join - Join existing room`);
-    logger.info(`   POST /api/rooms/:roomID/moves - Submit game move`);
-    logger.info(`   GET  /api/rooms/:roomID/state - Get game state`);
-    logger.info(`   GET  /api/rooms/:roomID/moves - Get move history`);
-    logger.info(`🔗 Frontend: ${FRONTEND_URL}`);
-    logger.info(`🌐 CORS enabled for: ${FRONTEND_URL}`);
+    logger_js_1.logger.info(`🚀 Portale von Molthar server running on port ${PORT}`);
+    logger_js_1.logger.info(`📍 HTTP server: http://localhost:${PORT}`);
+    logger_js_1.logger.info(`🏥 Health check: http://localhost:${PORT}/health`);
+    logger_js_1.logger.info(`📋 API endpoints:`);
+    logger_js_1.logger.info(`   GET  /api/rooms - List active rooms`);
+    logger_js_1.logger.info(`   POST /api/rooms - Create new room`);
+    logger_js_1.logger.info(`   GET  /api/rooms/:roomID - Get room details`);
+    logger_js_1.logger.info(`   POST /api/rooms/:roomID/join - Join existing room`);
+    logger_js_1.logger.info(`   POST /api/rooms/:roomID/moves - Submit game move`);
+    logger_js_1.logger.info(`   GET  /api/rooms/:roomID/state - Get game state`);
+    logger_js_1.logger.info(`   GET  /api/rooms/:roomID/moves - Get move history`);
+    logger_js_1.logger.info(`🔗 Frontend: ${FRONTEND_URL}`);
+    logger_js_1.logger.info(`🌐 CORS enabled for: ${FRONTEND_URL}`);
 });
 // Graceful shutdown
 process.on('SIGINT', () => {
-    logger.info('Shutting down gracefully...');
+    logger_js_1.logger.info('Shutting down gracefully...');
     httpServer.close(() => {
-        logger.info('Server closed');
+        logger_js_1.logger.info('Server closed');
         process.exit(0);
     });
 });
-export { httpServer };
 //# sourceMappingURL=server.js.map

@@ -1,3 +1,6 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.logger = void 0;
 class Logger {
     constructor(level = 'info') {
         this.levels = {
@@ -37,5 +40,5 @@ class Logger {
         }
     }
 }
-export const logger = new Logger(process.env.LOG_LEVEL || 'info');
+exports.logger = new Logger(process.env.LOG_LEVEL || 'info');
 //# sourceMappingURL=logger.js.map

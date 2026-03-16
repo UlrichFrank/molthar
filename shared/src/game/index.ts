@@ -83,7 +83,7 @@ export const PortaleVonMolthar = {
    * Moves: Player actions
    */
   moves: {
-    takePearlCard(G: GameState, ctx: any, slotIndex: number) {
+    takePearlCard({ G, ctx }: { G: GameState; ctx: any }, slotIndex: number) {
       const player = G.players[ctx.currentPlayer];
       if (!player) {
         return;
@@ -129,7 +129,7 @@ export const PortaleVonMolthar = {
       }
     },
     
-    takeCharacterCard(G: GameState, ctx: any, slotIndex: number, replacedSlotIndex?: number) {
+    takeCharacterCard({ G, ctx }: { G: GameState; ctx: any }, slotIndex: number, replacedSlotIndex?: number) {
       const player = G.players[ctx.currentPlayer];
       if (!player) {
         return;
@@ -197,7 +197,7 @@ export const PortaleVonMolthar = {
       }
     },
     
-    activateCharacter(G: GameState, ctx: any, slotIndex: number, usedCards?: number[]) {
+    activateCharacter({ G, ctx }: { G: GameState; ctx: any }, slotIndex: number, usedCards?: number[]) {
       const player = G.players[ctx.currentPlayer];
       if (!player) {
         return;
@@ -260,7 +260,7 @@ export const PortaleVonMolthar = {
       }
     },
     
-    replacePearlSlots(G: GameState, ctx: any) {
+    replacePearlSlots({ G, ctx }: { G: GameState; ctx: any }) {
       const player = G.players[ctx.currentPlayer];
       if (!player) {
         return;
@@ -290,7 +290,7 @@ export const PortaleVonMolthar = {
       G.actionCount++;
     },
     
-    discardCards(G: GameState, ctx: any, cardIndices?: number[]) {
+    discardCards({ G, ctx }: { G: GameState; ctx: any }, cardIndices?: number[]) {
       const player = G.players[ctx.currentPlayer];
       if (!player) {
         return;
@@ -307,7 +307,7 @@ export const PortaleVonMolthar = {
       }
     },
     
-    endTurn(G: GameState, ctx: any) {
+    endTurn({ G, ctx }: { G: GameState; ctx: any }) {
       // Reset action count for next turn
       G.actionCount = 0;
       
@@ -323,7 +323,7 @@ export const PortaleVonMolthar = {
   /**
    * End If Condition: Check for game end
    */
-  endIf: (G: GameState, ctx: any) => {
+  endIf: ({ G, ctx }: { G: GameState; ctx: any }) => {
     if (!G.finalRound) {
       return undefined;
     }

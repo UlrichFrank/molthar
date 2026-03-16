@@ -75,7 +75,7 @@ export const PortaleVonMolthar = {
      * Moves: Player actions
      */
     moves: {
-        takePearlCard(G, ctx, slotIndex) {
+        takePearlCard({ G, ctx }, slotIndex) {
             const player = G.players[ctx.currentPlayer];
             if (!player) {
                 return;
@@ -118,7 +118,7 @@ export const PortaleVonMolthar = {
                 }
             }
         },
-        takeCharacterCard(G, ctx, slotIndex, replacedSlotIndex) {
+        takeCharacterCard({ G, ctx }, slotIndex, replacedSlotIndex) {
             const player = G.players[ctx.currentPlayer];
             if (!player) {
                 return;
@@ -183,7 +183,7 @@ export const PortaleVonMolthar = {
                 }
             }
         },
-        activateCharacter(G, ctx, slotIndex, usedCards) {
+        activateCharacter({ G, ctx }, slotIndex, usedCards) {
             const player = G.players[ctx.currentPlayer];
             if (!player) {
                 return;
@@ -236,7 +236,7 @@ export const PortaleVonMolthar = {
                 G.characterSlots.push(refillCard);
             }
         },
-        replacePearlSlots(G, ctx) {
+        replacePearlSlots({ G, ctx }) {
             const player = G.players[ctx.currentPlayer];
             if (!player) {
                 return;
@@ -261,7 +261,7 @@ export const PortaleVonMolthar = {
             }
             G.actionCount++;
         },
-        discardCards(G, ctx, cardIndices) {
+        discardCards({ G, ctx }, cardIndices) {
             const player = G.players[ctx.currentPlayer];
             if (!player) {
                 return;
@@ -276,7 +276,7 @@ export const PortaleVonMolthar = {
                 });
             }
         },
-        endTurn(G, ctx) {
+        endTurn({ G, ctx }) {
             // Reset action count for next turn
             G.actionCount = 0;
             // Check hand limit and trigger discard if needed
@@ -290,7 +290,7 @@ export const PortaleVonMolthar = {
     /**
      * End If Condition: Check for game end
      */
-    endIf: (G, ctx) => {
+    endIf: ({ G, ctx }) => {
         if (!G.finalRound) {
             return undefined;
         }

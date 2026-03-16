@@ -3,34 +3,34 @@
   "version": "1.0.0",
   "description": "Backend server for Portale von Molthar multiplayer game",
   "main": "dist/server.js",
-  "type": "module",
   "scripts": {
-    "dev": "node --loader ts-node/esm src/server.ts",
+    "dev": "ts-node src/server-bgio.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "node dist/server-bgio.js",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "lint": "eslint src --ext .ts",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "express": "^4.18.2",
+    "@portale-von-molthar/shared": "workspace:*",
+    "boardgame.io": "^0.50.2",
     "cors": "^2.8.5",
-    "uuid": "^9.0.1",
     "dotenv": "^16.3.1",
-    "@portale-von-molthar/shared": "workspace:*"
+    "express": "^4.18.2",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.1.5",
     "@types/express": "^4.17.21",
     "@types/node": "^20.10.6",
     "@types/uuid": "^9.0.7",
-    "typescript": "^5.3.3",
-    "ts-node": "^10.9.2",
-    "vitest": "^1.1.0",
-    "@testing-library/jest-dom": "^6.1.5",
-    "eslint": "^8.56.0",
     "@typescript-eslint/eslint-plugin": "^6.17.0",
-    "@typescript-eslint/parser": "^6.17.0"
+    "@typescript-eslint/parser": "^6.17.0",
+    "eslint": "^8.56.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3",
+    "vitest": "^1.1.0"
   },
   "engines": {
     "node": ">=18.0.0"

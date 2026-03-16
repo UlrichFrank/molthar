@@ -1,11 +1,14 @@
-import { v4 as uuidv4 } from 'uuid';
-import { logger } from '../utils/logger.js';
-export class RoomManager {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.roomManager = exports.RoomManager = void 0;
+const uuid_1 = require("uuid");
+const logger_js_1 = require("../utils/logger.js");
+class RoomManager {
     constructor() {
         this.rooms = new Map();
     }
     createRoom(hostId, hostName, maxPlayers = 2, includeAI = false) {
-        const roomId = uuidv4().substring(0, 8).toUpperCase();
+        const roomId = (0, uuid_1.v4)().substring(0, 8).toUpperCase();
         const room = {
             id: roomId,
             name: `${hostName}'s Game`,
@@ -27,7 +30,7 @@ export class RoomManager {
             includeAI,
         };
         this.rooms.set(roomId, room);
-        logger.info(`Room created: ${roomId}`, { hostId, maxPlayers });
+        logger_js_1.logger.info(`Room created: ${roomId}`, { hostId, maxPlayers });
         return room;
     }
     getRoom(roomId) {
@@ -39,15 +42,15 @@ export class RoomManager {
     joinRoom(roomId, playerId, playerName, socketId) {
         const room = this.rooms.get(roomId);
         if (!room) {
-            logger.warn(`Room not found: ${roomId}`);
+            logger_js_1.logger.warn(`Room not found: ${roomId}`);
             return null;
         }
         if (room.status !== 'waiting') {
-            logger.warn(`Cannot join room in ${room.status} status: ${roomId}`);
+            logger_js_1.logger.warn(`Cannot join room in ${room.status} status: ${roomId}`);
             return null;
         }
         if (room.players.length >= room.maxPlayers) {
-            logger.warn(`Room is full: ${roomId}`);
+            logger_js_1.logger.warn(`Room is full: ${roomId}`);
             return null;
         }
         // Check if player is already in room
@@ -55,7 +58,7 @@ export class RoomManager {
         if (existingPlayer) {
             existingPlayer.socketId = socketId;
             existingPlayer.isConnected = true;
-            logger.info(`Player reconnected: ${playerId} in room ${roomId}`);
+            logger_js_1.logger.info(`Player reconnected: ${playerId} in room ${roomId}`);
             return room;
         }
         // Add new player
@@ -68,7 +71,7 @@ export class RoomManager {
             isReady: false,
         };
         room.players.push(newPlayer);
-        logger.info(`Player joined room: ${roomId}`, { playerId, playerName, totalPlayers: room.players.length });
+        logger_js_1.logger.info(`Player joined room: ${roomId}`, { playerId, playerName, totalPlayers: room.players.length });
         return room;
     }
     leaveRoom(roomId, playerId) {
@@ -79,7 +82,7 @@ export class RoomManager {
         const player = room.players.find(p => p.id === playerId);
         if (player) {
             player.isConnected = false;
-            logger.info(`Player disconnected: ${playerId} from room ${roomId}`);
+            logger_js_1.logger.info(`Player disconnected: ${playerId} from room ${roomId}`);
         }
         // If all players disconnected, delete room after grace period
         if (room.players.every(p => !p.isConnected)) {
@@ -87,7 +90,7 @@ export class RoomManager {
             setTimeout(() => {
                 if (room.players.every(p => !p.isConnected)) {
                     this.rooms.delete(roomId);
-                    logger.info(`Room deleted due to inactivity: ${roomId}`);
+                    logger_js_1.logger.info(`Room deleted due to inactivity: ${roomId}`);
                 }
             }, gracePeriod);
         }
@@ -99,7 +102,7 @@ export class RoomManager {
         const player = room.players.find(p => p.id === playerId);
         if (player) {
             player.isReady = isReady;
-            logger.debug(`Player ready status: ${playerId} = ${isReady}`);
+            logger_js_1.logger.debug(`Player ready status: ${playerId} = ${isReady}`);
         }
         return room;
     }
@@ -114,12 +117,12 @@ export class RoomManager {
     startGame(roomId) {
         const room = this.rooms.get(roomId);
         if (!room || !this.canStartGame(roomId)) {
-            logger.warn(`Cannot start game: ${roomId}`);
+            logger_js_1.logger.warn(`Cannot start game: ${roomId}`);
             return false;
         }
         room.status = 'playing';
         room.players.forEach(p => p.isReady = false);
-        logger.info(`Game started: ${roomId}`, { players: room.players.length });
+        logger_js_1.logger.info(`Game started: ${roomId}`, { players: room.players.length });
         return true;
     }
     finishGame(roomId) {
@@ -127,12 +130,12 @@ export class RoomManager {
         if (!room)
             return false;
         room.status = 'finished';
-        logger.info(`Game finished: ${roomId}`);
+        logger_js_1.logger.info(`Game finished: ${roomId}`);
         return true;
     }
     deleteRoom(roomId) {
         this.rooms.delete(roomId);
-        logger.info(`Room deleted: ${roomId}`);
+        logger_js_1.logger.info(`Room deleted: ${roomId}`);
     }
     getRoomStats() {
         const allRooms = Array.from(this.rooms.values());
@@ -144,5 +147,6 @@ export class RoomManager {
         };
     }
 }
-export const roomManager = new RoomManager();
+exports.RoomManager = RoomManager;
+exports.roomManager = new RoomManager();
 //# sourceMappingURL=RoomManager.js.map

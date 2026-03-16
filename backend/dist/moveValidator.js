@@ -1,9 +1,12 @@
+"use strict";
 /**
  * Move Validator
  *
  * Validates game moves server-side to prevent cheating
  */
-export class MoveValidator {
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.MoveValidator = void 0;
+class MoveValidator {
     /**
      * Validate a move submission
      */
@@ -152,5 +155,6 @@ export class MoveValidator {
         return { valid: true };
     }
 }
-export default MoveValidator;
+exports.MoveValidator = MoveValidator;
+exports.default = MoveValidator;
 //# sourceMappingURL=moveValidator.js.map

@@ -18,17 +18,38 @@ export declare const PortaleVonMolthar: {
      * Moves: Player actions
      */
     moves: {
-        takePearlCard(G: GameState, ctx: any, slotIndex: number): void;
-        takeCharacterCard(G: GameState, ctx: any, slotIndex: number, replacedSlotIndex?: number): void;
-        activateCharacter(G: GameState, ctx: any, slotIndex: number, usedCards?: number[]): void;
-        replacePearlSlots(G: GameState, ctx: any): void;
-        discardCards(G: GameState, ctx: any, cardIndices?: number[]): void;
-        endTurn(G: GameState, ctx: any): void;
+        takePearlCard({ G, ctx }: {
+            G: GameState;
+            ctx: any;
+        }, slotIndex: number): void;
+        takeCharacterCard({ G, ctx }: {
+            G: GameState;
+            ctx: any;
+        }, slotIndex: number, replacedSlotIndex?: number): void;
+        activateCharacter({ G, ctx }: {
+            G: GameState;
+            ctx: any;
+        }, slotIndex: number, usedCards?: number[]): void;
+        replacePearlSlots({ G, ctx }: {
+            G: GameState;
+            ctx: any;
+        }): void;
+        discardCards({ G, ctx }: {
+            G: GameState;
+            ctx: any;
+        }, cardIndices?: number[]): void;
+        endTurn({ G, ctx }: {
+            G: GameState;
+            ctx: any;
+        }): void;
     };
     /**
      * End If Condition: Check for game end
      */
-    endIf: (G: GameState, ctx: any) => {
+    endIf: ({ G, ctx }: {
+        G: GameState;
+        ctx: any;
+    }) => {
         winner: {
             [playerID: string]: boolean;
         };
