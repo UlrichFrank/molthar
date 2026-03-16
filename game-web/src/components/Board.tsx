@@ -71,7 +71,7 @@ export function Board(props: BoardProps) {
   const [showCostDialog, setShowCostDialog] = useState(false);
   const [pendingCharacterCard, setPendingCharacterCard] = useState<CharacterCard | null>(null);
   const [showReplacementDialog, setShowReplacementDialog] = useState(false);
-  
+
   return (
     <div className="board">
       <div className="board-header">
@@ -85,7 +85,7 @@ export function Board(props: BoardProps) {
           </span>
         </div>
       </div>
-      
+
       <div className="board-content">
         {/* Face-up Cards Area */}
         <div className="face-up-area">
@@ -100,7 +100,7 @@ export function Board(props: BoardProps) {
               }}
               title="Pearl Card Deck"
             >
-              🎴<br/>Deck
+              🎴<br />Deck
             </button>
             {G.pearlSlots.map((card, idx) => (
               <button
@@ -121,7 +121,7 @@ export function Board(props: BoardProps) {
               </button>
             ))}
           </div>
-          
+
           {/* Character Cards Row */}
           <div className="face-up-row">
             <button
@@ -150,7 +150,7 @@ export function Board(props: BoardProps) {
                 }
               }}
             >
-              🎴<br/>Deck
+              🎴<br />Deck
             </button>
             {G.characterSlots.map((card, idx) => (
               <button
@@ -181,39 +181,39 @@ export function Board(props: BoardProps) {
             ))}
           </div>
         </div>
-        
+
         {/* Player Areas */}
         <div className="players-area">
           {/* Current Player's Area */}
           {player && (
             <div className={`player-area ${playerID === ctx.currentPlayer ? 'active' : ''}`}>
               <h3>My Portal</h3>
-              
+
               {/* Portal Background with Character Placement */}
-              <div 
+              <div
                 className="portal-display"
                 style={{
                   backgroundImage: `url(${getPortalImage(parseInt(playerID || '0'), G.playerOrder[0] === playerID)})`,
                 }}
               >
                 <div className="portal-characters">
-                  {/* Character Card Slots */}
+                  {/* Character Card Slots - only show non-activated cards */}
                   {[0, 1].map((slotIdx) => (
                     <div key={slotIdx} className="portal-slot">
-                      {player.portal[slotIdx] ? (
+                      {player.portal[slotIdx] && !player.portal[slotIdx].activated ? (
                         <button
-                          className={`character-placement card-with-image ${player.portal[slotIdx].activated ? 'rotated' : ''}`}
+                          className="character-placement card-with-image"
                           style={{
                             backgroundImage: `url(${getCharacterCardImage(player.portal[slotIdx].card.name)})`,
                           }}
                           onClick={() => {
-                            if (isActive && G.actionCount < 3 && !player.portal[slotIdx].activated) {
+                            if (isActive && G.actionCount < 3) {
                               setSelectedPortalSlotIndex(slotIdx);
                               setShowCostDialog(true);
                             }
                           }}
-                          disabled={!isActive || G.actionCount >= 3 || player.portal[slotIdx].activated}
-                          title={`${player.portal[slotIdx].card.name} - ⚡${player.portal[slotIdx].card.powerPoints} 💎${player.portal[slotIdx].card.diamonds}${player.portal[slotIdx].activated ? ' (aktiviert)' : ' - Klicken zum Aktivieren'}`}
+                          disabled={!isActive || G.actionCount >= 3}
+                          title={`${player.portal[slotIdx].card.name} - ⚡${player.portal[slotIdx].card.powerPoints} 💎${player.portal[slotIdx].card.diamonds} - Klicken zum Aktivieren`}
                         />
                       ) : (
                         <div
@@ -227,7 +227,7 @@ export function Board(props: BoardProps) {
                   ))}
                 </div>
               </div>
-              
+
               <div className="player-stats">
                 <div className="stat">
                   <span className="label">Power:</span>
@@ -238,13 +238,35 @@ export function Board(props: BoardProps) {
                   <span className="value">{player.diamonds}</span>
                 </div>
               </div>
-              
+
+              {/* Aktivierte Karten – between portal and hand */}
+              {player.portal.some(p => p.activated) && (
+                <div className="activated-cards-area">
+                  <h4 className="activated-cards-title">✨ Activated Cards</h4>
+                  <div className="activated-cards-row">
+                    {player.portal
+                      .filter(p => p.activated)
+                      .map((char, idx) => (
+                        <div
+                          key={idx}
+                          className="activated-card-item card-with-image"
+                          style={{
+                            backgroundImage: `url(${getCharacterCardImage(char.card.name)})`,
+                          }}
+                          title={`${char.card.name} - ⚡${char.card.powerPoints} 💎${char.card.diamonds} (aktiviert)`}
+                        />
+                      ))
+                    }
+                  </div>
+                </div>
+              )}
+
               <div className="hand">
                 <h4>Hand ({player.hand.length}/5)</h4>
                 <div className="cards">
                   {player.hand.map((card, idx) => (
-                    <div 
-                      key={idx} 
+                    <div
+                      key={idx}
                       className="hand-card card-with-image"
                       style={{
                         backgroundImage: `url(${getPearlCardImage(card.value)})`,
@@ -256,7 +278,7 @@ export function Board(props: BoardProps) {
                   ))}
                 </div>
               </div>
-              
+
               {/* Action Buttons */}
               {playerID === ctx.currentPlayer && isActive && (
                 <div className="actions">
@@ -280,7 +302,7 @@ export function Board(props: BoardProps) {
               )}
             </div>
           )}
-          
+
           {/* Other Players */}
           <div className="other-players">
             {(G.playerOrder || Object.keys(G.players))
@@ -301,7 +323,7 @@ export function Board(props: BoardProps) {
                       <span className="stat">💎 {p.diamonds}</span>
                       <span className="stat">🃏 {p.hand.length}</span>
                     </div>
-                    
+
                     {/* Other Player's Portal */}
                     <div className="other-portal">
                       <span className="portal-label">Portal:</span>
@@ -323,7 +345,7 @@ export function Board(props: BoardProps) {
                         <span className="no-portal">-</span>
                       )}
                     </div>
-                    
+
                     {/* Other Player's Hand (hidden) */}
                     <div className="other-hand">
                       <span className="hand-label">Hand: {p.hand.length} card{p.hand.length !== 1 ? 's' : ''}</span>
@@ -340,7 +362,7 @@ export function Board(props: BoardProps) {
           </div>
         </div>
       </div>
-      
+
       {/* Game Status */}
       {G.finalRound ? (
         <div className="game-status-footer">
