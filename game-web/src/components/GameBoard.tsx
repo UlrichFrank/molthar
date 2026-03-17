@@ -91,9 +91,17 @@ export function GameBoard({
         </div>
       </div>
 
-      <div className="game-content">
-        {/* Left side: Face-up cards and current player portal */}
-        <div className="left-panel">
+      <div className="game-board-background">
+        {/* Top Section: Opponent Portals */}
+        <div className="game-section top-section">
+          <OpponentPortals
+            players={otherPlayers}
+            characters={characters}
+          />
+        </div>
+
+        {/* Middle Section: Face-up cards (Auslage) */}
+        <div className="game-section middle-section">
           <FaceUpCards
             pearlCards={gameState.faceUpPearls}
             characterCards={gameState.faceUpCharacters}
@@ -102,77 +110,52 @@ export function GameBoard({
             onSelectPearl={onSelectPearl}
             onSelectCharacter={onSelectCharacter}
           />
-
-          <PlayerPortal
-            player={currentPlayer}
-            isCurrentPlayer={true}
-          />
         </div>
 
-        {/* Center: Action buttons and hand */}
-        <div className="center-panel">
-          {/* Error display */}
-          {error && <div className="error-message">{error}</div>}
+        {/* Bottom Section: Current player portal & hand */}
+        <div className="game-section bottom-section">
+          <div className="bottom-content">
+            <PlayerPortal
+              player={currentPlayer}
+              isCurrentPlayer={true}
+            />
 
-          {/* Deck counts */}
-          <div className="deck-info">
-            <div className="deck-count">
-              <span className="label">Pearl Deck:</span>
-              <span className="value">{gameState.pearlDeck.length} cards</span>
-            </div>
-            <div className="deck-count">
-              <span className="label">Char Deck:</span>
-              <span className="value">{gameState.characterDeck.length} cards</span>
-            </div>
+            {/* Error display */}
+            {error && <div className="error-message">{error}</div>}
+
+            {/* Player hand */}
+            <PlayerHand
+              hand={currentPlayer.hand}
+              selectedIndices={selectedHandIndices}
+              phase={gameState.gamePhase}
+              onSelect={onSelectHandCard}
+              onClearSelection={onClearHandSelection}
+            />
+
+            {/* Action buttons */}
+            <ActionButtons
+              gamePhase={gameState.gamePhase}
+              actionsRemaining={actionsRemaining}
+              selectedPearl={selectedPearl}
+              selectedCharacter={selectedCharacter}
+              selectedHandCount={selectedHandIndices.length}
+              onTakePearl={onTakePearl}
+              onPlaceCharacter={onPlaceCharacter}
+              onActivateCharacter={onActivateCharacter}
+              onDiscardCards={onDiscardCards}
+              onEndTurn={onEndTurn}
+              currentPlayer={currentPlayer}
+            />
           </div>
-
-          {/* Player hand */}
-          <PlayerHand
-            hand={currentPlayer.hand}
-            selectedIndices={selectedHandIndices}
-            phase={gameState.gamePhase}
-            onSelect={onSelectHandCard}
-            onClearSelection={onClearHandSelection}
-          />
-
-          {/* Action buttons */}
-          <ActionButtons
-            gamePhase={gameState.gamePhase}
-            actionsRemaining={actionsRemaining}
-            selectedPearl={selectedPearl}
-            selectedCharacter={selectedCharacter}
-            selectedHandCount={selectedHandIndices.length}
-            onTakePearl={onTakePearl}
-            onPlaceCharacter={onPlaceCharacter}
-            onActivateCharacter={onActivateCharacter}
-            onDiscardCards={onDiscardCards}
-            onEndTurn={onEndTurn}
-            currentPlayer={currentPlayer}
-          />
-
-          {/* Game Log */}
-          <GameLog
-            gameLog={gameState.gameLog}
-            playerNames={new Map(gameState.players.map((p) => [p.id, p.name]))}
-          />
-        </div>
-
-        {/* Right side: Opponent portals */}
-        <div className="right-panel">
-          <div className="opponents-title">Opponents</div>
-          <OpponentPortals
-            players={otherPlayers}
-            characters={characters}
-          />
         </div>
       </div>
 
-      {/* Game log footer */}
-      <div className="game-footer">
-        <div className="log-info">
-          <span className="label">Actions this turn:</span>
-          <span className="value">{gameState.gameLog.filter((log) => log.playerId === currentPlayer.id).length}</span>
-        </div>
+      {/* Game Log */}
+      <div className="game-log-section">
+        <GameLog
+          gameLog={gameState.gameLog}
+          playerNames={new Map(gameState.players.map((p) => [p.id, p.name]))}
+        />
       </div>
     </div>
   );

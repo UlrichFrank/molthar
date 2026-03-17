@@ -1487,3 +1487,325 @@
     flex-direction: column;
   }
 }
+
+/* Auslage (FaceUpCards) Container */
+.auslage-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  padding: 2rem;
+}
+
+.auslage-section {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.characters-section {
+  width: 100%;
+  flex: 1;
+}
+
+.pearls-section {
+  width: 100%;
+  flex: 1;
+}
+
+.auslage-cards-row {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.auslage-card {
+  width: 80px !important;
+  height: 120px !important;
+  padding: 0.5rem !important;
+}
+
+.auslage-card.pearl-card .card-value {
+  font-size: 2.5rem !important;
+}
+
+/* Responsive Auslage */
+@media (max-width: 768px) {
+  .auslage-container {
+    padding: 1rem;
+  }
+  
+  .auslage-card {
+    width: 60px !important;
+    height: 90px !important;
+  }
+  
+  .auslage-cards-row {
+    gap: 1rem;
+  }
+}
+
+/* Player Portal Container with rendered Portal image */
+.player-portal-container {
+  position: relative;
+  background: rgba(30, 41, 59, 0.5);
+  border: 2px solid #475569;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.player-portal-container.current {
+  border-color: #60a5fa;
+  background: rgba(30, 41, 59, 0.7);
+}
+
+.player-portal-info {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 20;
+  background: rgba(15, 23, 42, 0.9);
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #475569;
+}
+
+.player-name {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #60a5fa;
+}
+
+.portal-stats {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.stat {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.stat .label {
+  color: #94a3b8;
+}
+
+.stat .value {
+  color: #fbbf24;
+  font-weight: bold;
+}
+
+.stat .value.power {
+  color: #f97316;
+}
+
+.stat .value.diamonds {
+  color: #6366f1;
+}
+
+.diamonds-section {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  z-index: 20;
+  background: rgba(15, 23, 42, 0.9);
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #475569;
+}
+
+.diamonds-display {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  max-width: 200px;
+}
+
+.diamond {
+  font-size: 1.5rem;
+}
+
+.active-characters {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 20;
+  background: rgba(15, 23, 42, 0.9);
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #475569;
+  max-width: 300px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.section-label {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.85rem;
+  color: #60a5fa;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.characters-display {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.active-character {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: rgba(30, 41, 59, 0.5);
+  border-radius: 0.375rem;
+  font-size: 0.85rem;
+  color: #cbd5e1;
+}
+
+.active-character .name {
+  font-weight: 500;
+  color: #e2e8f0;
+}
+
+.active-character .power {
+  color: #f97316;
+  font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  .player-portal-info,
+  .diamonds-section,
+  .active-characters {
+    font-size: 0.8rem;
+    padding: 0.5rem;
+  }
+
+  .diamond {
+    font-size: 1rem;
+  }
+}
+
+/* Opponent Portals Container */
+.opponent-portals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.opponent-portal-card {
+  background: rgba(30, 41, 59, 0.7);
+  border: 2px solid #475569;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.opponent-portal-card.open {
+  border-color: #60a5fa;
+}
+
+.opponent-portal-card.closed {
+  border-color: #6b7280;
+  opacity: 0.7;
+}
+
+.opponent-info {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  background: rgba(15, 23, 42, 0.95);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid #475569;
+  z-index: 20;
+  max-width: 150px;
+}
+
+.opponent-portal-card .player-name {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #60a5fa;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.opponent-portal-card .stats-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.opponent-portal-card .stat {
+  color: #cbd5e1;
+  white-space: nowrap;
+}
+
+.active-count {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  background: rgba(15, 23, 42, 0.95);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid #475569;
+  font-size: 0.8rem;
+  color: #fbbf24;
+  font-weight: bold;
+  z-index: 20;
+}
+
+/* Responsive Opponent Portals */
+@media (max-width: 1024px) {
+  .opponent-portals {
+    gap: 1.5rem;
+  }
+
+  .opponent-portal-card {
+    width: 200px;
+    height: 160px;
+  }
+}
+
+@media (max-width: 768px) {
+  .opponent-portals {
+    gap: 1rem;
+  }
+
+  .opponent-portal-card {
+    width: 150px;
+    height: 120px;
+  }
+
+  .opponent-info {
+    padding: 0.4rem;
+    font-size: 0.75rem;
+  }
+
+  .opponent-portal-card .stats-row {
+    gap: 0.5rem;
+    font-size: 0.65rem;
+  }
+
+  .active-count {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.7rem;
+  }
+}

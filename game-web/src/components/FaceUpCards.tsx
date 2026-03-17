@@ -23,14 +23,52 @@ export function FaceUpCards({
   const [hoveredCharIdx, setHoveredCharIdx] = useState<number | null>(null);
 
   return (
-    <div className="face-up-cards">
-      <div className="card-section">
-        <h3 className="section-title">Pearl Cards</h3>
-        <div className="cards-grid">
+    <div 
+      className="face-up-cards auslage-container"
+      style={{
+        backgroundImage: 'url(/assets/Auslage.png)',
+        backgroundSize: 'contain',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+        width: '100%',
+        maxWidth: '1000px',
+        aspectRatio: '16 / 9',
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
+      {/* Character Cards Section */}
+      <div className="auslage-section characters-section">
+        <div className="auslage-cards-row">
+          {characterCards.map((card, idx) => (
+            <button
+              key={idx}
+              className={`card character-card auslage-card ${selectedCharacter === idx ? 'selected' : ''}`}
+              onClick={() => onSelectCharacter(idx)}
+              onMouseEnter={() => setHoveredCharIdx(idx)}
+              onMouseLeave={() => setHoveredCharIdx(null)}
+              title={card.name}
+            >
+              <div className="card-name">{card.name}</div>
+              <div className="card-stats">
+                <span>⚡{card.powerPoints}</span>
+                <span>💎{card.diamonds}</span>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Pearl Cards Section */}
+      <div className="auslage-section pearls-section">
+        <div className="auslage-cards-row">
           {pearlCards.map((card, idx) => (
             <button
               key={idx}
-              className={`card pearl-card ${selectedPearl === idx ? 'selected' : ''}`}
+              className={`card pearl-card auslage-card ${selectedPearl === idx ? 'selected' : ''}`}
               onClick={() => onSelectPearl(idx)}
               title={`Pearl ${card.value}${card.hasSwapSymbol ? ' (Swap)' : ''}`}
             >
@@ -41,35 +79,12 @@ export function FaceUpCards({
         </div>
       </div>
 
-      <div className="card-section">
-        <h3 className="section-title">Character Cards</h3>
-        <div className="cards-grid-with-info">
-          <div className="cards-grid">
-            {characterCards.map((card, idx) => (
-              <button
-                key={idx}
-                className={`card character-card ${selectedCharacter === idx ? 'selected' : ''}`}
-                onClick={() => onSelectCharacter(idx)}
-                onMouseEnter={() => setHoveredCharIdx(idx)}
-                onMouseLeave={() => setHoveredCharIdx(null)}
-                title={card.name}
-              >
-                <div className="card-name">{card.name}</div>
-                <div className="card-stats">
-                  <span>⚡{card.powerPoints}</span>
-                  <span>💎{card.diamonds}</span>
-                </div>
-              </button>
-            ))}
-          </div>
-
-          {hoveredCharIdx !== null && characterCards[hoveredCharIdx] && (
-            <div className="character-info-popup">
-              <CardInfo character={characterCards[hoveredCharIdx]} />
-            </div>
-          )}
+      {/* Character Info Popup */}
+      {hoveredCharIdx !== null && characterCards[hoveredCharIdx] && (
+        <div className="character-info-popup">
+          <CardInfo character={characterCards[hoveredCharIdx]} />
         </div>
-      </div>
+      )}
     </div>
   );
 }
