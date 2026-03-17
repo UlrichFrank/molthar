@@ -91,67 +91,105 @@ export function GameBoard({
         </div>
       </div>
 
-      <div className="game-board-background">
-        {/* Top Section: Opponent Portals */}
-        <div className="game-section top-section">
-          <OpponentPortals
-            players={otherPlayers}
-            characters={characters}
-          />
-        </div>
+      <div className="game-table-wrapper">
+        {/* Main game table with Spielfläche background */}
+        <div className="game-table">
+          
+          {/* Top Row: Opponent Portals (Gegner 3 & 4 - 180° rotation) */}
+          <div className="table-position top-opponents">
+            {otherPlayers.length > 1 && (
+              <div className="opponent-slot" style={{ transform: 'rotate(180deg)' }}>
+                <div className="opponent-card-wrapper">
+                  <img src={`/assets/Gegner Portal${Math.min(otherPlayers.length + 1, 5)}.png`} alt="Opponent 1" />
+                </div>
+                {otherPlayers[1] && <div className="opponent-name">{otherPlayers[1].name}</div>}
+              </div>
+            )}
+            {otherPlayers.length > 2 && (
+              <div className="opponent-slot" style={{ transform: 'rotate(180deg)' }}>
+                <div className="opponent-card-wrapper">
+                  <img src="/assets/Gegner Portal4.png" alt="Opponent 2" />
+                </div>
+                {otherPlayers[2] && <div className="opponent-name">{otherPlayers[2].name}</div>}
+              </div>
+            )}
+          </div>
 
-        {/* Middle Section: Face-up cards (Auslage) */}
-        <div className="game-section middle-section">
-          <FaceUpCards
-            pearlCards={gameState.faceUpPearls}
-            characterCards={gameState.faceUpCharacters}
-            selectedPearl={selectedPearl}
-            selectedCharacter={selectedCharacter}
-            onSelectPearl={onSelectPearl}
-            onSelectCharacter={onSelectCharacter}
-          />
-        </div>
+          {/* Left: Opponent 2 (90° rotation) */}
+          {otherPlayers.length > 0 && (
+            <div className="table-position left-opponent" style={{ transform: 'rotate(90deg)' }}>
+              <div className="opponent-card-wrapper">
+                <img src="/assets/Gegner Portal2.png" alt="Opponent" />
+              </div>
+              <div className="opponent-name">{otherPlayers[0].name}</div>
+            </div>
+          )}
 
-        {/* Bottom Section: Current player portal & hand */}
-        <div className="game-section bottom-section">
-          <div className="bottom-content">
+          {/* Center: Auslage */}
+          <div className="table-position center">
+            <FaceUpCards
+              pearlCards={gameState.faceUpPearls}
+              characterCards={gameState.faceUpCharacters}
+              selectedPearl={selectedPearl}
+              selectedCharacter={selectedCharacter}
+              onSelectPearl={onSelectPearl}
+              onSelectCharacter={onSelectCharacter}
+            />
+          </div>
+
+          {/* Right: Opponent 5 (270° rotation) */}
+          {otherPlayers.length > 3 && (
+            <div className="table-position right-opponent" style={{ transform: 'rotate(270deg)' }}>
+              <div className="opponent-card-wrapper">
+                <img src="/assets/Gegner Portal5.png" alt="Opponent" />
+              </div>
+              <div className="opponent-name">{otherPlayers[3].name}</div>
+            </div>
+          )}
+
+          {/* Bottom: Current Player Portal */}
+          <div className="table-position bottom-player">
             <PlayerPortal
               player={currentPlayer}
               isCurrentPlayer={true}
             />
-
-            {/* Error display */}
-            {error && <div className="error-message">{error}</div>}
-
-            {/* Player hand */}
-            <PlayerHand
-              hand={currentPlayer.hand}
-              selectedIndices={selectedHandIndices}
-              phase={gameState.gamePhase}
-              onSelect={onSelectHandCard}
-              onClearSelection={onClearHandSelection}
-            />
-
-            {/* Action buttons */}
-            <ActionButtons
-              gamePhase={gameState.gamePhase}
-              actionsRemaining={actionsRemaining}
-              selectedPearl={selectedPearl}
-              selectedCharacter={selectedCharacter}
-              selectedHandCount={selectedHandIndices.length}
-              onTakePearl={onTakePearl}
-              onPlaceCharacter={onPlaceCharacter}
-              onActivateCharacter={onActivateCharacter}
-              onDiscardCards={onDiscardCards}
-              onEndTurn={onEndTurn}
-              currentPlayer={currentPlayer}
-            />
           </div>
+
         </div>
       </div>
 
-      {/* Game Log */}
-      <div className="game-log-section">
+      {/* Bottom Panel: Hand, Actions, Log */}
+      <div className="bottom-panel">
+        {/* Error display */}
+        {error && <div className="error-message">{error}</div>}
+
+        {/* Player hand */}
+        <div className="hand-section">
+          <PlayerHand
+            hand={currentPlayer.hand}
+            selectedIndices={selectedHandIndices}
+            phase={gameState.gamePhase}
+            onSelect={onSelectHandCard}
+            onClearSelection={onClearHandSelection}
+          />
+        </div>
+
+        {/* Action buttons */}
+        <ActionButtons
+          gamePhase={gameState.gamePhase}
+          actionsRemaining={actionsRemaining}
+          selectedPearl={selectedPearl}
+          selectedCharacter={selectedCharacter}
+          selectedHandCount={selectedHandIndices.length}
+          onTakePearl={onTakePearl}
+          onPlaceCharacter={onPlaceCharacter}
+          onActivateCharacter={onActivateCharacter}
+          onDiscardCards={onDiscardCards}
+          onEndTurn={onEndTurn}
+          currentPlayer={currentPlayer}
+        />
+
+        {/* Game Log */}
         <GameLog
           gameLog={gameState.gameLog}
           playerNames={new Map(gameState.players.map((p) => [p.id, p.name]))}

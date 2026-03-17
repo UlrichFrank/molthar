@@ -1,4 +1,4 @@
-import type { PlayerState } from '../lib/types';
+import type { PlayerState } from '@portale-von-molthar/shared';
 import '../styles/Components.css';
 
 interface ActionButtonsProps {
@@ -32,7 +32,9 @@ export function ActionButtons({
   const isDiscardPhase = gamePhase === 'discardingExcessCards';
   const isGameFinished = gamePhase === 'gameFinished';
 
-  const portalCharacters = currentPlayer.portal.characters;
+  // Get cards from portal slots that are NOT activated yet (or maybe show all?)
+  // Actually we activate cards in the portal.
+  const portalSlots = currentPlayer.portal;
 
   return (
     <div className="action-buttons" role="toolbar" aria-label="Game actions">
@@ -73,7 +75,7 @@ export function ActionButtons({
             </button>
           </div>
 
-          {portalCharacters.length > 0 && (
+          {portalSlots.length > 0 && (
             <div className="actions-row">
               <div className="action-group">
                 <label htmlFor="character-select" className="group-label">Activate Character:</label>
@@ -83,6 +85,7 @@ export function ActionButtons({
                   onChange={(e) => {
                     if (e.target.value) {
                       onActivateCharacter(parseInt(e.target.value));
+                      // Reset select
                       e.target.value = '';
                     }
                   }}
@@ -92,10 +95,12 @@ export function ActionButtons({
                   aria-label="Select a character from your portal to activate"
                 >
                   <option value="">Choose from portal...</option>
-                  {portalCharacters.map((char, idx) => (
-                    <option key={idx} value={idx}>
-                      {char.name} (⚡{char.powerPoints})
-                    </option>
+                  {portalSlots.map((slot, idx) => (
+                    !slot.activated && (
+                      <option key={idx} value={idx}>
+                        {slot.card.name} (⚡{slot.card.powerPoints})
+                      </option>
+                    )
                   ))}
                 </select>
                 <span className="help-text">Select pearls from hand first</span>

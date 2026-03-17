@@ -175,44 +175,115 @@
 /* Opponent Portals */
 .opponent-portals {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
 }
 
-.opponent-portal-compact {
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid #475569;
-  border-radius: 0.375rem;
-  padding: 1rem;
-  transition: all 0.2s ease;
+.opponent-portal-card {
+  background: rgba(30, 41, 59, 0.7);
+  border: 2px solid #475569;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
-.opponent-portal-compact:hover {
+.opponent-portal-card.open {
   border-color: #60a5fa;
-  background: rgba(30, 41, 59, 0.8);
 }
 
-.opponent-portal-compact .player-name {
-  margin: 0 0 0.75rem 0;
-  font-size: 1rem;
-  color: #60a5fa;
+.opponent-portal-card.closed {
+  border-color: #6b7280;
+  opacity: 0.7;
 }
 
-.stats-row {
-  display: flex;
-  gap: 1.5rem;
-  margin-bottom: 0.5rem;
+.opponent-info {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  background: rgba(15, 23, 42, 0.95);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid #475569;
+  z-index: 20;
+  max-width: 150px;
+}
+
+.opponent-portal-card .player-name {
+  margin: 0;
   font-size: 0.9rem;
+  font-weight: 600;
+  color: #60a5fa;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.stats-row .stat {
-  color: #f1f5f9;
+.opponent-portal-card .stats-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.opponent-portal-card .stat {
+  color: #cbd5e1;
+  white-space: nowrap;
 }
 
 .active-count {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  background: rgba(15, 23, 42, 0.95);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid #475569;
   font-size: 0.8rem;
-  color: #34d399;
-  font-weight: 500;
+  color: #fbbf24;
+  font-weight: bold;
+  z-index: 20;
+}
+
+/* Responsive Opponent Portals */
+@media (max-width: 1024px) {
+  .opponent-portals {
+    gap: 1.5rem;
+  }
+
+  .opponent-portal-card {
+    width: 200px;
+    height: 160px;
+  }
+}
+
+@media (max-width: 768px) {
+  .opponent-portals {
+    gap: 1rem;
+  }
+
+  .opponent-portal-card {
+    width: 150px;
+    height: 120px;
+  }
+
+  .opponent-info {
+    padding: 0.4rem;
+    font-size: 0.75rem;
+  }
+
+  .opponent-portal-card .stats-row {
+    gap: 0.5rem;
+    font-size: 0.65rem;
+  }
+
+  .active-count {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.7rem;
+  }
 }
 
 /* Player Hand */
@@ -1807,5 +1878,125 @@
   .active-count {
     padding: 0.3rem 0.5rem;
     font-size: 0.7rem;
+  }
+}
+
+/* Auslage (FaceUpCards) Container with background image */
+.auslage-container {
+  position: relative;
+  background-image: url('/assets/Auslage.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  width: 100%;
+  max-width: 1200px;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  padding: 2rem;
+  margin: 0 auto;
+}
+
+.auslage-label {
+  position: absolute;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #60a5fa;
+  background: rgba(15, 23, 42, 0.8);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  z-index: 15;
+  margin: 0;
+}
+
+.characters-section .auslage-label {
+  top: 15%;
+  left: 10%;
+}
+
+.pearls-section .auslage-label {
+  top: 65%;
+  left: 60%;
+}
+
+.auslage-section {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.characters-section {
+  flex: 0.4;
+}
+
+.pearls-section {
+  flex: 0.4;
+}
+
+.auslage-cards-row {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.auslage-card {
+  width: 70px !important;
+  height: 105px !important;
+  padding: 0.4rem !important;
+  font-size: 0.8rem !important;
+}
+
+.auslage-card.pearl-card .card-value {
+  font-size: 2rem !important;
+}
+
+/* Responsive Auslage */
+@media (max-width: 1024px) {
+  .auslage-container {
+    max-width: 900px;
+    padding: 1.5rem;
+  }
+  
+  .auslage-card {
+    width: 60px !important;
+    height: 90px !important;
+    padding: 0.3rem !important;
+  }
+  
+  .auslage-cards-row {
+    gap: 0.8rem;
+  }
+  
+  .auslage-label {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .auslage-container {
+    max-width: 600px;
+    padding: 1rem;
+  }
+  
+  .auslage-card {
+    width: 50px !important;
+    height: 75px !important;
+    padding: 0.2rem !important;
+    font-size: 0.65rem !important;
+  }
+  
+  .auslage-cards-row {
+    gap: 0.6rem;
+  }
+
+  .auslage-label {
+    font-size: 0.65rem;
   }
 }

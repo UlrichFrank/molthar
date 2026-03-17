@@ -1,839 +1,359 @@
-/* Board Game Component Styles */
-
-.board {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+/* ============================================================
+   BASE – kein Scrollen, alles füllt den Viewport
+   ============================================================ */
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
-.board-header {
-  padding: 1.5rem;
-  background: rgba(0, 0, 0, 0.3);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+/* ============================================================
+   GAME BOARD – Spielfläche als vollflächiger Hintergrund
+   ============================================================ */
+.game-board {
+  position: fixed;
+  inset: 0;
+  background-image: url('/assets/Spielflaeche.png');
+  background-size: cover;          /* kein Verzerren – Seitenverhältnis bleibt */
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+  color: #f1f5f9;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* ============================================================
+   HEADER – schmaler Overlay-Streifen oben
+   ============================================================ */
+.game-header {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 40px;
+  background: rgba(10, 15, 30, 0.72);
+  backdrop-filter: blur(4px);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.4);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 0 1rem;
+  z-index: 200;
 }
 
-.board-header h1 {
+.game-title {
   margin: 0;
-  font-size: 2rem;
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: #93c5fd;
 }
 
 .game-info {
   display: flex;
-  gap: 2rem;
-  font-size: 1.1rem;
+  gap: 1.25rem;
+  font-size: 0.78rem;
 }
 
-.current-player {
-  font-weight: bold;
-  color: #ffd700;
+.info-item { display: flex; gap: 0.35rem; align-items: center; }
+.info-item .label { color: #94a3b8; }
+.info-item .value  { color: #fbbf24; font-weight: bold; }
+
+/* ============================================================
+   ZONEN – alle absolut positioniert innerhalb .game-board
+   Gemeinsamer Debug-Rahmen (gelb gestrichelt)
+   ============================================================ */
+.zone {
+  position: absolute;
+  z-index: 10;
+  border: 2px dashed rgba(255, 230, 0, 0.6);  /* DEBUG */
 }
 
-.action-count {
-  color: #87ceeb;
+/* ----------------------------------------------------------
+   ZONE: Oben-Links   → 15 % – 47.5 %  (breite 32.5 %)
+   ---------------------------------------------------------- */
+.zone-top-left {
+  top: 40px;
+  left: 15%;
+  right: 52.5%;           /* = 100% - 47.5% */
+  height: 30%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 0.5rem;
 }
 
-.board-content {
+/* ----------------------------------------------------------
+   ZONE: Oben-Rechts  → 52.5 % – 85 %  (breite 32.5 %)
+   ---------------------------------------------------------- */
+.zone-top-right {
+  top: 40px;
+  left: 52.5%;
+  right: 15%;             /* = 100% - 85% */
+  height: 30%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 0.5rem;
+}
+
+/* ----------------------------------------------------------
+   ZONE: Rechts  → 85 % – 100 %
+   ---------------------------------------------------------- */
+.zone-right {
+  top: 40px;
+  right: 0;
+  width: 15%;
+  /* endet, wo Spielerzone beginnt */
+  bottom: 38%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ----------------------------------------------------------
+   ZONE: Mitte / Auslage
+   Zwischen den Top-Gegnern und der Spielerzone,
+   horizontal zwischen linker und rechter Zone
+   ---------------------------------------------------------- */
+.zone-center {
+  top: calc(40px + 30%);  /* direkt unter den Top-Gegnern */
+  left: 15%;
+  right: 15%;
+  bottom: 38%;            /* oberhalb der Spielerzone */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ----------------------------------------------------------
+   ZONE: Spieler – unten, innerhalb der Spielfläche
+   Das Kleiderschrank-Portal-Bild wird hier hinein gerendert
+   ---------------------------------------------------------- */
+.zone-player {
+  bottom: 0;
+  left: 10%;
+  right: 10%;
+  height: 38%;
+  z-index: 20;
+  /* Kein display-flex hier – wir nutzen position:relative innen */
+}
+
+/* ============================================================
+   KLEIDERSCHRANK PORTAL – Bild + interaktiver Overlay
+   ============================================================ */
+.player-portal-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Das Portal-Bild füllt die Zone; Weiß wird durch multiply transparent */
+.portal-bg-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;        /* kein Verzerren */
+  object-position: bottom;
+  mix-blend-mode: multiply;   /* Weiß = transparent */
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Interaktiver Inhalt sitzt über dem Bild */
+.portal-content {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Obere Reihe: Diamanten | Portal-Slots | Aktivierte Charaktere */
+.portal-main-row {
+  display: flex;
   flex: 1;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  padding: 2rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  min-height: 0;
+}
+
+.portal-diamonds {
+  flex: 0 0 20%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+  justify-content: center;
+  color: #7dd3fc;
+  font-size: 1.25rem;
+}
+
+.portal-slots {
+  flex: 0 0 30%;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.portal-activated {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  justify-content: flex-start;
+  padding-left: 0.5rem;
+  overflow: hidden;
+}
+
+/* Untere Reihe: Hand + Aktionen */
+.portal-hand-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+  background: rgba(5, 10, 20, 0.65);
+  backdrop-filter: blur(4px);
+  border-top: 1px solid rgba(59, 130, 246, 0.3);
+  padding: 0.4rem 0.75rem;
+  flex: 0 0 auto;
+  min-height: 0;
+}
+
+.portal-hand {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.portal-actions {
+  flex: 0 0 260px;
+  border-left: 1px solid rgba(255,255,255,0.15);
+  padding-left: 0.75rem;
   overflow-y: auto;
 }
 
-/* Face-up Cards Area */
-.face-up-area {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.face-up-row {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  justify-content: flex-start;
-}
-
-.card {
-  background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
-  border: none;
-  border-radius: 16px;
-  padding: 1rem;
-  color: #333;
-  font-size: 1.2rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
+/* Kartenslot im Portal */
+.portal-card-slot {
   position: relative;
-  width: 120px;
-  aspect-ratio: 59 / 92;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
+  width: 70px;
+  aspect-ratio: 2/3;
+  border: 2px dashed rgba(255,255,255,0.35);
+  border-radius: 6px;
   overflow: hidden;
-}
-
-.card-with-image {
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  aspect-ratio: 59 / 92;
-  padding: 0;
-  width: 120px;
-}
-
-.card-with-image .card-fallback {
-  display: none;
-}
-
-.card:hover:not(:disabled) {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-}
-
-.card:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.pearl-card .value {
-  font-size: 2rem;
-  display: block;
-}
-
-.pearl-card .swap {
-  font-size: 1rem;
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  color: #ff4444;
-}
-
-.deck-button {
-  font-size: 0;
-  line-height: 0;
-  padding: 0 !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.character-card {
-  background: none;
-  padding: 0;
-  text-align: center;
-  border: none;
-  border-radius: 16px;
-  width: 120px;
-  aspect-ratio: 59 / 92;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.character-card.card-with-image {
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-.character-card:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.character-card:not(:disabled) {
   cursor: pointer;
+  transition: border-color 0.15s;
 }
 
-.card-stats-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(0, 0, 0, 0.8);
-  padding: 0.5rem;
-  border-radius: 0 0 5px 5px;
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  font-size: 0.9rem;
+.portal-card-slot:hover {
+  border-color: rgba(251, 191, 36, 0.8);
 }
 
-.card-cost-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: rgba(0, 0, 0, 0.8);
-  color: #ffd700;
-  padding: 0.4rem;
-  font-size: 0.8rem;
-  font-weight: bold;
-  text-align: center;
-  border-radius: 2px 2px 0 0;
-}
-
-.character-card .card-title {
-  font-weight: bold;
-  margin-bottom: 0.4rem;
-}
-
-.character-card .card-power,
-.character-card .card-diamond {
-  font-size: 0.9rem;
-  margin: 0.2rem 0;
-}
-
-.activate-btn {
-  margin-top: 0.5rem;
-  padding: 0.4rem 0.8rem;
-  background: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 10;
-  font-weight: bold;
-}
-
-.activate-btn:hover {
-  background: #45a049;
-}
-
-.activate-btn.unavailable {
-  background: #999;
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.activate-btn.unavailable:hover {
-  background: #999;
-}
-
-.activate-indicator {
-  position: absolute;
-  bottom: 4px;
-  right: 4px;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
+.portal-card-slot.empty {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
-  font-size: 1.2rem;
-  z-index: 10;
-}
-
-.activate-indicator.available {
-  background: rgba(76, 175, 80, 0.9);
-  color: white;
-  border: 2px solid white;
-}
-
-.activate-indicator.unavailable {
-  background: rgba(200, 0, 0, 0.7);
-  color: white;
-  border: 2px solid white;
-}
-
-.activate-btn:hover {
-  background: #45a049;
-}
-
-/* Players Area */
-.players-area {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.player-area {
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 12px;
-  padding: 1.5rem;
-  border: 3px solid rgba(255, 255, 255, 0.2);
-}
-
-.player-area.active {
-  border-color: #ffd700;
-  background: rgba(255, 215, 0, 0.1);
-}
-
-.player-area h3 {
-  margin: 0 0 1rem 0;
-}
-
-.portal {
-  display: flex;
-  gap: 1rem;
-  margin: 1rem 0;
-  flex-wrap: wrap;
-}
-
-/* Portal Display with Background Image */
-.portal-display {
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  border: 3px solid #8b6f47;
-  border-radius: 16px;
-  padding: 2rem;
-  margin: 1rem 0;
-  min-height: 300px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.portal-characters {
-  display: flex;
-  gap: 2rem;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.portal-slot {
-  position: relative;
-  min-width: 140px;
-  min-height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.character-placement {
-  border: none;
-  border-radius: 16px;
-  width: 120px;
-  aspect-ratio: 59 / 92;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background: none;
-  padding: 0;
-  overflow: hidden;
-}
-
-.character-placement:not(:disabled) {
-  cursor: pointer;
-}
-
-.character-placement:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.character-placement:not(:disabled):hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
-}
-
-.character-placement.card-with-image {
-  background-size: contain;
-  background-position: center;
-}
-
-.character-placement.rotated {
-  transform: rotate(180deg);
-}
-
-.character-placement .activated-badge {
-  position: absolute;
-  top: -10px;
-  right: -10px;
-  background: #4CAF50;
-  color: white;
-  border: 2px solid white;
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 1.1rem;
-}
-
-.empty-portal-slot {
-  width: 120px;
-  aspect-ratio: 59 / 92;
-  border: 3px dashed rgba(255, 255, 255, 0.4);
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.3);
-  color: rgba(255, 255, 255, 0.6);
-  font-weight: bold;
-  text-align: center;
-  padding: 1rem;
-  font-size: 0.9rem;
-}
-
-.activated-character {
-  border: none;
-  border-radius: 16px;
-  width: 120px;
-  aspect-ratio: 59 / 92;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background: none;
-  padding: 0;
-  overflow: hidden;
-}
-
-.activated-character:not(:disabled) {
-  cursor: pointer;
-}
-
-.activated-character:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.activated-character:not(:disabled):hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
-}
-
-.activated-character.card-with-image {
-  background-size: contain;
-  background-position: center;
-}
-
-.activated-character.rotated {
-  transform: rotate(180deg);
-}
-
-.activated-character .activated-badge {
-  position: absolute;
-  top: -10px;
-  right: -10px;
-  background: #4CAF50;
-  color: white;
-  border: 2px solid #fff;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  font-weight: bold;
-}
-
-/* Aktivierte Karten – strip between portal and hand */
-.activated-cards-area {
-  background: rgba(255, 215, 0, 0.1);
-  border: 2px solid rgba(255, 215, 0, 0.5);
-  border-radius: 16px;
-  padding: 0.75rem 1rem;
-  margin: 0.75rem 0;
-}
-
-.activated-cards-title {
-  margin: 0 0 0.5rem 0;
-  font-size: 0.95rem;
-  color: #ffd700;
-  font-weight: bold;
-}
-
-.activated-cards-row {
-  display: flex;
-  flex-direction: row;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  align-items: flex-start;
-}
-
-.activated-card-item {
-  width: 80px;
-  aspect-ratio: 59 / 92;
-  border-radius: 10px;
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
-  border: 2px solid rgba(255, 215, 0, 0.6);
-  flex-shrink: 0;
-  transform: rotate(180deg);
-}
-
-.hand {
-  background: rgba(0, 0, 0, 0.3);
-  padding: 1rem;
-  border-radius: 16px;
-  margin: 1rem 0;
-}
-
-.hand h4 {
-  margin: 0 0 0.5rem 0;
-}
-
-.cards {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.hand-card {
-  width: 92px;
-  aspect-ratio: 59 / 92;
-  border: none;
-  border-radius: 12px;
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  position: relative;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  overflow: hidden;
-}
-
-.hand-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-}
-
-.hand-card .swap-indicator {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  background: rgba(255, 0, 0, 0.9);
-  color: white;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
-  font-weight: bold;
-}
-
-.card-value {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 0.4rem 0.8rem;
-  border-radius: 4px;
-  border: 1px solid #fff;
-  font-weight: bold;
-}
-
-.player-stats {
-  display: flex;
-  gap: 2rem;
-  margin: 1rem 0;
-  font-size: 1.1rem;
-}
-
-.stat {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.stat .label {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.stat .value {
-  font-weight: bold;
-  color: #ffd700;
-}
-
-.actions {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
-  flex-wrap: wrap;
-}
-
-.action-btn {
-  padding: 0.8rem 1.5rem;
-  border: none;
-  border-radius: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 1rem;
-}
-
-.action-btn.primary {
-  background: #4CAF50;
-  color: white;
-}
-
-.action-btn.primary:hover {
-  background: #45a049;
-  transform: scale(1.05);
-}
-
-.action-btn.secondary {
-  background: #2196F3;
-  color: white;
-}
-
-.action-btn.secondary:hover {
-  background: #0b7dda;
-  transform: scale(1.05);
-}
-
-/* Other Players */
-.other-players {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.player-info {
-  background: rgba(0, 0, 0, 0.4);
-  padding: 1rem;
-  border-radius: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-}
-
-.player-info.active {
-  border-color: #ffd700;
-  background: rgba(255, 215, 0, 0.1);
-}
-
-.player-info .name {
-  font-weight: bold;
-  font-size: 1.1rem;
-  margin-bottom: 0.5rem;
-}
-
-.ai-badge {
-  margin-left: 0.5rem;
-  font-size: 0.9rem;
-}
-
-.stats-row {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 0.5rem;
-  font-size: 0.95rem;
-}
-
-.portal-preview {
-  display: flex;
-  gap: 0.3rem;
-}
-
-.char-indicator {
-  color: #4CAF50;
-  font-size: 1.2rem;
-}
-
-/* Other Player Portal Display */
-.other-portal {
-  margin: 0.8rem 0;
-  padding: 0.8rem;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 16px;
-}
-
-.portal-label {
-  display: block;
-  font-size: 0.9rem;
-  color: #ffd700;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-}
-
-.portal-cards {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.opponent-char-card {
-  width: 60px;
-  aspect-ratio: 59 / 92;
-  border: none;
-  border-radius: 8px;
-  position: relative;
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  overflow: hidden;
-}
-
-.opponent-char-card.rotated {
-  transform: rotate(180deg);
-}
-
-.opponent-char-card .card-stats-overlay {
+  color: rgba(255,255,255,0.25);
   font-size: 0.7rem;
-  padding: 0.2rem;
 }
 
-.no-portal {
-  color: rgba(255, 255, 255, 0.6);
-  font-style: italic;
+.portal-card-slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-/* Other Player Hand Display */
-.other-hand {
-  margin: 0.8rem 0;
-  padding: 0.8rem;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 16px;
+.portal-card-slot.activated {
+  opacity: 0.5;
 }
 
-.hand-label {
-  display: block;
-  font-size: 0.9rem;
-  color: #87ceeb;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
+/* Spieler-Name + Stats in der Mitte oben über den Slots */
+.portal-player-info {
+  position: absolute;
+  top: 0.4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.7);
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  color: #fbbf24;
+  z-index: 5;
 }
 
-.hidden-cards {
+/* ============================================================
+   GEGNER-SLOTS
+   ============================================================ */
+.opponent-slot {
   display: flex;
-  gap: 0.3rem;
-  flex-wrap: wrap;
-}
-
-.hidden-card {
-  width: 40px;
-  aspect-ratio: 59 / 92;
-  border: none;
-  border-radius: 5px;
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  overflow: hidden;
-}
-
-/* Game Status Footer */
-.game-status-footer {
-  padding: 0;
-  border-top: 2px solid rgba(255, 255, 255, 0.2);
-}
-
-/* Final Round Banner */
-.final-round-banner {
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #ff6b6b 0%, #ff9800 100%);
-  color: white;
-  font-weight: bold;
-  font-size: 1.2rem;
-  text-align: center;
-  border: none;
-  animation: pulse 1s ease-in-out infinite;
-}
-
-.banner-content {
-  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 1rem;
 }
 
-.banner-icon {
-  font-size: 3rem;
+.opponent-card-wrapper {
+  width: 320px;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.7));
+}
+
+/* Weiß im PNG → transparent */
+.opponent-card-wrapper img {
+  width: 100%;
+  height: auto;
   display: block;
+  mix-blend-mode: multiply;
 }
 
-.banner-text h2 {
-  margin: 0;
-  font-size: 2rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.banner-text p {
-  margin: 0.5rem 0 0 0;
-  font-size: 1rem;
-  opacity: 0.95;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.02);
-  }
-}
-
-/* Turn Indicator */
-.turn-indicator {
-  padding: 1rem;
-  background: rgba(0, 0, 0, 0.2);
-  color: white;
-  font-size: 0.95rem;
+.opponent-info {
   display: flex;
-  justify-content: center;
-  gap: 0.5rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  margin-top: 0.35rem;
 }
 
-.turn-label {
-  color: rgba(255, 255, 255, 0.7);
+.opponent-name {
+  background: rgba(0,0,0,0.82);
+  color: #fff;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid rgba(255,255,255,0.2);
 }
 
-.turn-value {
-  font-weight: bold;
-  color: #ffd700;
+.opponent-stats {
+  display: flex;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  color: #fbbf24;
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
-  .board-content {
-    grid-template-columns: 1fr;
-  }
+/* Texte der rotierten Gegner lesbar halten */
+.zone-top-left .opponent-name,
+.zone-top-right .opponent-name {
+  transform: rotate(180deg);
+}
+.zone-right .opponent-name {
+  transform: rotate(90deg);
+}
+.zone-right .opponent-stats {
+  transform: rotate(90deg);
+  margin-top: 0.5rem;
 }
 
-@media (max-width: 600px) {
-  .board-header {
-    flex-direction: column;
-    gap: 1rem;
-    text-align: center;
-  }
-  
-  .board-header h1 {
-    font-size: 1.5rem;
-  }
-  
-  .game-info {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  .slots {
-    grid-template-columns: 1fr;
-  }
-  
-  .player-area {
-    padding: 1rem;
-  }
+/* ============================================================
+   UTILITY
+   ============================================================ */
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
 }

@@ -2,34 +2,36 @@
 .game-board-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  height: 100vh;
+  background: #0f172a;
   color: #f1f5f9;
   font-family: system-ui, -apple-system, sans-serif;
+  overflow: hidden; /* Main container shouldn't scroll, inner parts should */
 }
 
 .game-header {
-  background: rgba(15, 23, 42, 0.8);
-  padding: 1.5rem;
+  flex: 0 0 auto;
+  background: rgba(15, 23, 42, 0.9);
+  padding: 0.75rem 1.5rem;
   border-bottom: 2px solid #3b82f6;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
   z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .game-title {
   margin: 0;
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: bold;
   color: #60a5fa;
-  text-align: center;
 }
 
 .game-info {
   display: flex;
-  justify-content: center;
-  gap: 2rem;
-  margin-top: 1rem;
-  font-size: 0.95rem;
+  gap: 1.5rem;
+  font-size: 0.9rem;
 }
 
 .info-item {
@@ -48,267 +50,213 @@
   font-weight: bold;
 }
 
-.info-item .value.phase {
-  color: #34d399;
+/* Game Table Area */
+.game-table-wrapper {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  background: #1e293b;
 }
 
-/* Game Board Background with rendered Spielfläche */
-.game-board-background {
-  flex: 1;
-  position: relative;
-  background-image: url('/assets/Spielfläche.png');
+.game-table {
+  display: grid;
+  /* Left Opponent | Center Area | Right Opponent */
+  grid-template-columns: 220px 1fr 220px;
+  /* Top Opponents | Center Area | Player Area */
+  grid-template-rows: 180px 1fr auto;
+  gap: 1rem;
+  
+  width: 100%;
+  max-width: 1400px;
+  /* Minimum height to ensure everything fits reasonably */
+  min-height: 800px; 
+  aspect-ratio: 16/9;
+
+  background-image: url('/assets/Spielflaeche.png');
   background-size: cover;
   background-position: center;
-  background-attachment: fixed;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  padding: 2rem;
-  gap: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 0 50px rgba(0,0,0,0.5);
+  position: relative;
 }
 
-/* Game Sections */
-.game-section {
+/* Grid Positions */
+.table-position {
   position: relative;
   z-index: 10;
 }
 
-.top-section {
-  min-height: 200px;
+.top-opponents {
+  grid-column: 2;
+  grid-row: 1;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: flex-start; /* Stick to top */
+  gap: 4rem;
+  padding-top: 1rem;
 }
 
-.middle-section {
-  min-height: 300px;
+.left-opponent {
+  grid-column: 1;
+  grid-row: 2;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.bottom-section {
-  min-height: 350px;
+.right-opponent {
+  grid-column: 3;
+  grid-row: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.center {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.bottom-player {
+  grid-column: 2; /* Center the player portal */
+  grid-row: 3;
   display: flex;
   justify-content: center;
   align-items: flex-end;
+  padding-bottom: 2rem;
 }
 
-.bottom-content {
+/* Opponent Styling */
+.opponent-slot {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Game Log Section */
-.game-log-section {
-  background: rgba(15, 23, 42, 0.9);
-  padding: 1.5rem;
-  border-top: 1px solid #475569;
-  max-height: 200px;
-  overflow-y: auto;
+.opponent-card-wrapper {
+  width: 180px; /* Adjust based on your asset aspect ratio */
+  /* height is auto */
+  transition: transform 0.3s ease;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6));
+}
+
+.opponent-card-wrapper img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.opponent-name {
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: 1px solid rgba(255,255,255,0.2);
+  /* Counter-rotate name so it is readable? 
+     If the container is rotated 180deg, the text is upside down. 
+     We might need to rotate the text back or just rotate the image wrapper.
+     The JSX applies rotation to the parent .opponent-slot or wrapper.
+     If parent is rotated, text is rotated.
+  */
+}
+
+/* Fix for rotated text readability if needed. 
+   Currently JSX applies rotation to .opponent-slot or div. 
+   If we want text upright, we should apply rotation to image only, 
+   OR rotate text back.
+*/
+.top-opponents .opponent-name {
+  transform: rotate(180deg); 
+}
+.left-opponent .opponent-name {
+   transform: rotate(-90deg);
+   margin-top: 1rem;
+}
+.right-opponent .opponent-name {
+  transform: rotate(-270deg); /* or 90deg */
+  margin-top: 1rem;
+}
+
+
+/* Bottom Panel (HUD) */
+.bottom-panel {
+  flex: 0 0 auto; /* Don't grow, size to content */
+  max-height: 35vh;
+  background: rgba(15, 23, 42, 0.95);
+  border-top: 1px solid #3b82f6;
+  display: grid;
+  grid-template-columns: 1fr 300px 1fr; /* Hand | Actions | Log */
+  gap: 1rem;
+  padding: 1rem;
   z-index: 50;
 }
 
-/* Error Message */
-.error-message {
-  background: #dc2626;
-  color: white;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  box-shadow: 0 4px 6px rgba(220, 38, 38, 0.3);
+.hand-section {
+  grid-column: 1;
+  overflow-x: auto;
 }
 
-/* Deck Info */
-.deck-info {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  padding: 1rem;
-  background: rgba(30, 41, 59, 0.6);
-  border-radius: 0.5rem;
-  border: 1px solid #475569;
-}
-
-.deck-count {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  font-size: 0.9rem;
-}
-
-.deck-count .label {
-  color: #cbd5e1;
-}
-
-.deck-count .value {
-  color: #fbbf24;
-  font-weight: bold;
-}
-
-/* Sections */
-.face-up-cards,
-.player-hand,
-.action-buttons,
-.player-portal {
-  background: rgba(30, 41, 59, 0.7);
-  border: 1px solid #475569;
-  border-radius: 0.5rem;
-  padding: 1.25rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-}
-
-.section-title {
-  margin: 0 0 1rem 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #60a5fa;
-  border-bottom: 1px solid #475569;
-  padding-bottom: 0.5rem;
-}
-
-.card-section {
-  margin-bottom: 1.5rem;
-}
-
-.card-section:last-child {
-  margin-bottom: 0;
-}
-
-.cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
-  gap: 0.75rem;
-}
-
-/* Cards */
-.card {
-  padding: 0.75rem;
-  border: 2px solid #475569;
-  border-radius: 0.375rem;
-  background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
-  color: #f1f5f9;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
+.action-buttons {
+  grid-column: 2;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 80px;
-  font-weight: bold;
-}
-
-.card:hover:not(:disabled) {
-  border-color: #60a5fa;
-  background: linear-gradient(135deg, #475569 0%, #334155 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
-}
-
-.card.selected {
-  border-color: #fbbf24;
-  background: linear-gradient(135deg, #92400e 0%, #78350f 100%);
-  box-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
-}
-
-.pearl-card .card-value {
-  font-size: 2rem;
-  color: #fbbf24;
-}
-
-.character-card {
-  padding: 0.5rem !important;
-  font-size: 0.75rem;
-}
-
-.card-name {
-  font-size: 0.7rem;
-  text-align: center;
-  margin-bottom: 0.5rem;
-}
-
-.card-stats {
-  display: flex;
   gap: 0.5rem;
-  font-size: 0.65rem;
 }
 
-.swap-symbol {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  font-size: 0.9rem;
-  color: #ec4899;
+.game-log-section, .game-log {
+  grid-column: 3;
+  overflow-y: auto;
+  border-left: 1px solid #334155;
+  padding-left: 1rem;
 }
 
-/* Game Footer */
-.game-footer {
-  background: rgba(15, 23, 42, 0.8);
-  padding: 1rem 1.5rem;
-  border-top: 1px solid #475569;
-  font-size: 0.9rem;
-  display: flex;
-  justify-content: center;
-  gap: 2rem;
-}
-
-.log-info {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.log-info .label {
-  color: #94a3b8;
-}
-
-.log-info .value {
-  color: #fbbf24;
-  font-weight: bold;
-}
-
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .game-board-background {
-    padding: 1.5rem;
-    gap: 1.5rem;
+/* Responsive */
+@media (max-width: 1200px) {
+  .game-table {
+    grid-template-columns: 160px 1fr 160px;
+    grid-template-rows: 140px 1fr auto;
   }
-
-  .top-section,
-  .middle-section,
-  .bottom-section {
-    min-height: auto;
+  .opponent-card-wrapper {
+    width: 140px;
   }
 }
 
 @media (max-width: 768px) {
-  .game-title {
-    font-size: 1.5rem;
+  .game-table {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    background-size: cover;
   }
+  .bottom-panel {
+    display: flex;
+    flex-direction: column;
+    max-height: none;
+  }
+  /* Fallback to stack layout for mobile */
+}
 
-  .game-info {
-    flex-wrap: wrap;
-    gap: 1rem;
-    font-size: 0.85rem;
-  }
-
-  .cards-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  .face-up-cards,
-  .player-hand,
-  .action-buttons {
-    padding: 1rem;
-  }
-
-  .game-board-background {
-    padding: 1rem;
-    gap: 1rem;
-  }
+/* Error Message */
+.error-message {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #dc2626;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  font-weight: bold;
 }

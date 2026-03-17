@@ -1,426 +1,241 @@
-import React, { useContext, useState } from 'react';
-import type { GameState, CharacterCard } from '@portale-von-molthar/shared';
-import { getCostSummary, describeCost, canPotentiallySatisfyCost } from '../lib/cost-helper';
-import { CostPaymentDialog } from './CostPaymentDialog';
-import { CharacterActivationDialog } from './CharacterActivationDialog';
-import { CharacterReplacementDialog } from './CharacterReplacementDialog';
+import React, { useState } from 'react';
+import type { GameState, PlayerState } from '@portale-von-molthar/shared';
+import { FaceUpCards } from './FaceUpCards';
+import { PlayerHand } from './PlayerHand';
+import { ActionButtons } from './ActionButtons';
 import '../styles/board.css';
 
 interface BoardProps {
   G: GameState;
-  ctx: any; // boardgame.io context
+  ctx: any;
   moves: any;
   events: any;
   playerID: string | null;
   isActive: boolean;
 }
 
-// Helper function to get pearl card image path
-function getPearlCardImage(value: number): string {
-  return `/assets/Perlenkarte${value}.jpeg`;
-}
-
-// Helper function to get character card image path
 function getCharacterCardImage(cardName: string): string {
-  // Card names are like "Character 1", "Character 2", etc.
-  // Assets are named "Charakterkarte1.jpeg", "Charakterkarte2.jpeg", etc.
   const match = cardName.match(/(\d+)/);
-  if (match) {
-    const num = match[1];
-    return `/assets/Charakterkarte${num}.jpeg`;
-  }
-  // Fallback to generic back image
-  return '/assets/Charakterkarte Hinten.jpeg';
+  return match ? `/assets/Charakterkarte${match[1]}.jpeg` : '/assets/Charakterkarte Hinten.jpeg';
 }
 
-// Helper function to get portal background image
-function getPortalImage(playerIndex: number, isStartingPlayer: boolean): string {
-  const portalNum = playerIndex + 1;
-  if (isStartingPlayer) {
-    return `/assets/Portal-Startspieler${portalNum}.jpeg`;
-  }
-  return `/assets/Portal${portalNum}.jpeg`;
-}
-
-// Helper function to get card back image
-function getCardBackImage(type: 'pearl' | 'character'): string {
-  if (type === 'pearl') {
-    return '/assets/Perlenkarte Hinten.jpeg';
-  } else {
-    return '/assets/Charakterkarte Hinten.jpeg';
-  }
-}
-
-/**
- * Main game board component
- * Displays:
- * - Face-up pearl cards (4 slots)
- * - Face-up character cards (2 slots)
- * - Player hands (current player & others)
- * - Activated characters (portals)
- * - Power points & diamonds
- * - Action buttons
- */
 export function Board(props: BoardProps) {
-  const { G, ctx, moves, events, playerID, isActive } = props;
-  const currentPlayer = G.players[ctx.currentPlayer];
-  const player = playerID ? G.players[playerID] : null;
-  const [selectedCharacterSlot, setSelectedCharacterSlot] = useState<number | null>(null);
-  const [selectedPortalSlotIndex, setSelectedPortalSlotIndex] = useState<number | null>(null);
-  const [selectedCharacterCard, setSelectedCharacterCard] = useState<any>(null);
-  const [showCostDialog, setShowCostDialog] = useState(false);
-  const [pendingCharacterCard, setPendingCharacterCard] = useState<CharacterCard | null>(null);
-  const [showReplacementDialog, setShowReplacementDialog] = useState(false);
+  const { G, ctx, moves, events, playerID } = props;
+
+  const [selectedPearl, setSelectedPearl] = useState<number | null>(null);
+  const [selectedCharacter, setSelectedCharacter] = useState<number | null>(null);
+  const [selectedHandIndices, setSelectedHandIndices] = useState<number[]>([]);
+
+  const myPlayerID = playerID || (G.playerOrder && G.playerOrder[0]) || Object.keys(G.players)[0];
+  const me = G.players[myPlayerID];
+
+  const playerIDs = G.playerOrder || Object.keys(G.players);
+  const myIndex = playerIDs.indexOf(myPlayerID);
+  const rotatedIDs = [...playerIDs.slice(myIndex), ...playerIDs.slice(0, myIndex)];
+  // opponents[0] = left (disabled), [1] = top-left, [2] = top-right, [3] = right
+  const opponents = rotatedIDs.slice(1).map(id => G.players[id]);
+
+  const phase = ctx.phase || 'takingActions';
+
+  // ---- handlers ----
+  const handleSelectPearl = (i: number) => {
+    setSelectedPearl(prev => (prev === i ? null : i));
+    setSelectedCharacter(null);
+  };
+  const handleSelectCharacter = (i: number) => {
+    setSelectedCharacter(prev => (prev === i ? null : i));
+    setSelectedPearl(null);
+  };
+  const handleSelectHand = (i: number) => {
+    setSelectedHandIndices(prev =>
+      prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i]
+    );
+  };
+
+  const onTakePearl = () => {
+    if (selectedPearl !== null) { moves.takePearlCard(selectedPearl); setSelectedPearl(null); }
+  };
+  const onPlaceCharacter = () => {
+    if (selectedCharacter !== null) { moves.takeCharacterCard(selectedCharacter); setSelectedCharacter(null); }
+  };
+  const onActivateCharacter = (idx: number) => {
+    if (selectedHandIndices.length > 0) {
+      moves.activatePortalCard(idx, selectedHandIndices);
+      setSelectedHandIndices([]);
+    }
+  };
+  const onDiscardCards = () => {
+    if (selectedHandIndices.length > 0) { moves.discardCards(selectedHandIndices); setSelectedHandIndices([]); }
+  };
+  const onEndTurn = () => events?.endTurn?.();
+
+  // ---- opponent renderer ----
+  const renderOpponent = (player: PlayerState | undefined, posClass: string, rotation: string) => {
+    if (!player) return null;
+    const portalMap: Record<string, string> = {
+      'opponent-top-left':  '/assets/Gegner Portal3.png',
+      'opponent-top-right': '/assets/Gegner Portal4.png',
+      'opponent-right':     '/assets/Gegner Portal5.png',
+    };
+    const img = portalMap[posClass] ?? '/assets/Gegner Portal2.png';
+    return (
+      <div className={`opponent-slot ${posClass}`} style={{ transform: `rotate(${rotation})` }}>
+        <div className="opponent-card-wrapper">
+          <img src={img} alt={`Portal ${player.name}`} />
+        </div>
+        <div className="opponent-info">
+          <div className="opponent-name">{player.name}</div>
+          <div className="opponent-stats">
+            <span>⚡{player.powerPoints}</span>
+            <span>💎{player.diamonds}</span>
+            <span>🃏{player.hand.length}</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <div className="board">
-      <div className="board-header">
-        <h1>Portale von Molthar</h1>
+    <div className="game-board">
+
+      {/* ── Header ── */}
+      <div className="game-header">
+        <h1 className="game-title">Portale von Molthar</h1>
         <div className="game-info">
-          <span className="current-player">
-            {currentPlayer ? `${currentPlayer.name}'s Turn` : 'Game Over'}
-          </span>
-          <span className="action-count">
-            Actions: {G.actionCount} / 3
-          </span>
+          <div className="info-item">
+            <span className="label">Spieler:</span>
+            <span className="value">{G.players[ctx.currentPlayer]?.name}</span>
+          </div>
+          <div className="info-item">
+            <span className="label">Phase:</span>
+            <span className="value">{phase}</span>
+          </div>
+          <div className="info-item">
+            <span className="label">Aktionen:</span>
+            <span className="value">{G.actionCount || 0} / 3</span>
+          </div>
         </div>
       </div>
 
-      <div className="board-content">
-        {/* Face-up Cards Area */}
-        <div className="face-up-area">
-          {/* Pearl Cards Row */}
-          <div className="face-up-row">
-            <button
-              className="card deck-button card-with-image"
-              onClick={() => isActive && moves.takePearlCard(-1)}
-              disabled={!isActive || G.actionCount >= 3}
-              style={{
-                backgroundImage: `url(${getCardBackImage('pearl')})`,
-              }}
-              title="Pearl Card Deck"
-            >
-              🎴<br />Deck
-            </button>
-            {G.pearlSlots.map((card, idx) => (
-              <button
-                key={idx}
-                className="card pearl-card card-with-image"
-                onClick={() => isActive && moves.takePearlCard(idx)}
-                disabled={!isActive || G.actionCount >= 3}
-                style={{
-                  backgroundImage: `url(${getPearlCardImage(card.value)})`,
-                }}
-                title={`Pearl Card ${card.value}${card.hasSwapSymbol ? ' (with swap symbol)' : ''}`}
-              >
-                {/* Keep text as fallback */}
-                <span className="card-fallback">
-                  <span className="value">{card.value}</span>
-                  {card.hasSwapSymbol && <span className="swap">♻</span>}
-                </span>
-              </button>
-            ))}
-          </div>
+      {/* ── Gegner oben-links (Zone: 15% – 47.5%) ── */}
+      <div className="zone zone-top-left">
+        {renderOpponent(opponents[1], 'opponent-top-left', '180deg')}
+      </div>
 
-          {/* Character Cards Row */}
-          <div className="face-up-row">
-            <button
-              className="card deck-button card-with-image"
-              disabled={!isActive || G.actionCount >= 3}
-              style={{
-                backgroundImage: `url(${getCardBackImage('character')})`,
-              }}
-              title="Character Card Deck"
-              onClick={() => {
-                if (isActive && G.actionCount < 3) {
-                  // Get the character card from deck
-                  const cardToBeTaken = G.characterDeck[G.characterDeck.length - 1];
-                  if (cardToBeTaken) {
-                    setPendingCharacterCard(cardToBeTaken);
-                    // Check if portal has free slots
-                    if (player && player.portal.length < 2) {
-                      // Free slot - take directly
-                      moves.takeCharacterCard(-1);
-                      setPendingCharacterCard(null);
-                    } else {
-                      // Both slots full - show replacement dialog
-                      setShowReplacementDialog(true);
-                    }
-                  }
+      {/* ── Gegner oben-rechts (Zone: 52.5% – 85%) ── */}
+      <div className="zone zone-top-right">
+        {renderOpponent(opponents[2], 'opponent-top-right', '180deg')}
+      </div>
+
+      {/* ── Gegner rechts ── */}
+      <div className="zone zone-right">
+        {renderOpponent(opponents[3], 'opponent-right', '-90deg')}
+      </div>
+
+      {/* ── Auslage Mitte ── */}
+      <div className="zone zone-center">
+        <FaceUpCards
+          pearlCards={G.pearlSlots}
+          characterCards={G.characterSlots}
+          selectedPearl={selectedPearl}
+          selectedCharacter={selectedCharacter}
+          onSelectPearl={handleSelectPearl}
+          onSelectCharacter={handleSelectCharacter}
+        />
+      </div>
+
+      {/* ── Spielerbereich: Kleiderschrank Portal als Bild ── */}
+      <div className="zone zone-player">
+        <div className="player-portal-wrapper">
+
+          {/* Portal-Bild (Weiß = transparent via multiply) */}
+          <img
+            src="/assets/Kleiderschrank Portal.png"
+            className="portal-bg-img"
+            alt="Spielerbereich"
+          />
+
+          {/* Interaktiver Overlay, der der Bildstruktur folgt */}
+          <div className="portal-content">
+
+            {/* Obere Reihe: Diamanten | Portal-Slots | Aktivierte Karten */}
+            <div className="portal-main-row">
+
+              {/* Links: Diamanten */}
+              <div className="portal-diamonds">
+                {me.diamonds > 0
+                  ? Array(me.diamonds).fill(null).map((_, i) => <span key={i}>💎</span>)
+                  : <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.7rem' }}>—</span>
                 }
-              }}
-            >
-              🎴<br />Deck
-            </button>
-            {G.characterSlots.map((card, idx) => (
-              <button
-                key={idx}
-                className="card character-card card-with-image"
-                style={{
-                  backgroundImage: `url(${getCharacterCardImage(card.name)})`,
-                }}
-                disabled={!isActive || G.actionCount >= 3}
-                title={`${card.name} - ⚡${card.powerPoints} 💎${card.diamonds}${isActive && G.actionCount < 3 ? ' - Ins Portal nehmen' : ''}`}
-                onClick={() => {
-                  if (isActive && G.actionCount < 3) {
-                    if (player && player.portal.length < 2) {
-                      moves.takeCharacterCard(idx);
-                    } else {
-                      setPendingCharacterCard(card);
-                      setSelectedCharacterSlot(idx);
-                      setShowReplacementDialog(true);
-                    }
-                  }
-                }}
-              >
-                {/* Keep text as fallback */}
-                <span className="card-fallback">
-                  <span className="name">{card.name}</span>
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Player Areas */}
-        <div className="players-area">
-          {/* Current Player's Area */}
-          {player && (
-            <div className={`player-area ${playerID === ctx.currentPlayer ? 'active' : ''}`}>
-              <h3>My Portal</h3>
-
-              {/* Portal Background with Character Placement */}
-              <div
-                className="portal-display"
-                style={{
-                  backgroundImage: `url(${getPortalImage(parseInt(playerID || '0'), G.playerOrder[0] === playerID)})`,
-                }}
-              >
-                <div className="portal-characters">
-                  {/* Character Card Slots - only show non-activated cards */}
-                  {[0, 1].map((slotIdx) => (
-                    <div key={slotIdx} className="portal-slot">
-                      {player.portal[slotIdx] && !player.portal[slotIdx].activated ? (
-                        <button
-                          className="character-placement card-with-image"
-                          style={{
-                            backgroundImage: `url(${getCharacterCardImage(player.portal[slotIdx].card.name)})`,
-                          }}
-                          onClick={() => {
-                            if (isActive && G.actionCount < 3) {
-                              setSelectedPortalSlotIndex(slotIdx);
-                              setShowCostDialog(true);
-                            }
-                          }}
-                          disabled={!isActive || G.actionCount >= 3}
-                          title={`${player.portal[slotIdx].card.name} - ⚡${player.portal[slotIdx].card.powerPoints} 💎${player.portal[slotIdx].card.diamonds} - Klicken zum Aktivieren`}
-                        />
-                      ) : (
-                        <div
-                          className="empty-portal-slot"
-                          title="Empty portal slot"
-                        >
-                          <span className="slot-label">Slot {slotIdx + 1}</span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
               </div>
 
-              <div className="player-stats">
-                <div className="stat">
-                  <span className="label">Power:</span>
-                  <span className="value">{player.powerPoints}</span>
-                </div>
-                <div className="stat">
-                  <span className="label">Diamonds:</span>
-                  <span className="value">{player.diamonds}</span>
-                </div>
-              </div>
-
-              {/* Aktivierte Karten – between portal and hand */}
-              {player.portal.some(p => p.activated) && (
-                <div className="activated-cards-area">
-                  <h4 className="activated-cards-title">✨ Activated Cards</h4>
-                  <div className="activated-cards-row">
-                    {player.portal
-                      .filter(p => p.activated)
-                      .map((char, idx) => (
-                        <div
-                          key={idx}
-                          className="activated-card-item card-with-image"
-                          style={{
-                            backgroundImage: `url(${getCharacterCardImage(char.card.name)})`,
-                          }}
-                          title={`${char.card.name} - ⚡${char.card.powerPoints} 💎${char.card.diamonds} (aktiviert)`}
-                        />
-                      ))
-                    }
-                  </div>
-                </div>
-              )}
-
-              <div className="hand">
-                <h4>Hand ({player.hand.length}/5)</h4>
-                <div className="cards">
-                  {player.hand.map((card, idx) => (
+              {/* Mitte: Portal-Kartenslots (Charakterkarten im Portal) */}
+              <div className="portal-slots">
+                {[0, 1].map(slotIdx => {
+                  const slot = me.portal[slotIdx];
+                  return (
                     <div
-                      key={idx}
-                      className="hand-card card-with-image"
-                      style={{
-                        backgroundImage: `url(${getPearlCardImage(card.value)})`,
+                      key={slotIdx}
+                      className={`portal-card-slot ${!slot ? 'empty' : slot.activated ? 'activated' : ''}`}
+                      title={slot ? `${slot.card.name} – Klick zum Aktivieren` : 'Leerer Slot'}
+                      onClick={() => {
+                        if (slot && !slot.activated) onActivateCharacter(slotIdx);
                       }}
-                      title={`Pearl Card ${card.value}${card.hasSwapSymbol ? ' (Swap)' : ''}`}
                     >
-                      {card.hasSwapSymbol && <span className="swap-indicator">♻</span>}
+                      {slot
+                        ? <img src={getCharacterCardImage(slot.card.name)} alt={slot.card.name} />
+                        : <span>Slot {slotIdx + 1}</span>
+                      }
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
 
-              {/* Action Buttons */}
-              {playerID === ctx.currentPlayer && isActive && (
-                <div className="actions">
-                  {G.actionCount < 3 && (
-                    <>
-                      <button
-                        onClick={() => moves.replacePearlSlots()}
-                        className="action-btn secondary"
-                      >
-                        Replace Pearl Cards
-                      </button>
-                    </>
-                  )}
-                  <button
-                    onClick={() => events.endTurn()}
-                    className="action-btn primary"
-                  >
-                    End Turn
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Other Players */}
-          <div className="other-players">
-            {(G.playerOrder || Object.keys(G.players))
-              .filter(pId => pId !== playerID)
-              .map(pId => {
-                const p = G.players[pId];
-                return (
-                  <div
-                    key={pId}
-                    className={`player-info ${pId === ctx.currentPlayer ? 'active' : ''}`}
-                  >
-                    <div className="name">
-                      {p.name}
-                      {p.isAI && <span className="ai-badge">🤖</span>}
+              {/* Rechts: Aktivierte Karten */}
+              <div className="portal-activated">
+                {me.portal
+                  .filter(s => s.activated)
+                  .map((s, i) => (
+                    <div key={i} className="portal-card-slot activated" title={s.card.name}>
+                      <img src={getCharacterCardImage(s.card.name)} alt={s.card.name} />
                     </div>
-                    <div className="stats-row">
-                      <span className="stat">⚡ {p.powerPoints}</span>
-                      <span className="stat">💎 {p.diamonds}</span>
-                      <span className="stat">🃏 {p.hand.length}</span>
-                    </div>
-
-                    {/* Other Player's Portal */}
-                    <div className="other-portal">
-                      <span className="portal-label">Portal:</span>
-                      {p.portal.length > 0 ? (
-                        <div className="portal-cards">
-                          {p.portal.map((char, idx) => (
-                            <div
-                              key={idx}
-                              className={`opponent-char-card card-with-image ${char.activated ? 'rotated' : ''}`}
-                              style={{
-                                backgroundImage: `url(${getCharacterCardImage(char.card.name)})`,
-                              }}
-                              title={`Character ${char.card.name}`}
-                            >
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="no-portal">-</span>
-                      )}
-                    </div>
-
-                    {/* Other Player's Hand (hidden) */}
-                    <div className="other-hand">
-                      <span className="hand-label">Hand: {p.hand.length} card{p.hand.length !== 1 ? 's' : ''}</span>
-                      <div className="hidden-cards">
-                        {p.hand.map((_, idx) => (
-                          <div key={idx} className="hidden-card card-with-image" style={{ backgroundImage: `url(${getCardBackImage('pearl')})` }}>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-          </div>
-        </div>
-      </div>
-
-      {/* Game Status */}
-      {G.finalRound ? (
-        <div className="game-status-footer">
-          <div className="final-round-banner">
-            <div className="banner-content">
-              <span className="banner-icon">🎯</span>
-              <div className="banner-text">
-                <h2>FINAL ROUND!</h2>
-                <p>{G.players[G.finalRoundStartingPlayer || '']?.name || 'Player'} triggered the final round</p>
+                  ))
+                }
               </div>
             </div>
-          </div>
-        </div>
-      ) : (
-        <div className="game-status-footer">
-          <div className="turn-indicator">
-            <span className="turn-label">Current Turn:</span>
-            <span className="turn-value">{G.players[G.playerOrder[0]]?.name || 'Unknown'}</span>
-          </div>
-        </div>
-      )}
 
-      {/* Cost Payment Dialog for activating a portal card */}
-      {showCostDialog && selectedPortalSlotIndex !== null && player?.portal[selectedPortalSlotIndex] && (
-        <CostPaymentDialog
-          character={player.portal[selectedPortalSlotIndex].card}
-          hand={player.hand}
-          diamonds={player.diamonds}
-          onPay={(usedCardIndices) => {
-            moves.activatePortalCard(selectedPortalSlotIndex, usedCardIndices);
-            setShowCostDialog(false);
-            setSelectedPortalSlotIndex(null);
-          }}
-          onCancel={() => {
-            setShowCostDialog(false);
-            setSelectedPortalSlotIndex(null);
-          }}
-        />
-      )}
+            {/* Untere Reihe: Hand + Aktions-Buttons */}
+            <div className="portal-hand-row">
+              <div className="portal-hand">
+                <PlayerHand
+                  hand={me.hand}
+                  selectedIndices={selectedHandIndices}
+                  phase={phase}
+                  onSelect={handleSelectHand}
+                  onClearSelection={() => setSelectedHandIndices([])}
+                />
+              </div>
+              <div className="portal-actions">
+                <ActionButtons
+                  gamePhase={phase}
+                  actionsRemaining={3 - (G.actionCount || 0)}
+                  selectedPearl={selectedPearl}
+                  selectedCharacter={selectedCharacter}
+                  selectedHandCount={selectedHandIndices.length}
+                  onTakePearl={onTakePearl}
+                  onPlaceCharacter={onPlaceCharacter}
+                  onActivateCharacter={onActivateCharacter}
+                  onDiscardCards={onDiscardCards}
+                  onEndTurn={onEndTurn}
+                  currentPlayer={me}
+                />
+              </div>
+            </div>
 
-      {/* Character Replacement Dialog (when both portal slots are full) */}
-      {showReplacementDialog && pendingCharacterCard && selectedCharacterSlot !== null && player && (
-        <CharacterReplacementDialog
-          newCard={pendingCharacterCard}
-          portalCards={player.portal.map(p => p.card)}
-          onSelect={(replacedSlotIndex) => {
-            moves.takeCharacterCard(selectedCharacterSlot, replacedSlotIndex);
-            setShowReplacementDialog(false);
-            setPendingCharacterCard(null);
-            setSelectedCharacterSlot(null);
-          }}
-          onCancel={() => {
-            setShowReplacementDialog(false);
-            setPendingCharacterCard(null);
-            setSelectedCharacterSlot(null);
-          }}
-        />
-      )}
+          </div>{/* /portal-content */}
+        </div>{/* /player-portal-wrapper */}
+      </div>{/* /zone-player */}
+
     </div>
   );
 }

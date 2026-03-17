@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { PearlCard, CharacterCard } from '../lib/types';
+import type { PearlCard, CharacterCard } from '@portale-von-molthar/shared';
 import { CardInfo } from './CardInfo';
 import '../styles/Components.css';
 
@@ -22,38 +22,47 @@ export function FaceUpCards({
 }: FaceUpCardsProps) {
   const [hoveredCharIdx, setHoveredCharIdx] = useState<number | null>(null);
 
+  // Helper function to get pearl card image path
+  function getPearlCardImage(value: number): string {
+    return `/assets/Perlenkarte${value}.jpeg`;
+  }
+
+  // Helper function to get character card image path
+  function getCharacterCardImage(cardName: string): string {
+    // Card names are like "Character 1", "Character 2", etc.
+    // Assets are named "Charakterkarte1.jpeg", "Charakterkarte2.jpeg", etc.
+    const match = cardName.match(/(\d+)/);
+    if (match) {
+      const num = match[1];
+      return `/assets/Charakterkarte${num}.jpeg`;
+    }
+    // Fallback to generic back image or placeholder
+    return '/assets/Charakterkarte Hinten.jpeg';
+  }
+
   return (
-    <div 
-      className="face-up-cards auslage-container"
-      style={{
-        backgroundImage: 'url(/assets/Auslage.png)',
-        backgroundSize: 'contain',
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'center',
-        width: '100%',
-        maxWidth: '1000px',
-        aspectRatio: '16 / 9',
-        position: 'relative',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}
-    >
+    <div className="auslage-container">
       {/* Character Cards Section */}
       <div className="auslage-section characters-section">
+        <h3 className="auslage-label">Charakterkarten</h3>
         <div className="auslage-cards-row">
           {characterCards.map((card, idx) => (
             <button
               key={idx}
-              className={`card character-card auslage-card ${selectedCharacter === idx ? 'selected' : ''}`}
+              className={`card character-card auslage-card card-with-image ${selectedCharacter === idx ? 'selected' : ''}`}
               onClick={() => onSelectCharacter(idx)}
               onMouseEnter={() => setHoveredCharIdx(idx)}
               onMouseLeave={() => setHoveredCharIdx(null)}
               title={card.name}
+              style={{
+                backgroundImage: `url(${getCharacterCardImage(card.name)})`,
+                backgroundSize: 'contain',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
+              }}
             >
-              <div className="card-name">{card.name}</div>
-              <div className="card-stats">
+              <div className="card-name visually-hidden">{card.name}</div>
+              <div className="card-stats visually-hidden">
                 <span>⚡{card.powerPoints}</span>
                 <span>💎{card.diamonds}</span>
               </div>
@@ -64,16 +73,23 @@ export function FaceUpCards({
 
       {/* Pearl Cards Section */}
       <div className="auslage-section pearls-section">
+        <h3 className="auslage-label">Perlenkarten</h3>
         <div className="auslage-cards-row">
           {pearlCards.map((card, idx) => (
             <button
               key={idx}
-              className={`card pearl-card auslage-card ${selectedPearl === idx ? 'selected' : ''}`}
+              className={`card pearl-card auslage-card card-with-image ${selectedPearl === idx ? 'selected' : ''}`}
               onClick={() => onSelectPearl(idx)}
               title={`Pearl ${card.value}${card.hasSwapSymbol ? ' (Swap)' : ''}`}
+              style={{
+                backgroundImage: `url(${getPearlCardImage(card.value)})`,
+                backgroundSize: 'contain',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
+              }}
             >
-              <span className="card-value">{card.value}</span>
-              {card.hasSwapSymbol && <span className="swap-symbol">⇄</span>}
+              <span className="card-value visually-hidden">{card.value}</span>
+              {card.hasSwapSymbol && <span className="swap-symbol visually-hidden">⇄</span>}
             </button>
           ))}
         </div>

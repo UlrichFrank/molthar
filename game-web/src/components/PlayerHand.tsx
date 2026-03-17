@@ -1,4 +1,4 @@
-import type { PearlCard } from '../lib/types';
+import type { PearlCard } from '@portale-von-molthar/shared';
 import { HandDisplay } from './HandDisplay';
 
 interface PlayerHandProps {

@@ -1,4 +1,4 @@
-import type { PlayerState, CharacterCard } from '../lib/types';
+import type { PlayerState, CharacterCard } from '@portale-von-molthar/shared';
 
 interface PlayerPortalProps {
   player: PlayerState;
@@ -9,6 +9,12 @@ export function PlayerPortal({
   player,
   isCurrentPlayer,
 }: PlayerPortalProps) {
+  // Calculate total active power/diamonds if not on player state?
+  // Actually shared state has them pre-calculated usually, but let's check.
+  // Assuming PlayerState has powerPoints and diamonds.
+  
+  const activeCharacters = player.portal.filter(slot => slot.activated).map(slot => slot.card);
+
   return (
     <div 
       className={`player-portal-container ${isCurrentPlayer ? 'current' : 'opponent'}`}
@@ -34,11 +40,11 @@ export function PlayerPortal({
         <div className="portal-stats">
           <div className="stat">
             <span className="label">Power:</span>
-            <span className="value power">{player.portal.powerPoints}</span>
+            <span className="value power">{player.powerPoints}</span>
           </div>
           <div className="stat">
             <span className="label">Diamonds:</span>
-            <span className="value diamonds">{player.portal.diamonds}</span>
+            <span className="value diamonds">{player.diamonds}</span>
           </div>
           <div className="stat">
             <span className="label">Hand:</span>
@@ -48,10 +54,10 @@ export function PlayerPortal({
       </div>
 
       {/* Diamonds Section (left side of portal) */}
-      {player.portal.diamonds > 0 && (
+      {player.diamonds > 0 && (
         <div className="diamonds-section">
           <div className="diamonds-display">
-            {Array(player.portal.diamonds).fill(null).map((_, idx) => (
+            {Array(player.diamonds).fill(null).map((_, idx) => (
               <span key={idx} className="diamond">💎</span>
             ))}
           </div>
@@ -59,11 +65,11 @@ export function PlayerPortal({
       )}
 
       {/* Active Characters Section (right side of portal) */}
-      {player.portal.characters.length > 0 && (
+      {activeCharacters.length > 0 && (
         <div className="active-characters">
           <h4 className="section-label">Active Characters</h4>
           <div className="characters-display">
-            {player.portal.characters.map((char: CharacterCard, idx: number) => (
+            {activeCharacters.map((char: CharacterCard, idx: number) => (
               <div key={idx} className="active-character">
                 <span className="name">{char.name}</span>
                 <span className="power">⚡{char.powerPoints}</span>
