@@ -297,7 +297,6 @@ export function GameContainer() {
     <>
       <GameBoard
         gameState={gameState}
-        characters={characters}
         selectedPearl={selectedPearl}
         selectedCharacter={selectedCharacter}
         selectedHandIndices={selectedHandIndices}

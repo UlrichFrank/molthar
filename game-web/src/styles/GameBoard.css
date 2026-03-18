@@ -188,36 +188,23 @@
 }
 
 
-/* Bottom Panel (HUD) */
+/* Bottom Panel (HUD) - Now only Game Log */
 .bottom-panel {
   flex: 0 0 auto; /* Don't grow, size to content */
   max-height: 35vh;
   background: rgba(15, 23, 42, 0.95);
   border-top: 1px solid #3b82f6;
-  display: grid;
-  grid-template-columns: 1fr 300px 1fr; /* Hand | Actions | Log */
+  display: flex;
+  justify-content: center;
   gap: 1rem;
   padding: 1rem;
   z-index: 50;
 }
 
-.hand-section {
-  grid-column: 1;
-  overflow-x: auto;
-}
-
-.action-buttons {
-  grid-column: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
 .game-log-section, .game-log {
-  grid-column: 3;
   overflow-y: auto;
-  border-left: 1px solid #334155;
-  padding-left: 1rem;
+  flex: 1;
+  max-width: 600px;
 }
 
 /* Responsive */

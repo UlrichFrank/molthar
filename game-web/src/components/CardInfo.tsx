@@ -28,7 +28,7 @@ export function CardInfo({ character }: CardInfoProps) {
           <span className="value diamonds">💎{character.diamonds}</span>
         </div>
 
-        {character.ability !== 'none' && (
+        {character.ability && character.ability !== 'none' && (
           <div className="detail-row">
             <span className="label">Ability:</span>
             <span className="value ability">{formatAbility(character.ability)}</span>

@@ -83,13 +83,11 @@ export function Board(props: BoardProps) {
         <div className="opponent-card-wrapper">
           <img src={img} alt={`Portal ${player.name}`} />
         </div>
-        <div className="opponent-info">
-          <div className="opponent-name">{player.name}</div>
-          <div className="opponent-stats">
-            <span>⚡{player.powerPoints}</span>
-            <span>💎{player.diamonds}</span>
-            <span>🃏{player.hand.length}</span>
-          </div>
+        <div className="opponent-name">{player.name}</div>
+        <div className="opponent-stats">
+          <span>⚡{player.powerPoints}</span>
+          <span>💎{player.diamonds}</span>
+          <span>🃏{player.hand.length}</span>
         </div>
       </div>
     );
@@ -146,17 +144,15 @@ export function Board(props: BoardProps) {
 
       {/* ── Spielerbereich: Kleiderschrank Portal als Bild ── */}
       <div className="zone zone-player">
-        <div className="player-portal-wrapper">
+        {/* Portal-Bild (Weiß = transparent via multiply) */}
+        <img
+          src="/assets/Kleiderschrank Portal.png"
+          className="portal-bg-img"
+          alt="Spielerbereich"
+        />
 
-          {/* Portal-Bild (Weiß = transparent via multiply) */}
-          <img
-            src="/assets/Kleiderschrank Portal.png"
-            className="portal-bg-img"
-            alt="Spielerbereich"
-          />
-
-          {/* Interaktiver Overlay, der der Bildstruktur folgt */}
-          <div className="portal-content">
+        {/* Interaktiver Overlay, der der Bildstruktur folgt */}
+        <div className="portal-content">
 
             {/* Obere Reihe: Diamanten | Portal-Slots | Aktivierte Karten */}
             <div className="portal-main-row">
@@ -233,7 +229,6 @@ export function Board(props: BoardProps) {
             </div>
 
           </div>{/* /portal-content */}
-        </div>{/* /player-portal-wrapper */}
       </div>{/* /zone-player */}
 
     </div>

@@ -1,16 +1,12 @@
-import type { IGameState, CharacterCard } from '../lib/types';
+import type { IGameState } from '../lib/types';
 import { GameActionType } from '../lib/types';
 import { FaceUpCards } from './FaceUpCards';
 import { PlayerPortal } from './PlayerPortal';
-import { OpponentPortals } from './OpponentPortals';
-import { PlayerHand } from './PlayerHand';
-import { ActionButtons } from './ActionButtons';
 import { GameLog } from './GameLog';
 import '../styles/GameBoard.css';
 
 interface GameBoardProps {
   gameState: IGameState;
-  characters: CharacterCard[];
   selectedPearl: number | null;
   selectedCharacter: number | null;
   selectedHandIndices: number[];
@@ -31,7 +27,6 @@ interface GameBoardProps {
  */
 export function GameBoard({
   gameState,
-  characters,
   selectedPearl,
   selectedCharacter,
   selectedHandIndices,
@@ -147,53 +142,42 @@ export function GameBoard({
             </div>
           )}
 
-          {/* Bottom: Current Player Portal */}
+          {/* Bottom: Current Player Portal with integrated hand and actions */}
           <div className="table-position bottom-player">
             <PlayerPortal
               player={currentPlayer}
               isCurrentPlayer={true}
+              hand={currentPlayer.hand}
+              selectedHandIndices={selectedHandIndices}
+              gamePhase={gameState.gamePhase}
+              actionsRemaining={actionsRemaining}
+              selectedPearl={selectedPearl}
+              selectedCharacter={selectedCharacter}
+              onSelectHandCard={onSelectHandCard}
+              onClearHandSelection={onClearHandSelection}
+              onTakePearl={onTakePearl}
+              onPlaceCharacter={onPlaceCharacter}
+              onActivateCharacter={onActivateCharacter}
+              onDiscardCards={onDiscardCards}
+              onEndTurn={onEndTurn}
             />
           </div>
 
         </div>
       </div>
 
-      {/* Bottom Panel: Hand, Actions, Log */}
+      {/* Bottom Panel: Log only (Hand and Actions now in PlayerPortal) */}
       <div className="bottom-panel">
         {/* Error display */}
         {error && <div className="error-message">{error}</div>}
 
-        {/* Player hand */}
-        <div className="hand-section">
-          <PlayerHand
-            hand={currentPlayer.hand}
-            selectedIndices={selectedHandIndices}
-            phase={gameState.gamePhase}
-            onSelect={onSelectHandCard}
-            onClearSelection={onClearHandSelection}
+        {/* Game Log */}
+        <div className="game-log-section">
+          <GameLog
+            gameLog={gameState.gameLog}
+            playerNames={new Map(gameState.players.map((p) => [p.id, p.name]))}
           />
         </div>
-
-        {/* Action buttons */}
-        <ActionButtons
-          gamePhase={gameState.gamePhase}
-          actionsRemaining={actionsRemaining}
-          selectedPearl={selectedPearl}
-          selectedCharacter={selectedCharacter}
-          selectedHandCount={selectedHandIndices.length}
-          onTakePearl={onTakePearl}
-          onPlaceCharacter={onPlaceCharacter}
-          onActivateCharacter={onActivateCharacter}
-          onDiscardCards={onDiscardCards}
-          onEndTurn={onEndTurn}
-          currentPlayer={currentPlayer}
-        />
-
-        {/* Game Log */}
-        <GameLog
-          gameLog={gameState.gameLog}
-          playerNames={new Map(gameState.players.map((p) => [p.id, p.name]))}
-        />
       </div>
     </div>
   );

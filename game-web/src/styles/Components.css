@@ -761,10 +761,10 @@
 
 /* Hand Display */
 .hand-display {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  border: 2px solid #334155;
-  border-radius: 0.75rem;
-  padding: 1rem;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
 }
 
 .hand-header {
@@ -781,10 +781,10 @@
 }
 
 .hand-count {
-  background: rgba(59, 130, 246, 0.1);
+  background: transparent;
   color: #60a5fa;
-  padding: 0.25rem 0.75rem;
-  border-radius: 0.25rem;
+  padding: 0;
+  border-radius: 0;
   font-size: 0.85rem;
   font-weight: bold;
 }
@@ -794,10 +794,10 @@
   gap: 1rem;
   align-items: center;
   margin-bottom: 0.75rem;
-  padding: 0.5rem;
-  background: rgba(34, 197, 94, 0.1);
-  border-left: 3px solid #22c55e;
-  border-radius: 0.25rem;
+  padding: 0;
+  background: transparent;
+  border-left: 0;
+  border-radius: 0;
 }
 
 .stat-item {
@@ -910,10 +910,10 @@
 
 /* Action Buttons */
 .action-buttons {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  border: 2px solid #334155;
-  border-radius: 0.75rem;
-  padding: 1rem;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
 }
 
 .phase-indicator {
@@ -921,10 +921,10 @@
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 1rem;
-  padding: 0.75rem;
-  background: rgba(15, 23, 42, 0.6);
-  border-left: 4px solid #3b82f6;
-  border-radius: 0.25rem;
+  padding: 0;
+  background: transparent;
+  border-left: 0;
+  border-radius: 0;
 }
 
 .phase-label {
@@ -1889,14 +1889,15 @@
   background-repeat: no-repeat;
   background-position: center;
   width: 100%;
-  max-width: 1200px;
-  aspect-ratio: 16 / 9;
+  height: 100%;
+  max-width: none;
+  aspect-ratio: auto;
   display: flex;
   flex-direction: column;
   justify-content: space-around;
   align-items: center;
-  padding: 2rem;
-  margin: 0 auto;
+  padding: 1rem;
+  margin: 0;
 }
 
 .auslage-label {
@@ -1912,30 +1913,37 @@
 }
 
 .characters-section .auslage-label {
-  top: 15%;
-  left: 10%;
+  top: -2rem;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .pearls-section .auslage-label {
-  top: 65%;
-  left: 60%;
+  top: -2rem;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .auslage-section {
-  position: relative;
+  position: absolute;
   z-index: 10;
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
+  width: auto;
 }
 
 .characters-section {
-  flex: 0.4;
+  top: 8.7%;
+  left: 35%;
+  transform: translateX(-50%);
 }
 
 .pearls-section {
-  flex: 0.4;
+  top: 8.7%;
+  right: auto;
+  left: 58%;
+  transform: translateX(-50%);
 }
 
 .auslage-cards-row {
@@ -1999,4 +2007,271 @@
   .auslage-label {
     font-size: 0.65rem;
   }
+}
+
+/* Portal Hand Container - invisible, only for positioning */
+.portal-hand-container {
+  position: absolute !important;
+  left: 10px !important;
+  bottom: 20px !important;
+  width: 180px !important;
+  height: auto !important;
+  pointer-events: none !important;
+  z-index: 10 !important;
+}
+
+.portal-hand-container > * {
+  pointer-events: auto !important;
+}
+
+/* Hide the hand-display wrapper completely */
+.portal-hand-container .hand-display {
+  background: none !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+  display: block !important;
+}
+
+/* Hide all headers and labels */
+.portal-hand-container .hand-header {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.portal-hand-container .hand-title {
+  display: none !important;
+}
+
+.portal-hand-container .hand-count {
+  display: none !important;
+}
+
+.portal-hand-container .hand-stats {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.portal-hand-container .empty-hand {
+  display: none !important;
+}
+
+/* Show only the grid with cards */
+.portal-hand-container .hand-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 0.4rem !important;
+  width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: none !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+.portal-hand-container .hand-card {
+  width: 50px !important;
+  height: 75px !important;
+  font-size: 1.1rem !important;
+  border: 1px solid #1e40af !important;
+  background: linear-gradient(135deg, #3b82f6, #1e40af) !important;
+  aspect-ratio: 3/4 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0.4rem !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.portal-hand-container .hand-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
+}
+
+.portal-hand-container .hand-card.selected {
+  background: linear-gradient(135deg, #10b981, #047857) !important;
+  border-color: #34d399 !important;
+  box-shadow: 0 0 12px rgba(52, 211, 153, 0.5) !important;
+}
+
+.portal-hand-container .empty-hand {
+  display: none !important;
+}
+
+/* Portal Actions Container - invisible, only for positioning */
+.portal-actions-container {
+  position: absolute !important;
+  right: 10px !important;
+  bottom: 20px !important;
+  width: 180px !important;
+  height: auto !important;
+  pointer-events: none !important;
+  z-index: 10 !important;
+}
+
+.portal-actions-container > * {
+  pointer-events: auto !important;
+}
+
+/* Hide the action-buttons wrapper completely */
+.portal-actions-container .action-buttons {
+  background: none !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+  display: block !important;
+}
+
+/* Hide phase indicator completely */
+.portal-actions-container .phase-indicator {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.portal-actions-container .phase-label {
+  display: none !important;
+}
+
+.portal-actions-container .phase-badge {
+  display: none !important;
+}
+
+/* Show action content - flex layout for buttons */
+.portal-actions-container .action-phase-content {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.3rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  background: none !important;
+  border: none !important;
+}
+
+.portal-actions-container .actions-row {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.3rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  background: none !important;
+  border: none !important;
+}
+
+/* Style the buttons themselves */
+.portal-actions-container .btn {
+  padding: 0.4rem 0.6rem !important;
+  font-size: 0.75rem !important;
+  flex: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  border-radius: 0.3rem !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-weight: 600 !important;
+}
+
+.portal-actions-container .btn:hover:not(:disabled) {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3) !important;
+}
+
+.portal-actions-container .btn-primary {
+  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+  color: white !important;
+  border: 1px solid #1e40af !important;
+}
+
+.portal-actions-container .btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #60a5fa, #3b82f6) !important;
+}
+
+.portal-actions-container .btn-secondary {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important;
+  color: white !important;
+  border: 1px solid #6d28d9 !important;
+}
+
+.portal-actions-container .btn-warning {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  color: white !important;
+  border: 1px solid #991b1b !important;
+}
+
+.portal-actions-container .btn:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* Hide the action group label */
+.portal-actions-container .action-group {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.2rem !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: none !important;
+  border: none !important;
+}
+
+.portal-actions-container .group-label {
+  display: none !important;
+}
+
+.portal-actions-container .character-select {
+  font-size: 0.75rem !important;
+  padding: 0.3rem !important;
+  width: 100% !important;
+}
+
+.portal-actions-container .help-text {
+  display: none !important;
+}
+
+/* Discard and finished phase content */
+.portal-actions-container .discard-phase-content,
+.portal-actions-container .finished-phase-content {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.3rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  background: none !important;
+  border: none !important;
+}
+
+.portal-actions-container .discard-info {
+  display: none !important;
+}
+
+.portal-actions-container .info-text {
+  display: none !important;
+}
+
+.portal-actions-container .finished-message {
+  display: none !important;
+}
+
+/* Hide btn-badge and btn-large styling */
+.portal-actions-container .btn-badge {
+  display: inline-flex !important;
+  background: rgba(255,255,255,0.3) !important;
+  font-size: 0.7rem !important;
 }
