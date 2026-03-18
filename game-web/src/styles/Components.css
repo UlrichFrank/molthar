@@ -1,3 +1,11 @@
+/* Card Size Configuration */
+:root {
+  --card-aspect-ratio: 59 / 92;
+  --card-width-desktop: 80px;
+  --card-width-tablet: 80px;
+  --card-width-mobile: 50px;
+}
+
 /* Button Styles */
 .btn {
   padding: 0.75rem 1.5rem;
@@ -246,44 +254,6 @@
   color: #fbbf24;
   font-weight: bold;
   z-index: 20;
-}
-
-/* Responsive Opponent Portals */
-@media (max-width: 1024px) {
-  .opponent-portals {
-    gap: 1.5rem;
-  }
-
-  .opponent-portal-card {
-    width: 200px;
-    height: 160px;
-  }
-}
-
-@media (max-width: 768px) {
-  .opponent-portals {
-    gap: 1rem;
-  }
-
-  .opponent-portal-card {
-    width: 150px;
-    height: 120px;
-  }
-
-  .opponent-info {
-    padding: 0.4rem;
-    font-size: 0.75rem;
-  }
-
-  .opponent-portal-card .stats-row {
-    gap: 0.5rem;
-    font-size: 0.65rem;
-  }
-
-  .active-count {
-    padding: 0.3rem 0.5rem;
-    font-size: 0.7rem;
-  }
 }
 
 /* Player Hand */
@@ -663,21 +633,6 @@
   }
 }
 
-@media (max-width: 1400px) {
-  .character-info-popup {
-    right: -270px;
-  }
-}
-
-@media (max-width: 1200px) {
-  .character-info-popup {
-    position: fixed;
-    right: 10px;
-    top: 10%;
-    z-index: 100;
-  }
-}
-
 /* Error Display */
 .error-display {
   position: fixed;
@@ -835,7 +790,7 @@
 
 .hand-card {
   position: relative;
-  aspect-ratio: 3/4;
+  aspect-ratio: var(--card-aspect-ratio);
   background: linear-gradient(135deg, #3b82f6, #1e40af);
   border: 2px solid #1e40af;
   border-radius: 0.4rem;
@@ -1112,20 +1067,6 @@
   font-size: 0.9rem;
   padding: 1rem;
   margin: 0;
-}
-
-@media (max-width: 768px) {
-  .actions-row {
-    flex-direction: column;
-  }
-
-  .btn {
-    width: 100%;
-  }
-
-  .action-group {
-    min-width: auto;
-  }
 }
 
 /* Start Screen */
@@ -1445,27 +1386,6 @@
   font-size: 0.9rem;
 }
 
-@media (max-width: 640px) {
-  .start-container,
-  .finished-container {
-    padding: 1.5rem;
-  }
-
-  .start-title,
-  .finished-title {
-    font-size: 2rem;
-  }
-
-  .player-names-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .winner-stats {
-    flex-direction: column;
-    gap: 1rem;
-  }
-}
-
 /* Game Log */
 .game-log {
   background: rgba(15, 23, 42, 0.8);
@@ -1553,12 +1473,6 @@
   flex: 1;
 }
 
-@media (max-width: 480px) {
-  .button-group {
-    flex-direction: column;
-  }
-}
-
 /* Auslage (FaceUpCards) Container */
 .auslage-container {
   position: relative;
@@ -1588,37 +1502,20 @@
 }
 
 .auslage-cards-row {
-  display: flex;
+  display: grid;
+  place-items: center;  /* Zentriert alle Items */
+  grid-template-columns: repeat(6, auto);  /* 6 Karten pro Reihe */
   gap: 1.5rem;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
 }
 
 .auslage-card {
-  width: 80px !important;
-  height: 120px !important;
+  width: var(--card-width-desktop) !important;
+  aspect-ratio: var(--card-aspect-ratio) !important;
   padding: 0.5rem !important;
 }
 
 .auslage-card.pearl-card .card-value {
   font-size: 2.5rem !important;
-}
-
-/* Responsive Auslage */
-@media (max-width: 768px) {
-  .auslage-container {
-    padding: 1rem;
-  }
-  
-  .auslage-card {
-    width: 60px !important;
-    height: 90px !important;
-  }
-  
-  .auslage-cards-row {
-    gap: 1rem;
-  }
 }
 
 /* Player Portal Container with rendered Portal image */
@@ -1754,19 +1651,6 @@
   font-weight: bold;
 }
 
-@media (max-width: 768px) {
-  .player-portal-info,
-  .diamonds-section,
-  .active-characters {
-    font-size: 0.8rem;
-    padding: 0.5rem;
-  }
-
-  .diamond {
-    font-size: 1rem;
-  }
-}
-
 /* Opponent Portals Container */
 .opponent-portals {
   display: flex;
@@ -1843,44 +1727,6 @@
   z-index: 20;
 }
 
-/* Responsive Opponent Portals */
-@media (max-width: 1024px) {
-  .opponent-portals {
-    gap: 1.5rem;
-  }
-
-  .opponent-portal-card {
-    width: 200px;
-    height: 160px;
-  }
-}
-
-@media (max-width: 768px) {
-  .opponent-portals {
-    gap: 1rem;
-  }
-
-  .opponent-portal-card {
-    width: 150px;
-    height: 120px;
-  }
-
-  .opponent-info {
-    padding: 0.4rem;
-    font-size: 0.75rem;
-  }
-
-  .opponent-portal-card .stats-row {
-    gap: 0.5rem;
-    font-size: 0.65rem;
-  }
-
-  .active-count {
-    padding: 0.3rem 0.5rem;
-    font-size: 0.7rem;
-  }
-}
-
 /* Auslage (FaceUpCards) Container with background image */
 .auslage-container {
   position: relative;
@@ -1935,78 +1781,34 @@
 
 .characters-section {
   top: 8.7%;
-  left: 35%;
+  left: 31%;
   transform: translateX(-50%);
 }
 
 .pearls-section {
   top: 8.7%;
   right: auto;
-  left: 58%;
+  left: 60.8%;
   transform: translateX(-50%);
 }
-
+/*
 .auslage-cards-row {
   display: flex;
   gap: 1rem;
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-}
+}*/ 
 
 .auslage-card {
-  width: 70px !important;
-  height: 105px !important;
+  width: var(--card-width-desktop) !important;
+  aspect-ratio: var(--card-aspect-ratio) !important;
   padding: 0.4rem !important;
   font-size: 0.8rem !important;
 }
 
 .auslage-card.pearl-card .card-value {
   font-size: 2rem !important;
-}
-
-/* Responsive Auslage */
-@media (max-width: 1024px) {
-  .auslage-container {
-    max-width: 900px;
-    padding: 1.5rem;
-  }
-  
-  .auslage-card {
-    width: 60px !important;
-    height: 90px !important;
-    padding: 0.3rem !important;
-  }
-  
-  .auslage-cards-row {
-    gap: 0.8rem;
-  }
-  
-  .auslage-label {
-    font-size: 0.75rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .auslage-container {
-    max-width: 600px;
-    padding: 1rem;
-  }
-  
-  .auslage-card {
-    width: 50px !important;
-    height: 75px !important;
-    padding: 0.2rem !important;
-    font-size: 0.65rem !important;
-  }
-  
-  .auslage-cards-row {
-    gap: 0.6rem;
-  }
-
-  .auslage-label {
-    font-size: 0.65rem;
-  }
 }
 
 /* Portal Hand Container - invisible, only for positioning */
@@ -2076,12 +1878,11 @@
 }
 
 .portal-hand-container .hand-card {
-  width: 50px !important;
-  height: 75px !important;
+  width: var(--card-width-mobile) !important;
+  aspect-ratio: var(--card-aspect-ratio) !important;
   font-size: 1.1rem !important;
   border: 1px solid #1e40af !important;
   background: linear-gradient(135deg, #3b82f6, #1e40af) !important;
-  aspect-ratio: 3/4 !important;
   padding: 0 !important;
   margin: 0 !important;
   border-radius: 0.4rem !important;
