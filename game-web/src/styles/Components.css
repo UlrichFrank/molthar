@@ -1,9 +1,10 @@
 /* Card Size Configuration */
 :root {
   --card-aspect-ratio: 59 / 92;
-  --card-width-desktop: 80px;
-  --card-width-tablet: 80px;
-  --card-width-mobile: 50px;
+  --card-width-desktop: clamp(50px, 5vw, 100px);
+  --card-width-tablet: clamp(50px, 4vw, 80px);
+  --card-width-mobile: clamp(40px, 3.5vw, 60px);
+  --zoom-scale: 1;
 }
 
 /* Button Styles */
@@ -802,10 +803,12 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s;
+  transform: scale(var(--zoom-scale));
+  transform-origin: center;
 }
 
 .hand-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-4px) scale(var(--zoom-scale));
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
   border-color: #60a5fa;
 }
@@ -1477,41 +1480,30 @@
 .auslage-container {
   position: relative;
   display: flex;
-  flex-direction: column;
-  justify-content: space-around;
+  justify-content: center;
   align-items: center;
   padding: 2rem;
 }
 
-.auslage-section {
-  position: relative;
-  z-index: 10;
+.auslage-cards-row {
+  position: absolute;
+  top: 8.6%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.characters-section {
-  width: 100%;
-  flex: 1;
-}
-
-.pearls-section {
-  width: 100%;
-  flex: 1;
-}
-
-.auslage-cards-row {
-  display: grid;
-  place-items: center;  /* Zentriert alle Items */
-  grid-template-columns: repeat(6, auto);  /* 6 Karten pro Reihe */
   gap: 1.5rem;
+  flex-wrap: wrap;
 }
 
 .auslage-card {
   width: var(--card-width-desktop) !important;
   aspect-ratio: var(--card-aspect-ratio) !important;
   padding: 0.5rem !important;
+  transform: scale(var(--zoom-scale));
+  transform-origin: center;
 }
 
 .auslage-card.pearl-card .card-value {
@@ -1744,67 +1736,6 @@
   align-items: center;
   padding: 1rem;
   margin: 0;
-}
-
-.auslage-label {
-  position: absolute;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #60a5fa;
-  background: rgba(15, 23, 42, 0.8);
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  z-index: 15;
-  margin: 0;
-}
-
-.characters-section .auslage-label {
-  top: -2rem;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.pearls-section .auslage-label {
-  top: -2rem;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.auslage-section {
-  position: absolute;
-  z-index: 10;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: auto;
-}
-
-.characters-section {
-  top: 8.7%;
-  left: 31%;
-  transform: translateX(-50%);
-}
-
-.pearls-section {
-  top: 8.7%;
-  right: auto;
-  left: 60.8%;
-  transform: translateX(-50%);
-}
-/*
-.auslage-cards-row {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-}*/ 
-
-.auslage-card {
-  width: var(--card-width-desktop) !important;
-  aspect-ratio: var(--card-aspect-ratio) !important;
-  padding: 0.4rem !important;
-  font-size: 0.8rem !important;
 }
 
 .auslage-card.pearl-card .card-value {
