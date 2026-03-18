@@ -96,23 +96,9 @@ export function Board(props: BoardProps) {
   return (
     <div className="game-board">
 
-      {/* ── Header ── */}
-      <div className="game-header">
-        <h1 className="game-title">Portale von Molthar</h1>
-        <div className="game-info">
-          <div className="info-item">
-            <span className="label">Spieler:</span>
-            <span className="value">{G.players[ctx.currentPlayer]?.name}</span>
-          </div>
-          <div className="info-item">
-            <span className="label">Phase:</span>
-            <span className="value">{phase}</span>
-          </div>
-          <div className="info-item">
-            <span className="label">Aktionen:</span>
-            <span className="value">{G.actionCount || 0} / 3</span>
-          </div>
-        </div>
+      {/* ── Gegner links ── */}
+      <div className="zone zone-left">
+        {renderOpponent(opponents[3], 'opponent-left', '-90deg')}
       </div>
 
       {/* ── Gegner oben-links (Zone: 15% – 47.5%) ── */}

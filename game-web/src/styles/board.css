@@ -72,10 +72,10 @@ html, body, #root {
    ZONE: Oben-Links   → 15 % – 47.5 %  (breite 32.5 %)
    ---------------------------------------------------------- */
 .zone-top-left {
-  top: 40px;
+  top: 0%;
   left: 15%;
   right: 52.5%;           /* = 100% - 47.5% */
-  height: 30%;
+  height: 25%;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -86,10 +86,10 @@ html, body, #root {
    ZONE: Oben-Rechts  → 52.5 % – 85 %  (breite 32.5 %)
    ---------------------------------------------------------- */
 .zone-top-right {
-  top: 40px;
+  top: 0%;
   left: 52.5%;
   right: 15%;             /* = 100% - 85% */
-  height: 30%;
+  height: 25%;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -100,8 +100,22 @@ html, body, #root {
    ZONE: Rechts  → 85 % – 100 %
    ---------------------------------------------------------- */
 .zone-right {
-  top: 40px;
+  top: 10%;
   right: 0;
+  width: 15%;
+  /* endet, wo Spielerzone beginnt */
+  bottom: 30%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ----------------------------------------------------------
+   ZONE: Links  → 0 % – 15 %
+   ---------------------------------------------------------- */
+.zone-left {
+  top: 10%;
+  left: 0;
   width: 15%;
   /* endet, wo Spielerzone beginnt */
   bottom: 30%;
@@ -116,7 +130,7 @@ html, body, #root {
    horizontal zwischen linker und rechter Zone
    ---------------------------------------------------------- */
 .zone-center {
-  top: calc(40px + 30%);  /* direkt unter den Top-Gegnern */
+  top: calc(25%);  /* direkt unter den Top-Gegnern */
   left: 15%;
   right: 15%;
   bottom: 30%;            /* oberhalb der Spielerzone */
