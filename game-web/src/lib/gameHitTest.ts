@@ -16,9 +16,10 @@ export interface HitTarget {
 const BASE_W = 1200;
 
 // Layout proportions
-const MARGIN_H = 180; // 15% = 180px
-const ZONE_TOP_H = 200; // 25%
-const ZONE_CENTER_H = 320; // 40%
+const ZONE_TOP_H = 200; // Höhe der oberen Zonen (px)
+// Seitenbreite soll der Höhe der Top-Zonen entsprechen
+const MARGIN_H = ZONE_TOP_H; // linke/rechte Bereichsbreite (px)
+const ZONE_CENTER_H = 320; // Höhe der zentralen Auslage
 
 // Card dimensions
 const CARD_W = 59;

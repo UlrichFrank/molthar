@@ -36,11 +36,12 @@ const BASE_W = 1200;
 const BASE_H = 800;
 
 // Layout proportions from original board.css (viewport-relative, converted to model coords)
-const MARGIN_H = 180; // 15% horizontal = 180px
-const ZONE_TOP_H = 200; // 25% of 800
-const ZONE_CENTER_H = 320; // 40% of 800 (25% to 65%)
+const ZONE_TOP_H = 200; // Höhe der oberen Zonen (px)
+// Linke/rechte Bereichsbreite soll gleich der Höhe der Top-Zonen sein
+const MARGIN_H = ZONE_TOP_H; // Seitenbreite (wird für linke/rechte Zonen genutzt)
+const ZONE_CENTER_H = 320; // Höhe der zentralen Auslage
 // Player zone height: fill remaining space so it touches bottom of the canvas
-const ZONE_PLAYER_H = BASE_H - ZONE_TOP_H - ZONE_CENTER_H; // dynamic remaining height
+const ZONE_PLAYER_H = BASE_H - ZONE_TOP_H - ZONE_CENTER_H;
 
 // Card dimensions
 const CARD_W = 59;
