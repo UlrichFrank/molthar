@@ -198,8 +198,6 @@ export function drawPlayerPortal(
   drawImageOrFallback(ctx, 'Kleiderschrank Portal.png', portalX, portalY, portalW, portalH);
 
   // Portal container background (fallback if image not loaded)
-  ctx.fillStyle = 'rgba(30, 41, 59, 0.3)';
-  ctx.fillRect(portalX, portalY, portalW, portalH);
   ctx.strokeStyle = '#475569';
   ctx.lineWidth = 2;
   ctx.strokeRect(portalX, portalY, portalW, portalH);
