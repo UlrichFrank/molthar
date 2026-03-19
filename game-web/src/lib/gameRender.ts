@@ -39,7 +39,8 @@ const BASE_H = 800;
 const MARGIN_H = 180; // 15% horizontal = 180px
 const ZONE_TOP_H = 200; // 25% of 800
 const ZONE_CENTER_H = 320; // 40% of 800 (25% to 65%)
-const ZONE_PLAYER_H = 240; // 30% of 800 (bottom)
+// Player zone height: fill remaining space so it touches bottom of the canvas
+const ZONE_PLAYER_H = BASE_H - ZONE_TOP_H - ZONE_CENTER_H; // dynamic remaining height
 
 // Card dimensions
 const CARD_W = 59;

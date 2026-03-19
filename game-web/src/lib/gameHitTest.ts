@@ -17,7 +17,6 @@ const BASE_W = 1200;
 
 // Layout proportions
 const MARGIN_H = 180; // 15% = 180px
-const MARGIN_TOP = 40; // Header
 const ZONE_TOP_H = 200; // 25%
 const ZONE_CENTER_H = 320; // 40%
 
@@ -30,12 +29,12 @@ const CARD_GAP = 10;
 const AUSLAGE_CENTER_X = MARGIN_H;
 const AUSLAGE_CENTER_W = BASE_W - 2 * MARGIN_H;
 const AUSLAGE_START_X = AUSLAGE_CENTER_X + (AUSLAGE_CENTER_W - (6 * CARD_W + 5 * CARD_GAP)) / 2;
-const AUSLAGE_START_Y = MARGIN_TOP + ZONE_TOP_H + (ZONE_CENTER_H - CARD_H) / 2;
+const AUSLAGE_START_Y = ZONE_TOP_H + (ZONE_CENTER_H - CARD_H) / 2;
 
 // Portal positions
 const PORTAL_X = MARGIN_H;
 const PORTAL_W = BASE_W - 2 * MARGIN_H;
-const PORTAL_Y = MARGIN_TOP + ZONE_TOP_H + ZONE_CENTER_H;
+const PORTAL_Y = ZONE_TOP_H + ZONE_CENTER_H;
 
 // Slot positions within portal
 const SLOT_AREA_X = PORTAL_X + PORTAL_W / 3;

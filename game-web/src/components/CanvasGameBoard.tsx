@@ -418,8 +418,9 @@ export function CanvasGameBoard(props: CanvasGameBoardProps) {
         position: 'fixed',
         inset: 0,
         background: '#0a0f1e',
-        display: 'grid',
-        placeItems: 'center',
+        display: 'flex',
+        alignItems: 'flex-end',
+        justifyContent: 'center',
         overflow: 'hidden',
       }}
     >
