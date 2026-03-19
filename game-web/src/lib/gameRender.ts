@@ -133,10 +133,19 @@ export function drawAuslage(
     let label = 'Card';
 
     if (idx < 2) {
-      // Character card
-      const charId = (card as any).id || Math.floor(Math.random() * 58) + 1;
-      filename = `Charakterkarte${charId}.jpeg`;
-      label = card.name || `Char ${charId}`;
+      // Character card - try to resolve numeric id from card.name or card.id
+      const maybeName = (card as any).name || '';
+      const maybeId = String((card as any).id || '');
+      const matchName = String(maybeName).match(/(\d+)/);
+      const matchId = maybeId.match(/(\d+)/);
+      const charNum = matchName ? matchName[1] : matchId ? matchId[1] : null;
+      if (charNum) {
+        filename = `Charakterkarte${charNum}.jpeg`;
+      } else {
+        // fallback to back image if we can't find a numeric id
+        filename = 'Charakterkarte Hinten.jpeg';
+      }
+      label = maybeName || `Char ${charNum ?? '?'}`;
     } else {
       // Pearl card
       const value = ((card as any).value || 1);
@@ -187,27 +196,33 @@ export function drawPlayerPortal(
   }
 
   // Portal slots (center)
-  const slotAreaX = portalX + portalW / 3;
-  const slotAreaY = portalY + 40;
-  const slotW = 50;
-  const slotH = 75;
-  const slotGap = 12;
+  // Center vertically at 65% of the player zone and shift 3% to the right
+  const slotAreaX = portalX + portalW / 3 + portalW * 0.02;
+  const slotAreaY = portalY + portalH * 0.35;
+  const slotW = CARD_W;
+  const slotH = CARD_H;
+  const slotGap = CARD_GAP;
 
   portal.portal.forEach((slot, idx) => {
     const x = slotAreaX + idx * (slotW + slotGap);
     const y = slotAreaY;
 
     if (slot) {
-      // Draw actual character card image
-      const charId = (slot.card as any).id || Math.floor(Math.random() * 58) + 1;
+      // Draw actual character card image (resolve numeric id from name or id)
+      const maybeName = (slot.card as any).name || '';
+      const maybeId = String((slot.card as any).id || '');
+      const matchName = String(maybeName).match(/(\d+)/);
+      const matchId = maybeId.match(/(\d+)/);
+      const charNum = matchName ? matchName[1] : matchId ? matchId[1] : null;
+      const filename = charNum ? `Charakterkarte${charNum}.jpeg` : 'Charakterkarte Hinten.jpeg';
       drawImageOrFallback(
         ctx,
-        `Charakterkarte${charId}.jpeg`,
+        filename,
         x,
         y,
         slotW,
         slotH,
-        slot.card.name
+        maybeName || `Char ${charNum ?? '?'}`
       );
     } else {
       // Empty slot
@@ -228,8 +243,9 @@ export function drawPlayerPortal(
   // Hand cards (right side)
   const handStartX = slotAreaX + 280;
   const handY = slotAreaY;
-  const handCardW = 38;
-  const handCardH = 56;
+  // Hand cards displayed twice as large
+  const handCardW = 59 * 1.0; // 59
+  const handCardH = 92 * 1.0; // 92
 
   portal.hand.slice(0, 6).forEach((card, idx) => {
     const x = handStartX + idx * (handCardW + 5);
@@ -271,8 +287,8 @@ export function drawUI(ctx: CanvasRenderingContext2D, phase: string = 'takingAct
   ctx.textBaseline = 'top';
   ctx.fillText(`Phase: ${phase}`, MARGIN_H + 15, 10);
 
-  // Action buttons (bottom-right of player zone)
-  const btnX = BASE_W - MARGIN_H - 140;
+  // Action buttons: place to the right of the player area (in the right margin)
+  const btnX = BASE_W - MARGIN_H + 10; // small inset from the right-side player margin
   const btnW = 130;
   const btnH = 35;
   const btnY = ZONE_TOP_H + ZONE_CENTER_H + 40;

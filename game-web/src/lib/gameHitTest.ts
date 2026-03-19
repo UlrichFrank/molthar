@@ -1,3 +1,5 @@
+const BASE_W = 1200;
+const BASE_H = 800;
 /**
  * Hit Detection System für Canvas-basierte Spielelemente
  * Konvertiert Pointer-Koordinaten zu Spielobjekt-IDs
@@ -13,7 +15,6 @@ export interface HitTarget {
 }
 
 // Model Koordinaten und Layout (müssen mit gameRender.ts sync sein)
-const BASE_W = 1200;
 
 // Layout proportions
 const ZONE_TOP_H = 200; // Höhe der oberen Zonen (px)
@@ -37,22 +38,26 @@ const AUSLAGE_START_Y = ZONE_TOP_H + ZONE_CENTER_H * 0.05;
 const PORTAL_X = MARGIN_H;
 const PORTAL_W = BASE_W - 2 * MARGIN_H;
 const PORTAL_Y = ZONE_TOP_H + ZONE_CENTER_H;
+const ZONE_PLAYER_H = BASE_H - ZONE_TOP_H - ZONE_CENTER_H;
 
 // Slot positions within portal
-const SLOT_AREA_X = PORTAL_X + PORTAL_W / 3;
-const SLOT_AREA_Y = PORTAL_Y + 40;
-const SLOT_W = 50;
-const SLOT_H = 75;
-const SLOT_GAP = 12;
+// Center vertically at 65% of player zone and shift 3% to the right
+const SLOT_AREA_X = PORTAL_X + PORTAL_W / 3 + PORTAL_W * 0.03;
+const SLOT_AREA_Y = PORTAL_Y + ZONE_PLAYER_H * 0.65;
+const SLOT_W = CARD_W;
+const SLOT_H = CARD_H;
+const SLOT_GAP = CARD_GAP;
 
 // Hand positions within portal
 const HAND_START_X = SLOT_AREA_X + 280;
 const HAND_START_Y = SLOT_AREA_Y;
-const HAND_CARD_W = 38;
-const HAND_CARD_H = 56;
+// Hand cards hitbox must match rendering
+const HAND_CARD_W = 59 * 1.0; // 59
+const HAND_CARD_H = 92 * 1.0; // 92
 
 // Button positions
-const BTN_X = BASE_W - MARGIN_H - 140;
+// Buttons placed in the right margin, to the right of the player area
+const BTN_X = BASE_W - MARGIN_H + 10;
 const BTN_W = 130;
 const BTN_H = 35;
 const BTN_Y_1 = PORTAL_Y + 40;
