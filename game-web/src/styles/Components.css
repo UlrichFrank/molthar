@@ -1,10 +1,9 @@
 /* Card Size Configuration */
 :root {
   --card-aspect-ratio: 59 / 92;
-  --card-width-desktop: clamp(50px, 5vw, 100px);
-  --card-width-tablet: clamp(50px, 4vw, 80px);
-  --card-width-mobile: clamp(40px, 3.5vw, 60px);
-  --zoom-scale: 1;
+  --card-width-desktop: 5vw;
+  --card-width-tablet: 4vw;
+  --card-width-mobile: 3.5vw;
 }
 
 /* Button Styles */
@@ -412,7 +411,7 @@
   border: 2px solid #475569;
   border-radius: 1rem;
   padding: 3rem 2rem;
-  max-width: 500px;
+  max-width: 50vw;
   box-shadow: 0 20px 25px rgba(0, 0, 0, 0.3);
 }
 
@@ -483,7 +482,7 @@
   border: 2px solid #475569;
   border-radius: 1rem;
   padding: 3rem 2rem;
-  max-width: 600px;
+  max-width: 60vw;
   box-shadow: 0 20px 25px rgba(0, 0, 0, 0.3);
 }
 
@@ -564,7 +563,7 @@
   border: 2px solid #475569;
   border-radius: 0.5rem;
   padding: 1rem;
-  min-width: 250px;
+  min-width: 25vw;
 }
 
 .card-info-panel .card-name {
@@ -652,7 +651,7 @@
   border-radius: 0.5rem;
   padding: 1rem;
   color: white;
-  min-width: 300px;
+  min-width: 30vw;
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
 }
 
@@ -803,12 +802,10 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s;
-  transform: scale(var(--zoom-scale));
-  transform-origin: center;
 }
 
 .hand-card:hover {
-  transform: translateY(-4px) scale(var(--zoom-scale));
+  transform: translateY(-4px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
   border-color: #60a5fa;
 }
@@ -935,7 +932,7 @@
   flex-direction: column;
   gap: 0.35rem;
   flex: 1;
-  min-width: 200px;
+  min-width: 20vw;
 }
 
 .group-label {
@@ -1087,7 +1084,7 @@
   border: 2px solid #334155;
   border-radius: 1rem;
   padding: 2rem;
-  max-width: 500px;
+  max-width: 50vw;
   width: 100%;
 }
 
@@ -1268,7 +1265,7 @@
   border: 2px solid #334155;
   border-radius: 1rem;
   padding: 2rem;
-  max-width: 600px;
+  max-width: 60vw;
   width: 100%;
 }
 
@@ -1395,7 +1392,7 @@
   border: 1px solid #334155;
   border-radius: 0.5rem;
   padding: 0.75rem;
-  max-height: 250px;
+  max-height: 25vh;
   display: flex;
   flex-direction: column;
 }
@@ -1502,8 +1499,6 @@
   width: var(--card-width-desktop) !important;
   aspect-ratio: var(--card-aspect-ratio) !important;
   padding: 0.5rem !important;
-  transform: scale(var(--zoom-scale));
-  transform-origin: center;
 }
 
 .auslage-card.pearl-card .card-value {
@@ -1745,9 +1740,9 @@
 /* Portal Hand Container - invisible, only for positioning */
 .portal-hand-container {
   position: absolute !important;
-  left: 10px !important;
-  bottom: 20px !important;
-  width: 180px !important;
+  left: 1vw !important;
+  bottom: 2.5vh !important;
+  width: 18vw !important;
   height: auto !important;
   pointer-events: none !important;
   z-index: 10 !important;
@@ -1841,9 +1836,9 @@
 /* Portal Actions Container - invisible, only for positioning */
 .portal-actions-container {
   position: absolute !important;
-  right: 10px !important;
-  bottom: 20px !important;
-  width: 180px !important;
+  right: 1vw !important;
+  bottom: 2.5vh !important;
+  width: 18vw !important;
   height: auto !important;
   pointer-events: none !important;
   z-index: 10 !important;

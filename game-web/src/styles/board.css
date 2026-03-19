@@ -30,7 +30,7 @@ html, body, #root {
 .game-header {
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 40px;
+  height: 5vh;
   background: rgba(10, 15, 30, 0.72);
   backdrop-filter: blur(4px);
   border-bottom: 1px solid rgba(59, 130, 246, 0.4);
@@ -216,7 +216,7 @@ html, body, #root {
 /* Mitte unten: Portal-Slots */
 .portal-slots-row {
   position: absolute;
-  bottom: 100px;
+  bottom: 12vh;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -259,7 +259,7 @@ html, body, #root {
 }
 
 .portal-actions {
-  flex: 0 0 260px;
+  flex: 0 0 25vw;
   border-left: 0;
   padding-left: 0.75rem;
   overflow-y: auto;
@@ -268,7 +268,7 @@ html, body, #root {
 /* Kartenslot im Portal */
 .portal-card-slot {
   position: relative;
-  width: 70px;
+  width: 8vw;
   aspect-ratio: 2/3;
   border: 2px dashed rgba(255,255,255,0.35);
   border-radius: 6px;
@@ -324,7 +324,7 @@ html, body, #root {
 }
 
 .opponent-card-wrapper {
-  width: 320px;
+  width: 30vw;
   filter: drop-shadow(0 4px 8px rgba(0,0,0,0.7));
 }
 

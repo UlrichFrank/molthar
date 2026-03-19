@@ -1,19 +1,20 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import type { ComponentType } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Client } from 'boardgame.io/react';
 import { SocketIO } from 'boardgame.io/multiplayer';
 import { LobbyClient } from 'boardgame.io/client';
 import { PortaleVonMolthar } from '@portale-von-molthar/shared';
-import { Board } from './components/Board';
+import { CanvasGameBoard } from './components/CanvasGameBoard';
 import './App.css';
 
-const SERVER_URL = 'http://localhost:3001';
+const SERVER_URL = 'http://127.0.0.1:3001';
 
 const lobbyClient = new LobbyClient({ server: SERVER_URL });
 
 // Create the boardgame.io client
 const PortaleClient = Client({
   game: PortaleVonMolthar,
-  board: Board,
+  board: CanvasGameBoard as unknown as ComponentType<any>,
   numPlayers: 2,
   multiplayer: SocketIO({ server: SERVER_URL }),
   debug: process.env.NODE_ENV === 'development',
