@@ -48,12 +48,14 @@ const SLOT_W = CARD_W;
 const SLOT_H = CARD_H;
 const SLOT_GAP = CARD_GAP;
 
-// Hand positions within portal
-const HAND_START_X = SLOT_AREA_X + 280;
-const HAND_START_Y = SLOT_AREA_Y;
-// Hand cards hitbox must match rendering
-const HAND_CARD_W = 59 * 1.0; // 59
-const HAND_CARD_H = 92 * 1.0; // 92
+// Hand positions within portal (fanned layout in left third)
+// We'll compute positions for up to 9 cards to match renderer
+const HAND_AREA_X = PORTAL_X + 10;
+const HAND_AREA_W = Math.max(120, Math.floor(PORTAL_W / 3));
+const HAND_CENTER_Y = PORTAL_Y + ZONE_PLAYER_H * 0.5;
+const HAND_CARD_W = Math.round(CARD_W * 0.9);
+const HAND_CARD_H = Math.round(CARD_H * 0.9);
+const HAND_MAX = 9;
 
 // Button positions
 // Buttons placed in the right margin, to the right of the player area
@@ -112,11 +114,28 @@ export function hitTestPortalSlots(x: number, y: number): number | null {
  * Finde welche Hand-Karte geklickt wurde (0-5)
  */
 export function hitTestHandCards(x: number, y: number): number | null {
-  for (let i = 0; i < 6; i++) {
-    const cardX = HAND_START_X + i * (HAND_CARD_W + 5);
-    const cardY = HAND_START_Y;
+  const handCenterX = HAND_AREA_X + HAND_AREA_W / 2;
+  const count = HAND_MAX;
+  const fanAngleDeg = Math.min(60, 12 * Math.max(0, count - 1));
+  const fanAngle = (fanAngleDeg * Math.PI) / 180;
+  const overlap = HAND_CARD_W * 0.5;
 
-    if (pointInRect(x, y, cardX, cardY, HAND_CARD_W, HAND_CARD_H)) {
+  for (let i = 0; i < HAND_MAX; i++) {
+    const t = count > 1 ? i / (count - 1) : 0.5;
+    const angle = -fanAngle / 2 + t * fanAngle;
+    const offsetX = (i - (count - 1) / 2) * overlap * 0.6;
+    const cx = handCenterX + offsetX;
+    const cy = HAND_CENTER_Y;
+
+    // inverse-rotate point to test against axis-aligned rect
+    const cos = Math.cos(-angle);
+    const sin = Math.sin(-angle);
+    const dx = x - cx;
+    const dy = y - cy;
+    const rx = dx * cos - dy * sin;
+    const ry = dx * sin + dy * cos;
+
+    if (rx >= -HAND_CARD_W / 2 && rx <= HAND_CARD_W / 2 && ry >= -HAND_CARD_H / 2 && ry <= HAND_CARD_H / 2) {
       return i;
     }
   }

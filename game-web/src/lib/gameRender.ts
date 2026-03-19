@@ -197,7 +197,6 @@ export function drawPlayerPortal(
   // Draw Kleiderschrank Portal background (if available)
   drawImageOrFallback(ctx, 'Kleiderschrank Portal.png', portalX, portalY, portalW, portalH);
 
-  // Portal container background (fallback if image not loaded)
   ctx.strokeStyle = '#475569';
   ctx.lineWidth = 2;
   ctx.strokeRect(portalX, portalY, portalW, portalH);
@@ -258,36 +257,47 @@ export function drawPlayerPortal(
     }
   });
 
-  // Hand cards (right side)
-  const handStartX = slotAreaX + 280;
-  const handY = slotAreaY;
-  // Hand cards displayed twice as large
-  const handCardW = 59 * 1.0; // 59
-  const handCardH = 92 * 1.0; // 92
+  // Hand cards: render in the left third of the player area, fanned like physical cards
+  const handAreaX = portalX + 10; // small inset from left edge
+  const handAreaW = Math.max(120, Math.floor(portalW / 3));
+  const handCenterX = handAreaX + handAreaW / 2;
+  const handCenterY = portalY + portalH * 0.5;
 
-  portal.hand.slice(0, 6).forEach((card, idx) => {
-    const x = handStartX + idx * (handCardW + 5);
-    const y = handY;
-    const isSelected = config.selectedHandIndices.includes(idx);
+  // Shrink hand cards by 10% relative to CARD size
+  const handCardW = Math.round(CARD_W * 0.9);
+  const handCardH = Math.round(CARD_H * 0.9);
+
+  const handCards = portal.hand.slice(0, 9); // max 9 cards
+  const count = handCards.length;
+  const fanAngleDeg = Math.min(60, 12 * Math.max(0, count - 1)); // spread more for more cards
+  const fanAngle = (fanAngleDeg * Math.PI) / 180;
+  const overlap = handCardW * 0.5;
+
+  handCards.forEach((card, idx) => {
+    const t = count > 1 ? idx / (count - 1) : 0.5;
+    const angle = -fanAngle / 2 + t * fanAngle; // radians
+
+    // horizontal offset to center the fan within the hand area
+    const offsetX = (idx - (count - 1) / 2) * overlap * 0.6;
+    const cx = handCenterX + offsetX;
+    const cy = handCenterY;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(angle);
 
     // Draw actual pearl card image
     const value = ((card as unknown) as { value?: number }).value || 1;
-    drawImageOrFallback(
-      ctx,
-      `Perlenkarte${value}.jpeg`,
-      x,
-      y,
-      handCardW,
-      handCardH,
-      String(value)
-    );
+    drawImageOrFallback(ctx, `Perlenkarte${value}.jpeg`, -handCardW / 2, -handCardH / 2, handCardW, handCardH, String(value));
 
-    // Draw selection border if selected
-    if (isSelected) {
+    // Selection border
+    if (config.selectedHandIndices.includes(idx)) {
       ctx.strokeStyle = '#34d399';
       ctx.lineWidth = 2;
-      ctx.strokeRect(x, y, handCardW, handCardH);
+      ctx.strokeRect(-handCardW / 2, -handCardH / 2, handCardW, handCardH);
     }
+
+    ctx.restore();
   });
 }
 
