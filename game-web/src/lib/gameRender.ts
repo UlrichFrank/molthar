@@ -118,7 +118,10 @@ export function drawAuslage(
   // Place Auslage at 5% from top of Auslage area
   const startY = ZONE_TOP_H + ZONE_CENTER_H * 0.05;
 
-  const allCards = [...characterSlots, ...pearlSlots];
+  // Ensure we always render 2 character slots + 4 pearl slots (6 slots total)
+  const chars = [characterSlots[0] || null, characterSlots[1] || null];
+  const pearls = [pearlSlots[0] || null, pearlSlots[1] || null, pearlSlots[2] || null, pearlSlots[3] || null];
+  const allCards = [...chars, ...pearls];
 
   allCards.forEach((card, idx) => {
     const x = startX + idx * (CARD_W + CARD_GAP);
@@ -127,6 +130,23 @@ export function drawAuslage(
     const isSelected =
       (idx < 2 && config.selectedCharacter === idx) ||
       (idx >= 2 && config.selectedPearl === idx - 2);
+
+    if (!card) {
+      // Draw empty slot placeholder
+      ctx.fillStyle = '#2b3440';
+      ctx.fillRect(x, y, CARD_W, CARD_H);
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x, y, CARD_W, CARD_H);
+
+      ctx.fillStyle = '#9ca3af';
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const label = idx < 2 ? `Char ${idx + 1}` : `Pearl ${idx - 1}`;
+      ctx.fillText(label, x + CARD_W / 2, y + CARD_H / 2);
+      return;
+    }
 
     // Draw card image
     let filename = 'Charakterkarte Hinten.jpeg';
