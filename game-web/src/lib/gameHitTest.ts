@@ -21,16 +21,17 @@ const ZONE_TOP_H = 200; // Höhe der oberen Zonen (px)
 const MARGIN_H = ZONE_TOP_H; // linke/rechte Bereichsbreite (px)
 const ZONE_CENTER_H = 320; // Höhe der zentralen Auslage
 
-// Card dimensions
-const CARD_W = 59;
-const CARD_H = 92;
-const CARD_GAP = 10;
+// Card dimensions (Auslage) — must match gameRender.ts
+const CARD_W = Math.round(59 * 1.5); // 89
+const CARD_H = Math.round(92 * 1.5); // 138
+const CARD_GAP = Math.round(10 * 1.5); // 15
 
 // Calculated positions for Auslage
 const AUSLAGE_CENTER_X = MARGIN_H;
 const AUSLAGE_CENTER_W = BASE_W - 2 * MARGIN_H;
 const AUSLAGE_START_X = AUSLAGE_CENTER_X + (AUSLAGE_CENTER_W - (6 * CARD_W + 5 * CARD_GAP)) / 2;
-const AUSLAGE_START_Y = ZONE_TOP_H + (ZONE_CENTER_H - CARD_H) / 2;
+// Place Auslage 5% from top of the Auslage area to match rendering
+const AUSLAGE_START_Y = ZONE_TOP_H + ZONE_CENTER_H * 0.05;
 
 // Portal positions
 const PORTAL_X = MARGIN_H;

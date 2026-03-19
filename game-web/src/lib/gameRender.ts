@@ -43,10 +43,10 @@ const ZONE_CENTER_H = 320; // Höhe der zentralen Auslage
 // Player zone height: fill remaining space so it touches bottom of the canvas
 const ZONE_PLAYER_H = BASE_H - ZONE_TOP_H - ZONE_CENTER_H;
 
-// Card dimensions
-const CARD_W = 59;
-const CARD_H = 92;
-const CARD_GAP = 10;
+// Card dimensions (Auslage): increased by 50%
+const CARD_W = Math.round(59 * 1.5); // 89
+const CARD_H = Math.round(92 * 1.5); // 138
+const CARD_GAP = Math.round(10 * 1.5); // 15
 
 export function drawBackground(ctx: CanvasRenderingContext2D) {
   // Dark game board background
@@ -115,7 +115,8 @@ export function drawAuslage(
 
   // Draw cards on top
   const startX = centerX + (centerW - (6 * CARD_W + 5 * CARD_GAP)) / 2;
-  const startY = ZONE_TOP_H + (ZONE_CENTER_H - CARD_H) / 2;
+  // Place Auslage at 5% from top of Auslage area
+  const startY = ZONE_TOP_H + ZONE_CENTER_H * 0.05;
 
   const allCards = [...characterSlots, ...pearlSlots];
 
