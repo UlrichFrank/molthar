@@ -5,6 +5,36 @@
  */
 
 import { drawImageOrFallback } from './imageLoaderV2';
+import {
+  BASE_W,
+  BASE_H,
+  ZONE_TOP_H,
+  MARGIN_H,
+  ZONE_CENTER_H,
+  ZONE_PLAYER_H,
+  CARD_W,
+  CARD_H,
+  CARD_GAP,
+  AUSLAGE_CENTER_X,
+  AUSLAGE_CENTER_W,
+  AUSLAGE_START_X,
+  AUSLAGE_START_Y,
+  PORTAL_X,
+  PORTAL_W,
+  PORTAL_Y,
+  SLOT_AREA_X,
+  SLOT_AREA_Y,
+  SLOT_W,
+  SLOT_H,
+  SLOT_GAP,
+  HAND_AREA_X,
+  HAND_AREA_W,
+  HAND_CENTER_Y,
+  HAND_CARD_W,
+  HAND_CARD_H,
+  getHandCardPosition,
+  getPortalSlotPosition,
+} from './cardLayoutConstants';
 
 export interface DrawConfig {
   selectedPearl: number | null;
@@ -27,23 +57,6 @@ export interface PlayerPortalData {
   portal: (PortalSlot | null)[];
   hand: CardData[];
 }
-
-// Model Koordinaten (1200×800, 3:2 ratio)
-const BASE_W = 1200;
-const BASE_H = 800;
-
-// Layout proportions from original board.css (viewport-relative, converted to model coords)
-const ZONE_TOP_H = 200; // Höhe der oberen Zonen (px)
-// Linke/rechte Bereichsbreite soll gleich der Höhe der Top-Zonen sein
-const MARGIN_H = ZONE_TOP_H; // Seitenbreite (wird für linke/rechte Zonen genutzt)
-const ZONE_CENTER_H = 320; // Höhe der zentralen Auslage
-// Player zone height: fill remaining space so it touches bottom of the canvas
-const ZONE_PLAYER_H = BASE_H - ZONE_TOP_H - ZONE_CENTER_H;
-
-// Card dimensions (Auslage): increased by 50%
-const CARD_W = Math.round(59 * 1.5); // 89
-const CARD_H = Math.round(92 * 1.5); // 138
-const CARD_GAP = Math.round(10 * 1.5); // 15
 
 export function drawBackground(ctx: CanvasRenderingContext2D) {
   // Dark game board background

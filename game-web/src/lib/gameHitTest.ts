@@ -1,9 +1,44 @@
-const BASE_W = 1200;
-const BASE_H = 800;
 /**
  * Hit Detection System für Canvas-basierte Spielelemente
  * Konvertiert Pointer-Koordinaten zu Spielobjekt-IDs
+ * Uses shared card layout constants from cardLayoutConstants.ts
  */
+
+import {
+  BASE_W,
+  BASE_H,
+  ZONE_TOP_H,
+  MARGIN_H,
+  ZONE_CENTER_H,
+  ZONE_PLAYER_H,
+  CARD_W,
+  CARD_H,
+  CARD_GAP,
+  AUSLAGE_START_X,
+  AUSLAGE_START_Y,
+  PORTAL_X,
+  PORTAL_W,
+  PORTAL_Y,
+  SLOT_AREA_X,
+  SLOT_AREA_Y,
+  SLOT_W,
+  SLOT_H,
+  SLOT_GAP,
+  HAND_AREA_X,
+  HAND_AREA_W,
+  HAND_CENTER_Y,
+  HAND_CARD_W,
+  HAND_CARD_H,
+  HAND_MAX,
+  BTN_X,
+  BTN_W,
+  BTN_H,
+  BTN_Y_1,
+  BTN_Y_2,
+  BTN_Y_3,
+  getHandCardPosition,
+  getPortalSlotPosition,
+} from './cardLayoutConstants';
 
 export interface HitTarget {
   type: 'auslage-card' | 'portal-slot' | 'hand-card' | 'button' | 'none';
@@ -13,58 +48,6 @@ export interface HitTarget {
   w: number;
   h: number;
 }
-
-// Model Koordinaten und Layout (müssen mit gameRender.ts sync sein)
-
-// Layout proportions
-const ZONE_TOP_H = 200; // Höhe der oberen Zonen (px)
-// Seitenbreite soll der Höhe der Top-Zonen entsprechen
-const MARGIN_H = ZONE_TOP_H; // linke/rechte Bereichsbreite (px)
-const ZONE_CENTER_H = 320; // Höhe der zentralen Auslage
-
-// Card dimensions (Auslage) — must match gameRender.ts
-const CARD_W = Math.round(59 * 1.5); // 89
-const CARD_H = Math.round(92 * 1.5); // 138
-const CARD_GAP = Math.round(10 * 1.5); // 15
-
-// Calculated positions for Auslage
-const AUSLAGE_CENTER_X = MARGIN_H;
-const AUSLAGE_CENTER_W = BASE_W - 2 * MARGIN_H;
-const AUSLAGE_START_X = AUSLAGE_CENTER_X + (AUSLAGE_CENTER_W - (6 * CARD_W + 5 * CARD_GAP)) / 2;
-// Place Auslage 5% from top of the Auslage area to match rendering
-const AUSLAGE_START_Y = ZONE_TOP_H + ZONE_CENTER_H * 0.05;
-
-// Portal positions
-const PORTAL_X = MARGIN_H;
-const PORTAL_W = BASE_W - 2 * MARGIN_H;
-const PORTAL_Y = ZONE_TOP_H + ZONE_CENTER_H;
-const ZONE_PLAYER_H = BASE_H - ZONE_TOP_H - ZONE_CENTER_H;
-
-// Slot positions within portal
-// Center vertically at 65% of player zone and shift 3% to the right
-const SLOT_AREA_X = PORTAL_X + PORTAL_W / 3 + PORTAL_W * 0.03;
-const SLOT_AREA_Y = PORTAL_Y + ZONE_PLAYER_H * 0.65;
-const SLOT_W = CARD_W;
-const SLOT_H = CARD_H;
-const SLOT_GAP = CARD_GAP;
-
-// Hand positions within portal (fanned layout in left third)
-// We'll compute positions for up to 9 cards to match renderer
-const HAND_AREA_X = PORTAL_X + 10;
-const HAND_AREA_W = Math.max(120, Math.floor(PORTAL_W / 3));
-const HAND_CENTER_Y = PORTAL_Y + ZONE_PLAYER_H * 0.5;
-const HAND_CARD_W = Math.round(CARD_W * 0.9);
-const HAND_CARD_H = Math.round(CARD_H * 0.9);
-const HAND_MAX = 9;
-
-// Button positions
-// Buttons placed in the right margin, to the right of the player area
-const BTN_X = BASE_W - MARGIN_H + 10;
-const BTN_W = 130;
-const BTN_H = 35;
-const BTN_Y_1 = PORTAL_Y + 40;
-const BTN_Y_2 = BTN_Y_1 + BTN_H + 8;
-const BTN_Y_3 = BTN_Y_1 + (BTN_H + 8) * 2;
 
 /**
  * Teste ob Punkt in Rectangle ist
@@ -111,21 +94,14 @@ export function hitTestPortalSlots(x: number, y: number): number | null {
 }
 
 /**
- * Finde welche Hand-Karte geklickt wurde (0-5)
+ * Finde welche Hand-Karte geklickt wurde (0-8, max 9 cards)
+ * Uses getHandCardPosition() from cardLayoutConstants for consistent positioning
  */
 export function hitTestHandCards(x: number, y: number): number | null {
-  const handCenterX = HAND_AREA_X + HAND_AREA_W / 2;
-  const count = HAND_MAX;
-  const fanAngleDeg = Math.min(60, 12 * Math.max(0, count - 1));
-  const fanAngle = (fanAngleDeg * Math.PI) / 180;
-  const overlap = HAND_CARD_W * 0.5;
-
+  // Test all possible hand card positions
   for (let i = 0; i < HAND_MAX; i++) {
-    const t = count > 1 ? i / (count - 1) : 0.5;
-    const angle = -fanAngle / 2 + t * fanAngle;
-    const offsetX = (i - (count - 1) / 2) * overlap * 0.6;
-    const cx = handCenterX + offsetX;
-    const cy = HAND_CENTER_Y;
+    const pos = getHandCardPosition(HAND_MAX, i);
+    const { cx, cy, angle } = pos;
 
     // inverse-rotate point to test against axis-aligned rect
     const cos = Math.cos(-angle);

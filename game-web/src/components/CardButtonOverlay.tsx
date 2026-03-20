@@ -1,48 +1,36 @@
 /**
  * CardButtonOverlay Component
  * Manages and renders interactive card button overlays on top of the canvas
- * Handles layout synchronization with canvas rendering
+ * Uses shared card layout constants from cardLayoutConstants.ts for correct positioning
  */
 
 import React, { useCallback, useMemo } from 'react';
 import type { GameState } from '@portale-von-molthar/shared';
 import type { HitTarget } from '../lib/gameHitTest';
 import { hitTestAuslage, hitTestPortalSlots, hitTestHandCards } from '../lib/gameHitTest';
+import {
+  BASE_W,
+  BASE_H,
+  CARD_W,
+  CARD_H,
+  CARD_GAP,
+  AUSLAGE_START_X,
+  AUSLAGE_START_Y,
+  SLOT_AREA_X,
+  SLOT_AREA_Y,
+  SLOT_W,
+  SLOT_H,
+  SLOT_GAP,
+  HAND_AREA_X,
+  HAND_AREA_W,
+  HAND_CENTER_Y,
+  HAND_CARD_W,
+  HAND_CARD_H,
+  HAND_MAX,
+  getHandCardPosition,
+  getPortalSlotPosition,
+} from '../lib/cardLayoutConstants';
 import { CardButton } from './CardButton';
-
-// Layout constants (must match gameRender.ts and gameHitTest.ts)
-const BASE_W = 1200;
-const BASE_H = 800;
-const ZONE_TOP_H = 200;
-const MARGIN_H = ZONE_TOP_H;
-const ZONE_CENTER_H = 320;
-
-const CARD_W = Math.round(59 * 1.5);
-const CARD_H = Math.round(92 * 1.5);
-const CARD_GAP = Math.round(10 * 1.5);
-
-const AUSLAGE_CENTER_X = MARGIN_H;
-const AUSLAGE_CENTER_W = BASE_W - 2 * MARGIN_H;
-const AUSLAGE_START_X = AUSLAGE_CENTER_X + (AUSLAGE_CENTER_W - (6 * CARD_W + 5 * CARD_GAP)) / 2;
-const AUSLAGE_START_Y = ZONE_TOP_H + ZONE_CENTER_H * 0.05;
-
-const PORTAL_X = MARGIN_H;
-const PORTAL_W = BASE_W - 2 * MARGIN_H;
-const PORTAL_Y = ZONE_TOP_H + ZONE_CENTER_H;
-const ZONE_PLAYER_H = BASE_H - ZONE_TOP_H - ZONE_CENTER_H;
-
-const SLOT_AREA_X = PORTAL_X + PORTAL_W / 3 + PORTAL_W * 0.03;
-const SLOT_AREA_Y = PORTAL_Y + ZONE_PLAYER_H * 0.65;
-const SLOT_W = CARD_W;
-const SLOT_H = CARD_H;
-const SLOT_GAP = CARD_GAP;
-
-const HAND_AREA_X = PORTAL_X + 10;
-const HAND_AREA_W = Math.max(120, Math.floor(PORTAL_W / 3));
-const HAND_CENTER_Y = PORTAL_Y + ZONE_PLAYER_H * 0.5;
-const HAND_CARD_W = Math.round(CARD_W * 0.9);
-const HAND_CARD_H = Math.round(CARD_H * 0.9);
-const HAND_MAX = 9;
 
 interface CardButtonOverlayProps {
   G: GameState;
@@ -147,17 +135,11 @@ export const CardButtonOverlay: React.FC<CardButtonOverlayProps> = ({
     const hand = G.players?.[Object.keys(G.players || {})[0]]?.hand || [];
     
     const count = Math.min(hand.length, HAND_MAX);
-    const handCenterX = HAND_AREA_X + HAND_AREA_W / 2;
-    const fanAngleDeg = Math.min(60, 12 * Math.max(0, count - 1));
-    const fanAngle = (fanAngleDeg * Math.PI) / 180;
-    const overlap = HAND_CARD_W * 0.5;
     
     for (let i = 0; i < count; i++) {
-      const t = count > 1 ? i / (count - 1) : 0.5;
-      const angle = -fanAngle / 2 + t * fanAngle;
-      const offsetX = (i - (count - 1) / 2) * overlap * 0.6;
-      const cx = handCenterX + offsetX;
-      const cy = HAND_CENTER_Y;
+      // Use shared helper for consistent positioning
+      const pos = getHandCardPosition(count, i);
+      const { cx, cy, angle } = pos;
       
       const isDisabled = isCardDisabled('hand-card', i, phase);
       
@@ -183,8 +165,9 @@ export const CardButtonOverlay: React.FC<CardButtonOverlayProps> = ({
     const buttons = [];
     
     for (let i = 0; i < 4; i++) {
-      const slotX = SLOT_AREA_X + i * (SLOT_W + SLOT_GAP);
-      const slotY = SLOT_AREA_Y;
+      // Use shared helper for consistent positioning
+      const pos = getPortalSlotPosition(i);
+      const { slotX, slotY } = pos;
       
       // Portal slots are interactive for placing cards
       buttons.push({

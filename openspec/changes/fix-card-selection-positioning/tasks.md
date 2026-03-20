@@ -2,49 +2,49 @@
 
 ## 1. Create Shared Card Layout Constants Module
 
-- [ ] 1.1 Create file: game-web/src/lib/cardLayoutConstants.ts
-- [ ] 1.2 Add BASE layout constants: BASE_W=1200, BASE_H=800
-- [ ] 1.3 Add zone height constants: ZONE_TOP_H, MARGIN_H, ZONE_CENTER_H, ZONE_PLAYER_H
-- [ ] 1.4 Add card dimension constants: CARD_W, CARD_H, CARD_GAP (matching gameRender.ts values)
-- [ ] 1.5 Add auslage positioning constants: AUSLAGE_CENTER_X, AUSLAGE_CENTER_W, AUSLAGE_START_X, AUSLAGE_START_Y
-- [ ] 1.6 Add hand area constants: HAND_AREA_X, HAND_AREA_W, HAND_CENTER_Y, HAND_CARD_W, HAND_CARD_H, HAND_MAX
-- [ ] 1.7 Add portal area constants: SLOT_AREA_X, SLOT_AREA_Y, SLOT_W, SLOT_H, SLOT_GAP
-- [ ] 1.8 Verify all constants match current values in gameRender.ts exactly
+- [x] 1.1 Create file: game-web/src/lib/cardLayoutConstants.ts
+- [x] 1.2 Add BASE layout constants: BASE_W=1200, BASE_H=800
+- [x] 1.3 Add zone height constants: ZONE_TOP_H, MARGIN_H, ZONE_CENTER_H, ZONE_PLAYER_H
+- [x] 1.4 Add card dimension constants: CARD_W, CARD_H, CARD_GAP (matching gameRender.ts values)
+- [x] 1.5 Add auslage positioning constants: AUSLAGE_CENTER_X, AUSLAGE_CENTER_W, AUSLAGE_START_X, AUSLAGE_START_Y
+- [x] 1.6 Add hand area constants: HAND_AREA_X, HAND_AREA_W, HAND_CENTER_Y, HAND_CARD_W, HAND_CARD_H, HAND_MAX
+- [x] 1.7 Add portal area constants: SLOT_AREA_X, SLOT_AREA_Y, SLOT_W, SLOT_H, SLOT_GAP
+- [x] 1.8 Verify all constants match current values in gameRender.ts exactly
 
 ## 2. Implement Hand Card Positioning Helper
 
-- [ ] 2.1 Add getHandCardPosition(handCount: number, cardIndex: number) function to cardLayoutConstants.ts
-- [ ] 2.2 Implement fan angle calculation: Math.min(60, 12 * Math.max(0, count - 1))
-- [ ] 2.3 Implement overlap calculation: HAND_CARD_W * 0.5
-- [ ] 2.4 Calculate card X offset: (cardIndex - (cardCount - 1) / 2) * overlap * 0.6
-- [ ] 2.5 Calculate center X: HAND_AREA_X + HAND_AREA_W / 2
-- [ ] 2.6 Calculate card Y: HAND_CENTER_Y
-- [ ] 2.7 Calculate rotation angle in radians from fan spread
-- [ ] 2.8 Return { cx, cy, angle } object
-- [ ] 2.9 Test: getHandCardPosition(3, 1) returns center card with angle 0
-- [ ] 2.10 Test: getHandCardPosition(5, 0) returns left card with negative angle
+- [x] 2.1 Add getHandCardPosition(handCount: number, cardIndex: number) function to cardLayoutConstants.ts
+- [x] 2.2 Implement fan angle calculation: Math.min(60, 12 * Math.max(0, count - 1))
+- [x] 2.3 Implement overlap calculation: HAND_CARD_W * 0.5
+- [x] 2.4 Calculate card X offset: (cardIndex - (cardCount - 1) / 2) * overlap * 0.6
+- [x] 2.5 Calculate center X: HAND_AREA_X + HAND_AREA_W / 2
+- [x] 2.6 Calculate card Y: HAND_CENTER_Y
+- [x] 2.7 Calculate rotation angle in radians from fan spread
+- [x] 2.8 Return { cx, cy, angle } object
+- [x] 2.9 Test: getHandCardPosition(3, 1) returns center card with angle 0
+- [x] 2.10 Test: getHandCardPosition(5, 0) returns left card with negative angle
 
 ## 3. Implement Portal Slot Positioning Helper
 
-- [ ] 3.1 Add getPortalSlotPosition(slotIndex: number) function to cardLayoutConstants.ts
-- [ ] 3.2 Calculate slotX: SLOT_AREA_X + (slotIndex * (SLOT_W + SLOT_GAP))
-- [ ] 3.3 Set slotY: SLOT_AREA_Y
-- [ ] 3.4 Set slot width: SLOT_W
-- [ ] 3.5 Set slot height: SLOT_H
-- [ ] 3.6 Return { slotX, slotY, w: SLOT_W, h: SLOT_H } object
-- [ ] 3.7 Test: getPortalSlotPosition(0) returns first slot position
-- [ ] 3.8 Test: getPortalSlotPosition(3) returns fourth slot position with correct offset
+- [x] 3.1 Add getPortalSlotPosition(slotIndex: number) function to cardLayoutConstants.ts
+- [x] 3.2 Calculate slotX: SLOT_AREA_X + (slotIndex * (SLOT_W + SLOT_GAP))
+- [x] 3.3 Set slotY: SLOT_AREA_Y
+- [x] 3.4 Set slot width: SLOT_W
+- [x] 3.5 Set slot height: SLOT_H
+- [x] 3.6 Return { slotX, slotY, w: SLOT_W, h: SLOT_H } object
+- [x] 3.7 Test: getPortalSlotPosition(0) returns first slot position
+- [x] 3.8 Test: getPortalSlotPosition(3) returns fourth slot position with correct offset
 
 ## 4. Update gameRender.ts to Use Shared Constants
 
-- [ ] 4.1 Import cardLayoutConstants at top of gameRender.ts
-- [ ] 4.2 Remove local CARD_W definition (line 44)
-- [ ] 4.3 Remove local CARD_H definition (line 45)
-- [ ] 4.4 Remove local CARD_GAP definition (line 46)
-- [ ] 4.5 Remove local ZONE_TOP_H, MARGIN_H, ZONE_CENTER_H, ZONE_PLAYER_H, BASE_W, BASE_H definitions
-- [ ] 4.6 Import or reference these from cardLayoutConstants
-- [ ] 4.7 Test: npm run build succeeds with no errors
-- [ ] 4.8 Test: Canvas rendering looks identical to before (no visual change)
+- [x] 4.1 Import cardLayoutConstants at top of gameRender.ts
+- [x] 4.2 Remove local CARD_W definition (line 44)
+- [x] 4.3 Remove local CARD_H definition (line 45)
+- [x] 4.4 Remove local CARD_GAP definition (line 46)
+- [x] 4.5 Remove local ZONE_TOP_H, MARGIN_H, ZONE_CENTER_H, ZONE_PLAYER_H, BASE_W, BASE_H definitions
+- [x] 4.6 Import or reference these from cardLayoutConstants
+- [x] 4.7 Test: npm run build succeeds with no errors
+- [x] 4.8 Test: Canvas rendering looks identical to before (no visual change)
 
 ## 5. Update gameHitTest.ts to Use Shared Constants
 
