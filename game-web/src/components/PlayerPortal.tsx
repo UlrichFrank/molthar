@@ -9,13 +9,8 @@ interface PlayerPortalProps {
   selectedHandIndices?: number[];
   gamePhase?: 'takingActions' | 'discardingExcessCards' | 'gameFinished';
   actionsRemaining?: number;
-  selectedPearl?: number | null;
-  selectedCharacter?: number | null;
   onSelectHandCard?: (index: number) => void;
   onClearHandSelection?: () => void;
-  onTakePearl?: () => void;
-  onPlaceCharacter?: () => void;
-  onActivateCharacter?: (characterIndex: number) => void;
   onDiscardCards?: () => void;
   onEndTurn?: () => void;
 }
@@ -27,13 +22,8 @@ export function PlayerPortal({
   selectedHandIndices = [],
   gamePhase = 'takingActions',
   actionsRemaining = 0,
-  selectedPearl = null,
-  selectedCharacter = null,
   onSelectHandCard = () => {},
   onClearHandSelection = () => {},
-  onTakePearl = () => {},
-  onPlaceCharacter = () => {},
-  onActivateCharacter = () => {},
   onDiscardCards = () => {},
   onEndTurn = () => {},
 }: PlayerPortalProps) {
@@ -120,12 +110,7 @@ export function PlayerPortal({
           <ActionButtons
             gamePhase={gamePhase}
             actionsRemaining={actionsRemaining}
-            selectedPearl={selectedPearl}
-            selectedCharacter={selectedCharacter}
             selectedHandCount={selectedHandIndices.length}
-            onTakePearl={onTakePearl}
-            onPlaceCharacter={onPlaceCharacter}
-            onActivateCharacter={onActivateCharacter}
             onDiscardCards={onDiscardCards}
             onEndTurn={onEndTurn}
             currentPlayer={player}

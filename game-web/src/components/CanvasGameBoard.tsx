@@ -359,8 +359,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           G={G}
           canvasWidth={cssW}
           canvasHeight={cssH}
-          selectedPearl={null}
-          selectedCharacter={null}
           selectedHandIndices={[]}
           hoveredCard={hoveredCard}
           phase={phase}

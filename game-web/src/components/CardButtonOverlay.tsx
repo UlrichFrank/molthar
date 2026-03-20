@@ -36,8 +36,6 @@ interface CardButtonOverlayProps {
   G: GameState;
   canvasWidth: number;
   canvasHeight: number;
-  selectedPearl: number | null;
-  selectedCharacter: number | null;
   selectedHandIndices: number[];
   hoveredCard: HitTarget | null;
   phase: string;
@@ -73,8 +71,6 @@ export const CardButtonOverlay: React.FC<CardButtonOverlayProps> = ({
   G,
   canvasWidth,
   canvasHeight,
-  selectedPearl,
-  selectedCharacter,
   selectedHandIndices,
   hoveredCard,
   phase,

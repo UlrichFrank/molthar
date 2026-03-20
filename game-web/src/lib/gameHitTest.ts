@@ -123,9 +123,7 @@ export function hitTestHandCards(x: number, y: number): number | null {
  */
 export function hitTestButtons(x: number, y: number): string | null {
   const buttons = [
-    { id: 'take-pearl', y: BTN_Y_1 },
-    { id: 'activate-character', y: BTN_Y_2 },
-    { id: 'end-turn', y: BTN_Y_3 },
+    { id: 'end-turn', y: BTN_Y_1 },
   ];
 
   for (const btn of buttons) {
