@@ -15,6 +15,7 @@ export interface CardButtonProps {
   w: number;
   h: number;
   type: HitTarget['type'];
+  angle?: number; // Rotation angle in radians (for hand cards)
   isSelected?: boolean;
   isDisabled?: boolean;
   isHovered?: boolean;
@@ -37,6 +38,7 @@ export const CardButton = React.forwardRef<HTMLButtonElement, CardButtonProps>(
       w,
       h,
       type,
+      angle = 0,
       isSelected = false,
       isDisabled = false,
       isHovered = false,
@@ -143,6 +145,10 @@ export const CardButton = React.forwardRef<HTMLButtonElement, CardButtonProps>(
     const width = w * scaleX;
     const height = h * scaleY;
 
+    // Build transform: translate to center, rotate, translate back
+    const angleInDegrees = (angle * 180) / Math.PI;
+    const transform = angle !== 0 ? `translate(${width / 2}px, ${height / 2}px) rotate(${angleInDegrees}deg) translate(${-width / 2}px, ${-height / 2}px)` : undefined;
+
     return (
       <button
         ref={ref}
@@ -153,6 +159,8 @@ export const CardButton = React.forwardRef<HTMLButtonElement, CardButtonProps>(
           top: `${top}px`,
           width: `${width}px`,
           height: `${height}px`,
+          transformOrigin: 'center',
+          transform: transform,
         }}
         className={classNames.join(' ')}
         disabled={isDisabled}
