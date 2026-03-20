@@ -32,6 +32,7 @@ import {
   HAND_CENTER_Y,
   HAND_CARD_W,
   HAND_CARD_H,
+  HAND_MAX,
   getHandCardPosition,
   getPortalSlotPosition,
 } from './cardLayoutConstants';
@@ -268,29 +269,11 @@ export function drawPlayerPortal(
   });
 
   // Hand cards: render in the left third of the player area, fanned like physical cards
-  const handAreaX = portalX + 10; // small inset from left edge
-  const handAreaW = Math.max(120, Math.floor(portalW / 3));
-  const handCenterX = handAreaX + handAreaW / 2;
-  const handCenterY = portalY + portalH * 0.5;
-
-  // Shrink hand cards by 10% relative to CARD size
-  const handCardW = Math.round(CARD_W * 0.9);
-  const handCardH = Math.round(CARD_H * 0.9);
-
-  const handCards = portal.hand.slice(0, 9); // max 9 cards
+  const handCards = portal.hand.slice(0, HAND_MAX); // max 9 cards
   const count = handCards.length;
-  const fanAngleDeg = Math.min(60, 12 * Math.max(0, count - 1)); // spread more for more cards
-  const fanAngle = (fanAngleDeg * Math.PI) / 180;
-  const overlap = handCardW * 0.5;
 
   handCards.forEach((card, idx) => {
-    const t = count > 1 ? idx / (count - 1) : 0.5;
-    const angle = -fanAngle / 2 + t * fanAngle; // radians
-
-    // horizontal offset to center the fan within the hand area
-    const offsetX = (idx - (count - 1) / 2) * overlap * 0.6;
-    const cx = handCenterX + offsetX;
-    const cy = handCenterY;
+    const { cx, cy, angle } = getHandCardPosition(count, idx);
 
     ctx.save();
     ctx.translate(cx, cy);
@@ -298,13 +281,13 @@ export function drawPlayerPortal(
 
     // Draw actual pearl card image
     const value = ((card as unknown) as { value?: number }).value || 1;
-    drawImageOrFallback(ctx, `Perlenkarte${value}.jpeg`, -handCardW / 2, -handCardH / 2, handCardW, handCardH, String(value));
+    drawImageOrFallback(ctx, `Perlenkarte${value}.jpeg`, -HAND_CARD_W / 2, -HAND_CARD_H / 2, HAND_CARD_W, HAND_CARD_H, String(value));
 
     // Selection border
     if (config.selectedHandIndices.includes(idx)) {
       ctx.strokeStyle = '#34d399';
       ctx.lineWidth = 2;
-      ctx.strokeRect(-handCardW / 2, -handCardH / 2, handCardW, handCardH);
+      ctx.strokeRect(-HAND_CARD_W / 2, -HAND_CARD_H / 2, HAND_CARD_W, HAND_CARD_H);
     }
 
     ctx.restore();
