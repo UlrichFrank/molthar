@@ -4,6 +4,7 @@ import type { HitTarget } from '../lib/gameHitTest';
 import { hitTest } from '../lib/gameHitTest';
 import { drawBackground, drawAuslage, drawPlayerPortal, drawUI, drawOpponentPortals } from '../lib/gameRender';
 import { preloadAllImages } from '../lib/imageLoaderV2';
+import CardButtonOverlay from './CardButtonOverlay';
 
 interface CanvasGameBoardProps {
   G: GameState;
@@ -84,6 +85,8 @@ export function CanvasGameBoard(props: CanvasGameBoardProps) {
     selectedCharacter: null,
     selectedHandIndices: [],
   });
+
+  const [hoveredCard, setHoveredCard] = useState<HitTarget | null>(null);
 
   // Berechne Sichtbare Größe (Letterboxed)
   const aspect = BASE_W / BASE_H; // 1.5 (3:2)
@@ -308,17 +311,41 @@ export function CanvasGameBoard(props: CanvasGameBoardProps) {
         Auslage: {(G.characterSlots || []).length + (G.pearlSlots || []).length} cards
       </div>
       
-      <canvas
-        ref={canvasRef}
-        onPointerDown={onPointerDown}
+      {/* Canvas container with relative positioning for overlay */}
+      <div
         style={{
-          display: 'block',
+          position: 'relative',
+          display: 'inline-block',
           borderRadius: 12,
-          background: '#0E1E2B',
-          cursor: 'pointer',
-          touchAction: 'none',
+          overflow: 'hidden',
         }}
-      />
+      >
+        <canvas
+          ref={canvasRef}
+          onPointerDown={onPointerDown}
+          style={{
+            display: 'block',
+            borderRadius: 12,
+            background: '#0E1E2B',
+            cursor: 'pointer',
+            touchAction: 'none',
+          }}
+        />
+        
+        {/* Interactive card button overlay */}
+        <CardButtonOverlay
+          G={G}
+          canvasWidth={cssW}
+          canvasHeight={cssH}
+          selectedPearl={selection.selectedPearl}
+          selectedCharacter={selection.selectedCharacter}
+          selectedHandIndices={selection.selectedHandIndices}
+          hoveredCard={hoveredCard}
+          phase={phase}
+          onCardClick={handleCardClick}
+          onCardHover={setHoveredCard}
+        />
+      </div>
     </div>
   );
 }
