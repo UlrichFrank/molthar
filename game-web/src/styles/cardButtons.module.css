@@ -125,21 +125,21 @@
 /* Portal slot button styling */
 .portalSlotButton {
   composes: cardButton;
-  border: 2px dashed rgba(255, 255, 255, 0.3);
-  opacity: 0.6;
+  opacity: 0.8;
 }
 
 .portalSlotButton:hover:not(:disabled) {
-  opacity: 0.9;
-  border-color: rgba(255, 255, 255, 0.7);
+  opacity: 1;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
 }
 
 .portalSlotButton.selected {
-  opacity: 1;
-  border-color: #FFD700;
+  outline: 3px solid #FFD700;
+  outline-offset: 2px;
   box-shadow: 
-    0 0 12px rgba(255, 215, 0, 0.5),
-    inset 0 0 8px rgba(255, 215, 0, 0.3);
+    0 8px 16px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(255, 215, 0, 0.6);
 }
 
 /* Reduce motion for users who prefer it */
