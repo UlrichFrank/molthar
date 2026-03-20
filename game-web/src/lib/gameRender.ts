@@ -10,9 +10,6 @@ export interface DrawConfig {
   selectedPearl: number | null;
   selectedCharacter: number | null;
   selectedHandIndices: number[];
-  isDragging: boolean;
-  dragX: number;
-  dragY: number;
 }
 
 export interface CardData {

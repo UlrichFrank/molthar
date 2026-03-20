@@ -214,19 +214,3 @@ export function hitTest(x: number, y: number): HitTarget {
 
   return { type: 'none', id: '', x: 0, y: 0, w: 0, h: 0 };
 }
-
-/**
- * Berechne Swap-Distance für Drag-Operationen
- */
-export function getDragDistance(startX: number, startY: number, endX: number, endY: number): number {
-  const dx = endX - startX;
-  const dy = endY - startY;
-  return Math.sqrt(dx * dx + dy * dy);
-}
-
-/**
- * Test ob Drag "significantly" war (> Threshold)
- */
-export function isSignificantDrag(distance: number, threshold = 30): boolean {
-  return distance > threshold;
-}

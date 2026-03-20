@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import type { GameState } from '@portale-von-molthar/shared';
 import type { HitTarget } from '../lib/gameHitTest';
-import { hitTest, getDragDistance, isSignificantDrag } from '../lib/gameHitTest';
+import { hitTest } from '../lib/gameHitTest';
 import { drawBackground, drawAuslage, drawPlayerPortal, drawUI, drawOpponentPortals } from '../lib/gameRender';
 import { preloadAllImages } from '../lib/imageLoaderV2';
 
@@ -17,20 +17,10 @@ interface CanvasGameBoardProps {
 // Model Koordinaten (3:2 Ratio)
 const BASE_W = 1200;
 const BASE_H = 800;
-const DRAG_THRESHOLD = 30; // pixel movement before drag triggers
 
 interface ModelCoords {
   x: number;
   y: number;
-}
-
-interface DragState {
-  isDragging: boolean;
-  startX: number;
-  startY: number;
-  currentX: number;
-  currentY: number;
-  draggedObject: HitTarget | null;
 }
 
 interface Selection {
@@ -95,15 +85,6 @@ export function CanvasGameBoard(props: CanvasGameBoardProps) {
     selectedHandIndices: [],
   });
 
-  const [drag, setDrag] = useState<DragState>({
-    isDragging: false,
-    startX: 0,
-    startY: 0,
-    currentX: 0,
-    currentY: 0,
-    draggedObject: null,
-  });
-
   // Berechne Sichtbare Größe (Letterboxed)
   const aspect = BASE_W / BASE_H; // 1.5 (3:2)
   const cssW = Math.min(viewportW, viewportH * aspect);
@@ -153,9 +134,6 @@ export function CanvasGameBoard(props: CanvasGameBoardProps) {
       selectedPearl: selection.selectedPearl,
       selectedCharacter: selection.selectedCharacter,
       selectedHandIndices: selection.selectedHandIndices,
-      isDragging: drag.isDragging,
-      dragX: drag.currentX,
-      dragY: drag.currentY,
     });
 
     // Portal - @ts-expect-error: PearlCard[] doesn't match CardData[] but works for rendering
@@ -168,41 +146,16 @@ export function CanvasGameBoard(props: CanvasGameBoardProps) {
       selectedPearl: selection.selectedPearl,
       selectedCharacter: selection.selectedCharacter,
       selectedHandIndices: selection.selectedHandIndices,
-      isDragging: drag.isDragging,
-      dragX: drag.currentX,
-      dragY: drag.currentY,
     });
 
     // UI
     drawUI(canvasCtx, phase);
-
-    // Draw dragging feedback
-    if (drag.isDragging && drag.draggedObject) {
-      const target = drag.draggedObject;
-      
-      // Draw semi-transparent card at drag position
-      canvasCtx.fillStyle = 'rgba(255, 215, 0, 0.3)';
-      canvasCtx.fillRect(
-        drag.currentX - target.w / 2,
-        drag.currentY - target.h / 2,
-        target.w,
-        target.h
-      );
-      canvasCtx.strokeStyle = '#FFD700';
-      canvasCtx.lineWidth = 3;
-      canvasCtx.strokeRect(
-        drag.currentX - target.w / 2,
-        drag.currentY - target.h / 2,
-        target.w,
-        target.h
-      );
-    }
   }
 
   /**
    * Layout Canvas und Render
    */
-  // Pointer Events: Down, Move, Up
+  // Pointer Events: Click only (no drag)
   const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!isActive) return;
     
@@ -211,68 +164,15 @@ export function CanvasGameBoard(props: CanvasGameBoardProps) {
 
     if (hitTarget.type === 'none') return;
 
-    console.log('🖱️ Down:', hitTarget.type, hitTarget.id, 'at', Math.round(coords.x), Math.round(coords.y));
-
-    // Start drag
-    setDrag({
-      isDragging: true,
-      startX: coords.x,
-      startY: coords.y,
-      currentX: coords.x,
-      currentY: coords.y,
-      draggedObject: hitTarget,
-    });
+    console.log('🖱️ Click:', hitTarget.type, hitTarget.id, 'at', Math.round(coords.x), Math.round(coords.y));
 
     // Handle immediate selections for buttons
     if (hitTarget.type === 'button') {
       handleButtonClick(hitTarget.id as string);
-    }
-  };
-
-  const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!drag.isDragging) return;
-
-    const coords = toModelCoords(e.clientX, e.clientY);
-    setDrag((prev) => ({
-      ...prev,
-      currentX: coords.x,
-      currentY: coords.y,
-    }));
-  };
-
-  const onPointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!drag.isDragging || !drag.draggedObject) {
-      setDrag({
-        isDragging: false,
-        startX: 0,
-        startY: 0,
-        currentX: 0,
-        currentY: 0,
-        draggedObject: null,
-      });
-      return;
-    }
-
-    const coords = toModelCoords(e.clientX, e.clientY);
-    const distance = getDragDistance(drag.startX, drag.startY, coords.x, coords.y);
-    const dragTarget = hitTest(coords.x, coords.y);
-
-    // Handle drag completion
-    if (isSignificantDrag(distance, DRAG_THRESHOLD)) {
-      handleDragDrop(drag.draggedObject, dragTarget);
     } else {
-      // Simple click
-      handleCardClick(drag.draggedObject);
+      // Handle card clicks
+      handleCardClick(hitTarget);
     }
-
-    setDrag({
-      isDragging: false,
-      startX: 0,
-      startY: 0,
-      currentX: 0,
-      currentY: 0,
-      draggedObject: null,
-    });
   };
 
   /**
@@ -320,39 +220,6 @@ export function CanvasGameBoard(props: CanvasGameBoardProps) {
         }
         break;
       }
-    }
-  }
-
-  /**
-   * Behandle Drag & Drop
-   */
-  function handleDragDrop(fromTarget: HitTarget, toTarget: HitTarget) {
-    console.log('🎯 Drag:', fromTarget.type, fromTarget.id, '→', toTarget.type, toTarget.id);
-
-    // Drag hand card to portal slot
-    if (
-      fromTarget.type === 'hand-card' &&
-      toTarget.type === 'portal-slot' &&
-      typeof fromTarget.id === 'number' &&
-      typeof toTarget.id === 'number'
-    ) {
-      if (!selection.selectedHandIndices.includes(fromTarget.id)) {
-        selection.selectedHandIndices.push(fromTarget.id);
-      }
-      moves.activatePortalCard(toTarget.id, selection.selectedHandIndices);
-      setSelection((prev) => ({ ...prev, selectedHandIndices: [] }));
-    }
-
-    // Drag auslage card to hand (take card)
-    if (fromTarget.type === 'auslage-card' && typeof fromTarget.id === 'number') {
-      if (fromTarget.id < 2) {
-        // Character
-        moves.takeCharacterCard(fromTarget.id);
-      } else {
-        // Pearl
-        moves.takePearlCard(fromTarget.id - 2);
-      }
-      setSelection((prev) => ({ ...prev, selectedCharacter: null, selectedPearl: null }));
     }
   }
 
@@ -409,7 +276,7 @@ export function CanvasGameBoard(props: CanvasGameBoardProps) {
 
     draw(drawCtx);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cssW, cssH, G, selection, drag, phase, imagesLoaded]);
+  }, [cssW, cssH, G, selection, phase, imagesLoaded]);
 
   return (
     <div
@@ -444,13 +311,11 @@ export function CanvasGameBoard(props: CanvasGameBoardProps) {
       <canvas
         ref={canvasRef}
         onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
         style={{
           display: 'block',
           borderRadius: 12,
           background: '#0E1E2B',
-          cursor: drag.isDragging ? 'grabbing' : 'grab',
+          cursor: 'pointer',
           touchAction: 'none',
         }}
       />
