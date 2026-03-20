@@ -1,99 +1,99 @@
 ## 1. HTML Overlay for Card Elements
 
-- [ ] 1.1 Create HTML overlay layer for card interactive elements
-- [ ] 1.2 Position overlay elements absolutely over canvas cards
-- [ ] 1.3 Map HTML elements to canvas card positions (sync with render)
-- [ ] 1.4 Ensure overlay doesn't interfere with canvas rendering
+- [x] 1.1 Create HTML overlay layer for card interactive elements
+- [x] 1.2 Position overlay elements absolutely over canvas cards
+- [x] 1.3 Map HTML elements to canvas card positions (sync with render)
+- [x] 1.4 Ensure overlay doesn't interfere with canvas rendering
 - [ ] 1.5 Test z-index layering to ensure proper stacking
 
 ## 2. CSS Styling for Card States
 
-- [ ] 2.1 Create CSS module for card button styles (`cardButtons.css`)
-- [ ] 2.2 Define normal card state styles (opacity, cursor, sizing)
-- [ ] 2.3 Define hover state styles (opacity increase, cursor: pointer)
-- [ ] 2.4 Define selected state styles (outline, glow, or border)
-- [ ] 2.5 Define disabled state styles (reduced opacity, cursor: not-allowed)
-- [ ] 2.6 Define focus state styles for keyboard accessibility
-- [ ] 2.7 Add CSS transitions for smooth state changes (200ms duration)
+- [x] 2.1 Create CSS module for card button styles (`cardButtons.css`)
+- [x] 2.2 Define normal card state styles (opacity, cursor, sizing)
+- [x] 2.3 Define hover state styles (opacity increase, cursor: pointer)
+- [x] 2.4 Define selected state styles (outline, glow, or border)
+- [x] 2.5 Define disabled state styles (reduced opacity, cursor: not-allowed)
+- [x] 2.6 Define focus state styles for keyboard accessibility
+- [x] 2.7 Add CSS transitions for smooth state changes (200ms duration)
 
 ## 3. Card Elevation Effect
 
-- [ ] 3.1 Implement CSS transform for card elevation (translateY: -4px)
-- [ ] 3.2 Add box-shadow for depth effect on hover
-- [ ] 3.3 Ensure shadow scales with elevation
+- [x] 3.1 Implement CSS transform for card elevation (translateY: -4px)
+- [x] 3.2 Add box-shadow for depth effect on hover
+- [x] 3.3 Ensure shadow scales with elevation
 - [ ] 3.4 Test elevation effect is smooth (60 FPS, no jank)
 - [ ] 3.5 Verify elevation works with multiple cards simultaneously
 - [ ] 3.6 Test z-index ordering doesn't cause visual issues
 
 ## 4. Pointer Event Handling
 
-- [ ] 4.1 Implement pointerenter/pointerleave handlers for hover detection
-- [ ] 4.2 Implement pointerdown/pointerup handlers for click detection
-- [ ] 4.3 Track pointer type (mouse vs touch) for appropriate feedback
-- [ ] 4.4 Add pointer event listeners to all card overlay elements
-- [ ] 4.5 Ensure cross-browser pointer event support
+- [x] 4.1 Implement pointerenter/pointerleave handlers for hover detection
+- [x] 4.2 Implement pointerdown/pointerup handlers for click detection
+- [x] 4.3 Track pointer type (mouse vs touch) for appropriate feedback
+- [x] 4.4 Add pointer event listeners to all card overlay elements
+- [x] 4.5 Ensure cross-browser pointer event support
 - [ ] 4.6 Test pointer events on desktop and mobile
 
 ## 5. Hover State Management
 
-- [ ] 5.1 Create hover state variable/hook for each card
-- [ ] 5.2 Update hover state on pointerenter event
-- [ ] 5.3 Clear hover state on pointerleave event
-- [ ] 5.4 Apply/remove hover CSS class based on state
-- [ ] 5.5 Ensure only one card is hovered at a time
+- [x] 5.1 Create hover state variable/hook for each card
+- [x] 5.2 Update hover state on pointerenter event
+- [x] 5.3 Clear hover state on pointerleave event
+- [x] 5.4 Apply/remove hover CSS class based on state
+- [x] 5.5 Ensure only one card is hovered at a time
 - [ ] 5.6 Test hover state transitions are smooth
 
 ## 6. Click/Selection Handling
 
-- [ ] 6.1 Create selection state management for cards
-- [ ] 6.2 Implement click handler to toggle selection
+- [x] 6.1 Create selection state management for cards
+- [x] 6.2 Implement click handler to toggle selection
 - [ ] 6.3 Dispatch game action/event when card is selected
 - [ ] 6.4 Update card selection state based on game logic
-- [ ] 6.5 Prevent selection of disabled cards
+- [x] 6.5 Prevent selection of disabled cards
 - [ ] 6.6 Handle deselection (clear selection or toggle)
 
 ## 7. Visual Feedback Implementation
 
-- [ ] 7.1 Implement outline/border for selected cards
-- [ ] 7.2 Implement glow/shadow effect for selected cards
-- [ ] 7.3 Ensure selection indication is visible over other elements
+- [x] 7.1 Implement outline/border for selected cards
+- [x] 7.2 Implement glow/shadow effect for selected cards
+- [x] 7.3 Ensure selection indication is visible over other elements
 - [ ] 7.4 Test selection indication works with hover effect
-- [ ] 7.5 Implement dimmed/faded style for disabled cards
+- [x] 7.5 Implement dimmed/faded style for disabled cards
 - [ ] 7.6 Verify all states are visually distinct
 
 ## 8. Touch Event Support
 
-- [ ] 8.1 Implement touch event detection (pointer type check)
-- [ ] 8.2 Implement two-tap workflow (first tap: hover, second tap: select)
-- [ ] 8.3 Add touch hover state that persists until tap away
+- [x] 8.1 Implement touch event detection (pointer type check)
+- [x] 8.2 Implement two-tap workflow (first tap: hover, second tap: select)
+- [x] 8.3 Add touch hover state that persists until tap away
 - [ ] 8.4 Test touch events don't prevent page scrolling
 - [ ] 8.5 Verify touch targets meet 44×44pt minimum (iOS)
 - [ ] 8.6 Test on actual mobile/tablet devices
 
 ## 9. Cursor Feedback
 
-- [ ] 9.1 Set cursor: pointer on enabled card hover
-- [ ] 9.2 Set cursor: not-allowed on disabled card hover
-- [ ] 9.3 Ensure cursor changes immediately on hover
+- [x] 9.1 Set cursor: pointer on enabled card hover
+- [x] 9.2 Set cursor: not-allowed on disabled card hover
+- [x] 9.3 Ensure cursor changes immediately on hover
 - [ ] 9.4 Test cursor feedback on cross-platform
 - [ ] 9.5 Verify cursor doesn't conflict with other UI elements
 
 ## 10. Accessibility Features
 
-- [ ] 10.1 Add focus-visible styles for keyboard navigation
-- [ ] 10.2 Add aria-label to each card element
-- [ ] 10.3 Add aria-pressed or aria-selected for selection state
-- [ ] 10.4 Implement keyboard support (Enter/Space to select)
-- [ ] 10.5 Ensure focus outline is visible (WCAG 2.1 AA)
+- [x] 10.1 Add focus-visible styles for keyboard navigation
+- [x] 10.2 Add aria-label to each card element
+- [x] 10.3 Add aria-pressed or aria-selected for selection state
+- [x] 10.4 Implement keyboard support (Enter/Space to select)
+- [x] 10.5 Ensure focus outline is visible (WCAG 2.1 AA)
 - [ ] 10.6 Test with screen reader (VoiceOver, NVDA)
 
 ## 11. Animation & Performance
 
-- [ ] 11.1 Profile card hover animations (target 60 FPS)
-- [ ] 11.2 Use will-change CSS property if needed (use sparingly)
-- [ ] 11.3 Optimize shadow rendering for performance
+- [x] 11.1 Profile card hover animations (target 60 FPS)
+- [x] 11.2 Use will-change CSS property if needed (use sparingly)
+- [x] 11.3 Optimize shadow rendering for performance
 - [ ] 11.4 Test performance on low-end mobile devices
-- [ ] 11.5 Verify no layout thrashing during animations
+- [x] 11.5 Verify no layout thrashing during animations
 - [ ] 11.6 Measure frame rate with DevTools Profiler
 
 ## 12. Testing: Hover Effects
