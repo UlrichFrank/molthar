@@ -29,12 +29,6 @@ interface ModelCoords {
   y: number;
 }
 
-interface Selection {
-  selectedPearl: number | null;
-  selectedCharacter: number | null;
-  selectedHandIndices: number[];
-}
-
 function useContainerSize<T extends HTMLElement>() {
   const ref = useRef<T | null>(null);
   const [size, setSize] = useState({ w: 1200, h: 800 });
@@ -94,12 +88,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
       .catch((err) => console.warn('⚠️ Some images failed to load:', err));
   }, []);
 
-  const [selection, setSelection] = useState<Selection>({
-    selectedPearl: null,
-    selectedCharacter: null,
-    selectedHandIndices: [],
-  });
-
   const [hoveredCard, setHoveredCard] = useState<HitTarget | null>(null);
 
   // Berechne Sichtbare Größe (Letterboxed)
@@ -145,27 +133,28 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
       drawOpponentPortals(canvasCtx, numOpponents);
     }
     
-    // Auslage
+    // Auslage - no selection highlighting
     // @ts-expect-error - PearlCard and CharacterCard don't have exact CardData interface but work for rendering
     drawAuslage(canvasCtx, characterSlots, pearlSlots, {
-      selectedPearl: selection.selectedPearl,
-      selectedCharacter: selection.selectedCharacter,
-      selectedHandIndices: selection.selectedHandIndices,
+      selectedPearl: null,
+      selectedCharacter: null,
+      selectedHandIndices: [],
     });
 
-    // Portal - @ts-expect-error: PearlCard[] doesn't match CardData[] but works for rendering
+    // Portal - no selection highlighting
+    // @ts-expect-error: PearlCard[] doesn't match CardData[] but works for rendering
     drawPlayerPortal(canvasCtx, {
       diamonds: playerDiamonds,
       portal: playerPortal,
       // @ts-expect-error - PearlCard values work for rendering
       hand: playerHand,
     }, {
-      selectedPearl: selection.selectedPearl,
-      selectedCharacter: selection.selectedCharacter,
-      selectedHandIndices: selection.selectedHandIndices,
+      selectedPearl: null,
+      selectedCharacter: null,
+      selectedHandIndices: [],
     });
 
-    // UI
+    // UI - show action counter
     drawUI(canvasCtx, phase);
   }
 
@@ -193,69 +182,22 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   };
 
   /**
-   * Behandle Card-Klicks (Auslage, Hand, Portal Slots)
+   * Behandle Card-Klicks (Auslage, Hand, Portal Slots) - Direct Take Model
+   * Click pearl/character → immediately dispatched move
    */
   function handleCardClick(target: HitTarget) {
+    // Validate action count
+    if (G.actionCount >= 3) {
+      console.log('⚠️ Action limit reached (3/3), cannot take card');
+      return;
+    }
+
     switch (target.type) {
       case 'auslage-card': {
         const id = target.id as number;
         if (id < 2) {
-          // Character
-          setSelection((prev) => ({
-            ...prev,
-            selectedCharacter: prev.selectedCharacter === id ? null : id,
-            selectedPearl: null,
-          }));
-        } else {
-          // Pearl
-          const pearlIdx = id - 2;
-          setSelection((prev) => ({
-            ...prev,
-            selectedPearl: prev.selectedPearl === pearlIdx ? null : pearlIdx,
-            selectedCharacter: null,
-          }));
-        }
-        break;
-      }
-
-      case 'hand-card': {
-        const id = target.id as number;
-        setSelection((prev) => ({
-          ...prev,
-          selectedHandIndices: prev.selectedHandIndices.includes(id)
-            ? prev.selectedHandIndices.filter((x) => x !== id)
-            : [...prev.selectedHandIndices, id],
-        }));
-        break;
-      }
-
-      case 'portal-slot': {
-        const slotIndex = target.id as number;
-        // Show activation dialog when portal slot is clicked
-        if (me && me.portal[slotIndex]) {
-          const entry = me.portal[slotIndex];
-          dialog.openActivationDialog(entry.card, slotIndex);
-        }
-        break;
-      }
-    }
-  }
-
-  /**
-   * Behandle Button-Klicks
-   */
-  function handleButtonClick(buttonId: string) {
-    switch (buttonId) {
-      case 'take-pearl':
-        if (selection.selectedPearl !== null) {
-          moves.takePearlCard(selection.selectedPearl);
-          setSelection((prev) => ({ ...prev, selectedPearl: null }));
-        }
-        break;
-
-      case 'activate-character':
-        if (selection.selectedCharacter !== null) {
-          const newCharacter = characterSlots[selection.selectedCharacter];
+          // Character card - slot index 0 or 1
+          const newCharacter = characterSlots[id];
           if (!newCharacter) break;
           
           // Check if player's portal is full (2 characters)
@@ -265,15 +207,45 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
             dialog.openReplacementDialog(newCharacter, portalCharacters);
           } else {
             // Portal not full - take character directly
-            moves.takeCharacterCard(selection.selectedCharacter);
-            setSelection((prev) => ({ ...prev, selectedCharacter: null }));
+            console.log('📥 Taking character:', newCharacter.name);
+            moves.takeCharacterCard(id);
           }
+        } else {
+          // Pearl card - slot index 2-3, subtract 2 to get pearl array index
+          const pearlIdx = id - 2;
+          const pearlCard = pearlSlots[pearlIdx];
+          if (!pearlCard) break;
+          
+          console.log('📥 Taking pearl card:', pearlCard.value);
+          moves.takePearlCard(pearlIdx);
         }
         break;
+      }
 
+      case 'portal-slot': {
+        const slotIndex = target.id as number;
+        // Show activation dialog when player's own portal slot is clicked
+        if (me && me.portal[slotIndex]) {
+          const entry = me.portal[slotIndex];
+          console.log('🎯 Opening activation dialog for:', entry.card.name);
+          dialog.openActivationDialog(entry.card, slotIndex);
+        }
+        break;
+      }
+    }
+  }
+
+  /**
+   * Tratamiento de clics de botón - DEPRECATED
+   * Los botones "Take Pearl" y "Activate Character" se han eliminado.
+   * Las cartas se toman directamente al hacer clic (handleCardClick).
+   * El único botón restante es "End Turn".
+   */
+  function handleButtonClick(buttonId: string) {
+    switch (buttonId) {
       case 'end-turn':
+        console.log('📋 Ending turn');
         events?.endTurn?.();
-        setSelection({ selectedPearl: null, selectedCharacter: null, selectedHandIndices: [] });
         break;
     }
   }
@@ -305,7 +277,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
 
     draw(drawCtx);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cssW, cssH, G, selection, phase, imagesLoaded]);
+  }, [cssW, cssH, G, phase, imagesLoaded]);
 
   return (
     <div
@@ -341,6 +313,25 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
         Players: {Object.keys(G.players || {}).length}<br/>
         Auslage: {(G.characterSlots || []).length + (G.pearlSlots || []).length} cards
       </div>
+
+      {/* Action Counter Display */}
+      <div style={{
+        position: 'fixed',
+        top: 10,
+        left: 10,
+        background: 'rgba(0,0,0,0.8)',
+        color: G.actionCount >= 3 ? '#f44' : '#0f0',
+        padding: '10px 15px',
+        fontSize: '16px',
+        fontWeight: 'bold',
+        fontFamily: 'monospace',
+        zIndex: 100,
+        border: G.actionCount >= 3 ? '2px solid #f44' : '2px solid #0f0',
+        borderRadius: '4px',
+        opacity: G.actionCount >= 3 ? 1 : 0.7,
+      }}>
+        Actions: {G.actionCount}/3
+      </div>
       
       {/* Canvas container with relative positioning for overlay */}
       <div
@@ -368,9 +359,9 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           G={G}
           canvasWidth={cssW}
           canvasHeight={cssH}
-          selectedPearl={selection.selectedPearl}
-          selectedCharacter={selection.selectedCharacter}
-          selectedHandIndices={selection.selectedHandIndices}
+          selectedPearl={null}
+          selectedCharacter={null}
+          selectedHandIndices={[]}
           hoveredCard={hoveredCard}
           phase={phase}
           onCardClick={handleCardClick}
@@ -384,14 +375,16 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           newCard={dialog.dialogContext.newCharacter}
           portalCards={dialog.dialogContext.portalCharacters}
           onSelect={(replacedSlotIndex) => {
-            if (selection.selectedCharacter !== null) {
-              moves.takeCharacterCard(selection.selectedCharacter, replacedSlotIndex);
-              setSelection((prev) => ({ ...prev, selectedCharacter: null }));
+            // Find the character card index in the auslage
+            const characterIndex = (G.characterSlots || []).findIndex(
+              (card) => card?.id === dialog.dialogContext.newCharacter?.id
+            );
+            if (characterIndex >= 0) {
+              moves.takeCharacterCard(characterIndex, replacedSlotIndex);
             }
             dialog.closeDialog();
           }}
           onCancel={() => {
-            setSelection((prev) => ({ ...prev, selectedCharacter: null }));
             dialog.closeDialog();
           }}
         />

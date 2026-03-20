@@ -66,16 +66,14 @@ function getScaleFactor(canvasWidth: number, canvasHeight: number): number {
 
 /**
  * Determine if a card should be disabled based on game phase and state
+ * Selection-based disabling has been removed - cards are clickable in takingActions phase
  */
 function isCardDisabled(
   cardType: string,
   cardId: number | string,
-  phase: string,
-  selectedPearl: number | null,
-  selectedCharacter: number | null
+  phase: string
 ): boolean {
-  // In most phases, cards can be clicked
-  // This logic can be expanded based on game rules
+  // Only disable during finished phase
   if (phase === 'finished') {
     return true;
   }
@@ -106,8 +104,7 @@ export const CardButtonOverlay: React.FC<CardButtonOverlayProps> = ({
     // Character cards (indices 0-1)
     for (let i = 0; i < Math.min(2, characterSlots.length); i++) {
       const cardX = AUSLAGE_START_X + i * (CARD_W + CARD_GAP);
-      const isSelected = selectedCharacter === i;
-      const isDisabled = isCardDisabled('auslage-card', i, phase, selectedPearl, selectedCharacter);
+      const isDisabled = isCardDisabled('auslage-card', i, phase);
       
       buttons.push({
         id: i,
@@ -116,7 +113,7 @@ export const CardButtonOverlay: React.FC<CardButtonOverlayProps> = ({
         w: CARD_W,
         h: CARD_H,
         type: 'auslage-card' as const,
-        isSelected,
+        isSelected: false,
         isDisabled,
         target: { type: 'auslage-card' as const, id: i, x: cardX, y: AUSLAGE_START_Y, w: CARD_W, h: CARD_H },
       });
@@ -126,8 +123,7 @@ export const CardButtonOverlay: React.FC<CardButtonOverlayProps> = ({
     for (let i = 0; i < Math.min(4, pearlSlots.length); i++) {
       const slotIndex = 2 + i;
       const cardX = AUSLAGE_START_X + slotIndex * (CARD_W + CARD_GAP);
-      const isSelected = selectedPearl === i;
-      const isDisabled = isCardDisabled('auslage-card', slotIndex, phase, selectedPearl, selectedCharacter);
+      const isDisabled = isCardDisabled('auslage-card', slotIndex, phase);
       
       buttons.push({
         id: slotIndex,
@@ -136,14 +132,14 @@ export const CardButtonOverlay: React.FC<CardButtonOverlayProps> = ({
         w: CARD_W,
         h: CARD_H,
         type: 'auslage-card' as const,
-        isSelected,
+        isSelected: false,
         isDisabled,
         target: { type: 'auslage-card' as const, id: slotIndex, x: cardX, y: AUSLAGE_START_Y, w: CARD_W, h: CARD_H },
       });
     }
     
     return buttons;
-  }, [G.characterSlots, G.pearlSlots, selectedCharacter, selectedPearl, phase]);
+  }, [G.characterSlots, G.pearlSlots, phase]);
   
   // Generate hand card buttons
   const handButtons = useMemo(() => {
@@ -163,8 +159,7 @@ export const CardButtonOverlay: React.FC<CardButtonOverlayProps> = ({
       const cx = handCenterX + offsetX;
       const cy = HAND_CENTER_Y;
       
-      const isSelected = selectedHandIndices.includes(i);
-      const isDisabled = isCardDisabled('hand-card', i, phase, selectedPearl, selectedCharacter);
+      const isDisabled = isCardDisabled('hand-card', i, phase);
       
       buttons.push({
         id: i,
@@ -174,14 +169,14 @@ export const CardButtonOverlay: React.FC<CardButtonOverlayProps> = ({
         h: HAND_CARD_H,
         type: 'hand-card' as const,
         angle,
-        isSelected,
+        isSelected: false,
         isDisabled,
         target: { type: 'hand-card' as const, id: i, x: cx, y: cy, w: HAND_CARD_W, h: HAND_CARD_H },
       });
     }
     
     return buttons;
-  }, [G.players, selectedHandIndices, phase, selectedPearl, selectedCharacter]);
+  }, [G.players, phase]);
   
   // Generate portal slot buttons
   const portalButtons = useMemo(() => {

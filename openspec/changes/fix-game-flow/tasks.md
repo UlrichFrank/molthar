@@ -2,58 +2,58 @@
 
 ## 1. Remove Selection State Model
 
-- [ ] 1.1 Remove selectedPearl, selectedCharacter, selectedHandIndices from component state
-- [ ] 1.2 Remove all selection-related useState hooks and state initialization
-- [ ] 1.3 Remove selection highlighting CSS classes from rendering
-- [ ] 1.4 Verify no remaining references to selection state variables
-- [ ] 1.5 Test: Component still renders without selection state
+- [x] 1.1 Remove selectedPearl, selectedCharacter, selectedHandIndices from component state
+- [x] 1.2 Remove all selection-related useState hooks and state initialization
+- [x] 1.3 Remove selection highlighting CSS classes from rendering
+- [x] 1.4 Verify no remaining references to selection state variables
+- [x] 1.5 Test: Component still renders without selection state
 
 ## 2. Refactor Click Handler Pipeline
 
-- [ ] 2.1 Modify onPointerDown to validate actionCount before processing click
-- [ ] 2.2 Extract pearl card click logic: hitTest → validate actionCount < 3 → moves.takePearlCard(slotIndex)
-- [ ] 2.3 Extract character card click logic: hitTest → validate actionCount < 3 → check portal full
-- [ ] 2.4 If portal not full: moves.takeCharacterCard(slotIndex)
-- [ ] 2.5 If portal full: call dialog.openReplacementDialog() instead of move
-- [ ] 2.6 Remove "activate-character" button handler (replaced by immediate take)
-- [ ] 2.7 Remove "take-pearl" button handler (replaced by immediate take)
-- [ ] 2.8 Test: Console logs confirm moves are dispatched on click
+- [x] 2.1 Modify onPointerDown to validate actionCount before processing click
+- [x] 2.2 Extract pearl card click logic: hitTest → validate actionCount < 3 → moves.takePearlCard(slotIndex)
+- [x] 2.3 Extract character card click logic: hitTest → validate actionCount < 3 → check portal full
+- [x] 2.4 If portal not full: moves.takeCharacterCard(slotIndex)
+- [x] 2.5 If portal full: call dialog.openReplacementDialog() instead of move
+- [x] 2.6 Remove "activate-character" button handler (replaced by immediate take)
+- [x] 2.7 Remove "take-pearl" button handler (replaced by immediate take)
+- [x] 2.8 Test: Console logs confirm moves are dispatched on click
 
 ## 3. Portal Replacement Dialog Integration
 
-- [ ] 3.1 In takeCharacterCard callback, check if player.portal.length >= 2
-- [ ] 3.2 If full: call dialog.openReplacementDialog(newCharacter, portalCharacters)
-- [ ] 3.3 Dialog onSelect callback: dispatch moves.takeCharacterCard(slotIndex, replacedSlotIndex)
-- [ ] 3.4 Dialog onCancel callback: close dialog without taking character
+- [x] 3.1 In takeCharacterCard callback, check if player.portal.length >= 2
+- [x] 3.2 If full: call dialog.openReplacementDialog(newCharacter, portalCharacters)
+- [x] 3.3 Dialog onSelect callback: dispatch moves.takeCharacterCard(slotIndex, replacedSlotIndex)
+- [x] 3.4 Dialog onCancel callback: close dialog without taking character
 - [ ] 3.5 Test: Taking character with empty portal goes directly
 - [ ] 3.6 Test: Taking character with full portal shows dialog
 - [ ] 3.7 Test: Dialog selection dispatches correct move with replacedSlotIndex
 
 ## 4. Portal Activation Dialog - Keep Separate Flow
 
-- [ ] 4.1 Verify portal-slot click handler still triggers activation dialog (not card take)
-- [ ] 4.2 Verify CharacterActivationDialog still works (no changes needed)
-- [ ] 4.3 Verify dialog callbacks dispatch moves.activatePortalCard() correctly
-- [ ] 4.4 Test: Clicking portal character slot opens activation dialog
-- [ ] 4.5 Test: Selecting cards in dialog validates cost correctly
+- [x] 4.1 Verify portal-slot click handler still triggers activation dialog (not card take)
+- [x] 4.2 Verify CharacterActivationDialog still works (no changes needed)
+- [x] 4.3 Verify dialog callbacks dispatch moves.activatePortalCard() correctly
+- [x] 4.4 Test: Clicking portal character slot opens activation dialog
+- [x] 4.5 Test: Selecting cards in dialog validates cost correctly
 
 ## 5. Action Count Validation and Display
 
-- [ ] 5.1 Add actionCount validation: at start of handleCardClick, return if actionCount >= 3
-- [ ] 5.2 Add visual action counter display to game board (e.g., "Actions: 2/3")
-- [ ] 5.3 Update counter in real-time on every move dispatch
-- [ ] 5.4 Add CSS styling: disabled appearance for cards when actionCount >= 3
-- [ ] 5.5 Add CSS styling: highlight/warning color for counter when actionCount == 3
+- [x] 5.1 Add actionCount validation: at start of handleCardClick, return if actionCount >= 3
+- [x] 5.2 Add visual action counter display to game board (e.g., "Actions: 2/3")
+- [x] 5.3 Update counter in real-time on every move dispatch
+- [x] 5.4 Add CSS styling: disabled appearance for cards when actionCount >= 3
+- [x] 5.5 Add CSS styling: highlight/warning color for counter when actionCount == 3
 - [ ] 5.6 Test: Clicking cards when actionCount >= 3 has no effect
 - [ ] 5.7 Test: Counter increments correctly on each move
 
 ## 6. Remove UI Components/Code
 
-- [ ] 6.1 Remove "Take Pearl" button from game board
-- [ ] 6.2 Remove "Activate Character" button from game board
-- [ ] 6.3 Remove selection highlighting CSS (selectedPearl, selectedCharacter, selectedHandIndices styling)
-- [ ] 6.4 Remove any "selection" badge/tooltip displays
-- [ ] 6.5 Verify game board still renders without these UI elements
+- [x] 6.1 Remove "Take Pearl" button from game board
+- [x] 6.2 Remove "Activate Character" button from game board
+- [x] 6.3 Remove selection highlighting CSS (selectedPearl, selectedCharacter, selectedHandIndices styling)
+- [x] 6.4 Remove any "selection" badge/tooltip displays
+- [x] 6.5 Verify game board still renders without these UI elements
 
 ## 7. OpponentPortals - Verify Integration
 
@@ -73,18 +73,18 @@
 
 ## 9. TypeScript & Type Safety
 
-- [ ] 9.1 Remove Selection interface definition (no longer needed)
-- [ ] 9.2 Run TypeScript strict mode check: `npx tsc --noEmit`
-- [ ] 9.3 Fix any type errors introduced by selection state removal
-- [ ] 9.4 Verify no `any` types in modified code
-- [ ] 9.5 Test: Build succeeds with no TypeScript errors
+- [x] 9.1 Remove Selection interface definition (no longer needed)
+- [x] 9.2 Run TypeScript strict mode check: `npx tsc --noEmit`
+- [x] 9.3 Fix any type errors introduced by selection state removal
+- [x] 9.4 Verify no `any` types in modified code
+- [x] 9.5 Test: Build succeeds with no TypeScript errors
 
 ## 10. Build & Compilation
 
-- [ ] 10.1 Run `npm run build` from game-web directory
-- [ ] 10.2 Verify build succeeds with no errors
-- [ ] 10.3 Verify bundle size hasn't regressed significantly
-- [ ] 10.4 Check for any console warnings during build
+- [x] 10.1 Run `npm run build` from game-web directory
+- [x] 10.2 Verify build succeeds with no errors
+- [x] 10.3 Verify bundle size hasn't regressed significantly
+- [x] 10.4 Check for any console warnings during build
 
 ## 11. Manual Game Flow Testing
 
