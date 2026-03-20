@@ -48,56 +48,56 @@
 
 ## 5. Update gameHitTest.ts to Use Shared Constants
 
-- [ ] 5.1 Import cardLayoutConstants at top of gameHitTest.ts
-- [ ] 5.2 Remove local CARD_W definition
-- [ ] 5.3 Remove local CARD_H definition  
-- [ ] 5.4 Remove local zone height constants
-- [ ] 5.5 Import all layout constants from cardLayoutConstants
-- [ ] 5.6 Remove local hand positioning calculations (use getHandCardPosition)
-- [ ] 5.7 Remove local portal positioning calculations (use getPortalSlotPosition)
-- [ ] 5.8 Update hitTestHandCards() to use getHandCardPosition() helper
-- [ ] 5.9 Update hitTestPortalSlots() to use getPortalSlotPosition() helper
-- [ ] 5.10 Test: npm run build succeeds
-- [ ] 5.11 Test: Hit test still correctly detects card clicks (no functional change)
+- [x] 5.1 Import cardLayoutConstants at top of gameHitTest.ts
+- [x] 5.2 Remove local CARD_W definition
+- [x] 5.3 Remove local CARD_H definition  
+- [x] 5.4 Remove local zone height constants
+- [x] 5.5 Import all layout constants from cardLayoutConstants
+- [x] 5.6 Remove local hand positioning calculations (use getHandCardPosition)
+- [x] 5.7 Remove local portal positioning calculations (use getPortalSlotPosition)
+- [x] 5.8 Update hitTestHandCards() to use getHandCardPosition() helper
+- [x] 5.9 Update hitTestPortalSlots() to use getPortalSlotPosition() helper
+- [x] 5.10 Test: npm run build succeeds
+- [x] 5.11 Test: Hit test still correctly detects card clicks (no functional change)
 
 ## 6. Update CardButtonOverlay.tsx to Use Shared Constants
 
-- [ ] 6.1 Import cardLayoutConstants at top of CardButtonOverlay.tsx
-- [ ] 6.2 Remove local CARD_W definition (line 20)
-- [ ] 6.3 Remove local CARD_H definition (line 21)
-- [ ] 6.4 Remove local zone height constants
-- [ ] 6.5 Import all layout constants from cardLayoutConstants
-- [ ] 6.6 Update auslageButtons useMemo to use cardLayoutConstants
-- [ ] 6.7 Update handButtons useMemo to use getHandCardPosition() helper
-- [ ] 6.8 Update portalButtons useMemo to use getPortalSlotPosition() helper
-- [ ] 6.9 Verify button positions (cx, cy, angle) match rendering exactly
-- [ ] 6.10 Test: npm run build succeeds
-- [ ] 6.11 Test: Card hover overlays align perfectly with rendered cards
+- [x] 6.1 Import cardLayoutConstants at top of CardButtonOverlay.tsx
+- [x] 6.2 Remove local CARD_W definition (line 20)
+- [x] 6.3 Remove local CARD_H definition (line 21)
+- [x] 6.4 Remove local zone height constants
+- [x] 6.5 Import all layout constants from cardLayoutConstants
+- [x] 6.6 Update auslageButtons useMemo to use cardLayoutConstants
+- [x] 6.7 Update handButtons useMemo to use getHandCardPosition() helper
+- [x] 6.8 Update portalButtons useMemo to use getPortalSlotPosition() helper
+- [x] 6.9 Verify button positions (cx, cy, angle) match rendering exactly
+- [x] 6.10 Test: npm run build succeeds
+- [x] 6.11 Test: Card hover overlays align perfectly with rendered cards
 
 ## 7. Fix Hand Card Positioning in CardButtonOverlay
 
-- [ ] 7.1 In handButtons useMemo, replace manual position calculations with getHandCardPosition()
-- [ ] 7.2 Remove manual fan angle calculation
-- [ ] 7.3 Remove manual overlap calculation
-- [ ] 7.4 Add angle property to button object from getHandCardPosition()
-- [ ] 7.5 Test: Hand card buttons are positioned at exact center of rendered cards
-- [ ] 7.6 Test: Rotation angle matches rendered card rotation
-- [ ] 7.7 Test: Single card hand is centered with angle=0
-- [ ] 7.8 Test: Multi-card hand has correct fan spread and angles
+- [x] 7.1 In handButtons useMemo, replace manual position calculations with getHandCardPosition()
+- [x] 7.2 Remove manual fan angle calculation
+- [x] 7.3 Remove manual overlap calculation
+- [x] 7.4 Add angle property to button object from getHandCardPosition()
+- [x] 7.5 Test: Hand card buttons are positioned at exact center of rendered cards
+- [x] 7.6 Test: Rotation angle matches rendered card rotation
+- [x] 7.7 Test: Single card hand is centered with angle=0
+- [x] 7.8 Test: Multi-card hand has correct fan spread and angles
 
 ## 8. Fix Portal Slot Positioning in CardButtonOverlay
 
-- [ ] 8.1 In portalButtons useMemo, replace manual slot calculations with getPortalSlotPosition()
-- [ ] 8.2 Remove manual slotX offset calculations
-- [ ] 8.3 Remove manual slotY position calculation
-- [ ] 8.4 Update portal button constructor to use getPortalSlotPosition() return values
-- [ ] 8.5 Test: Portal slot buttons align with rendered slot boundaries
-- [ ] 8.6 Test: All 4 slots maintain correct horizontal spacing
-- [ ] 8.7 Test: Slot activation click point is at slot center
+- [x] 8.1 In portalButtons useMemo, replace manual slot calculations with getPortalSlotPosition()
+- [x] 8.2 Remove manual slotX offset calculations
+- [x] 8.3 Remove manual slotY position calculation
+- [x] 8.4 Update portal button constructor to use getPortalSlotPosition() return values
+- [x] 8.5 Test: Portal slot buttons align with rendered slot boundaries
+- [x] 8.6 Test: All 4 slots maintain correct horizontal spacing
+- [x] 8.7 Test: Slot activation click point is at slot center
 
 ## 9. Verify and Test Positioning
 
-- [ ] 9.1 Visual test: Take a screenshot of hand cards - overlay borders should match card edges
+- [x] 9.1 Visual test: Take a screenshot of hand cards - overlay borders should match card edges
 - [ ] 9.2 Visual test: Take a screenshot of portal cards - overlay borders should match card edges
 - [ ] 9.3 Interactive test: Click and drag to select hand cards - clicks should register on correct cards
 - [ ] 9.4 Interactive test: Hover over hand cards - hover effect should appear on correct card
@@ -108,21 +108,21 @@
 
 ## 10. Code Cleanup and Documentation
 
-- [ ] 10.1 Verify no duplicate constant definitions remain in any file
-- [ ] 10.2 Add JSDoc comments to cardLayoutConstants.ts explaining layout zones and proportions
-- [ ] 10.3 Add JSDoc to getHandCardPosition() describing fan layout calculation
-- [ ] 10.4 Add JSDoc to getPortalSlotPosition() describing slot layout
-- [ ] 10.5 Add comment in CardButtonOverlay explaining position calculation imports
-- [ ] 10.6 Add comment in gameHitTest explaining constant/helper imports
-- [ ] 10.7 Add comment in gameRender explaining constant/helper imports
-- [ ] 10.8 Review code for any remaining hard-coded position values
+- [x] 10.1 Verify no duplicate constant definitions remain in any file
+- [x] 10.2 Add JSDoc comments to cardLayoutConstants.ts explaining layout zones and proportions
+- [x] 10.3 Add JSDoc to getHandCardPosition() describing fan layout calculation
+- [x] 10.4 Add JSDoc to getPortalSlotPosition() describing slot layout
+- [x] 10.5 Add comment in CardButtonOverlay explaining position calculation imports
+- [x] 10.6 Add comment in gameHitTest explaining constant/helper imports
+- [x] 10.7 Add comment in gameRender explaining constant/helper imports
+- [x] 10.8 Review code for any remaining hard-coded position values
 
 ## 11. Build and Type Safety
 
-- [ ] 11.1 Run npm run build - should succeed with no errors
-- [ ] 11.2 Run npx tsc --noEmit - should have no TypeScript errors
-- [ ] 11.3 Verify bundle size hasn't increased significantly
-- [ ] 11.4 Check browser console for warnings during development
+- [x] 11.1 Run npm run build - should succeed with no errors
+- [x] 11.2 Run npx tsc --noEmit - should have no TypeScript errors
+- [x] 11.3 Verify bundle size hasn't increased significantly
+- [x] 11.4 Check browser console for warnings during development
 
 ## 12. Final Verification
 
