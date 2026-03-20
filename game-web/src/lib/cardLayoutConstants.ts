@@ -38,7 +38,7 @@ export const PORTAL_X = MARGIN_H;
 export const PORTAL_W = BASE_W - 2 * MARGIN_H;
 export const PORTAL_Y = ZONE_TOP_H + ZONE_CENTER_H;
 
-// === Portal Slot Positioning (4 character slots, center area) ===
+// === Portal Slot Positioning (2 character slots max, center area) ===
 // Vertically centered at 35% of player zone (measured from portalY); horizontally shifted 3% to the right
 export const SLOT_AREA_X = PORTAL_X + PORTAL_W / 3 + PORTAL_W * 0.03;
 export const SLOT_AREA_Y = PORTAL_Y + ZONE_PLAYER_H * 0.35;

@@ -79,10 +79,10 @@ export function hitTestAuslage(x: number, y: number): number | null {
 }
 
 /**
- * Finde welcher Portal-Slot geklickt wurde (0-3)
+ * Finde welcher Portal-Slot geklickt wurde (0-1, max 2 slots)
  */
 export function hitTestPortalSlots(x: number, y: number): number | null {
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 2; i++) {
     const slotX = SLOT_AREA_X + i * (SLOT_W + SLOT_GAP);
     const slotY = SLOT_AREA_Y;
 

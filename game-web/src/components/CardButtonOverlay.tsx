@@ -160,7 +160,7 @@ export const CardButtonOverlay: React.FC<CardButtonOverlayProps> = ({
   const portalButtons = useMemo(() => {
     const buttons = [];
     
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 2; i++) {
       // Use shared helper for consistent positioning
       const pos = getPortalSlotPosition(i);
       const { slotX, slotY } = pos;
