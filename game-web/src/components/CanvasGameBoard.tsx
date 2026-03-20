@@ -5,6 +5,11 @@ import { hitTest } from '../lib/gameHitTest';
 import { drawBackground, drawAuslage, drawPlayerPortal, drawUI, drawOpponentPortals } from '../lib/gameRender';
 import { preloadAllImages } from '../lib/imageLoaderV2';
 import CardButtonOverlay from './CardButtonOverlay';
+import { OpponentPortals } from './OpponentPortals';
+import { DialogProvider, useDialog } from '../contexts/DialogContext';
+import { CharacterReplacementDialog } from './CharacterReplacementDialog';
+import { CharacterActivationDialog } from './CharacterActivationDialog';
+import '../styles/dialogModal.css';
 
 interface CanvasGameBoardProps {
   G: GameState;
@@ -61,7 +66,16 @@ function useContainerSize<T extends HTMLElement>() {
 }
 
 export function CanvasGameBoard(props: CanvasGameBoardProps) {
+  return (
+    <DialogProvider>
+      <CanvasGameBoardContent {...props} />
+    </DialogProvider>
+  );
+}
+
+function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   const { G, ctx, moves, events, playerID, isActive } = props;
+  const dialog = useDialog();
   const { ref, w: viewportW, h: viewportH } = useContainerSize<HTMLDivElement>();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -216,10 +230,11 @@ export function CanvasGameBoard(props: CanvasGameBoardProps) {
       }
 
       case 'portal-slot': {
-        const id = target.id as number;
-        if (selection.selectedHandIndices.length > 0) {
-          moves.activatePortalCard(id, selection.selectedHandIndices);
-          setSelection((prev) => ({ ...prev, selectedHandIndices: [] }));
+        const slotIndex = target.id as number;
+        // Show activation dialog when portal slot is clicked
+        if (me && me.portal[slotIndex]) {
+          const entry = me.portal[slotIndex];
+          dialog.openActivationDialog(entry.card, slotIndex);
         }
         break;
       }
@@ -240,8 +255,19 @@ export function CanvasGameBoard(props: CanvasGameBoardProps) {
 
       case 'activate-character':
         if (selection.selectedCharacter !== null) {
-          moves.takeCharacterCard(selection.selectedCharacter);
-          setSelection((prev) => ({ ...prev, selectedCharacter: null }));
+          const newCharacter = characterSlots[selection.selectedCharacter];
+          if (!newCharacter) break;
+          
+          // Check if player's portal is full (2 characters)
+          if (me && me.portal.length >= 2) {
+            // Portal is full - show replacement dialog
+            const portalCharacters = me.portal.map((entry) => entry.card);
+            dialog.openReplacementDialog(newCharacter, portalCharacters);
+          } else {
+            // Portal not full - take character directly
+            moves.takeCharacterCard(selection.selectedCharacter);
+            setSelection((prev) => ({ ...prev, selectedCharacter: null }));
+          }
         }
         break;
 
@@ -294,6 +320,11 @@ export function CanvasGameBoard(props: CanvasGameBoardProps) {
         overflow: 'hidden',
       }}
     >
+      {/* Opponent Portals Display */}
+      <OpponentPortals 
+        players={Object.values(G.players || {}).filter((_, idx) => idx !== 0)} 
+      />
+
       {/* Debug info */}
       <div style={{
         position: 'fixed',
@@ -346,6 +377,44 @@ export function CanvasGameBoard(props: CanvasGameBoardProps) {
           onCardHover={setHoveredCard}
         />
       </div>
+
+      {/* Dialog Modals */}
+      {dialog.activeDialog === 'replacement' && dialog.dialogContext.newCharacter && dialog.dialogContext.portalCharacters && (
+        <CharacterReplacementDialog
+          newCard={dialog.dialogContext.newCharacter}
+          portalCards={dialog.dialogContext.portalCharacters}
+          onSelect={(replacedSlotIndex) => {
+            if (selection.selectedCharacter !== null) {
+              moves.takeCharacterCard(selection.selectedCharacter, replacedSlotIndex);
+              setSelection((prev) => ({ ...prev, selectedCharacter: null }));
+            }
+            dialog.closeDialog();
+          }}
+          onCancel={() => {
+            setSelection((prev) => ({ ...prev, selectedCharacter: null }));
+            dialog.closeDialog();
+          }}
+        />
+      )}
+
+      {dialog.activeDialog === 'activation' && dialog.dialogContext.character !== undefined && dialog.dialogContext.portalSlotIndex !== undefined && me && (
+        <CharacterActivationDialog
+          availableCharacters={[{
+            card: dialog.dialogContext.character,
+            slotIndex: dialog.dialogContext.portalSlotIndex,
+          }]}
+          hand={me.hand}
+          diamonds={me.diamonds}
+          portalSlotIndex={dialog.dialogContext.portalSlotIndex}
+          onActivate={(portalSlotIndex, usedCardIndices) => {
+            moves.activatePortalCard(portalSlotIndex, usedCardIndices);
+            dialog.closeDialog();
+          }}
+          onCancel={() => {
+            dialog.closeDialog();
+          }}
+        />
+      )}
     </div>
   );
 }

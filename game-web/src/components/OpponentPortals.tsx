@@ -1,12 +1,11 @@
-import type { PlayerState, CharacterCard } from '../lib/types';
+import type { PlayerState, CharacterCard } from '@portale-von-molthar/shared';
 
 interface OpponentPortalsProps {
   players: PlayerState[];
-  characters: CharacterCard[];
 }
 
 export function OpponentPortals({ players }: OpponentPortalsProps) {
-  const getPortalImage = (playerIndex: number, totalPlayers: number): string => {
+  const getPortalImage = (playerIndex: number): string => {
     // Map player indices to portal images
     // Portal numbering: 2, 3, 4, 5 (based on number of opponents)
     const portalNumber = playerIndex + 2; // 0->2, 1->3, 2->4, 3->5
@@ -34,7 +33,7 @@ export function OpponentPortals({ players }: OpponentPortalsProps) {
   return (
     <div className="opponent-portals">
       {players.map((player, idx) => {
-        const portalImage = getPortalImage(idx, players.length);
+        const portalImage = getPortalImage(idx);
         const rotation = getPortalRotation(idx, players.length);
         const isOpen = idx < 4; // Only show up to 4 open portals
 
@@ -61,15 +60,15 @@ export function OpponentPortals({ players }: OpponentPortalsProps) {
             <div className="opponent-info">
               <div className="player-name">{player.name}</div>
               <div className="stats-row">
-                <span className="stat">⚡{player.portal.powerPoints}</span>
-                <span className="stat">💎{player.portal.diamonds}</span>
+                <span className="stat">⚡{player.powerPoints}</span>
+                <span className="stat">💎{player.diamonds}</span>
                 <span className="stat">🃏{player.hand.length}</span>
               </div>
             </div>
 
-            {isOpen && player.portal.characters.length > 0 && (
+            {isOpen && player.portal.length > 0 && (
               <div className="active-count">
-                {player.portal.characters.length} active
+                {player.portal.length} active
               </div>
             )}
           </div>
