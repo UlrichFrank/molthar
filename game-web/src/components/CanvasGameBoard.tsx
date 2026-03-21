@@ -78,6 +78,12 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   const { ref, w: viewportW, h: viewportH } = useContainerSize<HTMLDivElement>();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
+  // Early return if G is not initialized (can happen during initial server sync)
+  if (!G || typeof G !== 'object') {
+    console.warn('GameState (G) not yet initialized:', G);
+    return <div>Loading game...</div>;
+  }
+
 
 
   // Preload images on mount
@@ -110,9 +116,22 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   const activePlayerID = (ctx.currentPlayer as string) || playerList[0];
   const activePlayerIndex = playerList.indexOf(activePlayerID);
   const activePlayer = G.players?.[activePlayerID];
-  const maxActions = G.maxActions ?? 3;
-  const currentActions = Math.max(0, (maxActions ?? 3) - (G.actionCount ?? 0));
+  
+  // Ensure maxActions and actionCount are properly initialized
+  const maxActions = typeof G.maxActions === 'number' ? G.maxActions : 3;
+  const actionCount = typeof G.actionCount === 'number' ? G.actionCount : 0;
+  const currentActions = Math.max(0, maxActions - actionCount);
   const totalPlayers = playerList.length;
+  
+  // DEBUG: Log action state
+  console.debug('Action Counter Debug:', { 
+    actionCount: G.actionCount, 
+    maxActions: G.maxActions,
+    actionCountSafe: actionCount,
+    maxActionsSafe: maxActions,
+    currentActions,
+    calcRaw: `${maxActions} - ${actionCount}`
+  });
   
   // Fallback für fehlende Daten
   const characterSlots = G.characterSlots || [];

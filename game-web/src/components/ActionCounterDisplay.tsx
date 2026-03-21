@@ -41,6 +41,15 @@ export function ActionCounterDisplay({
   // Calculate used actions
   const usedActions = maxActions - currentActions;
   
+  // DEBUG: Log component props
+  console.debug('ActionCounterDisplay props:', {
+    currentActions,
+    maxActions,
+    usedActions,
+    isActivePlayer,
+    hasActionsRemaining: currentActions > 0
+  });
+  
   // Determine color based on action state
   let colorClass = 'green'; // Normal state (most actions remaining)
   if (currentActions === 0) {
