@@ -18,8 +18,8 @@
 - [x] 3.1 Review GameState structure for action tracking
 - [x] 3.2 Verify actionCount field exists and updates correctly
 - [x] 3.3 Add maxActions field to track bonus actions
-- [ ] 3.4 Implement bonus action calculation when abilities activate
-- [ ] 3.5 Reset action count on turn end
+- [x] 3.4 Implement bonus action calculation when abilities activate
+- [x] 3.5 Reset action count on turn end
 
 ## 4. Action Tracking & Consumption
 
@@ -65,4 +65,4 @@
 - [x] 9.2 Update game board component documentation
 - [x] 9.3 Remove any temporary debug logging
 - [x] 9.4 Verify no console errors or warnings
-- [ ] 9.5 Create commit with clear description of changes
+- [x] 9.5 Create commit with clear description of changes
