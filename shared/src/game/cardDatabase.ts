@@ -1,0 +1,998 @@
+import type { CharacterCard } from './types';
+
+// Raw card data structure from cards.json
+interface RawCardData {
+  id: string;
+  name: string;
+  imageName: string;
+  powerPoints: number;
+  diamondsReward: number;
+  cost: Array<{
+    type: string;
+    [key: string]: any;
+  }>;
+  ability: {
+    type: string;
+    [key: string]: any;
+  };
+  cardCount: number;
+}
+
+// All 45 character cards from cards.json
+const RAW_CARDS: RawCardData[] = [
+  {
+      "id": "j13vf9n4l",
+      "name": "Zwerg",
+      "imageName": "Charakterkarte1.jpeg",
+      "powerPoints": 2,
+      "diamondsReward": 1,
+      "cost": [
+          {
+              "type": "nTuple",
+              "n": 2
+          },
+          {
+              "type": "number",
+              "value": 6
+          },
+          {
+              "type": "number",
+              "value": 6
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "gro8jksff",
+      "name": "Tod",
+      "imageName": "Charakterkarte2.jpeg",
+      "powerPoints": 1,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "number",
+              "value": 1
+          },
+          {
+              "type": "number",
+              "value": 8
+          }
+      ],
+      "ability": {
+          "type": "changeHandActions",
+          "timing": "afterAction"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "4fu50x5fc",
+      "name": "Kerberus",
+      "imageName": "Charakterkarte3.jpeg",
+      "powerPoints": 2,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "nTuple",
+              "n": 3
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 2
+  },
+  {
+      "id": "uaghm7cck",
+      "name": "Medusa",
+      "imageName": "Charakterkarte4.jpeg",
+      "powerPoints": 1,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "sumTuple",
+              "n": 3,
+              "sum": 7
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "5gpen8ctk",
+      "name": "Geflügelter Affe",
+      "imageName": "Charakterkarte5.jpeg",
+      "powerPoints": 1,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "sumAnyTuple",
+              "sum": 10
+          }
+      ],
+      "ability": {
+          "type": "handLimitPlusOne"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "vzznmp0kw",
+      "name": "Kobold",
+      "imageName": "Charakterkarte7.jpeg",
+      "powerPoints": 3,
+      "diamondsReward": 1,
+      "cost": [
+          {
+              "type": "number",
+              "value": 7
+          },
+          {
+              "type": "number",
+              "value": 7
+          },
+          {
+              "type": "number",
+              "value": 8
+          },
+          {
+              "type": "number",
+              "value": 8
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "bjxxws2vy",
+      "name": "-Fee",
+      "imageName": "Charakterkarte8.jpeg",
+      "powerPoints": 1,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "number",
+              "value": 5
+          },
+          {
+              "type": "number",
+              "value": 6
+          },
+          {
+              "type": "number",
+              "value": 7
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "8e04t8opy",
+      "name": "Zauberin",
+      "imageName": "Charakterkarte9.jpeg",
+      "powerPoints": 4,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "number",
+              "value": 7
+          },
+          {
+              "type": "number",
+              "value": 7
+          },
+          {
+              "type": "number",
+              "value": 7
+          },
+          {
+              "type": "number",
+              "value": 7
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 2
+  },
+  {
+      "id": "tmu3t1frj",
+      "name": "Riese",
+      "imageName": "Charakterkarte10.jpeg",
+      "powerPoints": 3,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "number",
+              "value": 6
+          },
+          {
+              "type": "number",
+              "value": 6
+          },
+          {
+              "type": "number",
+              "value": 8
+          },
+          {
+              "type": "number",
+              "value": 8
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 2
+  },
+  {
+      "id": "ku2wsi2a9",
+      "name": "Weißer Drache",
+      "imageName": "Charakterkarte11.jpeg",
+      "powerPoints": 0,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "number",
+              "value": 1
+          },
+          {
+              "type": "number",
+              "value": 1
+          },
+          {
+              "type": "number",
+              "value": 1
+          },
+          {
+              "type": "number",
+              "value": 1
+          }
+      ],
+      "ability": {
+          "type": "anyAddditionalCardActions"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "ifea1yjp6",
+      "name": "Zwergenkämpfer 6",
+      "imageName": "Charakterkarte12.jpeg",
+      "powerPoints": 1,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "number",
+              "value": 6
+          },
+          {
+              "type": "number",
+              "value": 6
+          }
+      ],
+      "ability": {
+          "type": "numberAddditionalCardActions",
+          "timing": "duringTurn",
+          "value": 6
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "3ohu1jils",
+      "name": "Todesgeist",
+      "imageName": "Charakterkarte13.jpeg",
+      "powerPoints": 2,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "nTuple",
+              "n": 2
+          },
+          {
+              "type": "nTuple",
+              "n": 2
+          }
+      ],
+      "ability": {
+          "type": "nextPlayerOneExtraAction"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "g6xsji6k2",
+      "name": "Ent",
+      "imageName": "Charakterkarte16.jpeg",
+      "powerPoints": 3,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "nTuple",
+              "n": 4
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "zruonyei1",
+      "name": "Hobbit ungerade",
+      "imageName": "Charakterkarte17.jpeg",
+      "powerPoints": 1,
+      "diamondsReward": 1,
+      "cost": [
+          {
+              "type": "oddTuple",
+              "n": 3
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "4obp2lcd4",
+      "name": "Zwergenkämpfer 2",
+      "imageName": "Charakterkarte20.jpeg",
+      "powerPoints": 1,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "number",
+              "value": 2
+          },
+          {
+              "type": "number",
+              "value": 2
+          }
+      ],
+      "ability": {
+          "type": "numberAddditionalCardActions",
+          "timing": "duringTurn",
+          "value": 2
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "v3ye9zhpa",
+      "name": "Rotkäppchen",
+      "imageName": "Charakterkarte21.jpeg",
+      "powerPoints": 1,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "number",
+              "value": 4
+          },
+          {
+              "type": "number",
+              "value": 5
+          },
+          {
+              "type": "number",
+              "value": 6
+          },
+          {
+              "type": "number",
+              "value": 7
+          },
+          {
+              "type": "number",
+              "value": 8
+          }
+      ],
+      "ability": {
+          "type": "oneExtraActionPerTurn"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "3xgmpcbd6",
+      "name": "Conan der Barbar",
+      "imageName": "Charakterkarte23.jpeg",
+      "powerPoints": 2,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "sumTuple",
+              "n": 3,
+              "sum": 20
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "vevowybly",
+      "name": "Red Sonja",
+      "imageName": "Charakterkarte24.jpeg",
+      "powerPoints": 1,
+      "diamondsReward": 1,
+      "cost": [
+          {
+              "type": "number",
+              "value": 3
+          },
+          {
+              "type": "number",
+              "value": 5
+          },
+          {
+              "type": "number",
+              "value": 7
+          }
+      ],
+      "ability": {
+          "type": "decreaseWithPearl"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "m8h43wmu6",
+      "name": "Schneewittchen",
+      "imageName": "Charakterkarte25.jpeg",
+      "powerPoints": 0,
+      "diamondsReward": 1,
+      "cost": [
+          {
+              "type": "number",
+              "value": 2
+          }
+      ],
+      "ability": {
+          "type": "tradeTwoForDiamond"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "p38h8tar3",
+      "name": "Magier",
+      "imageName": "Charakterkarte26.jpeg",
+      "powerPoints": 1,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "run",
+              "length": 3
+          }
+      ],
+      "ability": {
+          "type": "previewCharacter",
+          "timing": "beforeAction"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "rzn7uskia",
+      "name": "Koboldkämpfer",
+      "imageName": "Charakterkarte27.jpeg",
+      "powerPoints": 1,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "nTuple",
+              "n": 2
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "5acq23jmo",
+      "name": "-Fee",
+      "imageName": "Charakterkarte28.jpeg",
+      "powerPoints": 1,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "number",
+              "value": 5
+          },
+          {
+              "type": "number",
+              "value": 6
+          },
+          {
+              "type": "number",
+              "value": 7
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "gqis1id0r",
+      "name": "Zwergenkämpfer 7",
+      "imageName": "Charakterkarte29.jpeg",
+      "powerPoints": 0,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "number",
+              "value": 7
+          },
+          {
+              "type": "number",
+              "value": 7
+          }
+      ],
+      "ability": {
+          "type": "numberAddditionalCardActions",
+          "timing": "duringTurn",
+          "value": 7
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "fnjp5vmip",
+      "name": "Irrlicht",
+      "imageName": "Charakterkarte33.jpeg",
+      "powerPoints": 3,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "drillingChoice",
+              "value1": 3,
+              "value2": 6
+          }
+      ],
+      "ability": {
+          "type": "irrlicht"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "35g3stxld",
+      "name": "Feuerteufel",
+      "imageName": "Charakterkarte34.jpeg",
+      "powerPoints": 1,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "number",
+              "value": 3
+          },
+          {
+              "type": "number",
+              "value": 3
+          },
+          {
+              "type": "number",
+              "value": 3
+          }
+      ],
+      "ability": {
+          "type": "threesCanBeAny"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "myezllpp7",
+      "name": "Hobbit gerade",
+      "imageName": "Charakterkarte35.jpeg",
+      "powerPoints": 1,
+      "diamondsReward": 1,
+      "cost": [
+          {
+              "type": "evenTuple",
+              "n": 3
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "jpf06a33l",
+      "name": "Zwergenkämpfer 4",
+      "imageName": "Charakterkarte36.jpeg",
+      "powerPoints": 1,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "number",
+              "value": 4
+          },
+          {
+              "type": "number",
+              "value": 4
+          }
+      ],
+      "ability": {
+          "type": "numberAddditionalCardActions",
+          "timing": "duringTurn",
+          "value": 4
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "ezxqcwhmk",
+      "name": "Hänsel und Gretel",
+      "imageName": "Charakterkarte37.jpeg",
+      "powerPoints": 2,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "number",
+              "value": 8
+          },
+          {
+              "type": "number",
+              "value": 8
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 2
+  },
+  {
+      "id": "1n90fxn3t",
+      "name": "Zwergenkämpfer 5",
+      "imageName": "Charakterkarte38.jpeg",
+      "powerPoints": 1,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "number",
+              "value": 5
+          },
+          {
+              "type": "number",
+              "value": 5
+          }
+      ],
+      "ability": {
+          "type": "numberAddditionalCardActions",
+          "timing": "duringTurn",
+          "value": 5
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "zupxt9yq0",
+      "name": "-gestiefelte Kater",
+      "imageName": "Charakterkarte41.jpeg",
+      "powerPoints": 0,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "nTuple",
+              "n": 2
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "k3r3qngfu",
+      "name": "Einhorn",
+      "imageName": "Charakterkarte42.jpeg",
+      "powerPoints": 1,
+      "diamondsReward": 2,
+      "cost": [
+          {
+              "type": "number",
+              "value": 1
+          },
+          {
+              "type": "number",
+              "value": 2
+          },
+          {
+              "type": "number",
+              "value": 3
+          },
+          {
+              "type": "number",
+              "value": 4
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "nl50ekkjk",
+      "name": "Geflügelter Affe",
+      "imageName": "Charakterkarte43.jpeg",
+      "powerPoints": 0,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "nTuple",
+              "n": 2
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "axr7mf2fd",
+      "name": "Captain Hook",
+      "imageName": "Charakterkarte44.jpeg",
+      "powerPoints": 0,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "nTuple",
+              "n": 2
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "ju07uswze",
+      "name": "Phoenix",
+      "imageName": "Charakterkarte46.jpeg",
+      "powerPoints": 0,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "nTuple",
+              "n": 2
+          }
+      ],
+      "ability": {
+          "type": "numberAddditionalCardActions",
+          "timing": "duringTurn",
+          "value": 1
+      },
+      "cardCount": 2
+  },
+  {
+      "id": "gs267rrmj",
+      "name": "Charakter 47",
+      "imageName": "Charakterkarte47.jpeg",
+      "powerPoints": 0,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "nTuple",
+              "n": 2
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "w1hp3jwe9",
+      "name": "Charakter 48",
+      "imageName": "Charakterkarte48.jpeg",
+      "powerPoints": 0,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "nTuple",
+              "n": 2
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "jq0zahzih",
+      "name": "Charakter 49",
+      "imageName": "Charakterkarte49.jpeg",
+      "powerPoints": 0,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "nTuple",
+              "n": 2
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "lb8vxa01g",
+      "name": "Charakter 50",
+      "imageName": "Charakterkarte50.jpeg",
+      "powerPoints": 0,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "nTuple",
+              "n": 2
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "b63ppn9vq",
+      "name": "Charakter 51",
+      "imageName": "Charakterkarte51.jpeg",
+      "powerPoints": 0,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "nTuple",
+              "n": 2
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "7lzfznl4n",
+      "name": "Peter Pan",
+      "imageName": "Charakterkarte52.jpeg",
+      "powerPoints": 0,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "nTuple",
+              "n": 2
+          }
+      ],
+      "ability": {
+          "type": "onesCanBeEights",
+          "timing": "duringTurn"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "5n945i8sb",
+      "name": "Charakter 53",
+      "imageName": "Charakterkarte53.jpeg",
+      "powerPoints": 0,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "nTuple",
+              "n": 2
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "6osg7mikq",
+      "name": "Koboldkämpfer",
+      "imageName": "Charakterkarte54.jpeg",
+      "powerPoints": 1,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "nTuple",
+              "n": 2
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "xyevmmi0u",
+      "name": "Charakter 55",
+      "imageName": "Charakterkarte55.jpeg",
+      "powerPoints": 0,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "nTuple",
+              "n": 2
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "nemm15be4",
+      "name": "Zwergenkämpfer 3",
+      "imageName": "Charakterkarte57.jpeg",
+      "powerPoints": 1,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "nTuple",
+              "n": 2
+          }
+      ],
+      "ability": {
+          "type": "numberAddditionalCardActions",
+          "timing": "duringTurn",
+          "value": 3
+      },
+      "cardCount": 1
+  },
+  {
+      "id": "2letkbocr",
+      "name": "Charakter 58",
+      "imageName": "Charakterkarte58.jpeg",
+      "powerPoints": 0,
+      "diamondsReward": 0,
+      "cost": [
+          {
+              "type": "nTuple",
+              "n": 2
+          }
+      ],
+      "ability": {
+          "type": "none"
+      },
+      "cardCount": 1
+  },
+];
+
+/**
+ * Map raw card data from JSON to CharacterCard format
+ * Handles field name transformations and ability parsing
+ */
+function mapRawCard(raw: RawCardData): CharacterCard {
+  return {
+    id: raw.id,
+    name: raw.name,
+    cost: raw.cost as any,
+    powerPoints: raw.powerPoints,
+    diamonds: raw.diamondsReward,
+    abilities: raw.ability.type === 'none' ? [] : [raw.ability as any],
+  };
+}
+
+/**
+ * Get a single card by ID from the card database
+ */
+export function getCardById(id: string): CharacterCard | undefined {
+  const raw = RAW_CARDS.find(c => c.id === id);
+  return raw ? mapRawCard(raw) : undefined;
+}
+
+/**
+ * Get all cards from the database, with copies as specified
+ * This expands cardCount > 1 into multiple copies of the same card
+ */
+export function getAllCards(): CharacterCard[] {
+  const result: CharacterCard[] = [];
+  for (const raw of RAW_CARDS) {
+    const mapped = mapRawCard(raw);
+    for (let i = 0; i < raw.cardCount; i++) {
+      result.push({
+        ...mapped,
+        // Create unique IDs for copies (append copy number)
+        id: raw.cardCount > 1 ? `${mapped.id}-copy${i}` : mapped.id,
+      });
+    }
+  }
+  return result;
+}

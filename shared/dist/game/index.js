@@ -6,6 +6,7 @@ exports.createPearlDeck = createPearlDeck;
 exports.createCharacterDeck = createCharacterDeck;
 exports.shuffleArray = shuffleArray;
 const costCalculation_1 = require("./costCalculation");
+const cardDatabase_1 = require("./cardDatabase");
 /**
  * Helper function for invalid moves
  */
@@ -452,24 +453,7 @@ function createPearlDeck() {
     return deck;
 }
 function createCharacterDeck() {
-    // Placeholder: 54 character cards
-    const deck = [];
-    for (let i = 0; i < 54; i++) {
-        deck.push({
-            id: `character-${i}`,
-            name: `Character ${i + 1}`,
-            cost: [
-                {
-                    type: 'number',
-                    value: 5 + Math.floor(i / 10),
-                }
-            ],
-            powerPoints: 1 + (i % 5),
-            diamonds: Math.floor(i / 20),
-            abilities: [],
-        });
-    }
-    return deck;
+    return (0, cardDatabase_1.getAllCards)();
 }
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {

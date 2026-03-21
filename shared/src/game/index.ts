@@ -1,5 +1,6 @@
 import type { GameState, PearlCard, CharacterCard, PlayerState, CostComponent, ActivatedCharacter } from './types';
 import { validateCostPayment as validateCostFromCards } from './costCalculation';
+import { getAllCards as getAllCardDataFromDatabase } from './cardDatabase';
 
 /**
  * Helper function for invalid moves
@@ -504,26 +505,7 @@ export function createPearlDeck(): PearlCard[] {
 }
 
 export function createCharacterDeck(): CharacterCard[] {
-  // Placeholder: 54 character cards
-  const deck: CharacterCard[] = [];
-  
-  for (let i = 0; i < 54; i++) {
-    deck.push({
-      id: `character-${i}`,
-      name: `Character ${i + 1}`,
-      cost: [
-        {
-          type: 'number',
-          value: 5 + Math.floor(i / 10),
-        }
-      ],
-      powerPoints: 1 + (i % 5),
-      diamonds: Math.floor(i / 20),
-      abilities: [],
-    });
-  }
-  
-  return deck;
+  return getAllCardDataFromDatabase();
 }
 
 export function shuffleArray<T>(array: T[]): void {
