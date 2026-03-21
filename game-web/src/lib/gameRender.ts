@@ -48,10 +48,6 @@ import {
   CHAR_DECK_Y,
   PEARL_DECK_X,
   PEARL_DECK_Y,
-  BTN_X,
-  BTN_W,
-  BTN_H,
-  BTN_Y_1,
   getHandCardPosition,
   getPortalSlotPosition,
   getActivatedCardPosition,
@@ -457,26 +453,6 @@ export function drawUI(ctx: CanvasRenderingContext2D, phase: string = 'takingAct
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   ctx.fillText(`Phase: ${phase}`, MARGIN_H + 15, 10);
-
-  // Action buttons: place to the right of the player area (in the right margin)
-  // Only show End Turn button
-  const buttons = [
-    { label: '➡️ End', y: BTN_Y_1 },
-  ];
-
-  buttons.forEach((btn) => {
-    ctx.fillStyle = 'rgba(30, 41, 59, 0.95)';
-    ctx.fillRect(BTN_X, btn.y, BTN_W, BTN_H);
-    ctx.strokeStyle = '#60a5fa';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(BTN_X, btn.y, BTN_W, BTN_H);
-
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 11px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(btn.label, BTN_X + BTN_W / 2, btn.y + BTN_H / 2);
-  });
 }
 
 /**

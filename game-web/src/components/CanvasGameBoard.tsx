@@ -369,6 +369,16 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeCharacterIndex]);
 
+  // Handle End Turn action
+  const handleEndTurn = () => {
+    // Dispatch a keyboard event to trigger the g key handler in GameContainer
+    const event = new KeyboardEvent('keydown', {
+      key: 'g',
+      bubbles: true,
+    });
+    window.dispatchEvent(event);
+  };
+
   return (
     <div
       ref={ref}
@@ -425,6 +435,8 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
         <ActionCounterDisplay 
           currentActions={currentActions}
           maxActions={maxActions}
+          isActivePlayer={myPlayerID === activePlayerID}
+          onEndTurn={handleEndTurn}
         />
       </div>
 

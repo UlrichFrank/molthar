@@ -44,6 +44,34 @@
   pointer-events: none;
 }
 
+/* Action Counter as Button (End Turn) */
+.action-counter-button {
+  border: none;
+  background: inherit;
+  padding: 12px 20px;
+  cursor: pointer;
+  font-family: inherit;
+  pointer-events: auto;
+}
+
+.action-counter-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+}
+
+.action-counter-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.action-counter-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.end-turn-text {
+  font-size: 18px;
+}
+
 /* Green: Normal state (actions available) */
 .action-counter-green {
   color: #ffffff;
