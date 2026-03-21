@@ -416,6 +416,16 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           onCardClick={handleCardClick}
           onCardHover={setHoveredCard}
         />
+
+        {/* Turn and Action Counter Display - overlaid on canvas */}
+        <TurnIndicatorDisplay 
+          activePlayerIndex={activePlayerIndex >= 0 ? activePlayerIndex : 0}
+          totalPlayers={totalPlayers}
+        />
+        <ActionCounterDisplay 
+          currentActions={currentActions}
+          maxActions={maxActions}
+        />
       </div>
 
       {/* Dialog Modals */}
@@ -462,16 +472,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
       <ActivatedCharacterDetailView
         character={activeCharacter || null}
         onClose={() => setActiveCharacterIndex(null)}
-      />
-
-      {/* Turn and Action Counter Display */}
-      <TurnIndicatorDisplay 
-        activePlayerIndex={activePlayerIndex >= 0 ? activePlayerIndex : 0}
-        totalPlayers={totalPlayers}
-      />
-      <ActionCounterDisplay 
-        currentActions={currentActions}
-        maxActions={maxActions}
       />
     </div>
   );
