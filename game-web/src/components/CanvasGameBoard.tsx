@@ -110,8 +110,8 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   const activePlayerID = (ctx.currentPlayer as string) || playerList[0];
   const activePlayerIndex = playerList.indexOf(activePlayerID);
   const activePlayer = G.players?.[activePlayerID];
-  const currentActions = G.actionCount ?? 0;
   const maxActions = G.maxActions ?? 3;
+  const currentActions = Math.max(0, (maxActions ?? 3) - (G.actionCount ?? 0));
   const totalPlayers = playerList.length;
   
   // Fallback für fehlende Daten

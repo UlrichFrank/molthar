@@ -72,7 +72,7 @@ exports.PortaleVonMolthar = {
             pearlSlots,
             characterSlots,
             playerOrder: playerIds,
-            actionCount: 3,
+            actionCount: 0,
             maxActions: 3,
             finalRound: false,
             finalRoundStartingPlayer: null,
@@ -265,7 +265,7 @@ exports.PortaleVonMolthar = {
      */
     turn: {
         onBegin: ({ G }) => {
-            G.actionCount = 3;
+            G.actionCount = 0;
             G.maxActions = 3;
         },
     },
