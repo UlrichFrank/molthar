@@ -2,19 +2,19 @@
  * Action Counter Display Component
  * Shows current/maximum actions for the active player with visual color feedback
  * 
- * The counter displays as "Actions: N/M" where N is the current action count
- * and M is the maximum available actions for the turn.
- * 
- * When currentActions reaches 0, displays an "End Turn" button (only clickable
- * for the active player, not for opponents).
+ * Display Format:
+ * - Shows "X / Y" format where X = actions used, Y = max actions available
+ * - When all actions are consumed (currentActions === 0), displays "End Turn" button
  * 
  * Color Coding:
  * - Green: Normal state (2+ actions remaining)
  * - Yellow: Low actions (1 action remaining)
- * - Red: Out of actions (0 actions remaining) - shows "End Turn" button
+ * - Red: Out of actions (0 actions remaining) - "End Turn" button appears
  * 
- * Updates reactively when actionCount or maxActions changes. The component
- * also considers bonus actions granted by activated character abilities.
+ * Behavior:
+ * - Active Player: Button is enabled only when actions remain (disabled when 0 remaining)
+ * - Opponents: Read-only display of action count
+ * - Supports bonus actions (e.g., "1 / 4" if maxActions includes +1 bonus)
  * 
  * Props:
  * - currentActions: Number of actions remaining for the current player
@@ -38,6 +38,9 @@ export function ActionCounterDisplay({
   isActivePlayer,
   onEndTurn,
 }: ActionCounterDisplayProps) {
+  // Calculate used actions
+  const usedActions = maxActions - currentActions;
+  
   // Determine color based on action state
   let colorClass = 'green'; // Normal state (most actions remaining)
   if (currentActions === 0) {
@@ -46,26 +49,34 @@ export function ActionCounterDisplay({
     colorClass = 'yellow'; // Nearly out of actions
   }
 
-  // Show "End Turn" button when out of actions and is active player
-  if (currentActions === 0 && isActivePlayer) {
+  // Determine button text: show "X / Y" or "End Turn"
+  const hasActionsRemaining = currentActions > 0;
+  const buttonText = hasActionsRemaining 
+    ? `${usedActions} / ${maxActions}` 
+    : 'End Turn';
+
+  // Show button (interactive when active player, non-interactive when out of actions)
+  if (isActivePlayer) {
     return (
       <button
         onClick={onEndTurn}
+        disabled={hasActionsRemaining}
         className={`action-counter action-counter-${colorClass} action-counter-button`}
-        aria-label="End turn"
+        aria-label={hasActionsRemaining ? `${usedActions} of ${maxActions} actions used` : 'End turn'}
+        title={hasActionsRemaining ? `${currentActions} action(s) remaining` : 'End turn'}
       >
-        <span className="actions-text end-turn-text">
-          🔄 End Turn
+        <span className="actions-text">
+          {buttonText}
         </span>
       </button>
     );
   }
 
-  // Show status for opponents or when actions remain
+  // Show read-only status for opponents
   return (
     <div className={`action-counter action-counter-${colorClass}`}>
       <span className="actions-text">
-        Actions: {currentActions}/{maxActions}
+        {usedActions} / {maxActions}
       </span>
     </div>
   );

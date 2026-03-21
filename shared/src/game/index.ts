@@ -90,8 +90,8 @@ export const PortaleVonMolthar = {
         return;
       }
       
-      // Check if player has already taken 3 actions this turn
-      if (G.actionCount >= 3) {
+      // Check if player has already taken max actions this turn
+      if (G.actionCount >= G.maxActions) {
         return;
       }
       
@@ -133,7 +133,7 @@ export const PortaleVonMolthar = {
     takeCharacterCard({ G, ctx }: { G: GameState; ctx: any }, slotIndex: number, replacedSlotIndex?: number) {
       const player = G.players[ctx.currentPlayer];
       if (!player) return;
-      if (G.actionCount >= 3) return;
+      if (G.actionCount >= G.maxActions) return;
 
       // Get card from face-up slot or deck
       let card: CharacterCard | undefined;
@@ -183,7 +183,7 @@ export const PortaleVonMolthar = {
     activatePortalCard({ G, ctx }: { G: GameState; ctx: any }, portalSlotIndex: number, usedCards?: number[]) {
       const player = G.players[ctx.currentPlayer];
       if (!player) return;
-      if (G.actionCount >= 3) return;
+      if (G.actionCount >= G.maxActions) return;
 
       const entry = player.portal[portalSlotIndex];
       if (!entry) return;
@@ -218,7 +218,7 @@ export const PortaleVonMolthar = {
         return;
       }
       
-      if (G.actionCount >= 3) {
+      if (G.actionCount >= G.maxActions) {
         return;
       }
       

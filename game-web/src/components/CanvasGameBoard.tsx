@@ -239,8 +239,8 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
    * Click pearl/character → immediately dispatched move
    */
   function handleCardClick(target: HitTarget) {
-    // Validate action count
-    if (G.actionCount >= 3) {
+    // Validate action count - prevent actions when all available actions are used
+    if (G.actionCount >= G.maxActions) {
       return;
     }
 
@@ -291,7 +291,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
 
       case 'deck-character': {
         // Draw random character card from deck
-        if (G.actionCount >= 3) {
+        if (G.actionCount >= G.maxActions) {
           return;
         }
         if (G.characterDeck.length === 0) {
@@ -303,7 +303,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
 
       case 'deck-pearl': {
         // Draw random pearl card from deck
-        if (G.actionCount >= 3) {
+        if (G.actionCount >= G.maxActions) {
           return;
         }
         if (G.pearlDeck.length === 0) {

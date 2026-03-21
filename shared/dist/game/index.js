@@ -88,8 +88,8 @@ exports.PortaleVonMolthar = {
             if (!player) {
                 return;
             }
-            // Check if player has already taken 3 actions this turn
-            if (G.actionCount >= 3) {
+            // Check if player has already taken max actions this turn
+            if (G.actionCount >= G.maxActions) {
                 return;
             }
             // Get card from slot or deck
@@ -130,7 +130,7 @@ exports.PortaleVonMolthar = {
             const player = G.players[ctx.currentPlayer];
             if (!player)
                 return;
-            if (G.actionCount >= 3)
+            if (G.actionCount >= G.maxActions)
                 return;
             // Get card from face-up slot or deck
             let card;
@@ -183,7 +183,7 @@ exports.PortaleVonMolthar = {
             const player = G.players[ctx.currentPlayer];
             if (!player)
                 return;
-            if (G.actionCount >= 3)
+            if (G.actionCount >= G.maxActions)
                 return;
             const entry = player.portal[portalSlotIndex];
             if (!entry)
@@ -214,7 +214,7 @@ exports.PortaleVonMolthar = {
             if (!player) {
                 return;
             }
-            if (G.actionCount >= 3) {
+            if (G.actionCount >= G.maxActions) {
                 return;
             }
             // Discard all pearl slots
