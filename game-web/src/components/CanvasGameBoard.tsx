@@ -78,14 +78,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   const { ref, w: viewportW, h: viewportH } = useContainerSize<HTMLDivElement>();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Early return if G is not initialized (can happen during initial server sync)
-  if (!G || typeof G !== 'object') {
-    console.warn('GameState (G) not yet initialized:', G);
-    return <div>Loading game...</div>;
-  }
-
-
-
   // Preload images on mount
   const [imagesLoaded, setImagesLoaded] = useState(false);
   
