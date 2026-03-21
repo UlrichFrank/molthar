@@ -88,7 +88,8 @@ export interface GameState {
   playerOrder: string[]; // Order of players
   
   // Game state
-  actionCount: number; // Current player's action count (0-3)
+  actionCount: number; // Current player's remaining actions (0-3+)
+  maxActions: number; // Maximum actions available this turn (3 + bonuses)
   finalRound: boolean; // True if final round started
   finalRoundStartingPlayer: string | null; // Player who triggered final round
   

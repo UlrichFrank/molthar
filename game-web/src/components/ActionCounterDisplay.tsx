@@ -9,8 +9,8 @@
  * for the active player, not for opponents).
  * 
  * Color Coding:
- * - Green: Normal state (1-2 actions remaining)
- * - Yellow: At maximum capacity (used all available actions)
+ * - Green: Normal state (2+ actions remaining)
+ * - Yellow: Low actions (1 action remaining)
  * - Red: Out of actions (0 actions remaining) - shows "End Turn" button
  * 
  * Updates reactively when actionCount or maxActions changes. The component
@@ -39,11 +39,11 @@ export function ActionCounterDisplay({
   onEndTurn,
 }: ActionCounterDisplayProps) {
   // Determine color based on action state
-  let colorClass = 'green'; // Normal state
+  let colorClass = 'green'; // Normal state (most actions remaining)
   if (currentActions === 0) {
     colorClass = 'red'; // Out of actions
-  } else if (currentActions === maxActions) {
-    colorClass = 'yellow'; // At max capacity
+  } else if (currentActions <= 1) {
+    colorClass = 'yellow'; // Nearly out of actions
   }
 
   // Show "End Turn" button when out of actions and is active player

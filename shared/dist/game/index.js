@@ -72,7 +72,8 @@ exports.PortaleVonMolthar = {
             pearlSlots,
             characterSlots,
             playerOrder: playerIds,
-            actionCount: 0,
+            actionCount: 3,
+            maxActions: 3,
             finalRound: false,
             finalRoundStartingPlayer: null,
             startingPlayer: playerIds[0],
@@ -257,6 +258,15 @@ exports.PortaleVonMolthar = {
                 // Player needs to discard down to 5 cards
                 // This would typically use setActivePlayers if available
             }
+        },
+    },
+    /**
+     * Turn Configuration: Reset action count at start of each turn
+     */
+    turn: {
+        onBegin: ({ G }) => {
+            G.actionCount = 3;
+            G.maxActions = 3;
         },
     },
     /**

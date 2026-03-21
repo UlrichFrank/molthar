@@ -44,6 +44,15 @@ export declare const PortaleVonMolthar: {
         }): void;
     };
     /**
+     * Turn Configuration: Reset action count at start of each turn
+     */
+    turn: {
+        onBegin: ({ G }: {
+            G: GameState;
+            ctx: any;
+        }) => void;
+    };
+    /**
      * End If Condition: Check for game end
      */
     endIf: ({ G, ctx }: {

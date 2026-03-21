@@ -110,8 +110,8 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   const activePlayerID = (ctx.currentPlayer as string) || playerList[0];
   const activePlayerIndex = playerList.indexOf(activePlayerID);
   const activePlayer = G.players?.[activePlayerID];
-  const currentActions = activePlayer?.actionCount ?? 0;
-  const maxActions = activePlayer?.maxActions ?? 3;
+  const currentActions = G.actionCount ?? 0;
+  const maxActions = G.maxActions ?? 3;
   const totalPlayers = playerList.length;
   
   // Fallback für fehlende Daten
@@ -373,12 +373,10 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
 
   // Handle End Turn action
   const handleEndTurn = () => {
-    // Dispatch a keyboard event to trigger the g key handler in GameContainer
-    const event = new KeyboardEvent('keydown', {
-      key: 'g',
-      bubbles: true,
-    });
-    window.dispatchEvent(event);
+    // End current turn using boardgame.io's event
+    if (events?.endTurn) {
+      events.endTurn();
+    }
   };
 
   return (
