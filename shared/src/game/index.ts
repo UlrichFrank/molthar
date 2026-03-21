@@ -1,4 +1,5 @@
 import type { GameState, PearlCard, CharacterCard, PlayerState, CostComponent, ActivatedCharacter } from './types';
+import { validateCostPayment as validateCostFromCards } from './costCalculation';
 
 /**
  * Helper function for invalid moves
@@ -185,11 +186,17 @@ export const PortaleVonMolthar = {
       if (!player) return;
       if (G.actionCount >= G.maxActions) return;
 
+      // Validate portal slot index
+      if (portalSlotIndex < 0 || portalSlotIndex >= player.portal.length) {
+        return;
+      }
+
       const entry = player.portal[portalSlotIndex];
       if (!entry) return;
       if (entry.activated) return; // already activated
 
-      if (!validateCostPayment(entry.card.cost, usedCards || [], player.hand, player.diamonds)) {
+      // Use new cost validation that checks against entire hand
+      if (!validateCostFromCards(entry.card.cost, player.hand, player.diamonds)) {
         return;
       }
 
@@ -201,10 +208,14 @@ export const PortaleVonMolthar = {
         }
       }
 
+      // Mark card as activated
       entry.activated = true;
       player.powerPoints += entry.card.powerPoints;
       player.diamonds += entry.card.diamonds;
       G.actionCount++;
+
+      // Remove card from portal array (must happen after all validations succeed)
+      player.portal.splice(portalSlotIndex, 1);
 
       if (player.powerPoints >= 12 && !G.finalRound) {
         G.finalRound = true;
