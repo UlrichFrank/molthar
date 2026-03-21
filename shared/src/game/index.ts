@@ -186,7 +186,8 @@ export const PortaleVonMolthar = {
       if (!player) return;
       if (G.actionCount >= G.maxActions) return;
 
-      // Validate portal slot index
+      // Validate portal slot index bounds
+      // Ensures we don't access invalid indices and reject out-of-bounds activations
       if (portalSlotIndex < 0 || portalSlotIndex >= player.portal.length) {
         return;
       }
@@ -208,15 +209,19 @@ export const PortaleVonMolthar = {
         }
       }
 
-      // Mark card as activated
+      // Mark card as activated and grant rewards
       entry.activated = true;
       player.powerPoints += entry.card.powerPoints;
       player.diamonds += entry.card.diamonds;
       G.actionCount++;
 
-      // Remove card from portal array (must happen after all validations succeed)
+      // CRITICAL: Remove card from portal array after all validations succeed
+      // This ensures the card is no longer accessible via the portal array,
+      // preventing it from appearing in both portal and activated sections simultaneously.
+      // The card's data persists in the ActivatedCharacter object for display purposes.
       player.portal.splice(portalSlotIndex, 1);
 
+      // Check if player reached 12+ power points to trigger final round
       if (player.powerPoints >= 12 && !G.finalRound) {
         G.finalRound = true;
         G.finalRoundStartingPlayer = ctx.currentPlayer;
