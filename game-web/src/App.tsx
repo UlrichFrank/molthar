@@ -40,6 +40,8 @@ function LobbyScreen() {
   const [playerID, setPlayerID] = useState<string>('0');
   const [credentials, setCredentials] = useState('');
   const [isInGame, setIsInGame] = useState(false);
+  const [isWaitingForPlayers, setIsWaitingForPlayers] = useState(false);
+  const [totalPlayers, setTotalPlayers] = useState(2);
   const [numPlayers, setNumPlayers] = useState(2);
   const [matches, setMatches] = useState<Match[]>([]);
   const [loadingMatches, setLoadingMatches] = useState(false);
@@ -65,6 +67,31 @@ function LobbyScreen() {
     return () => clearInterval(interval);
   }, [loadMatches]);
 
+  // Check if all players have joined
+  useEffect(() => {
+    if (!isWaitingForPlayers || !matchID) return;
+
+    const checkPlayers = async () => {
+      try {
+        const { matches: list } = await lobbyClient.listMatches(PortaleVonMolthar.name);
+        const currentMatch = list.find(m => m.matchID === matchID);
+        if (currentMatch) {
+          const joinedCount = currentMatch.players.filter(p => p.name !== undefined).length;
+          if (joinedCount === totalPlayers) {
+            // All players have joined - start the game
+            setIsInGame(true);
+            setIsWaitingForPlayers(false);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to check match status:', err);
+      }
+    };
+
+    const interval = setInterval(checkPlayers, 1000);
+    return () => clearInterval(interval);
+  }, [isWaitingForPlayers, matchID, totalPlayers]);
+
   const createMatch = async () => {
     if (!playerName.trim()) { setError('Bitte Namen eingeben'); return; }
     setError(null);
@@ -73,14 +100,14 @@ function LobbyScreen() {
         PortaleVonMolthar.name,
         { numPlayers }
       );
-      await joinMatch(newMatchID, '0');
+      await joinMatch(newMatchID, '0', numPlayers);
     } catch (err) {
       console.error('Failed to create match:', err);
       setError('Spiel konnte nicht erstellt werden. Läuft der Server auf Port 3001?');
     }
   };
 
-  const joinMatch = async (id: string, playerId: string) => {
+  const joinMatch = async (id: string, playerId: string, expectedTotal: number = 2) => {
     if (!playerName.trim()) { setError('Bitte Namen eingeben'); return; }
     setError(null);
     try {
@@ -95,7 +122,8 @@ function LobbyScreen() {
       setCredentials(playerCredentials);
       setPlayerID(playerId);
       setMatchID(id);
-      setIsInGame(true);
+      setTotalPlayers(expectedTotal);
+      setIsWaitingForPlayers(true); // Wait for all players instead of starting immediately
     } catch (err) {
       console.error('Failed to join match:', err);
       setError('Beitreten fehlgeschlagen. Ist der Platz noch frei?');
@@ -105,8 +133,28 @@ function LobbyScreen() {
   const handleJoinMatch = (match: Match) => {
     const freeSlot = match.players.find(p => p.name === undefined);
     if (!freeSlot) { setError('Kein freier Platz in diesem Spiel'); return; }
-    joinMatch(match.matchID, String(freeSlot.id));
+    joinMatch(match.matchID, String(freeSlot.id), match.players.length);
   };
+
+  if (isWaitingForPlayers) {
+    return (
+      <div className="lobby-container">
+        <h1>Warte auf alle Spieler...</h1>
+        <p>Das Spiel startet automatisch, wenn alle {totalPlayers} Spieler beigetreten sind.</p>
+        <div className="waiting-spinner">⏳</div>
+        <button
+          onClick={() => {
+            setIsWaitingForPlayers(false);
+            setMatchID('');
+            setCredentials('');
+            loadMatches();
+          }}
+        >
+          Abbrechen
+        </button>
+      </div>
+    );
+  }
 
   if (isInGame) {
     return (

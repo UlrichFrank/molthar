@@ -33,8 +33,28 @@ import {
   HAND_CARD_W,
   HAND_CARD_H,
   HAND_MAX,
+  ACTIVATED_GRID_X,
+  ACTIVATED_GRID_Y,
+  ACTIVATED_CARD_W,
+  ACTIVATED_CARD_H,
+  ACTIVATED_CARD_GAP,
+  ACTIVATED_MAX,
+  DECK_CARD_W,
+  DECK_CARD_H,
+  DECK_ROTATION,
+  DECK_CARD_OFFSET,
+  DECK_MAX_VISIBLE,
+  CHAR_DECK_X,
+  CHAR_DECK_Y,
+  PEARL_DECK_X,
+  PEARL_DECK_Y,
+  BTN_X,
+  BTN_W,
+  BTN_H,
+  BTN_Y_1,
   getHandCardPosition,
   getPortalSlotPosition,
+  getActivatedCardPosition,
 } from './cardLayoutConstants';
 
 export interface DrawConfig {
@@ -102,15 +122,78 @@ export function drawBackground(ctx: CanvasRenderingContext2D) {
   ctx.setLineDash([]);
 }
 
+/**
+ * Draw a rotated deck stack (card pile) at the given position
+ * @param ctx - Canvas rendering context
+ * @param x - X coordinate of deck position (before rotation)
+ * @param y - Y coordinate of deck position (before rotation)
+ * @param cardCount - Number of cards remaining in the deck
+ * @param rotation - Rotation angle in radians (default 90°)
+ * @param deckType - 'character' or 'pearl' for different card back images
+ * @param isHovered - Whether the deck is currently being hovered
+ */
+export function drawDeckStack(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  cardCount: number,
+  rotation: number = DECK_ROTATION,
+  deckType: 'character' | 'pearl' = 'character',
+  isHovered: boolean = false
+) {
+  // Don't draw empty decks
+  if (cardCount <= 0) return;
+
+  // Calculate how many cards to show (max DECK_MAX_VISIBLE)
+  const visibleCards = Math.min(cardCount, DECK_MAX_VISIBLE);
+
+  // Save the current canvas state before applying rotation
+  ctx.save();
+
+  // Move to the position and rotate
+  ctx.translate(x, y);
+  ctx.rotate(rotation);
+
+  // Draw card backs with stacking offset
+  for (let i = 0; i < visibleCards; i++) {
+    const offsetX = i * DECK_CARD_OFFSET;
+    const offsetY = i * DECK_CARD_OFFSET;
+
+    // Draw card back image (rotated cards show the back)
+    const backImage = deckType === 'character' ? 'Charakterkarte Hinten.jpeg' : 'Perlenkarte Hinten.jpeg';
+    drawImageOrFallback(ctx, backImage, offsetX, offsetY, DECK_CARD_W, DECK_CARD_H, 'Deck');
+
+    // If hovered, add a highlighted effect on the top card
+    if (isHovered && i === visibleCards - 1) {
+      // Draw a shadow/lift effect for the top card
+      ctx.shadowColor = 'rgba(255, 215, 0, 0.6)';
+      ctx.shadowBlur = 12;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = -4;
+      
+      ctx.strokeStyle = '#FFD700';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(offsetX + 1, offsetY + 1, DECK_CARD_W - 2, DECK_CARD_H - 2);
+      
+      // Reset shadow
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  // Restore the canvas state
+  ctx.restore();
+}
+
 export function drawAuslage(
   ctx: CanvasRenderingContext2D,
   characterSlots: CardData[],
   pearlSlots: CardData[],
-  config: DrawConfig
+  config: DrawConfig,
+  characterDeckCount: number = 0,
+  pearlDeckCount: number = 0,
+  hoveredDeck: 'character' | 'pearl' | null = null
 ) {
-  console.log('🎨 Drawing auslage with character slots:', characterSlots.length, characterSlots);
-  console.log('🎨 Drawing auslage with pearl slots:', pearlSlots.length, pearlSlots);
-  
   // Auslage in center zone - respects zone boundaries like HTML <div>
   const centerX = MARGIN_H;
   const centerW = BASE_W - 2 * MARGIN_H;
@@ -193,6 +276,28 @@ export function drawAuslage(
       ctx.strokeRect(x, y, CARD_W, CARD_H);
     }
   });
+
+  // Draw character deck below the character cards
+  drawDeckStack(
+    ctx,
+    CHAR_DECK_X,
+    CHAR_DECK_Y,
+    characterDeckCount,
+    DECK_ROTATION,
+    'character',
+    hoveredDeck === 'character'
+  );
+
+  // Draw pearl deck below the pearl cards
+  drawDeckStack(
+    ctx,
+    PEARL_DECK_X,
+    PEARL_DECK_Y,
+    pearlDeckCount,
+    DECK_ROTATION,
+    'pearl',
+    hoveredDeck === 'pearl'
+  );
 }
 
 export function drawPlayerPortal(
@@ -294,6 +399,51 @@ export function drawPlayerPortal(
   });
 }
 
+export function drawActivatedCharactersGrid(
+  ctx: CanvasRenderingContext2D,
+  activatedCards: any[],
+  config: DrawConfig
+) {
+  // Display up to 12 activated character cards in a 3x4 grid
+  // Card images are located based on character ID/name matching: Charakterkarte{number}.jpeg
+  // This uses the same image filename resolution pattern as auslage and portal rendering
+  if (!activatedCards || activatedCards.length === 0) {
+    return; // No activated cards to display
+  }
+  
+  const cardsToDisplay = activatedCards.slice(0, ACTIVATED_MAX);
+  
+  cardsToDisplay.forEach((card, idx) => {
+    const { cardX, cardY, w, h } = getActivatedCardPosition(idx);
+    
+    ctx.save();
+    // Move to center, rotate 180°, move back
+    ctx.translate(cardX + w / 2, cardY + h / 2);
+    ctx.rotate(Math.PI); // 180° rotation
+    ctx.translate(-(cardX + w / 2), -(cardY + h / 2));
+    
+    // Draw character card image using consistent naming pattern
+    const maybeName = card.name || '';
+    const maybeId = String(card.id || '');
+    const matchName = String(maybeName).match(/(\d+)/);
+    const matchId = maybeId.match(/(\d+)/);
+    const charNum = matchName ? matchName[1] : matchId ? matchId[1] : null;
+    const filename = charNum ? `Charakterkarte${charNum}.jpeg` : 'Charakterkarte Hinten.jpeg';
+    
+    drawImageOrFallback(
+      ctx,
+      filename,
+      cardX,
+      cardY,
+      w,
+      h,
+      maybeName || `Char ${charNum ?? '?'}`
+    );
+    
+    ctx.restore();
+  });
+}
+
 export function drawUI(ctx: CanvasRenderingContext2D, phase: string = 'takingActions') {
   // Phase info (top-left)
   ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
@@ -309,29 +459,23 @@ export function drawUI(ctx: CanvasRenderingContext2D, phase: string = 'takingAct
   ctx.fillText(`Phase: ${phase}`, MARGIN_H + 15, 10);
 
   // Action buttons: place to the right of the player area (in the right margin)
-  const btnX = BASE_W - MARGIN_H + 10; // small inset from the right-side player margin
-  const btnW = 130;
-  const btnH = 35;
-  const btnY = ZONE_TOP_H + ZONE_CENTER_H + 40;
-
+  // Only show End Turn button
   const buttons = [
-    { label: '💎 Pearl', y: btnY },
-    { label: '🎭 Char', y: btnY + btnH + 8 },
-    { label: '➡️ End', y: btnY + (btnH + 8) * 2 },
+    { label: '➡️ End', y: BTN_Y_1 },
   ];
 
   buttons.forEach((btn) => {
     ctx.fillStyle = 'rgba(30, 41, 59, 0.95)';
-    ctx.fillRect(btnX, btn.y, btnW, btnH);
+    ctx.fillRect(BTN_X, btn.y, BTN_W, BTN_H);
     ctx.strokeStyle = '#60a5fa';
     ctx.lineWidth = 2;
-    ctx.strokeRect(btnX, btn.y, btnW, btnH);
+    ctx.strokeRect(BTN_X, btn.y, BTN_W, BTN_H);
 
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 11px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(btn.label, btnX + btnW / 2, btn.y + btnH / 2);
+    ctx.fillText(btn.label, BTN_X + BTN_W / 2, btn.y + BTN_H / 2);
   });
 }
 

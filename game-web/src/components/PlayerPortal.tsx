@@ -12,7 +12,6 @@ interface PlayerPortalProps {
   onSelectHandCard?: (index: number) => void;
   onClearHandSelection?: () => void;
   onDiscardCards?: () => void;
-  onEndTurn?: () => void;
 }
 
 export function PlayerPortal({
@@ -25,7 +24,6 @@ export function PlayerPortal({
   onSelectHandCard = () => {},
   onClearHandSelection = () => {},
   onDiscardCards = () => {},
-  onEndTurn = () => {},
 }: PlayerPortalProps) {
   const activeCharacters = player.portal.filter(slot => slot.activated).map(slot => slot.card);
   const showControls = isCurrentPlayer && hand.length > 0;
@@ -112,7 +110,6 @@ export function PlayerPortal({
             actionsRemaining={actionsRemaining}
             selectedHandCount={selectedHandIndices.length}
             onDiscardCards={onDiscardCards}
-            onEndTurn={onEndTurn}
             currentPlayer={player}
           />
         </div>

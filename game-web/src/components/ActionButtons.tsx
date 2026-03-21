@@ -6,7 +6,6 @@ interface ActionButtonsProps {
   actionsRemaining: number;
   selectedHandCount: number;
   onDiscardCards: () => void;
-  onEndTurn: () => void;
   currentPlayer: PlayerState;
 }
 
@@ -15,7 +14,6 @@ export function ActionButtons({
   actionsRemaining,
   selectedHandCount,
   onDiscardCards,
-  onEndTurn,
   currentPlayer,
 }: ActionButtonsProps) {
   const isActionPhase = gamePhase === 'takingActions';
@@ -35,17 +33,7 @@ export function ActionButtons({
 
       {isActionPhase && (
         <div className="action-phase-content">
-          <div className="actions-row">
-            <button
-              className="btn btn-secondary"
-              onClick={onEndTurn}
-              title="End your turn and pass to the next player"
-              data-action="end-turn"
-              aria-label="End turn"
-            >
-              ➡️ End Turn
-            </button>
-          </div>
+          <p className="info-text">Take your actions or press 'g' to end turn.</p>
         </div>
       )}
 

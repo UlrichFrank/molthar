@@ -1,0 +1,262 @@
+/* Activated Character Detail View Modal */
+
+.detailViewOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.detailViewContent {
+  display: flex;
+  gap: 2rem;
+  max-width: 90vw;
+  max-height: 90vh;
+  background: rgba(20, 30, 50, 0.95);
+  border: 2px solid #4A90E2;
+  border-radius: 8px;
+  padding: 2rem;
+  animation: slideUp 0.3s ease-out;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.detailViewCard {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detailViewImage {
+  max-width: 300px;
+  max-height: 400px;
+  width: auto;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.detailViewImage:hover {
+  transform: scale(1.02);
+}
+
+.detailViewInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 1rem;
+}
+
+.detailViewInfo::-webkit-scrollbar {
+  width: 6px;
+}
+
+.detailViewInfo::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.detailViewInfo::-webkit-scrollbar-thumb {
+  background: rgba(74, 144, 226, 0.3);
+  border-radius: 3px;
+}
+
+.detailViewInfo::-webkit-scrollbar-thumb:hover {
+  background: rgba(74, 144, 226, 0.5);
+}
+
+.characterName {
+  margin: 0;
+  font-size: 1.8rem;
+  color: #fff;
+  font-weight: bold;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(74, 144, 226, 0.1);
+  border-radius: 6px;
+  border-left: 3px solid #4A90E2;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.statLabel {
+  font-size: 0.85rem;
+  color: #9DB4D1;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statValue {
+  font-size: 1.4rem;
+  color: #FFD700;
+  font-weight: bold;
+}
+
+.abilitiesSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.abilitiesSection h3 {
+  margin: 0.5rem 0 0 0;
+  font-size: 1rem;
+  color: #4A90E2;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ability {
+  padding: 1rem;
+  border-radius: 4px;
+  border-left: 4px solid;
+}
+
+.ability.red {
+  background: rgba(220, 100, 100, 0.1);
+  border-left-color: #DC6464;
+}
+
+.ability.blue {
+  background: rgba(100, 150, 220, 0.1);
+  border-left-color: #6496DC;
+}
+
+.abilityType {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ability.red .abilityType {
+  color: #DC6464;
+}
+
+.ability.blue .abilityType {
+  color: #6496DC;
+}
+
+.ability p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #D0D0D0;
+  line-height: 1.4;
+}
+
+.closeHint {
+  margin-top: auto;
+  font-size: 0.8rem;
+  color: #9DB4D1;
+  font-style: italic;
+  text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .detailViewContent {
+    flex-direction: column;
+    max-width: 95vw;
+    padding: 1.5rem;
+    gap: 1.5rem;
+  }
+
+  .detailViewCard {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .detailViewImage {
+    max-width: 200px;
+    max-height: 300px;
+  }
+
+  .detailViewInfo {
+    max-height: 50vh;
+  }
+
+  .characterName {
+    font-size: 1.5rem;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .detailViewContent {
+    padding: 1rem;
+    border-radius: 4px;
+  }
+
+  .detailViewImage {
+    max-width: 150px;
+    max-height: 225px;
+  }
+
+  .characterName {
+    font-size: 1.2rem;
+  }
+
+  .statValue {
+    font-size: 1.1rem;
+  }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .detailViewOverlay {
+    animation: none;
+  }
+
+  .detailViewContent {
+    animation: none;
+  }
+
+  .detailViewImage:hover {
+    transform: none;
+  }
+}

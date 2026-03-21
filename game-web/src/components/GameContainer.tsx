@@ -317,7 +317,6 @@ export function GameContainer() {
           handleAction(GameActionType.ActivateCharacter, { characterIndex: charIdx })
         }
         onDiscardCards={() => handleAction(GameActionType.DiscardCards)}
-        onEndTurn={() => handleAction(GameActionType.EndTurn)}
       />
       <ErrorDisplay 
         error={error} 

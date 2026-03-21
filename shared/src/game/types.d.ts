@@ -75,6 +75,7 @@ export interface GameState {
     };
     playerOrder: string[];
     actionCount: number;
+    maxActions: number;
     finalRound: boolean;
     finalRoundStartingPlayer: string | null;
     startingPlayer: string;

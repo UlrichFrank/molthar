@@ -36,6 +36,13 @@
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
 }
 
+/* Hovered state - programmatic hover (from canvas hit test) */
+.cardButton.hovered:not(:disabled) {
+  opacity: 1;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
 /* Selected state - card is currently selected */
 .cardButton.selected {
   outline: 3px solid #FFD700;
@@ -135,6 +142,26 @@
 }
 
 .portalSlotButton.selected {
+  outline: 3px solid #FFD700;
+  outline-offset: 2px;
+  box-shadow: 
+    0 8px 16px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(255, 215, 0, 0.6);
+}
+
+/* Activated character card button styling (50% size grid) */
+.activatedCharacterButton {
+  composes: cardButton;
+  opacity: 0.8;
+}
+
+.activatedCharacterButton:hover:not(:disabled) {
+  opacity: 1;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+.activatedCharacterButton.selected {
   outline: 3px solid #FFD700;
   outline-offset: 2px;
   box-shadow: 

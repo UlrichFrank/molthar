@@ -27,8 +27,12 @@ import {
   HAND_CARD_W,
   HAND_CARD_H,
   HAND_MAX,
+  ACTIVATED_CARD_W,
+  ACTIVATED_CARD_H,
+  ACTIVATED_MAX,
   getHandCardPosition,
   getPortalSlotPosition,
+  getActivatedCardPosition,
 } from '../lib/cardLayoutConstants';
 import { CardButton } from './CardButton';
 
@@ -182,6 +186,40 @@ export const CardButtonOverlay: React.FC<CardButtonOverlayProps> = ({
     return buttons;
   }, []);
   
+  // Generate activated character grid buttons
+  const activatedButtons = useMemo(() => {
+    const buttons = [];
+    const currentPlayer = Object.keys(G.players || {})[0];
+    const player = G.players?.[currentPlayer];
+    
+    if (!player) return buttons;
+    
+    const activatedCards = player.portal
+      .filter(slot => slot && slot.activated)
+      .map(slot => slot.card)
+      .slice(0, ACTIVATED_MAX);
+    
+    activatedCards.forEach((card, idx) => {
+      const pos = getActivatedCardPosition(idx);
+      const { cardX, cardY } = pos;
+      
+      buttons.push({
+        id: idx,
+        x: cardX,
+        y: cardY,
+        w: ACTIVATED_CARD_W,
+        h: ACTIVATED_CARD_H,
+        type: 'activated-character' as const,
+        isSelected: false,
+        isDisabled: false,
+        angle: Math.PI, // 180° rotation for activated cards
+        target: { type: 'activated-character' as const, id: idx, x: cardX, y: cardY, w: ACTIVATED_CARD_W, h: ACTIVATED_CARD_H },
+      });
+    });
+    
+    return buttons;
+  }, [G]);
+
   const handleCardHover = useCallback(
     (target: HitTarget | null) => {
       onCardHover?.(target);
@@ -208,7 +246,7 @@ export const CardButtonOverlay: React.FC<CardButtonOverlayProps> = ({
         left: 0,
         width: '100%',
         height: '100%',
-        pointerEvents: 'auto',
+        pointerEvents: 'none',
       }}
     >
       {/* Auslage cards */}
@@ -274,6 +312,29 @@ export const CardButtonOverlay: React.FC<CardButtonOverlayProps> = ({
           onPointerLeave={() => handlePointerLeave()}
           onClick={() => onCardClick(btn.target)}
           ariaLabel={`Portal slot ${btn.id + 1}`}
+        />
+      ))}
+
+      {/* Activated character cards grid */}
+      {activatedButtons.map((btn) => (
+        <CardButton
+          key={`activated-${btn.id}`}
+          id={btn.id}
+          x={btn.x}
+          y={btn.y}
+          w={btn.w}
+          h={btn.h}
+          type={btn.type}
+          isSelected={btn.isSelected}
+          isDisabled={btn.isDisabled}
+          isHovered={hoveredCard?.type === btn.type && hoveredCard?.id === btn.id}
+          scaleX={scale}
+          scaleY={scale}
+          angle={btn.angle}
+          onPointerEnter={() => handlePointerEnter(btn.target)}
+          onPointerLeave={() => handlePointerLeave()}
+          onClick={() => onCardClick(btn.target)}
+          ariaLabel={`Activated character ${btn.id + 1}`}
         />
       ))}
     </div>

@@ -125,6 +125,8 @@ export const CardButton = React.forwardRef<HTMLButtonElement, CardButtonProps>(
       classNames.push(styles.handCardButton);
     } else if (type === 'portal-slot') {
       classNames.push(styles.portalSlotButton);
+    } else if (type === 'activated-character') {
+      classNames.push(styles.activatedCharacterButton);
     }
     
     if (isSelected) {
@@ -137,6 +139,10 @@ export const CardButton = React.forwardRef<HTMLButtonElement, CardButtonProps>(
     
     if (isDisabled) {
       classNames.push(styles.disabled);
+    }
+    
+    if (isHovered) {
+      classNames.push(styles.hovered);
     }
 
     // Calculate absolute position (already in model coordinates)

@@ -2,14 +2,17 @@ import React, { useRef, useEffect, useState } from 'react';
 import type { GameState } from '@portale-von-molthar/shared';
 import type { HitTarget } from '../lib/gameHitTest';
 import { hitTest } from '../lib/gameHitTest';
-import { drawBackground, drawAuslage, drawPlayerPortal, drawUI, drawOpponentPortals } from '../lib/gameRender';
+import { drawBackground, drawAuslage, drawPlayerPortal, drawActivatedCharactersGrid, drawUI } from '../lib/gameRender';
 import { preloadAllImages } from '../lib/imageLoaderV2';
 import CardButtonOverlay from './CardButtonOverlay';
-import { OpponentPortals } from './OpponentPortals';
+import { ActivatedCharacterDetailView } from './ActivatedCharacterDetailView';
+import { TurnIndicatorDisplay } from './TurnIndicatorDisplay';
+import { ActionCounterDisplay } from './ActionCounterDisplay';
 import { DialogProvider, useDialog } from '../contexts/DialogContext';
 import { CharacterReplacementDialog } from './CharacterReplacementDialog';
 import { CharacterActivationDialog } from './CharacterActivationDialog';
 import '../styles/dialogModal.css';
+import '../styles/turnActionCounter.css';
 
 interface CanvasGameBoardProps {
   G: GameState;
@@ -73,8 +76,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   const { ref, w: viewportW, h: viewportH } = useContainerSize<HTMLDivElement>();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  console.log('🎮 CanvasGameBoard rendered with G:', G);
-  console.log('📊 CharacterSlots:', G.characterSlots, 'PearlSlots:', G.pearlSlots);
+
 
   // Preload images on mount
   const [imagesLoaded, setImagesLoaded] = useState(false);
@@ -82,13 +84,14 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   useEffect(() => {
     preloadAllImages()
       .then(() => {
-        console.log('✅ All card images loaded');
         setImagesLoaded(true);
       })
-      .catch((err) => console.warn('⚠️ Some images failed to load:', err));
+      .catch((err) => console.error('Failed to load some card images:', err));
   }, []);
 
   const [hoveredCard, setHoveredCard] = useState<HitTarget | null>(null);
+  const [activeCharacterIndex, setActiveCharacterIndex] = useState<number | null>(null);
+  const [hoveredDeck, setHoveredDeck] = useState<'character' | 'pearl' | null>(null);
 
   // Berechne Sichtbare Größe (Letterboxed)
   const aspect = BASE_W / BASE_H; // 1.5 (3:2)
@@ -100,6 +103,15 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   const me = G.players?.[myPlayerID];
   const phase = ctx.phase || 'takingActions';
   
+  // Calculate active player index and current/max actions
+  const playerList = G.playerOrder || Object.keys(G.players || {});
+  const activePlayerID = (ctx.currentPlayer as string) || playerList[0];
+  const activePlayerIndex = playerList.indexOf(activePlayerID);
+  const activePlayer = G.players?.[activePlayerID];
+  const currentActions = activePlayer?.actionCount ?? 0;
+  const maxActions = activePlayer?.maxActions ?? 3;
+  const totalPlayers = playerList.length;
+  
   // Fallback für fehlende Daten
   const characterSlots = G.characterSlots || [];
   const pearlSlots = G.pearlSlots || [];
@@ -107,6 +119,14 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   const playerPortal = me?.portal ?? [];
   const playerHand = me?.hand ?? [];
 
+  // Extract activated characters from portal
+  const activatedCharacters = playerPortal.filter((entry) => entry.activated);
+  const activeCharacter = activeCharacterIndex !== null && activeCharacterIndex < activatedCharacters.length
+    ? activatedCharacters[activeCharacterIndex]
+    : null;
+
+  /**
+   * Konvertiere CSS-Koordinaten zu Model-Koordinaten
   /**
    * Konvertiere CSS-Koordinaten zu Model-Koordinaten
    */
@@ -126,20 +146,13 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     // Draw using helper functions
     drawBackground(canvasCtx);
     
-    // Draw opponent portals based on player count
-    const numPlayers = Object.keys(G.players || {}).length;
-    const numOpponents = Math.max(0, numPlayers - 1);
-    if (numOpponents > 0) {
-      drawOpponentPortals(canvasCtx, numOpponents);
-    }
-    
     // Auslage - no selection highlighting
     // @ts-expect-error - PearlCard and CharacterCard don't have exact CardData interface but work for rendering
     drawAuslage(canvasCtx, characterSlots, pearlSlots, {
       selectedPearl: null,
       selectedCharacter: null,
       selectedHandIndices: [],
-    });
+    }, G.characterDeck?.length ?? 0, G.pearlDeck?.length ?? 0, hoveredDeck);
 
     // Portal - no selection highlighting
     // @ts-expect-error: PearlCard[] doesn't match CardData[] but works for rendering
@@ -154,6 +167,16 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
       selectedHandIndices: [],
     });
 
+    // Activated characters grid - shows all activated character cards
+    const activatedCards = playerPortal
+      .filter(slot => slot && slot.activated)
+      .map(slot => slot.card);
+    drawActivatedCharactersGrid(canvasCtx, activatedCards, {
+      selectedPearl: null,
+      selectedCharacter: null,
+      selectedHandIndices: [],
+    });
+
     // UI - show action counter
     drawUI(canvasCtx, phase);
   }
@@ -163,22 +186,50 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
    */
   // Pointer Events: Click only (no drag)
   const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!isActive) return;
-    
     const coords = toModelCoords(e.clientX, e.clientY);
-    const hitTarget = hitTest(coords.x, coords.y);
+    const hitTarget = hitTest(coords.x, coords.y, G.characterDeck?.length ?? 0, G.pearlDeck?.length ?? 0);
 
-    if (hitTarget.type === 'none') return;
+    if (hitTarget.type === 'none') {
+      return;
+    }
 
-    console.log('🖱️ Click:', hitTarget.type, hitTarget.id, 'at', Math.round(coords.x), Math.round(coords.y));
-
-    // Handle immediate selections for buttons
+    // Handle button clicks - ALWAYS allow buttons (including End Turn button)
     if (hitTarget.type === 'button') {
       handleButtonClick(hitTarget.id as string);
-    } else {
-      // Handle card clicks
-      handleCardClick(hitTarget);
+      return;
     }
+
+    // Handle card clicks only if player is active
+    if (!isActive) {
+      return;
+    }
+
+    // Handle card clicks
+    handleCardClick(hitTarget);
+  };
+
+  // Track hover over cards and decks for visual feedback
+  const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const coords = toModelCoords(e.clientX, e.clientY);
+    const hitTarget = hitTest(coords.x, coords.y, G.characterDeck?.length ?? 0, G.pearlDeck?.length ?? 0);
+    
+    // Update hovered card state for button overlay
+    setHoveredCard(hitTarget);
+    
+    // Update hovered deck state
+    if (hitTarget.type === 'deck-character') {
+      setHoveredDeck('character');
+    } else if (hitTarget.type === 'deck-pearl') {
+      setHoveredDeck('pearl');
+    } else {
+      setHoveredDeck(null);
+    }
+  };
+
+  // Clear hovered card and deck when pointer leaves canvas
+  const onPointerLeave = () => {
+    setHoveredCard(null);
+    setHoveredDeck(null);
   };
 
   /**
@@ -188,7 +239,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   function handleCardClick(target: HitTarget) {
     // Validate action count
     if (G.actionCount >= 3) {
-      console.log('⚠️ Action limit reached (3/3), cannot take card');
       return;
     }
 
@@ -207,7 +257,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
             dialog.openReplacementDialog(newCharacter, portalCharacters);
           } else {
             // Portal not full - take character directly
-            console.log('📥 Taking character:', newCharacter.name);
             moves.takeCharacterCard(id);
           }
         } else {
@@ -216,7 +265,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           const pearlCard = pearlSlots[pearlIdx];
           if (!pearlCard) break;
           
-          console.log('📥 Taking pearl card:', pearlCard.value);
           moves.takePearlCard(pearlIdx);
         }
         break;
@@ -227,25 +275,55 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
         // Show activation dialog when player's own portal slot is clicked
         if (me && me.portal[slotIndex]) {
           const entry = me.portal[slotIndex];
-          console.log('🎯 Opening activation dialog for:', entry.card.name);
           dialog.openActivationDialog(entry.card, slotIndex);
         }
+        break;
+      }
+
+      case 'activated-character': {
+        const index = target.id as number;
+        // Open detail view modal for activated character
+        setActiveCharacterIndex(index);
+        break;
+      }
+
+      case 'deck-character': {
+        // Draw random character card from deck
+        if (G.actionCount >= 3) {
+          return;
+        }
+        if (G.characterDeck.length === 0) {
+          return;
+        }
+        moves.takeCharacterCard(-1); // -1 indicates blind draw from deck
+        break;
+      }
+
+      case 'deck-pearl': {
+        // Draw random pearl card from deck
+        if (G.actionCount >= 3) {
+          return;
+        }
+        if (G.pearlDeck.length === 0) {
+          return;
+        }
+        moves.takePearlCard(-1); // -1 indicates blind draw from deck
         break;
       }
     }
   }
 
   /**
-   * Tratamiento de clics de botón - DEPRECATED
-   * Los botones "Take Pearl" y "Activate Character" se han eliminado.
-   * Las cartas se toman directamente al hacer clic (handleCardClick).
-   * El único botón restante es "End Turn".
+   * Handle button clicks - End Turn button
    */
   function handleButtonClick(buttonId: string) {
     switch (buttonId) {
       case 'end-turn':
-        console.log('📋 Ending turn');
-        events?.endTurn?.();
+        if (events?.endTurn) {
+          events.endTurn();
+        } else {
+          console.error('ERROR: events.endTurn is not available!');
+        }
         break;
     }
   }
@@ -279,6 +357,18 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cssW, cssH, G, phase, imagesLoaded]);
 
+  // Handle Escape key to close detail modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && activeCharacterIndex !== null) {
+        setActiveCharacterIndex(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeCharacterIndex]);
+
   return (
     <div
       ref={ref}
@@ -287,52 +377,11 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
         inset: 0,
         background: '#0a0f1e',
         display: 'flex',
-        alignItems: 'flex-end',
+        alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
       }}
     >
-      {/* Opponent Portals Display */}
-      <OpponentPortals 
-        players={Object.values(G.players || {}).filter((_, idx) => idx !== 0)} 
-      />
-
-      {/* Debug info */}
-      <div style={{
-        position: 'fixed',
-        top: 10,
-        right: 10,
-        background: 'rgba(0,0,0,0.8)',
-        color: '#0f0',
-        padding: '10px',
-        fontSize: '12px',
-        fontFamily: 'monospace',
-        zIndex: 100,
-      }}>
-        Canvas: {cssW.toFixed(0)}×{cssH.toFixed(0)}px<br/>
-        Players: {Object.keys(G.players || {}).length}<br/>
-        Auslage: {(G.characterSlots || []).length + (G.pearlSlots || []).length} cards
-      </div>
-
-      {/* Action Counter Display */}
-      <div style={{
-        position: 'fixed',
-        top: 10,
-        left: 10,
-        background: 'rgba(0,0,0,0.8)',
-        color: G.actionCount >= 3 ? '#f44' : '#0f0',
-        padding: '10px 15px',
-        fontSize: '16px',
-        fontWeight: 'bold',
-        fontFamily: 'monospace',
-        zIndex: 100,
-        border: G.actionCount >= 3 ? '2px solid #f44' : '2px solid #0f0',
-        borderRadius: '4px',
-        opacity: G.actionCount >= 3 ? 1 : 0.7,
-      }}>
-        Actions: {G.actionCount}/3
-      </div>
-      
       {/* Canvas container with relative positioning for overlay */}
       <div
         style={{
@@ -345,6 +394,8 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
         <canvas
           ref={canvasRef}
           onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerLeave={onPointerLeave}
           style={{
             display: 'block',
             borderRadius: 12,
@@ -406,6 +457,22 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           }}
         />
       )}
+
+      {/* Activated Character Detail View Modal */}
+      <ActivatedCharacterDetailView
+        character={activeCharacter || null}
+        onClose={() => setActiveCharacterIndex(null)}
+      />
+
+      {/* Turn and Action Counter Display */}
+      <TurnIndicatorDisplay 
+        activePlayerIndex={activePlayerIndex >= 0 ? activePlayerIndex : 0}
+        totalPlayers={totalPlayers}
+      />
+      <ActionCounterDisplay 
+        currentActions={currentActions}
+        maxActions={maxActions}
+      />
     </div>
   );
 }

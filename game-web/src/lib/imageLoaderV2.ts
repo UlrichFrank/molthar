@@ -30,7 +30,7 @@ export async function loadImage(filename: string): Promise<HTMLImageElement> {
       resolve(img);
     };
     img.onerror = () => {
-      console.warn(`⚠️ Failed to load image: ${filename}`);
+      console.error(`Failed to load image: ${filename}`);
       reject(new Error(`Failed to load image: ${filename}`));
     };
     img.src = key;
@@ -111,8 +111,6 @@ export async function preloadAllImages(): Promise<void> {
     'Portal4.jpeg',
     'Portal5.jpeg',
   ];
-
-  console.log(`🖼️ Preloading ${filenames.length} card images...`);
   
   const promises = filenames.map((filename) => 
     loadImage(filename)
@@ -122,7 +120,6 @@ export async function preloadAllImages(): Promise<void> {
   );
 
   await Promise.all(promises);
-  console.log(`✅ Preloaded ${imageCache.size}/${filenames.length} images`);
 }
 
 /**

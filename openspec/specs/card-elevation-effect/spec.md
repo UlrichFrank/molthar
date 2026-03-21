@@ -1,20 +1,17 @@
-# card-elevation-effect Specification
+## MODIFIED Requirements
 
-## Purpose
-TBD - created by archiving change interactive-card-buttons. Update Purpose after archive.
-## Requirements
 ### Requirement: Cards Elevate on Hover
-Cards in the display area SHALL visually elevate when hovered to indicate interactivity.
+Cards in the display area SHALL visually elevate when hovered to indicate interactivity. This applies to auslage cards, portal slot cards, hand cards, AND activated character grid cards.
 
 #### Scenario: Smooth elevation animation
-- **WHEN** user hovers over a card
+- **WHEN** user hovers over any card (auslage, portal, hand, or activated character grid)
 - **THEN** card smoothly translates upward (4-6px lift)
 - **AND** animation duration is 200ms or less
 - **AND** easing is smooth (ease-out recommended)
 - **AND** elevation is achieved via CSS transform (GPU-accelerated)
 
 #### Scenario: Shadow effect accompanies elevation
-- **WHEN** card is elevated
+- **WHEN** card is elevated on hover
 - **THEN** box-shadow is added to create depth perception
 - **AND** shadow is subtle (not overpowering)
 - **AND** shadow size increases slightly as card lifts
@@ -28,26 +25,23 @@ Cards in the display area SHALL visually elevate when hovered to indicate intera
 - **AND** visual transition is smooth
 
 #### Scenario: No elevation for disabled cards
-- **WHEN** card is disabled
+- **WHEN** card is disabled or in non-interactive state
 - **THEN** hover does not cause elevation
 - **AND** card remains at normal height
 - **AND** no shadow effect is applied
 - **AND** visual distinction from enabled cards is clear
 
+#### Scenario: Activated character grid cards elevate on hover
+- **WHEN** user hovers over an activated character card in the grid
+- **THEN** the card uses identical elevation effect as other interactive cards
+- **AND** 4-6px lift is applied with 200ms smooth animation
+- **AND** box-shadow matches other card types
+
 ### Requirement: Multiple Cards Can Elevate Independently
-Multiple cards can be hovered and elevated simultaneously (e.g., during card selection scenario).
+Multiple cards can be hovered and elevated simultaneously (e.g., during card selection or when scanning activated characters grid).
 
 #### Scenario: Elevate card A then B while A is elevated
-- **WHEN** card A is hovered and elevated
-- **AND** user then hovers card B without leaving A
-- **THEN** card B elevates
-- **AND** card A remains elevated if still under mouse
-- **AND** both cards show elevation effects independently
-- **AND** no visual artifacts or z-index conflicts
-
-#### Scenario: Stacking order with elevated cards
-- **WHEN** cards are overlapping and both elevated
-- **THEN** proper z-index ordering prevents one from hiding another
-- **AND** all card details are visible
-- **AND** visual hierarchy is maintained
-
+- **WHEN** user hovers over card A, then hovers over card B (without leaving A)
+- **THEN** both cards are elevated simultaneously with independent animations
+- **AND** each card maintains its own elevation state
+- **AND** moving back to A keeps A elevated

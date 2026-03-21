@@ -36,12 +36,25 @@ import {
   BTN_Y_1,
   BTN_Y_2,
   BTN_Y_3,
+  ACTIVATED_GRID_X,
+  ACTIVATED_GRID_Y,
+  ACTIVATED_CARD_W,
+  ACTIVATED_CARD_H,
+  ACTIVATED_CARD_GAP,
+  ACTIVATED_MAX,
+  DECK_CARD_W,
+  DECK_CARD_H,
+  CHAR_DECK_X,
+  CHAR_DECK_Y,
+  PEARL_DECK_X,
+  PEARL_DECK_Y,
   getHandCardPosition,
   getPortalSlotPosition,
+  getActivatedCardPosition,
 } from './cardLayoutConstants';
 
 export interface HitTarget {
-  type: 'auslage-card' | 'portal-slot' | 'hand-card' | 'button' | 'none';
+  type: 'auslage-card' | 'portal-slot' | 'hand-card' | 'activated-character' | 'deck-character' | 'deck-pearl' | 'button' | 'none';
   id: number | string;
   x: number;
   y: number;
@@ -119,6 +132,52 @@ export function hitTestHandCards(x: number, y: number): number | null {
 }
 
 /**
+ * Finde welche aktivierte Charakterkarte geklickt wurde (0-11, max 12 cards)
+ * Activated cards are displayed in a 3x4 grid to the right of the portal
+ */
+export function hitTestActivatedGrid(x: number, y: number): number | null {
+  // Test all possible grid positions
+  for (let i = 0; i < ACTIVATED_MAX; i++) {
+    const { cardX, cardY, w, h } = getActivatedCardPosition(i);
+    
+    if (pointInRect(x, y, cardX, cardY, w, h)) {
+      return i;
+    }
+  }
+  return null;
+}
+
+/**
+ * Check if click is on character deck
+ * Decks are rotated 90°, so we test the rotated bounds
+ */
+export function hitTestCharacterDeck(x: number, y: number, deckCount: number): boolean {
+  if (deckCount <= 0) return false;
+
+  // Character deck bounds - account for 90° rotation
+  // After rotation: width becomes height, height becomes width
+  const deckWidth = DECK_CARD_H; // 90° rotation
+  const deckHeight = DECK_CARD_W;
+  
+  return pointInRect(x, y, CHAR_DECK_X, CHAR_DECK_Y, deckWidth, deckHeight);
+}
+
+/**
+ * Check if click is on pearl deck
+ * Decks are rotated 90°, so we test the rotated bounds
+ */
+export function hitTestPearlDeck(x: number, y: number, deckCount: number): boolean {
+  if (deckCount <= 0) return false;
+
+  // Pearl deck bounds - account for 90° rotation
+  // After rotation: width becomes height, height becomes width
+  const deckWidth = DECK_CARD_H; // 90° rotation
+  const deckHeight = DECK_CARD_W;
+  
+  return pointInRect(x, y, PEARL_DECK_X, PEARL_DECK_Y, deckWidth, deckHeight);
+}
+
+/**
  * Finde welcher Button geklickt wurde
  */
 export function hitTestButtons(x: number, y: number): string | null {
@@ -136,12 +195,44 @@ export function hitTestButtons(x: number, y: number): string | null {
 
 /**
  * Haupt-Hit-Detection: Welches Objekt wurde geklickt?
+ * @param x - X coordinate
+ * @param y - Y coordinate
+ * @param characterDeckCount - Number of cards in character deck (optional, for deck hit testing)
+ * @param pearlDeckCount - Number of cards in pearl deck (optional, for deck hit testing)
  */
-export function hitTest(x: number, y: number): HitTarget {
+export function hitTest(x: number, y: number, characterDeckCount: number = 0, pearlDeckCount: number = 0): HitTarget {
   // Buttons first (highest priority)
   const button = hitTestButtons(x, y);
   if (button) {
     return { type: 'button', id: button, x: BTN_X, y: 0, w: BTN_W, h: BTN_H };
+  }
+
+  // Character Deck
+  if (hitTestCharacterDeck(x, y, characterDeckCount)) {
+    const deckWidth = DECK_CARD_H; // After 90° rotation
+    const deckHeight = DECK_CARD_W;
+    return {
+      type: 'deck-character',
+      id: 'deck-character',
+      x: CHAR_DECK_X,
+      y: CHAR_DECK_Y,
+      w: deckWidth,
+      h: deckHeight,
+    };
+  }
+
+  // Pearl Deck
+  if (hitTestPearlDeck(x, y, pearlDeckCount)) {
+    const deckWidth = DECK_CARD_H; // After 90° rotation
+    const deckHeight = DECK_CARD_W;
+    return {
+      type: 'deck-pearl',
+      id: 'deck-pearl',
+      x: PEARL_DECK_X,
+      y: PEARL_DECK_Y,
+      w: deckWidth,
+      h: deckHeight,
+    };
   }
 
   // Auslage
@@ -175,14 +266,28 @@ export function hitTest(x: number, y: number): HitTarget {
   // Hand Cards
   const handIdx = hitTestHandCards(x, y);
   if (handIdx !== null) {
-    const cardX = HAND_START_X + handIdx * (HAND_CARD_W + 5);
+    const cardX = HAND_AREA_X + handIdx * (HAND_CARD_W + 5);
     return {
       type: 'hand-card',
       id: handIdx,
       x: cardX,
-      y: HAND_START_Y,
+      y: HAND_CENTER_Y,
       w: HAND_CARD_W,
       h: HAND_CARD_H,
+    };
+  }
+
+  // Activated Characters Grid
+  const activatedIdx = hitTestActivatedGrid(x, y);
+  if (activatedIdx !== null) {
+    const { cardX, cardY, w, h } = getActivatedCardPosition(activatedIdx);
+    return {
+      type: 'activated-character',
+      id: activatedIdx,
+      x: cardX,
+      y: cardY,
+      w: w,
+      h: h,
     };
   }
 

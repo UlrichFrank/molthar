@@ -18,7 +18,7 @@ export const BASE_H = 800;
 // === Layout Zone Heights ===
 export const ZONE_TOP_H = 200; // Height of top zones (opponent area)
 export const MARGIN_H = ZONE_TOP_H; // Left/right margin width
-export const ZONE_CENTER_H = 320; // Height of center auslage zone
+export const ZONE_CENTER_H = 310; // Height of center auslage zone
 export const ZONE_PLAYER_H = BASE_H - ZONE_TOP_H - ZONE_CENTER_H; // Height of player area
 
 // === Card Dimensions ===
@@ -56,12 +56,43 @@ export const HAND_CARD_H = Math.round(CARD_H * 0.9); // 124
 export const HAND_MAX = 9; // Maximum hand cards to display
 
 // === Button Positioning (right margin) ===
-export const BTN_X = BASE_W - MARGIN_H + 10;
+export const BTN_X = BASE_W - 150; // Positioned more to the left to be visible
 export const BTN_W = 130;
 export const BTN_H = 35;
 export const BTN_Y_1 = PORTAL_Y + 40;
 export const BTN_Y_2 = BTN_Y_1 + BTN_H + 8;
 export const BTN_Y_3 = BTN_Y_1 + (BTN_H + 8) * 2;
+
+// === Activated Characters Grid Positioning (right of portal slots) ===
+// Grid displays 3 rows × 4 columns of activated character cards at 50% size
+// Positioned directly right of the 2nd portal slot with small gap
+export const ACTIVATED_GRID_X = SLOT_AREA_X + 2 * (SLOT_W + SLOT_GAP) + 10; // Right of 2nd portal slot with margin
+export const ACTIVATED_GRID_Y = PORTAL_Y; // Align with portal top
+export const ACTIVATED_CARD_W = Math.round(CARD_W * 0.5); // 44
+export const ACTIVATED_CARD_H = Math.round(CARD_H * 0.5); // 69
+export const ACTIVATED_CARD_GAP = Math.round(CARD_GAP * 0.5); // 7
+export const ACTIVATED_GRID_COLS = 4;
+export const ACTIVATED_GRID_ROWS = 3;
+export const ACTIVATED_MAX = ACTIVATED_GRID_COLS * ACTIVATED_GRID_ROWS; // 12
+
+// === Deck Stack Positioning & Dimensions ===
+// Decks are positioned below face-up cards with 90° rotation
+export const DECK_CARD_W = CARD_W; // Deck card width (before rotation)
+export const DECK_CARD_H = CARD_H; // Deck card height (before rotation)
+export const DECK_ROTATION = (Math.PI / 2); // 90 degrees in radians
+export const DECK_CARD_OFFSET = 2; // Pixel offset between stacked cards for 3D effect
+export const DECK_MAX_VISIBLE = 7; // Maximum number of cards visible in the stack
+export const DECK_BELOW_OFFSET_Y = 20; // Space between auslage cards and deck below
+
+// Character deck positioning (left edge aligned with left character card, with CARD_H/3 offset for rotation)
+export const CHAR_DECK_X = AUSLAGE_START_X + CARD_H; // Left-aligned with slight offset due to rotation
+export const CHAR_DECK_Y = AUSLAGE_START_Y + CARD_H + DECK_BELOW_OFFSET_Y;
+
+// Pearl deck positioning (right edge aligned with right pearl card)
+// Right edge of rightmost pearl card: AUSLAGE_START_X + 5 * (CARD_W + CARD_GAP) + CARD_W
+// After 90° rotation, deck width is CARD_H, so: right_edge - CARD_H + (CARD_H/3) for rotation alignment
+export const PEARL_DECK_X = AUSLAGE_START_X + 5 * (CARD_W + CARD_GAP) + CARD_W - CARD_H + CARD_H;
+export const PEARL_DECK_Y = AUSLAGE_START_Y + CARD_H + DECK_BELOW_OFFSET_Y;
 
 /**
  * Calculate hand card position with fan-out layout
@@ -105,5 +136,25 @@ export function getPortalSlotPosition(slotIndex: number) {
     slotY,
     w: SLOT_W,
     h: SLOT_H,
+  };
+}
+
+/**
+ * Calculate activated character grid card position
+ * @param cardIndex Card index in the grid (0-11, row-major order)
+ * @returns {cardX, cardY, w, h} - position and dimensions
+ */
+export function getActivatedCardPosition(cardIndex: number) {
+  const col = cardIndex % ACTIVATED_GRID_COLS;
+  const row = Math.floor(cardIndex / ACTIVATED_GRID_COLS);
+  
+  const cardX = ACTIVATED_GRID_X + col * (ACTIVATED_CARD_W + ACTIVATED_CARD_GAP);
+  const cardY = ACTIVATED_GRID_Y + row * (ACTIVATED_CARD_H + ACTIVATED_CARD_GAP);
+  
+  return {
+    cardX,
+    cardY,
+    w: ACTIVATED_CARD_W,
+    h: ACTIVATED_CARD_H,
   };
 }
