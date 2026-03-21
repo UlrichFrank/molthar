@@ -132,8 +132,8 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   const playerPortal = me?.portal ?? [];
   const playerHand = me?.hand ?? [];
 
-  // Extract activated characters from portal
-  const activatedCharacters = playerPortal.filter((entry) => entry.activated);
+  // Extract activated characters
+  const activatedCharacters = me?.activatedCharacters ?? [];
   const activeCharacter = activeCharacterIndex !== null && activeCharacterIndex < activatedCharacters.length
     ? activatedCharacters[activeCharacterIndex]
     : null;
@@ -181,8 +181,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     });
 
     // Activated characters grid - shows all activated character cards
-    const activatedCards = playerPortal
-      .filter(slot => slot && slot.activated)
+    const activatedCards = (me?.activatedCharacters ?? [])
       .map(slot => slot.card);
     drawActivatedCharactersGrid(canvasCtx, activatedCards, {
       selectedPearl: null,

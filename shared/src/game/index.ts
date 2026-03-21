@@ -34,6 +34,7 @@ export const PortaleVonMolthar = {
         name: `Player ${parseInt(playerId) + 1}`,
         hand: [],
         portal: [],
+        activatedCharacters: [],
         powerPoints: 0,
         diamonds: 0,
         readyUp: false,
@@ -215,11 +216,16 @@ export const PortaleVonMolthar = {
       player.diamonds += entry.card.diamonds;
       G.actionCount++;
 
-      // CRITICAL: Remove card from portal array after all validations succeed
+      // CRITICAL: Move card from portal array to activatedCharacters array
       // This ensures the card is no longer accessible via the portal array,
       // preventing it from appearing in both portal and activated sections simultaneously.
-      // The card's data persists in the ActivatedCharacter object for display purposes.
-      player.portal.splice(portalSlotIndex, 1);
+      const activatedCard = player.portal.splice(portalSlotIndex, 1)[0];
+      if (activatedCard) {
+        if (!player.activatedCharacters) {
+          player.activatedCharacters = [];
+        }
+        player.activatedCharacters.push(activatedCard);
+      }
 
       // Check if player reached 12+ power points to trigger final round
       if (player.powerPoints >= 12 && !G.finalRound) {

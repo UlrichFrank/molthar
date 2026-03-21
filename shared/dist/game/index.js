@@ -5,6 +5,7 @@ exports.validateCostPayment = validateCostPayment;
 exports.createPearlDeck = createPearlDeck;
 exports.createCharacterDeck = createCharacterDeck;
 exports.shuffleArray = shuffleArray;
+const costCalculation_1 = require("./costCalculation");
 /**
  * Helper function for invalid moves
  */
@@ -34,6 +35,7 @@ exports.PortaleVonMolthar = {
                 name: `Player ${parseInt(playerId) + 1}`,
                 hand: [],
                 portal: [],
+                activatedCharacters: [],
                 powerPoints: 0,
                 diamonds: 0,
                 readyUp: false,
@@ -185,12 +187,18 @@ exports.PortaleVonMolthar = {
                 return;
             if (G.actionCount >= G.maxActions)
                 return;
+            // Validate portal slot index bounds
+            // Ensures we don't access invalid indices and reject out-of-bounds activations
+            if (portalSlotIndex < 0 || portalSlotIndex >= player.portal.length) {
+                return;
+            }
             const entry = player.portal[portalSlotIndex];
             if (!entry)
                 return;
             if (entry.activated)
                 return; // already activated
-            if (!validateCostPayment(entry.card.cost, usedCards || [], player.hand, player.diamonds)) {
+            // Use new cost validation that checks against entire hand
+            if (!(0, costCalculation_1.validateCostPayment)(entry.card.cost, player.hand, player.diamonds)) {
                 return;
             }
             // Discard used pearl cards (reverse order to preserve indices)
@@ -200,10 +208,22 @@ exports.PortaleVonMolthar = {
                     G.pearlDiscardPile.push(player.hand.splice(idx, 1)[0]);
                 }
             }
+            // Mark card as activated and grant rewards
             entry.activated = true;
             player.powerPoints += entry.card.powerPoints;
             player.diamonds += entry.card.diamonds;
             G.actionCount++;
+            // CRITICAL: Move card from portal array to activatedCharacters array
+            // This ensures the card is no longer accessible via the portal array,
+            // preventing it from appearing in both portal and activated sections simultaneously.
+            const activatedCard = player.portal.splice(portalSlotIndex, 1)[0];
+            if (activatedCard) {
+                if (!player.activatedCharacters) {
+                    player.activatedCharacters = [];
+                }
+                player.activatedCharacters.push(activatedCard);
+            }
+            // Check if player reached 12+ power points to trigger final round
             if (player.powerPoints >= 12 && !G.finalRound) {
                 G.finalRound = true;
                 G.finalRoundStartingPlayer = ctx.currentPlayer;

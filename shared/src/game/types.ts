@@ -61,7 +61,8 @@ export interface PlayerState {
   id: string;
   name: string;
   hand: PearlCard[];
-  portal: ActivatedCharacter[]; // max 2
+  portal: ActivatedCharacter[]; // max 2, cards not yet activated
+  activatedCharacters: ActivatedCharacter[]; // cards that have been activated (removed from portal)
   powerPoints: number;
   diamonds: number;
   readyUp: boolean;

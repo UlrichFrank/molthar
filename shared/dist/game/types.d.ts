@@ -54,6 +54,7 @@ export interface PlayerState {
     name: string;
     hand: PearlCard[];
     portal: ActivatedCharacter[];
+    activatedCharacters: ActivatedCharacter[];
     powerPoints: number;
     diamonds: number;
     readyUp: boolean;

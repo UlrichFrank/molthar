@@ -194,8 +194,7 @@ export const CardButtonOverlay: React.FC<CardButtonOverlayProps> = ({
     
     if (!player) return buttons;
     
-    const activatedCards = player.portal
-      .filter(slot => slot && slot.activated)
+    const activatedCards = (player.activatedCharacters ?? [])
       .map(slot => slot.card)
       .slice(0, ACTIVATED_MAX);
     

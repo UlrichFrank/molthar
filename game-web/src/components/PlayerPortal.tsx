@@ -25,7 +25,7 @@ export function PlayerPortal({
   onClearHandSelection = () => {},
   onDiscardCards = () => {},
 }: PlayerPortalProps) {
-  const activeCharacters = player.portal.filter(slot => slot.activated).map(slot => slot.card);
+  const activeCharacters = (player.activatedCharacters ?? []).map(slot => slot.card);
   const showControls = isCurrentPlayer && hand.length > 0;
 
   return (
