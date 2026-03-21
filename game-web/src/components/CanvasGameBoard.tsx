@@ -8,11 +8,13 @@ import CardButtonOverlay from './CardButtonOverlay';
 import { ActivatedCharacterDetailView } from './ActivatedCharacterDetailView';
 import { TurnIndicatorDisplay } from './TurnIndicatorDisplay';
 import { ActionCounterDisplay } from './ActionCounterDisplay';
+import { PlayerNameDisplay } from './PlayerNameDisplay';
 import { DialogProvider, useDialog } from '../contexts/DialogContext';
 import { CharacterReplacementDialog } from './CharacterReplacementDialog';
 import { CharacterActivationDialog } from './CharacterActivationDialog';
 import '../styles/dialogModal.css';
 import '../styles/turnActionCounter.css';
+import '../styles/playerNameDisplay.css';
 
 interface CanvasGameBoardProps {
   G: GameState;
@@ -438,6 +440,13 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           isActivePlayer={myPlayerID === activePlayerID}
           onEndTurn={handleEndTurn}
         />
+
+        {/* Player Name Display - above hand cards */}
+        {me && (
+          <PlayerNameDisplay 
+            playerName={me.name}
+          />
+        )}
       </div>
 
       {/* Dialog Modals */}
