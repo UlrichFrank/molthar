@@ -188,15 +188,12 @@ exports.PortaleVonMolthar = {
             if (G.actionCount >= G.maxActions)
                 return;
             // Validate portal slot index bounds
-            // Ensures we don't access invalid indices and reject out-of-bounds activations
             if (portalSlotIndex < 0 || portalSlotIndex >= player.portal.length) {
                 return;
             }
             const entry = player.portal[portalSlotIndex];
             if (!entry)
                 return;
-            if (entry.activated)
-                return; // already activated
             // Use new cost validation that checks against entire hand
             if (!(0, costCalculation_1.validateCostPayment)(entry.card.cost, player.hand, player.diamonds)) {
                 return;
@@ -208,19 +205,22 @@ exports.PortaleVonMolthar = {
                     G.pearlDiscardPile.push(player.hand.splice(idx, 1)[0]);
                 }
             }
-            // Mark card as activated and grant rewards
-            entry.activated = true;
+            // Grant rewards from the card
             player.powerPoints += entry.card.powerPoints;
             player.diamonds += entry.card.diamonds;
             G.actionCount++;
             // CRITICAL: Move card from portal array to activatedCharacters array
-            // This ensures the card is no longer accessible via the portal array,
-            // preventing it from appearing in both portal and activated sections simultaneously.
+            // This is the definitive state of activation - cards in activatedCharacters
+            // are activated, cards in portal are not.
             const activatedCard = player.portal.splice(portalSlotIndex, 1)[0];
             if (activatedCard) {
+                // Ensure activatedCharacters array exists
                 if (!player.activatedCharacters) {
                     player.activatedCharacters = [];
                 }
+                // Mark as activated (180° rotation indicator)
+                activatedCard.activated = true;
+                // Add to activated characters collection
                 player.activatedCharacters.push(activatedCard);
             }
             // Check if player reached 12+ power points to trigger final round
