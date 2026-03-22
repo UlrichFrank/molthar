@@ -75,7 +75,7 @@ export function CharacterActivationDialog({
                   selectedCharacterSlot === slotIndex ? 'selected' : ''
                 }`}
                 style={{
-                  backgroundImage: `url(/assets/Charakterkarte${card.name.match(/\d+/)?.[0] || 'unknown'}.jpeg)`,
+                  backgroundImage: `url(/assets/${encodeURIComponent(card.imageName)})`,
                 }}
                 onClick={() => {
                   setSelectedCharacterSlot(slotIndex);
