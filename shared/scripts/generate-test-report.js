@@ -48,11 +48,7 @@ function generateHandForComponent(component, shouldPass, diamondCount = 0) {
 
   switch (type) {
     case 'number': {
-      let value = component.value || 10;
-      // Apply diamond modifier for 'number' type only (when shouldPass is true)
-      if (shouldPass && diamondCount > 0) {
-        value = Math.max(1, value - diamondCount);
-      }
+      const value = component.value || 10;
       
       if (shouldPass) {
         const hand = [];
@@ -267,7 +263,31 @@ function generateValidHandForCosts(costComponents, diamondCount = 0) {
     return [];
   }
 
-  const hands = costComponents.map(comp => generateHandForComponent(comp, true, diamondCount));
+  // Generate hand with diamond modifiers applied per component
+  // This matches the costCalculation.ts logic: each component is reduced independently
+  const hands = costComponents.map(comp => {
+    if (comp.type === 'number') {
+      let value = comp.value || 0;
+      // Apply diamond reduction to each 'number' component
+      if (diamondCount > 0) {
+        value = Math.max(1, value - diamondCount);
+      }
+      
+      if (value === 0) return [];
+      
+      const hand = [];
+      let remaining = value;
+      for (let i = 8; i >= 1 && remaining > 0; i--) {
+        if (remaining >= i) {
+          hand.push(createPearlCard(i));
+          remaining -= i;
+        }
+      }
+      return hand;
+    }
+    return generateHandForComponent(comp, true, 0);
+  });
+  
   return mergeHands(hands);
 }
 
@@ -277,26 +297,23 @@ function generateInvalidHandForCosts(costComponents, diamondCount = 0) {
   }
 
   // Simple strategy: only provide cards for first component, but make it invalid
-  // This ensures it will always fail (unless by coincidence it happens to be valid for other components too)
-  return generateHandForComponent(costComponents[0], false, diamondCount);
+  return generateHandForComponent(costComponents[0], false, 0);
 }
 
 function generateAlternativeValidHand(costComponents, diamondCount = 0) {
   // Try to generate alternative valid hand for tripleChoice components
-  // Returns array of alternative hand + description
   if (!costComponents || costComponents.length === 0) {
     return null;
   }
 
   const tripleChoiceComp = costComponents.find(c => c.type === 'tripleChoice');
   if (!tripleChoiceComp) {
-    return null; // No alternative for non-tripleChoice costs
+    return null;
   }
 
   const value1 = tripleChoiceComp.value1 || 3;
   const value2 = tripleChoiceComp.value2 || 6;
 
-  // Generate alternative using value2 instead of value1
   const hands = [];
   const altTripleHand = [];
   for (let i = 0; i < 3; i++) {
@@ -304,10 +321,9 @@ function generateAlternativeValidHand(costComponents, diamondCount = 0) {
   }
   hands.push(altTripleHand);
 
-  // Add other components
   for (const comp of costComponents) {
     if (comp.type !== 'tripleChoice') {
-      hands.push(generateHandForComponent(comp, true, diamondCount));
+      hands.push(generateHandForComponent(comp, true, 0));
     }
   }
 
