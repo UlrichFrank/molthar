@@ -1,4 +1,4 @@
-.PHONY: help install dev build start stop clean test
+.PHONY: help install dev build start stop clean test test-report
 
 # Colors for output
 BLUE := \033[0;34m
@@ -25,6 +25,7 @@ help:
 	@echo "  make test           Run all tests (shared + game-web)"
 	@echo "  make test-shared    Run tests for shared package"
 	@echo "  make test-watch    Run tests in watch mode (shared)"
+	@echo "  make test-report    Generate test report for card validation"
 	@echo ""
 	@echo "$(GREEN)Cleanup:$(NC)"
 	@echo "  make stop           Stop all running services"
@@ -128,3 +129,10 @@ test-watch:
 	@echo "$(BLUE)Running tests in watch mode (shared)...$(NC)"
 	@echo "$(GREEN)Press Ctrl+C to exit watch mode$(NC)"
 	cd shared && pnpm test
+
+# Generate detailed test report for card cost validation
+test-report:
+	@echo "$(BLUE)Generating test report...$(NC)"
+	@cd shared && npm run build >/dev/null 2>&1 || echo "Building shared package first..."
+	@cd shared && node scripts/generate-test-report.js
+	@echo "$(GREEN)✓ Report saved to shared/test-report.html$(NC)"
