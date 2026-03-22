@@ -1,4 +1,4 @@
-.PHONY: help install dev build start stop clean
+.PHONY: help install dev build start stop clean test
 
 # Colors for output
 BLUE := \033[0;34m
@@ -20,6 +20,11 @@ help:
 	@echo "$(GREEN)Building:$(NC)"
 	@echo "  make build          Build backend only"
 	@echo "  make build-all      Build backend and shared packages"
+	@echo ""
+	@echo "$(GREEN)Testing:$(NC)"
+	@echo "  make test           Run all tests (shared + game-web)"
+	@echo "  make test-shared    Run tests for shared package"
+	@echo "  make test-watch    Run tests in watch mode (shared)"
 	@echo ""
 	@echo "$(GREEN)Cleanup:$(NC)"
 	@echo "  make stop           Stop all running services"
@@ -105,3 +110,21 @@ status:
 	@echo "$(BLUE)Checking service status...$(NC)"
 	@echo -n "Backend (3001): "; nc -z localhost 3001 >/dev/null 2>&1 && echo "$(GREEN)✓ Running$(NC)" || echo "$(RED)✗ Stopped$(NC)"
 	@echo -n "Frontend (5173): "; nc -z localhost 5173 >/dev/null 2>&1 && echo "$(GREEN)✓ Running$(NC)" || echo "$(RED)✗ Stopped$(NC)"
+
+# Run all tests (shared package)
+test:
+	@echo "$(BLUE)Running all tests...$(NC)"
+	cd shared && pnpm test -- --run
+	@echo "$(GREEN)✓ All tests completed$(NC)"
+
+# Run tests for shared package only
+test-shared:
+	@echo "$(BLUE)Running tests for shared package...$(NC)"
+	cd shared && pnpm test -- --run
+	@echo "$(GREEN)✓ Tests completed$(NC)"
+
+# Run tests in watch mode (useful for development)
+test-watch:
+	@echo "$(BLUE)Running tests in watch mode (shared)...$(NC)"
+	@echo "$(GREEN)Press Ctrl+C to exit watch mode$(NC)"
+	cd shared && pnpm test
