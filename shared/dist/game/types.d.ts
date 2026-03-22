@@ -25,6 +25,7 @@ export interface CostComponent {
 export interface CharacterCard {
     id: string;
     name: string;
+    imageName: string;
     cost: CostComponent[];
     powerPoints: number;
     diamonds: number;

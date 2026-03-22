@@ -34,6 +34,7 @@ function mapRawCard(raw: RawCardData): CharacterCard {
   return {
     id: raw.id,
     name: raw.name,
+    imageName: raw.imageName,
     cost: raw.cost as any,
     powerPoints: raw.powerPoints,
     diamonds: raw.diamondsReward,
