@@ -13,7 +13,7 @@ export function describeCost(cost: CostComponent[]): string {
   const descriptions = cost.map(component => {
     switch (component.type) {
       case 'number':
-        return `Total sum of ${component.value}`;
+        return `a card with value ${component.value}`;
       case 'nTuple':
         return `${component.n} cards with same value`;
       case 'sumAnyTuple':
