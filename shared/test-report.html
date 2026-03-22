@@ -7,7 +7,7 @@
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      max-width: 1600px;
+      max-width: 1800px;
       margin: 0 auto;
       padding: 20px;
       background: #f5f5f5;
@@ -23,6 +23,11 @@
     h1 {
       margin: 0;
       font-size: 28px;
+    }
+    .subtitle {
+      margin-top: 10px;
+      font-size: 16px;
+      opacity: 0.95;
     }
     .stats {
       display: grid;
@@ -60,12 +65,13 @@
       padding: 15px;
       text-align: left;
       font-weight: 600;
-      font-size: 14px;
+      font-size: 13px;
       white-space: nowrap;
     }
     td {
       padding: 12px 15px;
       border-bottom: 1px solid #eee;
+      font-size: 13px;
     }
     tr:hover {
       background: #f9f9f9;
@@ -80,53 +86,51 @@
       border-bottom: none;
     }
     .num {
-      width: 40px;
+      width: 35px;
       color: #999;
-      font-size: 12px;
+      font-size: 11px;
+      text-align: center;
     }
     .name {
       font-weight: 600;
-      min-width: 150px;
+      min-width: 120px;
     }
     .cost {
       font-family: 'Monaco', 'Menlo', monospace;
-      font-size: 12px;
+      font-size: 11px;
       color: #666;
-      max-width: 250px;
+      max-width: 300px;
     }
     .hand {
       font-family: 'Monaco', 'Menlo', monospace;
-      font-size: 13px;
+      font-size: 12px;
       background: #f5f5f5;
-      padding: 4px 8px;
+      padding: 6px 10px;
       border-radius: 3px;
       color: #2c3e50;
       white-space: nowrap;
-      max-width: 180px;
+      max-width: 200px;
       overflow-x: auto;
     }
     .hand-valid {
       background: #e8f5e9;
       color: #2e7d32;
+      border-left: 3px solid #4caf50;
     }
     .hand-invalid {
       background: #ffebee;
       color: #c62828;
-    }
-    .number {
-      text-align: center;
-      width: 40px;
-      font-size: 13px;
+      border-left: 3px solid #f44336;
     }
     .test {
       text-align: center;
       font-size: 16px;
-      width: 50px;
+      width: 45px;
     }
     .status {
       text-align: center;
       font-weight: 600;
-      width: 120px;
+      width: 110px;
     }
     .pass {
       color: #4caf50;
@@ -151,6 +155,8 @@
     .emoji {
       font-size: 18px;
       margin-right: 8px;
+      display: inline-block;
+      width: 24px;
     }
     .legend-section {
       margin-top: 15px;
@@ -165,6 +171,7 @@
 <body>
   <div class="header">
     <h1>📋 Card Cost Payment Test Report</h1>
+    <div class="subtitle">AND Logic Validation: All cost components must be satisfied together</div>
     <p>Validation results for all character cards from cards.json</p>
     <div class="stats">
       <div class="stat-box">
@@ -177,7 +184,7 @@
       </div>
       <div class="stat-box">
         <div class="stat-label">Negative Tests</div>
-        <div class="stat-number">50/50</div>
+        <div class="stat-number">28/50</div>
       </div>
       <div class="stat-box">
         <div class="stat-label">Impossible Costs</div>
@@ -193,17 +200,26 @@
 
   <div class="legend">
     <strong>How to read this report:</strong>
-    <div class="legend-item"><span class="emoji">✅</span> Positive Test: Card can be paid with valid hand</div>
-    <div class="legend-item"><span class="emoji">❌</span> Negative Test: Card cannot be paid with invalid hand (expected)</div>
-    <div class="legend-item"><span class="emoji">✓</span> Status PASS: Both tests work correctly</div>
-    <div class="legend-item"><span class="emoji">✗</span> Status FAIL: At least one test failed - review needed</div>
-    <div class="legend-item"><span class="emoji">⚠️</span> Status IMPOSSIBLE: Cost is unsatisfiable (e.g., need value 10 from cards with max 1-8)</div>
+    <div class="legend-item"><span class="emoji">✅</span> Test passed</div>
+    <div class="legend-item"><span class="emoji">❌</span> Test failed</div>
+    <div class="legend-item"><span class="emoji">✓</span> Status PASS: Both tests correct</div>
+    <div class="legend-item"><span class="emoji">✗</span> Status FAIL: Review needed</div>
+    <div class="legend-item"><span class="emoji">⚠️</span> Status IMPOSSIBLE: Cost unsatisfiable</div>
+    
+    <div class="legend-section">
+      <strong>Understanding Cost Components:</strong>
+      <div class="legend-item">Cost components use <strong>AND logic</strong> - ALL must be satisfied in a single payment</div>
+      <div class="legend-item">Example: <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px;">nTuple(2) + number[6]</code> means:</div>
+      <div class="legend-item" style="margin-left: 30px;">✓ Find 2 identical pearls (e.g., 5+5)</div>
+      <div class="legend-item" style="margin-left: 30px;">✓ AND provide 6 more value (e.g., 6)</div>
+      <div class="legend-item" style="margin-left: 30px;">→ Valid hand: 5+5+6</div>
+    </div>
     
     <div class="legend-section">
       <strong>Card Combinations:</strong>
-      <div class="legend-item"><span class="emoji">💚</span> Valid Hand: Pearl cards that satisfy the cost requirement</div>
-      <div class="legend-item"><span class="emoji">❤️</span> Invalid Hand: Pearl cards that fail the cost requirement</div>
-      <div class="legend-item">Format: 8+6+3 means cards with values 8, 6, and 3 summed together</div>
+      <div class="legend-item"><span class="emoji">💚</span> Valid Hand: All cost components satisfied (merged together)</div>
+      <div class="legend-item"><span class="emoji">❤️</span> Invalid Hand: At least one component fails</div>
+      <div class="legend-item">Format: 8+6+3 = cards with values 8, 6, and 3</div>
     </div>
   </div>
 
@@ -212,7 +228,7 @@
       <tr>
         <th class="num">#</th>
         <th class="name">Card Name</th>
-        <th class="cost">Cost Type</th>
+        <th class="cost">Cost (AND logic)</th>
         <th>💚 Valid Hand</th>
         <th>❤️ Invalid Hand</th>
         <th class="test">✅</th>
@@ -226,22 +242,22 @@
         <td class="num">1</td>
         <td class="name">Zwerg</td>
         <td class="cost">nTuple(2) + number[6] + number[6]</td>
-        <td><div class="hand hand-valid">5+5</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
+        <td><div class="hand hand-valid">6+6+5+5</div></td>
+        <td><div class="hand hand-invalid">6+6+5</div></td>
         <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td class="test">❌</td>
+        <td class="status fail">✗ FAIL</td>
       </tr>
       
       <tr>
         <td class="num">2</td>
         <td class="name">Tod</td>
         <td class="cost">number[1] + number[8]</td>
-        <td><div class="hand hand-valid">1</div></td>
-        <td><div class="hand hand-invalid">empty</div></td>
+        <td><div class="hand hand-valid">8+1</div></td>
+        <td><div class="hand hand-invalid">8</div></td>
         <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td class="test">❌</td>
+        <td class="status fail">✗ FAIL</td>
       </tr>
       
       <tr>
@@ -292,99 +308,99 @@
         <td class="num">7</td>
         <td class="name">Kobold</td>
         <td class="cost">number[7] + number[7] + number[8] + number[8]</td>
-        <td><div class="hand hand-valid">7</div></td>
-        <td><div class="hand hand-invalid">6</div></td>
+        <td><div class="hand hand-valid">8+8+7+7</div></td>
+        <td><div class="hand hand-invalid">8+8+7+6</div></td>
         <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td class="test">❌</td>
+        <td class="status fail">✗ FAIL</td>
       </tr>
       
       <tr>
         <td class="num">8</td>
         <td class="name">-Fee</td>
         <td class="cost">number[5] + number[6] + number[7]</td>
-        <td><div class="hand hand-valid">5</div></td>
-        <td><div class="hand hand-invalid">4</div></td>
+        <td><div class="hand hand-valid">7+6+5</div></td>
+        <td><div class="hand hand-invalid">7+6+4</div></td>
         <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td class="test">❌</td>
+        <td class="status fail">✗ FAIL</td>
       </tr>
       
       <tr>
         <td class="num">9</td>
         <td class="name">Zauberin</td>
         <td class="cost">number[7] + number[7] + number[7] + number[7]</td>
-        <td><div class="hand hand-valid">7</div></td>
-        <td><div class="hand hand-invalid">6</div></td>
+        <td><div class="hand hand-valid">7+7+7+7</div></td>
+        <td><div class="hand hand-invalid">7+7+7+6</div></td>
         <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td class="test">❌</td>
+        <td class="status fail">✗ FAIL</td>
       </tr>
       
       <tr>
         <td class="num">10</td>
         <td class="name">Zauberin</td>
         <td class="cost">number[7] + number[7] + number[7] + number[7]</td>
-        <td><div class="hand hand-valid">7</div></td>
-        <td><div class="hand hand-invalid">6</div></td>
+        <td><div class="hand hand-valid">7+7+7+7</div></td>
+        <td><div class="hand hand-invalid">7+7+7+6</div></td>
         <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td class="test">❌</td>
+        <td class="status fail">✗ FAIL</td>
       </tr>
       
       <tr>
         <td class="num">11</td>
         <td class="name">Riese</td>
         <td class="cost">number[6] + number[6] + number[8] + number[8]</td>
-        <td><div class="hand hand-valid">6</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
+        <td><div class="hand hand-valid">8+8+6+6</div></td>
+        <td><div class="hand hand-invalid">8+8+6+5</div></td>
         <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td class="test">❌</td>
+        <td class="status fail">✗ FAIL</td>
       </tr>
       
       <tr>
         <td class="num">12</td>
         <td class="name">Riese</td>
         <td class="cost">number[6] + number[6] + number[8] + number[8]</td>
-        <td><div class="hand hand-valid">6</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
+        <td><div class="hand hand-valid">8+8+6+6</div></td>
+        <td><div class="hand hand-invalid">8+8+6+5</div></td>
         <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td class="test">❌</td>
+        <td class="status fail">✗ FAIL</td>
       </tr>
       
       <tr>
         <td class="num">13</td>
         <td class="name">Weißer Drache</td>
         <td class="cost">number[1] + number[1] + number[1] + number[1]</td>
-        <td><div class="hand hand-valid">1</div></td>
-        <td><div class="hand hand-invalid">empty</div></td>
+        <td><div class="hand hand-valid">1+1+1+1</div></td>
+        <td><div class="hand hand-invalid">1+1+1</div></td>
         <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td class="test">❌</td>
+        <td class="status fail">✗ FAIL</td>
       </tr>
       
       <tr>
         <td class="num">14</td>
         <td class="name">Zwergenkämpfer 6</td>
         <td class="cost">number[6] + number[6]</td>
-        <td><div class="hand hand-valid">6</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
+        <td><div class="hand hand-valid">6+6</div></td>
+        <td><div class="hand hand-invalid">6+5</div></td>
         <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td class="test">❌</td>
+        <td class="status fail">✗ FAIL</td>
       </tr>
       
       <tr>
         <td class="num">15</td>
         <td class="name">Todesgeist</td>
         <td class="cost">nTuple(2) + nTuple(2)</td>
-        <td><div class="hand hand-valid">5+5</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
+        <td><div class="hand hand-valid">5+5+5+5</div></td>
+        <td><div class="hand hand-invalid">5+5+5</div></td>
         <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td class="test">❌</td>
+        <td class="status fail">✗ FAIL</td>
       </tr>
       
       <tr>
@@ -413,22 +429,22 @@
         <td class="num">18</td>
         <td class="name">Zwergenkämpfer 2</td>
         <td class="cost">number[2] + number[2]</td>
-        <td><div class="hand hand-valid">2</div></td>
-        <td><div class="hand hand-invalid">1</div></td>
+        <td><div class="hand hand-valid">2+2</div></td>
+        <td><div class="hand hand-invalid">2+1</div></td>
         <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td class="test">❌</td>
+        <td class="status fail">✗ FAIL</td>
       </tr>
       
       <tr>
         <td class="num">19</td>
         <td class="name">Rotkäppchen</td>
         <td class="cost">number[4] + number[5] + number[6] + number[7] + number[8]</td>
-        <td><div class="hand hand-valid">4</div></td>
-        <td><div class="hand hand-invalid">3</div></td>
+        <td><div class="hand hand-valid">8+7+6+5+4</div></td>
+        <td><div class="hand hand-invalid">8+7+6+5+3</div></td>
         <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td class="test">❌</td>
+        <td class="status fail">✗ FAIL</td>
       </tr>
       
       <tr>
@@ -446,11 +462,11 @@
         <td class="num">21</td>
         <td class="name">Red Sonja</td>
         <td class="cost">number[3] + number[5] + number[7]</td>
-        <td><div class="hand hand-valid">3</div></td>
-        <td><div class="hand hand-invalid">2</div></td>
+        <td><div class="hand hand-valid">7+5+3</div></td>
+        <td><div class="hand hand-invalid">7+5+2</div></td>
         <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td class="test">❌</td>
+        <td class="status fail">✗ FAIL</td>
       </tr>
       
       <tr>
@@ -490,22 +506,22 @@
         <td class="num">25</td>
         <td class="name">-Fee</td>
         <td class="cost">number[5] + number[6] + number[7]</td>
-        <td><div class="hand hand-valid">5</div></td>
-        <td><div class="hand hand-invalid">4</div></td>
+        <td><div class="hand hand-valid">7+6+5</div></td>
+        <td><div class="hand hand-invalid">7+6+4</div></td>
         <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td class="test">❌</td>
+        <td class="status fail">✗ FAIL</td>
       </tr>
       
       <tr>
         <td class="num">26</td>
         <td class="name">Zwergenkämpfer 7</td>
         <td class="cost">number[7] + number[7]</td>
-        <td><div class="hand hand-valid">7</div></td>
-        <td><div class="hand hand-invalid">6</div></td>
+        <td><div class="hand hand-valid">7+7</div></td>
+        <td><div class="hand hand-invalid">7+6</div></td>
         <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td class="test">❌</td>
+        <td class="status fail">✗ FAIL</td>
       </tr>
       
       <tr>
@@ -523,11 +539,11 @@
         <td class="num">28</td>
         <td class="name">Feuerteufel</td>
         <td class="cost">number[3] + number[3] + number[3]</td>
-        <td><div class="hand hand-valid">3</div></td>
-        <td><div class="hand hand-invalid">2</div></td>
+        <td><div class="hand hand-valid">3+3+3</div></td>
+        <td><div class="hand hand-invalid">3+3+2</div></td>
         <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td class="test">❌</td>
+        <td class="status fail">✗ FAIL</td>
       </tr>
       
       <tr>
@@ -545,44 +561,44 @@
         <td class="num">30</td>
         <td class="name">Zwergenkämpfer 4</td>
         <td class="cost">number[4] + number[4]</td>
-        <td><div class="hand hand-valid">4</div></td>
-        <td><div class="hand hand-invalid">3</div></td>
+        <td><div class="hand hand-valid">4+4</div></td>
+        <td><div class="hand hand-invalid">4+3</div></td>
         <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td class="test">❌</td>
+        <td class="status fail">✗ FAIL</td>
       </tr>
       
       <tr>
         <td class="num">31</td>
         <td class="name">Hänsel und Gretel</td>
         <td class="cost">number[8] + number[8]</td>
-        <td><div class="hand hand-valid">8</div></td>
-        <td><div class="hand hand-invalid">7</div></td>
+        <td><div class="hand hand-valid">8+8</div></td>
+        <td><div class="hand hand-invalid">8+7</div></td>
         <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td class="test">❌</td>
+        <td class="status fail">✗ FAIL</td>
       </tr>
       
       <tr>
         <td class="num">32</td>
         <td class="name">Hänsel und Gretel</td>
         <td class="cost">number[8] + number[8]</td>
-        <td><div class="hand hand-valid">8</div></td>
-        <td><div class="hand hand-invalid">7</div></td>
+        <td><div class="hand hand-valid">8+8</div></td>
+        <td><div class="hand hand-invalid">8+7</div></td>
         <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td class="test">❌</td>
+        <td class="status fail">✗ FAIL</td>
       </tr>
       
       <tr>
         <td class="num">33</td>
         <td class="name">Zwergenkämpfer 5</td>
         <td class="cost">number[5] + number[5]</td>
-        <td><div class="hand hand-valid">5</div></td>
-        <td><div class="hand hand-invalid">4</div></td>
+        <td><div class="hand hand-valid">5+5</div></td>
+        <td><div class="hand hand-invalid">5+4</div></td>
         <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td class="test">❌</td>
+        <td class="status fail">✗ FAIL</td>
       </tr>
       
       <tr>
@@ -600,11 +616,11 @@
         <td class="num">35</td>
         <td class="name">Einhorn</td>
         <td class="cost">number[1] + number[2] + number[3] + number[4]</td>
-        <td><div class="hand hand-valid">1</div></td>
-        <td><div class="hand hand-invalid">empty</div></td>
+        <td><div class="hand hand-valid">4+3+2+1</div></td>
+        <td><div class="hand hand-invalid">4+3+2</div></td>
         <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td class="test">❌</td>
+        <td class="status fail">✗ FAIL</td>
       </tr>
       
       <tr>
@@ -776,13 +792,12 @@
   </table>
 
   <script>
-    // Console output for debugging
     document.addEventListener('DOMContentLoaded', function() {
       const rows = document.querySelectorAll('tbody tr');
       const failedRows = Array.from(rows).filter(r => r.querySelector('.fail'));
       
       if (failedRows.length > 0) {
-        console.warn('⚠️  ' + failedRows.length + ' cards have failed tests');
+        console.warn('⚠️  ' + failedRows.length + ' cards have test issues');
       } else {
         console.log('✅ All card tests passed!');
       }

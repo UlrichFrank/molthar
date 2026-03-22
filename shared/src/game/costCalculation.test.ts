@@ -183,9 +183,9 @@ describe('Cost Validation - Main Function', () => {
   it('9.3: comprehensive unit test for mixed cost types', () => {
     const hand = [createCard(3), createCard(4), createCard(5), createCard(5)];
 
-    // Should pass with first cost option
+    // With AND logic, ALL components must pass
     const components: CostComponent[] = [
-      { type: 'number', value: 20 }, // Would fail
+      { type: 'number', value: 12 }, // Passes: 3+4+5 = 12
       { type: 'nTuple', n: 2 }, // Passes - has two 5s
     ];
     expect(validateCostPayment(components, hand, 0)).toBe(true);

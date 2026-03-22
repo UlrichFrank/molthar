@@ -228,10 +228,11 @@ export function validateDrillingChoiceCost(
 /**
  * Main cost validation function
  * Checks if player can afford a character card with given cost components
- * @param costComponents - Array of cost components to satisfy
+ * ALL cost components must be satisfied (AND logic)
+ * @param costComponents - Array of cost components to satisfy (all must be met)
  * @param hand - Player's pearl cards
  * @param diamondCount - Player's available diamonds
- * @returns True if at least one cost option can be satisfied
+ * @returns True if ALL cost components can be satisfied
  */
 export function validateCostPayment(
   costComponents: CostComponent[] | undefined,
@@ -243,14 +244,14 @@ export function validateCostPayment(
     return true;
   }
 
-  // Try each cost component - any one can satisfy the cost
+  // ALL cost components must be satisfied (AND logic)
   for (const component of costComponents) {
-    if (validateCostComponent(component, hand, diamondCount)) {
-      return true;
+    if (!validateCostComponent(component, hand, diamondCount)) {
+      return false;
     }
   }
 
-  return false;
+  return true;
 }
 
 /**

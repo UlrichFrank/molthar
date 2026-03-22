@@ -3,6 +3,8 @@
 /**
  * Generate a detailed test report for card cost validation
  * Shows positive and negative test results for each card with hand combinations
+ * 
+ * IMPORTANT: Cost components use AND logic - ALL must be satisfied
  */
 
 const { getAllCards } = require('../dist/game/cardDatabase.js');
@@ -25,7 +27,7 @@ function isCostImpossible(costComponents) {
     return false;
   }
   
-  // For now, just check sumAnyTuple/sumTuple with n=1 and sum>8
+  // Check sumAnyTuple/sumTuple with n=1 and sum>8
   for (const comp of costComponents) {
     if ((comp.type === 'sumAnyTuple' || comp.type === 'sumTuple') && (comp.n || 1) === 1 && comp.sum > 8) {
       return true;
@@ -41,23 +43,7 @@ function formatHand(hand) {
   return values.join('+');
 }
 
-// Hand generation functions (same as in tests)
-function generateValidHandForCost(costComponents) {
-  if (!costComponents || costComponents.length === 0) {
-    return [];
-  }
-  const component = costComponents[0];
-  return generateHandForComponent(component, true);
-}
-
-function generateInvalidHandForCost(costComponents) {
-  if (!costComponents || costComponents.length === 0) {
-    return [];
-  }
-  const component = costComponents[0];
-  return generateHandForComponent(component, false);
-}
-
+// Generate a single pearl card for a cost component
 function generateHandForComponent(component, shouldPass) {
   const type = component.type;
 
@@ -65,6 +51,7 @@ function generateHandForComponent(component, shouldPass) {
     case 'number': {
       const value = component.value || 10;
       if (shouldPass) {
+        // Need cards that sum to value
         const hand = [];
         let remaining = value;
         for (let i = 8; i >= 1 && remaining > 0; i--) {
@@ -75,6 +62,7 @@ function generateHandForComponent(component, shouldPass) {
         }
         return hand;
       } else {
+        // Need cards that sum to value-1 (fail the cost)
         const hand = [];
         let remaining = Math.max(0, value - 1);
         for (let i = 8; i >= 1 && remaining > 0; i--) {
@@ -113,6 +101,7 @@ function generateHandForComponent(component, shouldPass) {
         }
         return hand;
       } else {
+        // Broken sequence
         const hand = [];
         hand.push(createPearlCard(1));
         hand.push(createPearlCard(3));
@@ -208,6 +197,47 @@ function generateHandForComponent(component, shouldPass) {
   }
 }
 
+/**
+ * Merge multiple hands into one combined hand
+ * Used when multiple cost components need to be satisfied with a single hand
+ */
+function mergeHands(hands) {
+  const merged = [];
+  hands.forEach(hand => {
+    merged.push(...hand);
+  });
+  return merged;
+}
+
+/**
+ * Generate valid hand that satisfies ALL cost components
+ */
+function generateValidHandForCosts(costComponents) {
+  if (!costComponents || costComponents.length === 0) {
+    return [];
+  }
+  
+  // Generate a hand for each component and merge them
+  const hands = costComponents.map(comp => generateHandForComponent(comp, true));
+  return mergeHands(hands);
+}
+
+/**
+ * Generate invalid hand that fails to satisfy at least ONE cost component
+ * Strategy: make the FIRST component fail, keep others valid
+ */
+function generateInvalidHandForCosts(costComponents) {
+  if (!costComponents || costComponents.length === 0) {
+    return [];
+  }
+  
+  // Make first component fail, keep others valid
+  const hands = costComponents.map((comp, idx) => 
+    generateHandForComponent(comp, idx !== 0)
+  );
+  return mergeHands(hands);
+}
+
 // Generate report
 const cards = getAllCards();
 const report = [];
@@ -222,12 +252,12 @@ cards.forEach((card, index) => {
   const cardNum = index + 1;
   const isImpossible = isCostImpossible(card.cost);
   
-  // Test positive case
-  const validHand = generateValidHandForCost(card.cost);
+  // Test positive case - ALL components must be satisfied
+  const validHand = generateValidHandForCosts(card.cost);
   const positiveResult = validateCostPayment(card.cost, validHand, card.diamonds);
   
-  // Test negative case
-  const invalidHand = generateInvalidHandForCost(card.cost);
+  // Test negative case - at least one component should fail
+  const invalidHand = generateInvalidHandForCosts(card.cost);
   const negativeResult = validateCostPayment(card.cost, invalidHand, 0);
   
   if (positiveResult) positivePassCount++;
@@ -259,46 +289,46 @@ cards.forEach((card, index) => {
 });
 
 // Print text report
-console.log('═'.repeat(180));
-console.log('CARD COST PAYMENT TEST REPORT'.padEnd(180));
-console.log('═'.repeat(180));
+console.log('═'.repeat(200));
+console.log('CARD COST PAYMENT TEST REPORT (AND Logic - All components must be satisfied)'.padEnd(200));
+console.log('═'.repeat(200));
 console.log('');
 
 console.log('Legend:');
-console.log('  ✅ Test passed (positive test validates, card can be paid)');
-console.log('  ❌ Test failed (positive test failed, or negative test succeeded)');
-console.log('  ✓ PASS = Both positive AND negative tests passed');
-console.log('  ✗ FAIL = At least one test failed');
-console.log('  ⚠️  IMPOSSIBLE = Cost is unsatisfiable (e.g., need value 10 from pearl cards max 1-8)\n');
+console.log('  ✅ Test passed');
+console.log('  ❌ Test failed');
+console.log('  ✓ PASS = Both tests correct (positive passes, negative fails)');
+console.log('  ✗ FAIL = At least one test incorrect');
+console.log('  ⚠️  IMPOSSIBLE = Cost unsatisfiable (e.g., need value 10 from cards max 1-8)\n');
 
 console.log('');
-console.log('─'.repeat(180));
+console.log('─'.repeat(200));
 console.log(
   '#   '.padEnd(6) +
   'Card Name'.padEnd(30) +
-  'Cost Description'.padEnd(50) +
-  'Valid Hand'.padEnd(20) +
-  'Invalid Hand'.padEnd(20) +
+  'Cost Components (ALL required)'.padEnd(60) +
+  'Valid Hand'.padEnd(25) +
+  'Invalid Hand'.padEnd(25) +
   'Pos'.padEnd(5) +
   'Neg'.padEnd(5) +
   'Status'.padEnd(15)
 );
-console.log('─'.repeat(180));
+console.log('─'.repeat(200));
 
 report.forEach(r => {
   console.log(
     (r.num + '.').padEnd(6) +
     r.name.substring(0, 28).padEnd(30) +
-    r.cost.substring(0, 48).padEnd(50) +
-    r.validHand.substring(0, 18).padEnd(20) +
-    r.invalidHand.substring(0, 18).padEnd(20) +
+    r.cost.substring(0, 58).padEnd(60) +
+    r.validHand.substring(0, 23).padEnd(25) +
+    r.invalidHand.substring(0, 23).padEnd(25) +
     r.positiveTest.padEnd(5) +
     r.negativeTest.padEnd(5) +
     r.status.padEnd(15)
   );
 });
 
-console.log('─'.repeat(180));
+console.log('─'.repeat(200));
 console.log('');
 console.log(`Total Cards: ${cards.length}`);
 console.log(`Positive Tests Passed: ${positivePassCount}/${cards.length}`);
@@ -319,7 +349,7 @@ const html = `<!DOCTYPE html>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      max-width: 1600px;
+      max-width: 1800px;
       margin: 0 auto;
       padding: 20px;
       background: #f5f5f5;
@@ -335,6 +365,11 @@ const html = `<!DOCTYPE html>
     h1 {
       margin: 0;
       font-size: 28px;
+    }
+    .subtitle {
+      margin-top: 10px;
+      font-size: 16px;
+      opacity: 0.95;
     }
     .stats {
       display: grid;
@@ -372,12 +407,13 @@ const html = `<!DOCTYPE html>
       padding: 15px;
       text-align: left;
       font-weight: 600;
-      font-size: 14px;
+      font-size: 13px;
       white-space: nowrap;
     }
     td {
       padding: 12px 15px;
       border-bottom: 1px solid #eee;
+      font-size: 13px;
     }
     tr:hover {
       background: #f9f9f9;
@@ -392,53 +428,51 @@ const html = `<!DOCTYPE html>
       border-bottom: none;
     }
     .num {
-      width: 40px;
+      width: 35px;
       color: #999;
-      font-size: 12px;
+      font-size: 11px;
+      text-align: center;
     }
     .name {
       font-weight: 600;
-      min-width: 150px;
+      min-width: 120px;
     }
     .cost {
       font-family: 'Monaco', 'Menlo', monospace;
-      font-size: 12px;
+      font-size: 11px;
       color: #666;
-      max-width: 250px;
+      max-width: 300px;
     }
     .hand {
       font-family: 'Monaco', 'Menlo', monospace;
-      font-size: 13px;
+      font-size: 12px;
       background: #f5f5f5;
-      padding: 4px 8px;
+      padding: 6px 10px;
       border-radius: 3px;
       color: #2c3e50;
       white-space: nowrap;
-      max-width: 180px;
+      max-width: 200px;
       overflow-x: auto;
     }
     .hand-valid {
       background: #e8f5e9;
       color: #2e7d32;
+      border-left: 3px solid #4caf50;
     }
     .hand-invalid {
       background: #ffebee;
       color: #c62828;
-    }
-    .number {
-      text-align: center;
-      width: 40px;
-      font-size: 13px;
+      border-left: 3px solid #f44336;
     }
     .test {
       text-align: center;
       font-size: 16px;
-      width: 50px;
+      width: 45px;
     }
     .status {
       text-align: center;
       font-weight: 600;
-      width: 120px;
+      width: 110px;
     }
     .pass {
       color: #4caf50;
@@ -463,6 +497,8 @@ const html = `<!DOCTYPE html>
     .emoji {
       font-size: 18px;
       margin-right: 8px;
+      display: inline-block;
+      width: 24px;
     }
     .legend-section {
       margin-top: 15px;
@@ -477,6 +513,7 @@ const html = `<!DOCTYPE html>
 <body>
   <div class="header">
     <h1>📋 Card Cost Payment Test Report</h1>
+    <div class="subtitle">AND Logic Validation: All cost components must be satisfied together</div>
     <p>Validation results for all character cards from cards.json</p>
     <div class="stats">
       <div class="stat-box">
@@ -505,17 +542,26 @@ const html = `<!DOCTYPE html>
 
   <div class="legend">
     <strong>How to read this report:</strong>
-    <div class="legend-item"><span class="emoji">✅</span> Positive Test: Card can be paid with valid hand</div>
-    <div class="legend-item"><span class="emoji">❌</span> Negative Test: Card cannot be paid with invalid hand (expected)</div>
-    <div class="legend-item"><span class="emoji">✓</span> Status PASS: Both tests work correctly</div>
-    <div class="legend-item"><span class="emoji">✗</span> Status FAIL: At least one test failed - review needed</div>
-    <div class="legend-item"><span class="emoji">⚠️</span> Status IMPOSSIBLE: Cost is unsatisfiable (e.g., need value 10 from cards with max 1-8)</div>
+    <div class="legend-item"><span class="emoji">✅</span> Test passed</div>
+    <div class="legend-item"><span class="emoji">❌</span> Test failed</div>
+    <div class="legend-item"><span class="emoji">✓</span> Status PASS: Both tests correct</div>
+    <div class="legend-item"><span class="emoji">✗</span> Status FAIL: Review needed</div>
+    <div class="legend-item"><span class="emoji">⚠️</span> Status IMPOSSIBLE: Cost unsatisfiable</div>
+    
+    <div class="legend-section">
+      <strong>Understanding Cost Components:</strong>
+      <div class="legend-item">Cost components use <strong>AND logic</strong> - ALL must be satisfied in a single payment</div>
+      <div class="legend-item">Example: <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px;">nTuple(2) + number[6]</code> means:</div>
+      <div class="legend-item" style="margin-left: 30px;">✓ Find 2 identical pearls (e.g., 5+5)</div>
+      <div class="legend-item" style="margin-left: 30px;">✓ AND provide 6 more value (e.g., 6)</div>
+      <div class="legend-item" style="margin-left: 30px;">→ Valid hand: 5+5+6</div>
+    </div>
     
     <div class="legend-section">
       <strong>Card Combinations:</strong>
-      <div class="legend-item"><span class="emoji">💚</span> Valid Hand: Pearl cards that satisfy the cost requirement</div>
-      <div class="legend-item"><span class="emoji">❤️</span> Invalid Hand: Pearl cards that fail the cost requirement</div>
-      <div class="legend-item">Format: 8+6+3 means cards with values 8, 6, and 3 summed together</div>
+      <div class="legend-item"><span class="emoji">💚</span> Valid Hand: All cost components satisfied (merged together)</div>
+      <div class="legend-item"><span class="emoji">❤️</span> Invalid Hand: At least one component fails</div>
+      <div class="legend-item">Format: 8+6+3 = cards with values 8, 6, and 3</div>
     </div>
   </div>
 
@@ -524,7 +570,7 @@ const html = `<!DOCTYPE html>
       <tr>
         <th class="num">#</th>
         <th class="name">Card Name</th>
-        <th class="cost">Cost Type</th>
+        <th class="cost">Cost (AND logic)</th>
         <th>💚 Valid Hand</th>
         <th>❤️ Invalid Hand</th>
         <th class="test">✅</th>
@@ -549,13 +595,12 @@ const html = `<!DOCTYPE html>
   </table>
 
   <script>
-    // Console output for debugging
     document.addEventListener('DOMContentLoaded', function() {
       const rows = document.querySelectorAll('tbody tr');
       const failedRows = Array.from(rows).filter(r => r.querySelector('.fail'));
       
       if (failedRows.length > 0) {
-        console.warn('⚠️  ' + failedRows.length + ' cards have failed tests');
+        console.warn('⚠️  ' + failedRows.length + ' cards have test issues');
       } else {
         console.log('✅ All card tests passed!');
       }
