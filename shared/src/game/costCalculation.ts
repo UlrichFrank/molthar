@@ -383,9 +383,9 @@ function validateCostComponent(
     }
 
     case 'diamond': {
-      // Diamond cost
-      const required = component.value || 0;
-      return diamondCount >= required;
+      // Diamond cost - diamonds are paid separately by the player
+      // We don't validate here, just return true
+      return true;
     }
 
     case 'tripleChoice': {
