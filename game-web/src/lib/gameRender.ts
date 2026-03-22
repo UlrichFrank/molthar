@@ -243,8 +243,19 @@ export function drawAuslage(
     let label = 'Card';
 
     if (idx < 2) {
-      // Character card - use imageName from card data
-      filename = (card as any).imageName || 'Charakterkarte Hinten.jpeg';
+      // Character card - prefer imageName, fall back to extracting number from name
+      let imageName = (card as any).imageName;
+      if (!imageName) {
+        // Fallback: try to extract number from name if imageName not available
+        const maybeName = (card as any).name || '';
+        const matchName = String(maybeName).match(/(\d+)/);
+        if (matchName && matchName[1]) {
+          imageName = `Charakterkarte${matchName[1]}.jpeg`;
+        }
+      }
+      
+      console.log(`Auslage character slot ${idx}: name=${(card as any).name}, imageName=${imageName}`);
+      filename = imageName || 'Charakterkarte Hinten.jpeg';
       label = (card as any).name || 'Card';
     } else {
       // Pearl card
@@ -328,8 +339,18 @@ export function drawPlayerPortal(
     
     if (slot) {
       console.log(`Drawing portal slot ${idx}: ${(slot.card as any).name} at x=${x}`);
-      // Draw actual character card image - use imageName from card data
-      const imageName = (slot.card as any).imageName || 'Charakterkarte Hinten.jpeg';
+      // Draw actual character card image - prefer imageName, fall back to extracting number
+      let imageName = (slot.card as any).imageName;
+      if (!imageName) {
+        // Fallback: try to extract number from name if imageName not available
+        const maybeName = (slot.card as any).name || '';
+        const matchName = String(maybeName).match(/(\d+)/);
+        if (matchName && matchName[1]) {
+          imageName = `Charakterkarte${matchName[1]}.jpeg`;
+        }
+      }
+      imageName = imageName || 'Charakterkarte Hinten.jpeg';
+      
       drawImageOrFallback(
         ctx,
         imageName,
@@ -404,8 +425,17 @@ export function drawActivatedCharactersGrid(
     ctx.rotate(Math.PI); // 180° rotation
     ctx.translate(-(cardX + w / 2), -(cardY + h / 2));
     
-    // Draw character card image using imageName from card data
-    const filename = card.imageName || 'Charakterkarte Hinten.jpeg';
+    // Draw character card image - prefer imageName, fall back to extracting number
+    let filename = card.imageName;
+    if (!filename) {
+      // Fallback: try to extract number from name if imageName not available
+      const maybeName = card.name || '';
+      const matchName = String(maybeName).match(/(\d+)/);
+      if (matchName && matchName[1]) {
+        filename = `Charakterkarte${matchName[1]}.jpeg`;
+      }
+    }
+    filename = filename || 'Charakterkarte Hinten.jpeg';
     
     drawImageOrFallback(
       ctx,
