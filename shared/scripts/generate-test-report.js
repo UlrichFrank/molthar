@@ -222,10 +222,24 @@ function isCostImpossible(costComponents) {
   return false;
 }
 
-function formatHand(hand) {
-  if (!hand || hand.length === 0) return 'empty';
-  const values = hand.map(c => c.value).sort((a, b) => b - a);
-  return values.join('+');
+function formatHand(handData) {
+  // Handle both old format (array) and new format (object with hand and diamonds)
+  const hand = Array.isArray(handData) ? handData : (handData?.hand || []);
+  const diamonds = (!Array.isArray(handData) && handData?.diamonds) ? handData.diamonds : 0;
+  
+  let result = '';
+  if (hand.length > 0) {
+    const values = hand.map(c => c.value).sort((a, b) => b - a);
+    result = values.join('+');
+  } else {
+    result = 'empty';
+  }
+  
+  if (diamonds > 0) {
+    result = result === 'empty' ? `${diamonds}💎` : `${result}+${diamonds}💎`;
+  }
+  
+  return result;
 }
 
 function generateHandForComponent(component, shouldPass, diamondCount = 0) {
@@ -416,18 +430,24 @@ function generateHandForComponent(component, shouldPass, diamondCount = 0) {
 
 function generateValidHandForCost(costComponents) {
   if (!costComponents || costComponents.length === 0) {
-    return [];
+    return { hand: [], diamonds: 0 };
   }
 
   const componentHands = costComponents.map(comp => generateHandForComponent(comp, true, 0));
   const combinedHand = componentHands.flat();
   
-  return combinedHand;
+  // Count diamonds needed
+  const diamondCount = costComponents.filter(c => c.type === 'diamond').length;
+  
+  return {
+    hand: combinedHand,
+    diamonds: diamondCount
+  };
 }
 
 function generateInvalidHandForCost(costComponents) {
   if (!costComponents || costComponents.length === 0) {
-    return [];
+    return { hand: [], diamonds: 0 };
   }
 
   const componentHands = [];
@@ -436,7 +456,12 @@ function generateInvalidHandForCost(costComponents) {
     componentHands.push(generateHandForComponent(costComponents[i], shouldPass, 0));
   }
 
-  return componentHands.flat();
+  // For invalid hand, exclude diamonds (player doesn't pay them)
+  
+  return {
+    hand: componentHands.flat(),
+    diamonds: 0
+  };
 }
 
 /**
@@ -486,10 +511,10 @@ for (const card of cards) {
   const impossible = isCostImpossible(costComponents);
 
   const validHand = generateValidHandForCost(costComponents);
-  const isValidValid = validateCostPayment(costComponents, validHand, 0);
+  const isValidValid = validateCostPayment(costComponents, validHand.hand, 0);
 
   const invalidHand = generateInvalidHandForCost(costComponents);
-  const isInvalidInvalid = !validateCostPayment(costComponents, invalidHand, 0);
+  const isInvalidInvalid = !validateCostPayment(costComponents, invalidHand.hand, 0);
 
   const status = isValidValid && isInvalidInvalid ? '✓ PASS' : '✗ FAIL';
   const costStr = describeCost(costComponents);
