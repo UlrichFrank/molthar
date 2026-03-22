@@ -20,7 +20,7 @@ interface RawCardData {
 
 // Load cards from cards.json (single source of truth)
 // Using Vite's import.meta.glob for proper module resolution
-const modules = import.meta.glob<string>('../../resources/cards.json', { query: '?raw', import: 'default' });
+const modules = import.meta.glob<string>('../../resources/assets/cards.json', { query: '?raw', import: 'default' });
 const cardsJson = Object.values(modules)[0] || '[]';
 
 let RAW_CARDS: RawCardData[] = [];
