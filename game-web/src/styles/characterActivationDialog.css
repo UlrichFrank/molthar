@@ -20,7 +20,8 @@
   padding: 1.5rem;
   max-width: 90vw;
   width: 100%;
-  max-height: 95vh;
+  /* Limit dialog to viewport height minus a small offset so it never exceeds screen */
+  max-height: calc(100vh - 2rem);
   overflow-y: auto;
   overflow-x: hidden;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
@@ -63,7 +64,8 @@
   padding: 0.75rem;
   border-radius: 8px;
   border: 2px solid #ddd;
-  max-height: 200px;
+  /* Use a viewport-relative cap so character list can scale with available screen height */
+  max-height: min(200px, 25vh);
   overflow-y: auto;
 }
 
@@ -169,7 +171,8 @@
   background: white;
   padding: 0.75rem;
   border-radius: 8px;
-  max-height: 250px;
+  /* Limit hand grid height relative to viewport so dialog can grow to full available height */
+  max-height: min(250px, 30vh);
   overflow-y: auto;
 }
 
