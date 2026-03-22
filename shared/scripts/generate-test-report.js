@@ -46,15 +46,54 @@ function getAllCards() {
 }
 
 // Validate cost payment (reimplemented in JavaScript)
+// IMPORTANT: Each component must use a DIFFERENT subset of the hand
 function validateCostPayment(components, hand, diamondCount = 0) {
   if (!components || components.length === 0) return true;
 
-  for (const comp of components) {
-    if (!validateCostComponent(comp, hand, diamondCount)) {
-      return false;
+  // Try all possible ways to distribute hand cards among components
+  return canSatisfyAllComponents(components, hand, diamondCount, 0, []);
+}
+
+function canSatisfyAllComponents(components, hand, diamondCount, compIndex, usedIndices) {
+  // Base case: all components satisfied
+  if (compIndex >= components.length) {
+    return true;
+  }
+
+  const component = components[compIndex];
+  const availableCards = hand.filter((_, idx) => !usedIndices.includes(idx));
+
+  // Try all possible subsets of available cards for this component
+  const subsets = generateSubsets(availableCards);
+  for (const subset of subsets) {
+    if (validateCostComponent(component, subset, diamondCount)) {
+      // This subset works - mark its indices as used and continue
+      const newUsedIndices = [
+        ...usedIndices,
+        ...availableCards
+          .reduce((indices, card, idx) => {
+            if (subset.includes(card)) indices.push(idx);
+            return indices;
+          }, [])
+          .map(relIdx => hand.findIndex((_, hIdx) => hand[hIdx] === availableCards[relIdx]))
+      ];
+      
+      if (canSatisfyAllComponents(components, hand, diamondCount, compIndex + 1, newUsedIndices)) {
+        return true;
+      }
     }
   }
-  return true;
+
+  return false;
+}
+
+function generateSubsets(array) {
+  const subsets = [[]];
+  for (const item of array) {
+    const newSubsets = subsets.map(subset => [...subset, item]);
+    subsets.push(...newSubsets);
+  }
+  return subsets;
 }
 
 function validateCostComponent(component, hand, diamondCount = 0) {
@@ -242,21 +281,29 @@ function generateHandForComponent(component, shouldPass, diamondCount = 0) {
       const sum = component.sum || 10;
       
       if (shouldPass) {
+        // Generate exactly n cards that sum to target value
         const hand = [];
         let remaining = sum;
-        for (let i = 0; i < n && remaining > 0; i++) {
-          const cardValue = Math.min(remaining, 8 - i);
-          hand.push(createPearlCard(Math.max(1, cardValue)));
-          remaining -= cardValue;
+        
+        // Distribute evenly first: each card gets sum/n, plus remainder
+        const baseValue = Math.floor(remaining / n);
+        const remainder = remaining % n;
+        
+        for (let i = 0; i < n; i++) {
+          const cardValue = baseValue + (i < remainder ? 1 : 0);
+          hand.push(createPearlCard(Math.min(8, Math.max(1, cardValue))));
         }
-        return hand.length === n ? hand : [];
+        return hand;
       } else {
+        // Generate hand that does NOT sum to target (off by 1)
         const hand = [];
         let remaining = sum + 1;
-        for (let i = 0; i < n && remaining > 0; i++) {
-          const cardValue = Math.min(remaining, 8 - i);
-          hand.push(createPearlCard(Math.max(1, cardValue)));
-          remaining -= cardValue;
+        const baseValue = Math.floor(remaining / n);
+        const remainder = remaining % n;
+        
+        for (let i = 0; i < n; i++) {
+          const cardValue = baseValue + (i < remainder ? 1 : 0);
+          hand.push(createPearlCard(Math.min(8, Math.max(1, cardValue))));
         }
         return hand;
       }
@@ -300,6 +347,48 @@ function generateHandForComponent(component, shouldPass, diamondCount = 0) {
       } else {
         return [createPearlCard(value1), createPearlCard(value1), createPearlCard(value2)];
       }
+    }
+
+    case 'evenTuple': {
+      const n = component.n || 2;
+      if (shouldPass) {
+        const hand = [];
+        const evenValues = [2, 4, 6, 8];
+        for (let i = 0; i < n; i++) {
+          hand.push(createPearlCard(evenValues[i % evenValues.length]));
+        }
+        return hand;
+      } else {
+        const hand = [];
+        for (let i = 0; i < Math.max(0, n - 1); i++) {
+          hand.push(createPearlCard(2));
+        }
+        return hand;
+      }
+    }
+
+    case 'oddTuple': {
+      const n = component.n || 2;
+      if (shouldPass) {
+        const hand = [];
+        const oddValues = [1, 3, 5, 7];
+        for (let i = 0; i < n; i++) {
+          hand.push(createPearlCard(oddValues[i % oddValues.length]));
+        }
+        return hand;
+      } else {
+        const hand = [];
+        for (let i = 0; i < Math.max(0, n - 1); i++) {
+          hand.push(createPearlCard(1));
+        }
+        return hand;
+      }
+    }
+
+    case 'diamond': {
+      // Diamond costs are paid with actual diamonds, not pearl cards
+      // Return empty hand if shouldPass (no cards needed), something invalid otherwise
+      return shouldPass ? [] : [createPearlCard(1)];
     }
 
     default:
