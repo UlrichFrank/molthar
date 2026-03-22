@@ -467,7 +467,7 @@
     "diamondsReward": 0,
     "cost": [
       {
-        "type": "drillingChoice",
+        "type": "tripleChoice",
         "value1": 3,
         "value2": 6
       }
@@ -854,7 +854,7 @@
     "diamondsReward": 0,
     "cost": [
       {
-        "type": "drillingChoice",
+        "type": "tripleChoice",
         "value1": 4,
         "value2": 5
       }

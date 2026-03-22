@@ -134,6 +134,24 @@ function validateCostComponent(component, hand, diamondCount = 0) {
       const count2 = hand.filter(c => c.value === value2).length;
       return count1 >= 3 || count2 >= 3;
     }
+
+    case 'evenTuple': {
+      const n = component.n || 2;
+      const evenCards = hand.filter(c => c.value % 2 === 0);
+      return evenCards.length >= n;
+    }
+
+    case 'oddTuple': {
+      const n = component.n || 2;
+      const oddCards = hand.filter(c => c.value % 2 === 1);
+      return oddCards.length >= n;
+    }
+
+    case 'diamond': {
+      // Diamond costs are paid separately (not with pearl cards)
+      // We return true because they're not validated with the hand
+      return true;
+    }
     
     default:
       return true;
@@ -449,7 +467,7 @@ function describeCost(costComponents) {
       case 'oddTuple':
         return `${component.n} odd-valued cards`;
       case 'diamond':
-        return `${component.value} diamonds`;
+        return 'Diamonds';
       default:
         return 'Unknown cost';
     }
