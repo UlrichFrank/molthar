@@ -243,19 +243,9 @@ export function drawAuslage(
     let label = 'Card';
 
     if (idx < 2) {
-      // Character card - try to resolve numeric id from card.name or card.id
-      const maybeName = (card as any).name || '';
-      const maybeId = String((card as any).id || '');
-      const matchName = String(maybeName).match(/(\d+)/);
-      const matchId = maybeId.match(/(\d+)/);
-      const charNum = matchName ? matchName[1] : matchId ? matchId[1] : null;
-      if (charNum) {
-        filename = `Charakterkarte${charNum}.jpeg`;
-      } else {
-        // fallback to back image if we can't find a numeric id
-        filename = 'Charakterkarte Hinten.jpeg';
-      }
-      label = maybeName || `Char ${charNum ?? '?'}`;
+      // Character card - use imageName from card data
+      filename = (card as any).imageName || 'Charakterkarte Hinten.jpeg';
+      label = (card as any).name || 'Card';
     } else {
       // Pearl card
       const value = ((card as any).value || 1);
@@ -338,21 +328,16 @@ export function drawPlayerPortal(
     
     if (slot) {
       console.log(`Drawing portal slot ${idx}: ${(slot.card as any).name} at x=${x}`);
-      // Draw actual character card image (resolve numeric id from name or id)
-      const maybeName = (slot.card as any).name || '';
-      const maybeId = String((slot.card as any).id || '');
-      const matchName = String(maybeName).match(/(\d+)/);
-      const matchId = maybeId.match(/(\d+)/);
-      const charNum = matchName ? matchName[1] : matchId ? matchId[1] : null;
-      const filename = charNum ? `Charakterkarte${charNum}.jpeg` : 'Charakterkarte Hinten.jpeg';
+      // Draw actual character card image - use imageName from card data
+      const imageName = (slot.card as any).imageName || 'Charakterkarte Hinten.jpeg';
       drawImageOrFallback(
         ctx,
-        filename,
+        imageName,
         x,
         y,
         slotW,
         slotH,
-        maybeName || `Char ${charNum ?? '?'}`
+        (slot.card as any).name || 'Card'
       );
     } else {
       // Empty slot
@@ -402,7 +387,7 @@ export function drawActivatedCharactersGrid(
   config: DrawConfig
 ) {
   // Display up to 12 activated character cards in a 3x4 grid
-  // Card images are located based on character ID/name matching: Charakterkarte{number}.jpeg
+  // Card images are located based on imageName field in card data
   // This uses the same image filename resolution pattern as auslage and portal rendering
   if (!activatedCards || activatedCards.length === 0) {
     return; // No activated cards to display
@@ -419,13 +404,8 @@ export function drawActivatedCharactersGrid(
     ctx.rotate(Math.PI); // 180° rotation
     ctx.translate(-(cardX + w / 2), -(cardY + h / 2));
     
-    // Draw character card image using consistent naming pattern
-    const maybeName = card.name || '';
-    const maybeId = String(card.id || '');
-    const matchName = String(maybeName).match(/(\d+)/);
-    const matchId = maybeId.match(/(\d+)/);
-    const charNum = matchName ? matchName[1] : matchId ? matchId[1] : null;
-    const filename = charNum ? `Charakterkarte${charNum}.jpeg` : 'Charakterkarte Hinten.jpeg';
+    // Draw character card image using imageName from card data
+    const filename = card.imageName || 'Charakterkarte Hinten.jpeg';
     
     drawImageOrFallback(
       ctx,
@@ -434,7 +414,7 @@ export function drawActivatedCharactersGrid(
       cardY,
       w,
       h,
-      maybeName || `Char ${charNum ?? '?'}`
+      card.name || 'Card'
     );
     
     ctx.restore();
