@@ -89,7 +89,7 @@ export function canPotentiallySatisfyCost(
       case 'sumTuple':
       case 'evenTuple':
       case 'oddTuple':
-      case 'drillingChoice':
+      case 'tripleChoice':
       default:
         return true; // Let server validate
     }

@@ -19,7 +19,7 @@ const COMPONENT_TYPES = [
   { value: 'sumAnyTuple', label: 'Beliebig-Tupel mit Summe' },
   { value: 'run', label: 'Zahlenreihe (z.B. 3-Reihe)' },
   { value: 'diamond', label: 'Diamant' },
-  { value: 'drillingChoice', label: 'Drilling (3x Wert1 ODER 3x Wert2)' },
+  { value: 'tripleChoice', label: 'Triple Choice (3x Wert1 ODER 3x Wert2)' },
 ];
 
 interface CostComponentEditorProps {
@@ -146,7 +146,7 @@ export function CostComponentEditor({
         break;
       }
 
-      case 'drillingChoice': {
+      case 'tripleChoice': {
         const v1 = parseInt(values.value1);
         const v2 = parseInt(values.value2);
         if (isNaN(v1) || v1 < 1 || v1 > 8) {
@@ -159,7 +159,7 @@ export function CostComponentEditor({
           newErrors.value2 = 'Werte müssen unterschiedlich sein';
         }
         if (Object.keys(newErrors).length === 0) {
-          onSave({ type: 'drillingChoice', value1: v1, value2: v2 });
+          onSave({ type: 'tripleChoice', value1: v1, value2: v2 });
         }
         break;
       }
@@ -303,7 +303,7 @@ export function CostComponentEditor({
             </div>
           )}
 
-          {type === 'drillingChoice' && (
+          {type === 'tripleChoice' && (
             <>
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">

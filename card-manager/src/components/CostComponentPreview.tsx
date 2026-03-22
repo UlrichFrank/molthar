@@ -31,7 +31,7 @@ export function CostComponentPreview({ component }: CostComponentPreviewProps) {
       case 'diamond':
         return 'Diamant';
       
-      case 'drillingChoice':
+      case 'tripleChoice':
         return `Drilling (3x ${component.value1} ODER 3x ${component.value2})`;
       
       default:

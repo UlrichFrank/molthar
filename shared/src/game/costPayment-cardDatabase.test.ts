@@ -131,7 +131,7 @@ function generateHandForComponent(component: CostComponent, shouldPass: boolean,
       }
     }
 
-    case 'drillingChoice': {
+    case 'tripleChoice': {
       const value1 = component.value1 || 3;
       const value2 = component.value2 || 6;
       if (shouldPass) {

@@ -141,7 +141,7 @@ export function CostBuilder({ cost, onUpdate }: CostBuilderProps) {
                       return `${c.length}-Reihe`;
                     case 'diamond':
                       return '◆';
-                    case 'drillingChoice':
+                    case 'tripleChoice':
                       return `3×${c.value1}|3×${c.value2}`;
                     default:
                       return '?';

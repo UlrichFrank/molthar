@@ -11,7 +11,7 @@ export interface PearlCard {
  * Cost Component - Flexible cost system
  */
 export interface CostComponent {
-    type: 'number' | 'nTuple' | 'sumAnyTuple' | 'sumTuple' | 'run' | 'evenTuple' | 'oddTuple' | 'diamond' | 'drillingChoice';
+    type: 'number' | 'nTuple' | 'sumAnyTuple' | 'sumTuple' | 'run' | 'evenTuple' | 'oddTuple' | 'diamond' | 'tripleChoice';
     value?: number;
     n?: number;
     sum?: number;

@@ -21,7 +21,7 @@ export function costComponentToText(component: CostComponent): string {
       return `${component.length}-Reihe`;
     case 'diamond':
       return `Diamant`;
-    case 'drillingChoice':
+    case 'tripleChoice':
       return `Drilling (${component.value1} oder ${component.value2})`;
     default:
       return 'Unbekannt';
@@ -68,7 +68,7 @@ export function validateCostComponent(component: CostComponent): { valid: boolea
     case 'run':
       if (component.length < 1) return { valid: false, error: 'Länge muss mindestens 1 sein' };
       break;
-    case 'drillingChoice':
+    case 'tripleChoice':
       if (![1, 2, 3, 4, 5, 6, 7, 8].includes(component.value1)) {
         return { valid: false, error: 'value1 muss zwischen 1-8 sein' };
       }

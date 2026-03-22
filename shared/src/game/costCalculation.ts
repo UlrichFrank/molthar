@@ -260,13 +260,13 @@ export function validateOddTupleCost(
 }
 
 /**
- * Validate drilling choice cost (will be renamed to tripleChoice)
+ * Validate triple choice cost
  * Must have 3 cards of value1 OR 3 cards of value2
- * @param costComponent - Cost component with type 'drillingChoice' or 'tripleChoice'
+ * @param costComponent - Cost component with type 'tripleChoice'
  * @param hand - Player's hand of pearl cards
  * @returns True if valid combination exists
  */
-export function validateDrillingChoiceCost(
+export function validateTripleChoiceCost(
   costComponent: CostComponent,
   hand: PearlCard[]
 ): boolean {
@@ -388,9 +388,9 @@ function validateCostComponent(
       return diamondCount >= required;
     }
 
-    case 'drillingChoice': {
-      // Drilling choice (future rule)
-      return validateDrillingChoiceCost(component, hand);
+    case 'tripleChoice': {
+      // Triple choice: 3 cards of value1 OR 3 cards of value2
+      return validateTripleChoiceCost(component, hand);
     }
 
     default:
@@ -445,7 +445,7 @@ export function calculateCostRequirement(
  * - `sumTuple`/`sumAnyTuple` (n cards summing to value)
  * - `evenTuple`/`oddTuple` (cards with even/odd values)
  * - `diamond` (diamond costs)
- * - `drillingChoice` (placeholder for future expansion)
+ * - `tripleChoice` (3 cards of value1 OR 3 cards of value2)
  * 
  * **Diamond Mechanics:**
  * - Diamonds ONLY reduce fixed sum costs (type: 'number')

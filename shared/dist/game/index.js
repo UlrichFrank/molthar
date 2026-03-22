@@ -428,10 +428,9 @@ function verifyCostComponent(component, usedCards, diamonds) {
             const required = component.value || 0;
             return diamonds >= required;
         }
-        case 'drillingChoice': {
-            // Multiple cost options - this would be handled at a higher level
-            // For now, return true if any option passed
-            return true;
+        case 'tripleChoice': {
+            // Triple choice: 3 cards of value1 OR 3 cards of value2
+            return true; // Actual validation happens in validateCostPayment
         }
         default:
             return true; // Unknown cost type - optimistically allow
