@@ -326,6 +326,8 @@ function validateCostComponent(
     case 'number': {
       // Fixed sum cost with diamond modifier
       // Must find a subset of hand that sums to EXACTLY required value
+      // IMPORTANT: Excess cards are NOT allowed - sum must be exact, not >= 
+      // Example: cost[10] requires exactly 10 points (8+2 = OK, 8+3 = FAIL)
       const required = calculateFixedSumCost(component, diamondCount);
       
       if (required <= 0) {
@@ -334,8 +336,8 @@ function validateCostComponent(
       
       // Use subset-finding backtracking to find cards summing to exactly required
       function findSum(cards: PearlCard[], currentSum: number, target: number): boolean {
-        if (currentSum === target) return true;
-        if (currentSum > target || cards.length === 0) return false;
+        if (currentSum === target) return true;  // ✓ EXACT match required
+        if (currentSum > target || cards.length === 0) return false;  // ✗ Too much or not enough
         
         const [first, ...rest] = cards;
         

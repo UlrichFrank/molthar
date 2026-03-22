@@ -244,4 +244,21 @@ describe('Edge Cases', () => {
     const components: CostComponent[] = [{ type: 'number', value: 50 }];
     expect(validateCostPayment(components, hand, 0)).toBe(false);
   });
+
+  it('12.6: EXACT sum required - excess cards NOT allowed', () => {
+    // Cost requires exactly 10
+    const components: CostComponent[] = [{ type: 'number', value: 10 }];
+    
+    // Valid: hand sums to exactly 10
+    const validHand = [createCard(8), createCard(2)];
+    expect(validateCostPayment(components, validHand, 0)).toBe(true);
+    
+    // Invalid: hand sums to 11 (too much)
+    const tooMuchHand = [createCard(8), createCard(3)];
+    expect(validateCostPayment(components, tooMuchHand, 0)).toBe(false);
+    
+    // Invalid: hand sums to 9 (too little)
+    const tooLittleHand = [createCard(8), createCard(1)];
+    expect(validateCostPayment(components, tooLittleHand, 0)).toBe(false);
+  });
 });

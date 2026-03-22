@@ -33,6 +33,7 @@ export type AbilityType =
   | 'anyAddditionalCardActions'
   | 'numberAddditionalCardActions'
   | 'changeHandActions'
+  | 'changeCharacterActions'
   | 'nextPlayerOneExtraAction'
   | 'discardOpponentCharacter'
   | 'stealOpponentHandCard'
@@ -78,6 +79,6 @@ export interface AbilityInfo {
   type: AbilityType;
   label: string;
   description: string;
-  category: 'red' | 'blue' | 'special' | 'none';
+  category: 'red' | 'blue' | 'none';
   hasParameters: boolean;
 }

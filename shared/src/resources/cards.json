@@ -22,7 +22,7 @@
     "ability": {
       "type": "none"
     },
-    "cardCount": 1
+    "cardCount": 2
   },
   {
     "id": "gro8jksff",
@@ -48,7 +48,7 @@
   },
   {
     "id": "4fu50x5fc",
-    "name": "Kerberus",
+    "name": "Zerberus",
     "imageName": "Charakterkarte3.jpeg",
     "powerPoints": 2,
     "diamondsReward": 0,
@@ -77,26 +77,10 @@
       }
     ],
     "ability": {
-      "type": "none"
+      "type": "discardOpponentCharacter",
+      "timing": "duringTurn"
     },
-    "cardCount": 1
-  },
-  {
-    "id": "5gpen8ctk",
-    "name": "Geflügelter Affe",
-    "imageName": "Charakterkarte5.jpeg",
-    "powerPoints": 1,
-    "diamondsReward": 0,
-    "cost": [
-      {
-        "type": "sumAnyTuple",
-        "sum": 10
-      }
-    ],
-    "ability": {
-      "type": "handLimitPlusOne"
-    },
-    "cardCount": 1
+    "cardCount": 2
   },
   {
     "id": "vzznmp0kw",
@@ -125,32 +109,7 @@
     "ability": {
       "type": "none"
     },
-    "cardCount": 1
-  },
-  {
-    "id": "bjxxws2vy",
-    "name": "-Fee",
-    "imageName": "Charakterkarte8.jpeg",
-    "powerPoints": 1,
-    "diamondsReward": 0,
-    "cost": [
-      {
-        "type": "number",
-        "value": 5
-      },
-      {
-        "type": "number",
-        "value": 6
-      },
-      {
-        "type": "number",
-        "value": 7
-      }
-    ],
-    "ability": {
-      "type": "none"
-    },
-    "cardCount": 1
+    "cardCount": 2
   },
   {
     "id": "8e04t8opy",
@@ -208,7 +167,7 @@
     "ability": {
       "type": "none"
     },
-    "cardCount": 2
+    "cardCount": 3
   },
   {
     "id": "ku2wsi2a9",
@@ -302,7 +261,7 @@
   },
   {
     "id": "zruonyei1",
-    "name": "Hobbit ungerade",
+    "name": "Hobbit (ungerade)",
     "imageName": "Charakterkarte17.jpeg",
     "powerPoints": 1,
     "diamondsReward": 1,
@@ -435,7 +394,7 @@
   },
   {
     "id": "p38h8tar3",
-    "name": "Magier",
+    "name": "Gandalf",
     "imageName": "Charakterkarte26.jpeg",
     "powerPoints": 1,
     "diamondsReward": 0,
@@ -452,25 +411,8 @@
     "cardCount": 1
   },
   {
-    "id": "rzn7uskia",
-    "name": "Koboldkämpfer",
-    "imageName": "Charakterkarte27.jpeg",
-    "powerPoints": 1,
-    "diamondsReward": 0,
-    "cost": [
-      {
-        "type": "nTuple",
-        "n": 2
-      }
-    ],
-    "ability": {
-      "type": "none"
-    },
-    "cardCount": 1
-  },
-  {
     "id": "5acq23jmo",
-    "name": "-Fee",
+    "name": "Fee",
     "imageName": "Charakterkarte28.jpeg",
     "powerPoints": 1,
     "diamondsReward": 0,
@@ -489,15 +431,16 @@
       }
     ],
     "ability": {
-      "type": "none"
+      "type": "stealOpponentHandCard",
+      "timing": "duringTurn"
     },
-    "cardCount": 1
+    "cardCount": 2
   },
   {
     "id": "gqis1id0r",
     "name": "Zwergenkämpfer 7",
     "imageName": "Charakterkarte29.jpeg",
-    "powerPoints": 0,
+    "powerPoints": 1,
     "diamondsReward": 0,
     "cost": [
       {
@@ -518,7 +461,7 @@
   },
   {
     "id": "fnjp5vmip",
-    "name": "Irrlicht",
+    "name": "Irrlicht (3/6)",
     "imageName": "Charakterkarte33.jpeg",
     "powerPoints": 3,
     "diamondsReward": 0,
@@ -561,7 +504,7 @@
   },
   {
     "id": "myezllpp7",
-    "name": "Hobbit gerade",
+    "name": "Hobbit (gerade)",
     "imageName": "Charakterkarte35.jpeg",
     "powerPoints": 1,
     "diamondsReward": 1,
@@ -645,18 +588,27 @@
   },
   {
     "id": "zupxt9yq0",
-    "name": "-gestiefelte Kater",
+    "name": "Gestiefelte Kater",
     "imageName": "Charakterkarte41.jpeg",
-    "powerPoints": 0,
+    "powerPoints": 1,
     "diamondsReward": 0,
     "cost": [
       {
-        "type": "nTuple",
-        "n": 2
+        "type": "number",
+        "value": 3
+      },
+      {
+        "type": "number",
+        "value": 4
+      },
+      {
+        "type": "number",
+        "value": 5
       }
     ],
     "ability": {
-      "type": "none"
+      "type": "takeBackPlayedPearl",
+      "timing": "duringTurn"
     },
     "cardCount": 1
   },
@@ -693,29 +645,41 @@
     "id": "nl50ekkjk",
     "name": "Geflügelter Affe",
     "imageName": "Charakterkarte43.jpeg",
-    "powerPoints": 0,
+    "powerPoints": 1,
     "diamondsReward": 0,
     "cost": [
       {
-        "type": "nTuple",
-        "n": 2
+        "type": "sumAnyTuple",
+        "sum": 10
       }
     ],
     "ability": {
-      "type": "none"
+      "type": "handLimitPlusOne",
+      "timing": "duringTurn"
     },
-    "cardCount": 1
+    "cardCount": 3
   },
   {
     "id": "axr7mf2fd",
     "name": "Captain Hook",
     "imageName": "Charakterkarte44.jpeg",
-    "powerPoints": 0,
+    "powerPoints": 3,
     "diamondsReward": 0,
     "cost": [
       {
-        "type": "nTuple",
-        "n": 2
+        "type": "number",
+        "value": 2
+      },
+      {
+        "type": "number",
+        "value": 2
+      },
+      {
+        "type": "number",
+        "value": 2
+      },
+      {
+        "type": "diamond"
       }
     ],
     "ability": {
@@ -731,44 +695,43 @@
     "diamondsReward": 0,
     "cost": [
       {
-        "type": "nTuple",
-        "n": 2
+        "type": "number",
+        "value": 1
+      },
+      {
+        "type": "number",
+        "value": 2
       }
     ],
     "ability": {
       "type": "numberAddditionalCardActions",
       "timing": "duringTurn",
-      "value": 1
+      "value": 8
     },
     "cardCount": 2
   },
   {
-    "id": "gs267rrmj",
-    "name": "Charakter 47",
-    "imageName": "Charakterkarte47.jpeg",
-    "powerPoints": 0,
-    "diamondsReward": 0,
-    "cost": [
-      {
-        "type": "nTuple",
-        "n": 2
-      }
-    ],
-    "ability": {
-      "type": "none"
-    },
-    "cardCount": 1
-  },
-  {
     "id": "w1hp3jwe9",
-    "name": "Charakter 48",
+    "name": "Löwe",
     "imageName": "Charakterkarte48.jpeg",
-    "powerPoints": 0,
+    "powerPoints": 5,
     "diamondsReward": 0,
     "cost": [
       {
-        "type": "nTuple",
-        "n": 2
+        "type": "number",
+        "value": 8
+      },
+      {
+        "type": "number",
+        "value": 8
+      },
+      {
+        "type": "number",
+        "value": 8
+      },
+      {
+        "type": "number",
+        "value": 8
       }
     ],
     "ability": {
@@ -778,52 +741,49 @@
   },
   {
     "id": "jq0zahzih",
-    "name": "Charakter 49",
+    "name": "Tapfere Schneiderlein",
     "imageName": "Charakterkarte49.jpeg",
-    "powerPoints": 0,
+    "powerPoints": 2,
     "diamondsReward": 0,
     "cost": [
       {
-        "type": "nTuple",
-        "n": 2
+        "type": "run",
+        "length": 5
       }
     ],
     "ability": {
-      "type": "none"
-    },
-    "cardCount": 1
-  },
-  {
-    "id": "lb8vxa01g",
-    "name": "Charakter 50",
-    "imageName": "Charakterkarte50.jpeg",
-    "powerPoints": 0,
-    "diamondsReward": 0,
-    "cost": [
-      {
-        "type": "nTuple",
-        "n": 2
-      }
-    ],
-    "ability": {
-      "type": "none"
+      "type": "changeCharacterActions",
+      "timing": "beforeAction"
     },
     "cardCount": 1
   },
   {
     "id": "b63ppn9vq",
-    "name": "Charakter 51",
+    "name": "Golem (1357)",
     "imageName": "Charakterkarte51.jpeg",
-    "powerPoints": 0,
+    "powerPoints": 2,
     "diamondsReward": 0,
     "cost": [
       {
-        "type": "nTuple",
-        "n": 2
+        "type": "number",
+        "value": 1
+      },
+      {
+        "type": "number",
+        "value": 3
+      },
+      {
+        "type": "number",
+        "value": 5
+      },
+      {
+        "type": "number",
+        "value": 7
       }
     ],
     "ability": {
-      "type": "none"
+      "type": "threeExtraActions",
+      "timing": "duringTurn"
     },
     "cardCount": 1
   },
@@ -831,34 +791,18 @@
     "id": "7lzfznl4n",
     "name": "Peter Pan",
     "imageName": "Charakterkarte52.jpeg",
-    "powerPoints": 0,
+    "powerPoints": 1,
     "diamondsReward": 0,
     "cost": [
       {
-        "type": "nTuple",
-        "n": 2
+        "type": "sumTuple",
+        "n": 3,
+        "sum": 10
       }
     ],
     "ability": {
       "type": "onesCanBeEights",
       "timing": "duringTurn"
-    },
-    "cardCount": 1
-  },
-  {
-    "id": "5n945i8sb",
-    "name": "Charakter 53",
-    "imageName": "Charakterkarte53.jpeg",
-    "powerPoints": 0,
-    "diamondsReward": 0,
-    "cost": [
-      {
-        "type": "nTuple",
-        "n": 2
-      }
-    ],
-    "ability": {
-      "type": "none"
     },
     "cardCount": 1
   },
@@ -877,24 +821,7 @@
     "ability": {
       "type": "none"
     },
-    "cardCount": 1
-  },
-  {
-    "id": "xyevmmi0u",
-    "name": "Charakter 55",
-    "imageName": "Charakterkarte55.jpeg",
-    "powerPoints": 0,
-    "diamondsReward": 0,
-    "cost": [
-      {
-        "type": "nTuple",
-        "n": 2
-      }
-    ],
-    "ability": {
-      "type": "none"
-    },
-    "cardCount": 1
+    "cardCount": 3
   },
   {
     "id": "nemm15be4",
@@ -904,8 +831,12 @@
     "diamondsReward": 0,
     "cost": [
       {
-        "type": "nTuple",
-        "n": 2
+        "type": "number",
+        "value": 3
+      },
+      {
+        "type": "number",
+        "value": 3
       }
     ],
     "ability": {
@@ -917,19 +848,74 @@
   },
   {
     "id": "2letkbocr",
-    "name": "Charakter 58",
+    "name": "Irrlicht (4/5)",
     "imageName": "Charakterkarte58.jpeg",
-    "powerPoints": 0,
+    "powerPoints": 3,
     "diamondsReward": 0,
     "cost": [
       {
-        "type": "nTuple",
-        "n": 2
+        "type": "drillingChoice",
+        "value1": 4,
+        "value2": 5
       }
     ],
     "ability": {
-      "type": "none"
+      "type": "irrlicht",
+      "timing": "duringTurn"
     },
     "cardCount": 1
+  },
+  {
+    "id": "jks0dud97",
+    "name": "Zwergenkämpfer 1",
+    "imageName": "Charakterkarte59.jpeg",
+    "powerPoints": 1,
+    "diamondsReward": 0,
+    "cardCount": 1,
+    "cost": [
+      {
+        "type": "number",
+        "value": 1
+      },
+      {
+        "type": "number",
+        "value": 1
+      }
+    ],
+    "ability": {
+      "type": "numberAddditionalCardActions",
+      "timing": "duringTurn",
+      "value": 1
+    }
+  },
+  {
+    "id": "lsnciv7pv",
+    "name": "Golem (2468)",
+    "imageName": "Charakterkarte60.jpeg",
+    "powerPoints": 2,
+    "diamondsReward": 0,
+    "cardCount": 1,
+    "cost": [
+      {
+        "type": "number",
+        "value": 2
+      },
+      {
+        "type": "number",
+        "value": 4
+      },
+      {
+        "type": "number",
+        "value": 6
+      },
+      {
+        "type": "number",
+        "value": 8
+      }
+    ],
+    "ability": {
+      "type": "threeExtraActions",
+      "timing": "duringTurn"
+    }
   }
 ]

@@ -38,6 +38,13 @@ export const ABILITY_INFO: Record<AbilityType, AbilityInfo> = {
     category: 'blue',
     hasParameters: false,
   },
+  changeCharacterActions: {
+    type: 'changeCharacterActions',
+    label: 'Charakter wechseln',
+    description: 'Tausche vor Deiner ersten Aktion einen Charakter aus Deinem Portal gegen einen offen ausliegenden Charakter',
+    category: 'blue',
+    hasParameters: false,
+  },
   anyAddditionalCardActions: {
     type: 'anyAddditionalCardActions',
     label: 'Beliebige zusätzliche Karte',
@@ -142,7 +149,7 @@ export const ABILITY_INFO: Record<AbilityType, AbilityInfo> = {
     type: 'irrlicht',
     label: 'Irrlicht',
     description: 'Nachbarn können diesen Charakter auch aktivieren',
-    category: 'special',
+    category: 'red',
     hasParameters: false,
   },
 };
