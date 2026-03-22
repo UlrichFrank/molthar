@@ -1,4 +1,5 @@
 import type { GameState, PearlCard, CharacterCard, CostComponent } from './types';
+import './cardDatabaseLoader.js';
 /**
  * Helper function for invalid moves
  */

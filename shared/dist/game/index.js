@@ -7,6 +7,8 @@ exports.createCharacterDeck = createCharacterDeck;
 exports.shuffleArray = shuffleArray;
 const costCalculation_1 = require("./costCalculation");
 const cardDatabase_1 = require("./cardDatabase");
+// @ts-ignore - cardDatabaseLoader.js is a side-effect module
+require("./cardDatabaseLoader.js");
 /**
  * Helper function for invalid moves
  */

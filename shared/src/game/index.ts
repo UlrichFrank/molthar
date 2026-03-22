@@ -1,6 +1,8 @@
 import type { GameState, PearlCard, CharacterCard, PlayerState, CostComponent, ActivatedCharacter } from './types';
 import { validateCostPayment as validateCostFromCards } from './costCalculation';
 import { getAllCards as getAllCardDataFromDatabase } from './cardDatabase';
+// @ts-ignore - cardDatabaseLoader.js is a side-effect module
+import './cardDatabaseLoader.js';
 
 /**
  * Helper function for invalid moves
