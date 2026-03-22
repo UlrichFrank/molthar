@@ -7,7 +7,7 @@
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      max-width: 1400px;
+      max-width: 1600px;
       margin: 0 auto;
       padding: 20px;
       background: #f5f5f5;
@@ -52,6 +52,7 @@
       border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
     }
     th {
       background: #667eea;
@@ -60,6 +61,7 @@
       text-align: left;
       font-weight: 600;
       font-size: 14px;
+      white-space: nowrap;
     }
     td {
       padding: 12px 15px;
@@ -78,7 +80,7 @@
       border-bottom: none;
     }
     .num {
-      width: 50px;
+      width: 40px;
       color: #999;
       font-size: 12px;
     }
@@ -90,16 +92,36 @@
       font-family: 'Monaco', 'Menlo', monospace;
       font-size: 12px;
       color: #666;
-      max-width: 300px;
+      max-width: 250px;
+    }
+    .hand {
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 13px;
+      background: #f5f5f5;
+      padding: 4px 8px;
+      border-radius: 3px;
+      color: #2c3e50;
+      white-space: nowrap;
+      max-width: 180px;
+      overflow-x: auto;
+    }
+    .hand-valid {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    .hand-invalid {
+      background: #ffebee;
+      color: #c62828;
     }
     .number {
       text-align: center;
       width: 40px;
+      font-size: 13px;
     }
     .test {
       text-align: center;
       font-size: 16px;
-      width: 60px;
+      width: 50px;
     }
     .status {
       text-align: center;
@@ -129,6 +151,14 @@
     .emoji {
       font-size: 18px;
       margin-right: 8px;
+    }
+    .legend-section {
+      margin-top: 15px;
+    }
+    .legend-section strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #667eea;
     }
   </style>
 </head>
@@ -168,6 +198,13 @@
     <div class="legend-item"><span class="emoji">✓</span> Status PASS: Both tests work correctly</div>
     <div class="legend-item"><span class="emoji">✗</span> Status FAIL: At least one test failed - review needed</div>
     <div class="legend-item"><span class="emoji">⚠️</span> Status IMPOSSIBLE: Cost is unsatisfiable (e.g., need value 10 from cards with max 1-8)</div>
+    
+    <div class="legend-section">
+      <strong>Card Combinations:</strong>
+      <div class="legend-item"><span class="emoji">💚</span> Valid Hand: Pearl cards that satisfy the cost requirement</div>
+      <div class="legend-item"><span class="emoji">❤️</span> Invalid Hand: Pearl cards that fail the cost requirement</div>
+      <div class="legend-item">Format: 8+6+3 means cards with values 8, 6, and 3 summed together</div>
+    </div>
   </div>
 
   <table>
@@ -175,11 +212,11 @@
       <tr>
         <th class="num">#</th>
         <th class="name">Card Name</th>
-        <th class="cost">Cost Description</th>
-        <th class="number">PP</th>
-        <th class="number">Dia</th>
-        <th class="test">Positive</th>
-        <th class="test">Negative</th>
+        <th class="cost">Cost Type</th>
+        <th>💚 Valid Hand</th>
+        <th>❤️ Invalid Hand</th>
+        <th class="test">✅</th>
+        <th class="test">❌</th>
         <th class="status">Status</th>
       </tr>
     </thead>
@@ -189,8 +226,8 @@
         <td class="num">1</td>
         <td class="name">Zwerg</td>
         <td class="cost">nTuple(2) + number[6] + number[6]</td>
-        <td class="number">2</td>
-        <td class="number">1</td>
+        <td><div class="hand hand-valid">5+5</div></td>
+        <td><div class="hand hand-invalid">5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -200,8 +237,8 @@
         <td class="num">2</td>
         <td class="name">Tod</td>
         <td class="cost">number[1] + number[8]</td>
-        <td class="number">1</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">1</div></td>
+        <td><div class="hand hand-invalid">empty</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -211,8 +248,8 @@
         <td class="num">3</td>
         <td class="name">Kerberus</td>
         <td class="cost">nTuple(3)</td>
-        <td class="number">2</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">5+5+5</div></td>
+        <td><div class="hand hand-invalid">5+5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -222,8 +259,8 @@
         <td class="num">4</td>
         <td class="name">Kerberus</td>
         <td class="cost">nTuple(3)</td>
-        <td class="number">2</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">5+5+5</div></td>
+        <td><div class="hand hand-invalid">5+5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -233,8 +270,8 @@
         <td class="num">5</td>
         <td class="name">Medusa</td>
         <td class="cost">sumTuple(3)</td>
-        <td class="number">1</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">3+2+2</div></td>
+        <td><div class="hand hand-invalid">5+5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -244,8 +281,8 @@
         <td class="num">6</td>
         <td class="name">Geflügelter Affe</td>
         <td class="cost">sumAnyTuple</td>
-        <td class="number">1</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">8</div></td>
+        <td><div class="hand hand-invalid">9</div></td>
         <td class="test">❌</td>
         <td class="test">✅</td>
         <td class="status warning">⚠️  IMPOSSIBLE</td>
@@ -255,8 +292,8 @@
         <td class="num">7</td>
         <td class="name">Kobold</td>
         <td class="cost">number[7] + number[7] + number[8] + number[8]</td>
-        <td class="number">3</td>
-        <td class="number">1</td>
+        <td><div class="hand hand-valid">7</div></td>
+        <td><div class="hand hand-invalid">6</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -266,8 +303,8 @@
         <td class="num">8</td>
         <td class="name">-Fee</td>
         <td class="cost">number[5] + number[6] + number[7]</td>
-        <td class="number">1</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">5</div></td>
+        <td><div class="hand hand-invalid">4</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -277,8 +314,8 @@
         <td class="num">9</td>
         <td class="name">Zauberin</td>
         <td class="cost">number[7] + number[7] + number[7] + number[7]</td>
-        <td class="number">4</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">7</div></td>
+        <td><div class="hand hand-invalid">6</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -288,8 +325,8 @@
         <td class="num">10</td>
         <td class="name">Zauberin</td>
         <td class="cost">number[7] + number[7] + number[7] + number[7]</td>
-        <td class="number">4</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">7</div></td>
+        <td><div class="hand hand-invalid">6</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -299,8 +336,8 @@
         <td class="num">11</td>
         <td class="name">Riese</td>
         <td class="cost">number[6] + number[6] + number[8] + number[8]</td>
-        <td class="number">3</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">6</div></td>
+        <td><div class="hand hand-invalid">5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -310,8 +347,8 @@
         <td class="num">12</td>
         <td class="name">Riese</td>
         <td class="cost">number[6] + number[6] + number[8] + number[8]</td>
-        <td class="number">3</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">6</div></td>
+        <td><div class="hand hand-invalid">5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -321,8 +358,8 @@
         <td class="num">13</td>
         <td class="name">Weißer Drache</td>
         <td class="cost">number[1] + number[1] + number[1] + number[1]</td>
-        <td class="number">0</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">1</div></td>
+        <td><div class="hand hand-invalid">empty</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -332,8 +369,8 @@
         <td class="num">14</td>
         <td class="name">Zwergenkämpfer 6</td>
         <td class="cost">number[6] + number[6]</td>
-        <td class="number">1</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">6</div></td>
+        <td><div class="hand hand-invalid">5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -343,8 +380,8 @@
         <td class="num">15</td>
         <td class="name">Todesgeist</td>
         <td class="cost">nTuple(2) + nTuple(2)</td>
-        <td class="number">2</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">5+5</div></td>
+        <td><div class="hand hand-invalid">5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -354,8 +391,8 @@
         <td class="num">16</td>
         <td class="name">Ent</td>
         <td class="cost">nTuple(4)</td>
-        <td class="number">3</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">5+5+5+5</div></td>
+        <td><div class="hand hand-invalid">5+5+5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -365,8 +402,8 @@
         <td class="num">17</td>
         <td class="name">Hobbit ungerade</td>
         <td class="cost">oddTuple(3)</td>
-        <td class="number">1</td>
-        <td class="number">1</td>
+        <td><div class="hand hand-valid">5+3+1</div></td>
+        <td><div class="hand hand-invalid">6+4+2</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -376,8 +413,8 @@
         <td class="num">18</td>
         <td class="name">Zwergenkämpfer 2</td>
         <td class="cost">number[2] + number[2]</td>
-        <td class="number">1</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">2</div></td>
+        <td><div class="hand hand-invalid">1</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -387,8 +424,8 @@
         <td class="num">19</td>
         <td class="name">Rotkäppchen</td>
         <td class="cost">number[4] + number[5] + number[6] + number[7] + number[8]</td>
-        <td class="number">1</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">4</div></td>
+        <td><div class="hand hand-invalid">3</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -398,8 +435,8 @@
         <td class="num">20</td>
         <td class="name">Conan der Barbar</td>
         <td class="cost">sumTuple(3)</td>
-        <td class="number">2</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">7+7+6</div></td>
+        <td><div class="hand hand-invalid">5+5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -409,8 +446,8 @@
         <td class="num">21</td>
         <td class="name">Red Sonja</td>
         <td class="cost">number[3] + number[5] + number[7]</td>
-        <td class="number">1</td>
-        <td class="number">1</td>
+        <td><div class="hand hand-valid">3</div></td>
+        <td><div class="hand hand-invalid">2</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -420,8 +457,8 @@
         <td class="num">22</td>
         <td class="name">Schneewittchen</td>
         <td class="cost">number[2]</td>
-        <td class="number">0</td>
-        <td class="number">1</td>
+        <td><div class="hand hand-valid">2</div></td>
+        <td><div class="hand hand-invalid">1</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -431,8 +468,8 @@
         <td class="num">23</td>
         <td class="name">Magier</td>
         <td class="cost">run</td>
-        <td class="number">1</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">3+2+1</div></td>
+        <td><div class="hand hand-invalid">5+3+1</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -442,8 +479,8 @@
         <td class="num">24</td>
         <td class="name">Koboldkämpfer</td>
         <td class="cost">nTuple(2)</td>
-        <td class="number">1</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">5+5</div></td>
+        <td><div class="hand hand-invalid">5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -453,8 +490,8 @@
         <td class="num">25</td>
         <td class="name">-Fee</td>
         <td class="cost">number[5] + number[6] + number[7]</td>
-        <td class="number">1</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">5</div></td>
+        <td><div class="hand hand-invalid">4</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -464,8 +501,8 @@
         <td class="num">26</td>
         <td class="name">Zwergenkämpfer 7</td>
         <td class="cost">number[7] + number[7]</td>
-        <td class="number">0</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">7</div></td>
+        <td><div class="hand hand-invalid">6</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -475,8 +512,8 @@
         <td class="num">27</td>
         <td class="name">Irrlicht</td>
         <td class="cost">drillingChoice</td>
-        <td class="number">3</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">5</div></td>
+        <td><div class="hand hand-invalid">empty</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -486,8 +523,8 @@
         <td class="num">28</td>
         <td class="name">Feuerteufel</td>
         <td class="cost">number[3] + number[3] + number[3]</td>
-        <td class="number">1</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">3</div></td>
+        <td><div class="hand hand-invalid">2</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -497,8 +534,8 @@
         <td class="num">29</td>
         <td class="name">Hobbit gerade</td>
         <td class="cost">evenTuple(3)</td>
-        <td class="number">1</td>
-        <td class="number">1</td>
+        <td><div class="hand hand-valid">6+4+2</div></td>
+        <td><div class="hand hand-invalid">5+3+1</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -508,8 +545,8 @@
         <td class="num">30</td>
         <td class="name">Zwergenkämpfer 4</td>
         <td class="cost">number[4] + number[4]</td>
-        <td class="number">1</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">4</div></td>
+        <td><div class="hand hand-invalid">3</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -519,8 +556,8 @@
         <td class="num">31</td>
         <td class="name">Hänsel und Gretel</td>
         <td class="cost">number[8] + number[8]</td>
-        <td class="number">2</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">8</div></td>
+        <td><div class="hand hand-invalid">7</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -530,8 +567,8 @@
         <td class="num">32</td>
         <td class="name">Hänsel und Gretel</td>
         <td class="cost">number[8] + number[8]</td>
-        <td class="number">2</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">8</div></td>
+        <td><div class="hand hand-invalid">7</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -541,8 +578,8 @@
         <td class="num">33</td>
         <td class="name">Zwergenkämpfer 5</td>
         <td class="cost">number[5] + number[5]</td>
-        <td class="number">1</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">5</div></td>
+        <td><div class="hand hand-invalid">4</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -552,8 +589,8 @@
         <td class="num">34</td>
         <td class="name">-gestiefelte Kater</td>
         <td class="cost">nTuple(2)</td>
-        <td class="number">0</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">5+5</div></td>
+        <td><div class="hand hand-invalid">5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -563,8 +600,8 @@
         <td class="num">35</td>
         <td class="name">Einhorn</td>
         <td class="cost">number[1] + number[2] + number[3] + number[4]</td>
-        <td class="number">1</td>
-        <td class="number">2</td>
+        <td><div class="hand hand-valid">1</div></td>
+        <td><div class="hand hand-invalid">empty</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -574,8 +611,8 @@
         <td class="num">36</td>
         <td class="name">Geflügelter Affe</td>
         <td class="cost">nTuple(2)</td>
-        <td class="number">0</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">5+5</div></td>
+        <td><div class="hand hand-invalid">5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -585,8 +622,8 @@
         <td class="num">37</td>
         <td class="name">Captain Hook</td>
         <td class="cost">nTuple(2)</td>
-        <td class="number">0</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">5+5</div></td>
+        <td><div class="hand hand-invalid">5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -596,8 +633,8 @@
         <td class="num">38</td>
         <td class="name">Phoenix</td>
         <td class="cost">nTuple(2)</td>
-        <td class="number">0</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">5+5</div></td>
+        <td><div class="hand hand-invalid">5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -607,8 +644,8 @@
         <td class="num">39</td>
         <td class="name">Phoenix</td>
         <td class="cost">nTuple(2)</td>
-        <td class="number">0</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">5+5</div></td>
+        <td><div class="hand hand-invalid">5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -618,8 +655,8 @@
         <td class="num">40</td>
         <td class="name">Charakter 47</td>
         <td class="cost">nTuple(2)</td>
-        <td class="number">0</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">5+5</div></td>
+        <td><div class="hand hand-invalid">5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -629,8 +666,8 @@
         <td class="num">41</td>
         <td class="name">Charakter 48</td>
         <td class="cost">nTuple(2)</td>
-        <td class="number">0</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">5+5</div></td>
+        <td><div class="hand hand-invalid">5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -640,8 +677,8 @@
         <td class="num">42</td>
         <td class="name">Charakter 49</td>
         <td class="cost">nTuple(2)</td>
-        <td class="number">0</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">5+5</div></td>
+        <td><div class="hand hand-invalid">5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -651,8 +688,8 @@
         <td class="num">43</td>
         <td class="name">Charakter 50</td>
         <td class="cost">nTuple(2)</td>
-        <td class="number">0</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">5+5</div></td>
+        <td><div class="hand hand-invalid">5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -662,8 +699,8 @@
         <td class="num">44</td>
         <td class="name">Charakter 51</td>
         <td class="cost">nTuple(2)</td>
-        <td class="number">0</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">5+5</div></td>
+        <td><div class="hand hand-invalid">5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -673,8 +710,8 @@
         <td class="num">45</td>
         <td class="name">Peter Pan</td>
         <td class="cost">nTuple(2)</td>
-        <td class="number">0</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">5+5</div></td>
+        <td><div class="hand hand-invalid">5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -684,8 +721,8 @@
         <td class="num">46</td>
         <td class="name">Charakter 53</td>
         <td class="cost">nTuple(2)</td>
-        <td class="number">0</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">5+5</div></td>
+        <td><div class="hand hand-invalid">5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -695,8 +732,8 @@
         <td class="num">47</td>
         <td class="name">Koboldkämpfer</td>
         <td class="cost">nTuple(2)</td>
-        <td class="number">1</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">5+5</div></td>
+        <td><div class="hand hand-invalid">5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -706,8 +743,8 @@
         <td class="num">48</td>
         <td class="name">Charakter 55</td>
         <td class="cost">nTuple(2)</td>
-        <td class="number">0</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">5+5</div></td>
+        <td><div class="hand hand-invalid">5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -717,8 +754,8 @@
         <td class="num">49</td>
         <td class="name">Zwergenkämpfer 3</td>
         <td class="cost">nTuple(2)</td>
-        <td class="number">1</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">5+5</div></td>
+        <td><div class="hand hand-invalid">5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -728,8 +765,8 @@
         <td class="num">50</td>
         <td class="name">Charakter 58</td>
         <td class="cost">nTuple(2)</td>
-        <td class="number">0</td>
-        <td class="number">0</td>
+        <td><div class="hand hand-valid">5+5</div></td>
+        <td><div class="hand hand-invalid">5</div></td>
         <td class="test">✅</td>
         <td class="test">✅</td>
         <td class="status pass">✓ PASS</td>
@@ -739,16 +776,15 @@
   </table>
 
   <script>
-    // Allow filtering by status
+    // Console output for debugging
     document.addEventListener('DOMContentLoaded', function() {
       const rows = document.querySelectorAll('tbody tr');
       const failedRows = Array.from(rows).filter(r => r.querySelector('.fail'));
       
       if (failedRows.length > 0) {
         console.warn('⚠️  ' + failedRows.length + ' cards have failed tests');
-        failedRows.forEach(r => {
-          console.log(r.textContent);
-        });
+      } else {
+        console.log('✅ All card tests passed!');
       }
     });
   </script>
