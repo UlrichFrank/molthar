@@ -3,6 +3,8 @@
  * Dynamically imports all images to ensure correct paths
  */
 
+import { getAllCards } from '@portale-von-molthar/shared';
+
 const imageCache = new Map<string, HTMLImageElement>();
 
 /**
@@ -76,7 +78,8 @@ export function getScaledDimensions(
  * Preload all card images
  */
 export async function preloadAllImages(): Promise<void> {
-  const filenames = [
+  // Static UI elements
+  const staticFilenames = [
     // Game board backgrounds (preload first so they appear quickly)
     'Spielflaeche.png',
     'Auslage.png',
@@ -100,10 +103,6 @@ export async function preloadAllImages(): Promise<void> {
     'Perlenkarte7.jpeg',
     'Perlenkarte8.jpeg',
 
-    // Character cards
-    'Charakterkarte Hinten.jpeg',
-    ...Array.from({ length: 58 }, (_, i) => `Charakterkarte${i + 1}.jpeg`),
-
     // Portal images
     'Portal1.jpeg',
     'Portal2.jpeg',
@@ -111,10 +110,32 @@ export async function preloadAllImages(): Promise<void> {
     'Portal4.jpeg',
     'Portal5.jpeg',
   ];
+
+  // Dynamically load character card images from cards database
+  const characterCardImages = new Set<string>();
+  characterCardImages.add('Charakterkarte Hinten.jpeg'); // Back of card
+  
+  try {
+    const allCards = getAllCards();
+    allCards.forEach(card => {
+      if (card.imageName) {
+        characterCardImages.add(card.imageName);
+      }
+    });
+  } catch (err) {
+    console.warn('Failed to load character cards from database:', err);
+    // Fallback to hardcoded list if database fails
+    for (let i = 1; i <= 58; i++) {
+      characterCardImages.add(`Charakterkarte${i}.jpeg`);
+    }
+  }
+
+  const filenames = [...staticFilenames, ...Array.from(characterCardImages)];
   
   const promises = filenames.map((filename) => 
     loadImage(filename)
       .catch((err) => {
+        console.warn(`Warning: Failed to preload image: ${filename}`);
         // Continue loading other images even if one fails
       })
   );
