@@ -1,784 +1,469 @@
 <!DOCTYPE html>
-<html lang="de">
+<html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Card Cost Payment Test Report</title>
+  <title>Card Cost Validation Report</title>
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      max-width: 1900px;
-      margin: 0 auto;
-      padding: 20px;
-      background: #f5f5f5;
-      color: #333;
-    }
-    .header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 30px;
-      border-radius: 8px;
-      margin-bottom: 30px;
-    }
-    h1 {
-      margin: 0;
-      font-size: 28px;
-    }
-    .subtitle {
-      margin-top: 10px;
-      font-size: 16px;
-      opacity: 0.95;
-    }
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 20px;
-      margin-top: 20px;
-    }
-    .stat-box {
-      background: rgba(255,255,255,0.2);
-      padding: 15px;
-      border-radius: 6px;
-      text-align: center;
-    }
-    .stat-number {
-      font-size: 32px;
-      font-weight: bold;
-      margin: 10px 0;
-    }
-    .stat-label {
-      font-size: 12px;
-      opacity: 0.9;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      margin-bottom: 30px;
-    }
-    th {
-      background: #667eea;
-      color: white;
-      padding: 15px;
-      text-align: left;
-      font-weight: 600;
-      font-size: 13px;
-      white-space: nowrap;
-    }
-    td {
-      padding: 12px 15px;
-      border-bottom: 1px solid #eee;
-      font-size: 13px;
-    }
-    tr:hover {
-      background: #f9f9f9;
-    }
-    tr.impossible {
-      background: #fff9e6;
-    }
-    .num {
-      width: 35px;
-      color: #999;
-      font-size: 11px;
-      text-align: center;
-    }
-    .name {
-      font-weight: 600;
-      min-width: 120px;
-    }
-    .cost {
-      font-family: 'Monaco', 'Menlo', monospace;
-      font-size: 11px;
-      color: #666;
-    }
-    .hand {
-      font-family: 'Monaco', 'Menlo', monospace;
-      font-size: 12px;
-      background: #f5f5f5;
-      padding: 6px 10px;
-      border-radius: 3px;
-      color: #2c3e50;
-      border-left: 3px solid #ddd;
-    }
-    .hand-valid {
-      background: #e8f5e9;
-      color: #2e7d32;
-      border-left-color: #4caf50;
-    }
-    .hand-invalid {
-      background: #ffebee;
-      color: #c62828;
-      border-left-color: #f44336;
-    }
-    .test {
-      text-align: center;
-      font-size: 16px;
-      width: 45px;
-    }
-    .status {
-      text-align: center;
-      font-weight: 600;
-      width: 110px;
-    }
-    .pass {
-      color: #4caf50;
-    }
-    .fail {
-      color: #f44336;
-    }
-    .warning {
-      color: #ff9800;
-    }
-    .legend {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    .legend-item {
-      margin: 8px 0;
-      font-size: 14px;
-    }
-    .emoji {
-      font-size: 18px;
-      margin-right: 8px;
-      display: inline-block;
-      width: 24px;
-    }
-    .legend-section {
-      margin-top: 15px;
-    }
-    .legend-section strong {
-      display: block;
-      margin-bottom: 8px;
-      color: #667eea;
-    }
+    body { font-family: monospace; margin: 20px; background: #f5f5f5; }
+    h1 { color: #333; }
+    table { width: 100%; border-collapse: collapse; background: white; }
+    th, td { padding: 10px; text-align: left; border: 1px solid #ddd; }
+    th { background: #4CAF50; color: white; }
+    tr:nth-child(even) { background: #f9f9f9; }
+    .pass { color: green; font-weight: bold; }
+    .fail { color: red; font-weight: bold; }
+    .cost { font-size: 0.85em; color: #666; }
   </style>
 </head>
 <body>
-  <div class="header">
-    <h1>📋 Card Cost Payment Test Report</h1>
-    <div class="subtitle">AND Logic: All cost components must be satisfied together</div>
-    <p>Test results for all 50 character cards from cards.json</p>
-    <div class="stats">
-      <div class="stat-box">
-        <div class="stat-label">Total Cards</div>
-        <div class="stat-number">50</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Positive Tests</div>
-        <div class="stat-number">50/50</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Negative Tests</div>
-        <div class="stat-number">50/50</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Impossible</div>
-        <div class="stat-number">0</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label" style="font-size: 18px; font-weight: bold;">
-          ✅ ALL
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="legend">
-    <strong>Cost Components Reference:</strong>
-    <div class="legend-item"><code>number[5]</code> = Pearls summing to 5</div>
-    <div class="legend-item"><code>nTuple(2)</code> = 2 identical valued pearls</div>
-    <div class="legend-item"><code>run</code> = Sequential cards (e.g., 1-2-3)</div>
-    <div class="legend-item"><code>sumTuple(3, sum:20)</code> = 3 pearls summing to exactly 20</div>
-    <div class="legend-item"><code>sumAnyTuple(sum:10)</code> = Any number of pearls summing to 10</div>
-    <div class="legend-item"><code>evenTuple(2)</code> = 2 even-valued pearls</div>
-    <div class="legend-item"><code>oddTuple(2)</code> = 2 odd-valued pearls</div>
-  </div>
-
+  <h1>Card Cost Validation Report</h1>
+  <p>Generated: 2026-03-22T18:48:37.571Z</p>
   <table>
     <thead>
       <tr>
-        <th class="num">#</th>
-        <th class="name">Card</th>
-        <th class="cost">Cost Components</th>
-        <th>💚 Valid</th>
-        <th>❤️ Invalid</th>
-        <th class="test">✅</th>
-        <th class="test">❌</th>
-        <th class="status">Status</th>
+        <th>Card</th>
+        <th>Valid Hand</th>
+        <th>Invalid Hand</th>
+        <th>Cost</th>
+        <th>Status</th>
       </tr>
     </thead>
     <tbody>
-      
+
       <tr>
-        <td class="num">1</td>
-        <td class="name">Zwerg</td>
-        <td class="cost">nTuple(2) + number[6] + number[6]</td>
-        <td><div class="hand hand-valid">6+6+5+5</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Zwerg</td>
+        <td>6+6+5+5</td>
+        <td>6+6+5</td>
+        <td class="cost">[{"type":"nTuple","n":2},{"type":"number","value":6},{"type":"number","value":6}]</td>
+        <td class="pass">✓ PASS</td>
       </tr>
-      
+
       <tr>
-        <td class="num">2</td>
-        <td class="name">Tod</td>
-        <td class="cost">number[1] + number[8]</td>
-        <td><div class="hand hand-valid">8+1</div></td>
-        <td><div class="hand hand-invalid">empty</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Zwerg</td>
+        <td>6+6+5+5</td>
+        <td>6+6+5</td>
+        <td class="cost">[{"type":"nTuple","n":2},{"type":"number","value":6},{"type":"number","value":6}]</td>
+        <td class="pass">✓ PASS</td>
       </tr>
-      
+
       <tr>
-        <td class="num">3</td>
-        <td class="name">Kerberus</td>
-        <td class="cost">nTuple(3)</td>
-        <td><div class="hand hand-valid">5+5+5</div></td>
-        <td><div class="hand hand-invalid">5+5</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Tod</td>
+        <td>8+1</td>
+        <td>8</td>
+        <td class="cost">[{"type":"number","value":1},{"type":"number","value":8}]</td>
+        <td class="pass">✓ PASS</td>
       </tr>
-      
+
       <tr>
-        <td class="num">4</td>
-        <td class="name">Kerberus</td>
-        <td class="cost">nTuple(3)</td>
-        <td><div class="hand hand-valid">5+5+5</div></td>
-        <td><div class="hand hand-invalid">5+5</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Zerberus</td>
+        <td>5+5+5</td>
+        <td>5+5</td>
+        <td class="cost">[{"type":"nTuple","n":3}]</td>
+        <td class="pass">✓ PASS</td>
       </tr>
-      
+
       <tr>
-        <td class="num">5</td>
-        <td class="name">Medusa</td>
-        <td class="cost">sumTuple(3)(sum:7)</td>
-        <td><div class="hand hand-valid">3+2+2</div></td>
-        <td><div class="hand hand-invalid">2+2+2</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Zerberus</td>
+        <td>5+5+5</td>
+        <td>5+5</td>
+        <td class="cost">[{"type":"nTuple","n":3}]</td>
+        <td class="pass">✓ PASS</td>
       </tr>
-      
+
       <tr>
-        <td class="num">6</td>
-        <td class="name">Geflügelter Affe</td>
-        <td class="cost">sumAnyTuple(sum:10)</td>
-        <td><div class="hand hand-valid">8+2</div></td>
-        <td><div class="hand hand-invalid">8+1</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Medusa</td>
+        <td>empty</td>
+        <td>8</td>
+        <td class="cost">[{"type":"sumTuple","n":3,"sum":7}]</td>
+        <td class="fail">✗ FAIL</td>
       </tr>
-      
+
       <tr>
-        <td class="num">7</td>
-        <td class="name">Kobold</td>
-        <td class="cost">number[7] + number[7] + number[8] + number[8]</td>
-        <td><div class="hand hand-valid">8+8+7+7</div></td>
-        <td><div class="hand hand-invalid">6</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Medusa</td>
+        <td>empty</td>
+        <td>8</td>
+        <td class="cost">[{"type":"sumTuple","n":3,"sum":7}]</td>
+        <td class="fail">✗ FAIL</td>
       </tr>
-      
+
       <tr>
-        <td class="num">8</td>
-        <td class="name">-Fee</td>
-        <td class="cost">number[5] + number[6] + number[7]</td>
-        <td><div class="hand hand-valid">7+6+5</div></td>
-        <td><div class="hand hand-invalid">4</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Kobold</td>
+        <td>8+8+7+7</td>
+        <td>8+8+7+6</td>
+        <td class="cost">[{"type":"number","value":7},{"type":"number","value":7},{"type":"number","value":8},{"type":"number","value":8}]</td>
+        <td class="fail">✗ FAIL</td>
       </tr>
-      
+
       <tr>
-        <td class="num">9</td>
-        <td class="name">Zauberin</td>
-        <td class="cost">number[7] + number[7] + number[7] + number[7]</td>
-        <td><div class="hand hand-valid">7+7+7+7</div></td>
-        <td><div class="hand hand-invalid">6</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Kobold</td>
+        <td>8+8+7+7</td>
+        <td>8+8+7+6</td>
+        <td class="cost">[{"type":"number","value":7},{"type":"number","value":7},{"type":"number","value":8},{"type":"number","value":8}]</td>
+        <td class="fail">✗ FAIL</td>
       </tr>
-      
+
       <tr>
-        <td class="num">10</td>
-        <td class="name">Zauberin</td>
-        <td class="cost">number[7] + number[7] + number[7] + number[7]</td>
-        <td><div class="hand hand-valid">7+7+7+7</div></td>
-        <td><div class="hand hand-invalid">6</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Zauberin</td>
+        <td>7+7+7+7</td>
+        <td>7+7+7+6</td>
+        <td class="cost">[{"type":"number","value":7},{"type":"number","value":7},{"type":"number","value":7},{"type":"number","value":7}]</td>
+        <td class="fail">✗ FAIL</td>
       </tr>
-      
+
       <tr>
-        <td class="num">11</td>
-        <td class="name">Riese</td>
-        <td class="cost">number[6] + number[6] + number[8] + number[8]</td>
-        <td><div class="hand hand-valid">8+8+6+6</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Zauberin</td>
+        <td>7+7+7+7</td>
+        <td>7+7+7+6</td>
+        <td class="cost">[{"type":"number","value":7},{"type":"number","value":7},{"type":"number","value":7},{"type":"number","value":7}]</td>
+        <td class="fail">✗ FAIL</td>
       </tr>
-      
+
       <tr>
-        <td class="num">12</td>
-        <td class="name">Riese</td>
-        <td class="cost">number[6] + number[6] + number[8] + number[8]</td>
-        <td><div class="hand hand-valid">8+8+6+6</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Riese</td>
+        <td>8+8+6+6</td>
+        <td>8+8+6+5</td>
+        <td class="cost">[{"type":"number","value":6},{"type":"number","value":6},{"type":"number","value":8},{"type":"number","value":8}]</td>
+        <td class="fail">✗ FAIL</td>
       </tr>
-      
+
       <tr>
-        <td class="num">13</td>
-        <td class="name">Weißer Drache</td>
-        <td class="cost">number[1] + number[1] + number[1] + number[1]</td>
-        <td><div class="hand hand-valid">1+1+1+1</div></td>
-        <td><div class="hand hand-invalid">empty</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Riese</td>
+        <td>8+8+6+6</td>
+        <td>8+8+6+5</td>
+        <td class="cost">[{"type":"number","value":6},{"type":"number","value":6},{"type":"number","value":8},{"type":"number","value":8}]</td>
+        <td class="fail">✗ FAIL</td>
       </tr>
-      
+
       <tr>
-        <td class="num">14</td>
-        <td class="name">Zwergenkämpfer 6</td>
-        <td class="cost">number[6] + number[6]</td>
-        <td><div class="hand hand-valid">6+6</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Riese</td>
+        <td>8+8+6+6</td>
+        <td>8+8+6+5</td>
+        <td class="cost">[{"type":"number","value":6},{"type":"number","value":6},{"type":"number","value":8},{"type":"number","value":8}]</td>
+        <td class="fail">✗ FAIL</td>
       </tr>
-      
+
       <tr>
-        <td class="num">15</td>
-        <td class="name">Todesgeist</td>
-        <td class="cost">nTuple(2) + nTuple(2)</td>
-        <td><div class="hand hand-valid">5+5+5+5</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Weißer Drache</td>
+        <td>1+1+1+1</td>
+        <td>1+1+1</td>
+        <td class="cost">[{"type":"number","value":1},{"type":"number","value":1},{"type":"number","value":1},{"type":"number","value":1}]</td>
+        <td class="fail">✗ FAIL</td>
       </tr>
-      
+
       <tr>
-        <td class="num">16</td>
-        <td class="name">Ent</td>
-        <td class="cost">nTuple(4)</td>
-        <td><div class="hand hand-valid">5+5+5+5</div></td>
-        <td><div class="hand hand-invalid">5+5+5</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Zwergenkämpfer 6</td>
+        <td>6+6</td>
+        <td>6+5</td>
+        <td class="cost">[{"type":"number","value":6},{"type":"number","value":6}]</td>
+        <td class="fail">✗ FAIL</td>
       </tr>
-      
+
       <tr>
-        <td class="num">17</td>
-        <td class="name">Hobbit ungerade</td>
-        <td class="cost">oddTuple(3)</td>
-        <td><div class="hand hand-valid">5+3+1</div></td>
-        <td><div class="hand hand-invalid">6+4+2</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Todesgeist</td>
+        <td>5+5+5+5</td>
+        <td>5+5+5</td>
+        <td class="cost">[{"type":"nTuple","n":2},{"type":"nTuple","n":2}]</td>
+        <td class="fail">✗ FAIL</td>
       </tr>
-      
+
       <tr>
-        <td class="num">18</td>
-        <td class="name">Zwergenkämpfer 2</td>
-        <td class="cost">number[2] + number[2]</td>
-        <td><div class="hand hand-valid">2+2</div></td>
-        <td><div class="hand hand-invalid">1</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Ent</td>
+        <td>5+5+5+5</td>
+        <td>5+5+5</td>
+        <td class="cost">[{"type":"nTuple","n":4}]</td>
+        <td class="pass">✓ PASS</td>
       </tr>
-      
+
       <tr>
-        <td class="num">19</td>
-        <td class="name">Rotkäppchen</td>
-        <td class="cost">number[4] + number[5] + number[6] + number[7] + number[8]</td>
-        <td><div class="hand hand-valid">8+7+6+5+4</div></td>
-        <td><div class="hand hand-invalid">3</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Hobbit (ungerade)</td>
+        <td>empty</td>
+        <td>empty</td>
+        <td class="cost">[{"type":"oddTuple","n":3}]</td>
+        <td class="fail">✗ FAIL</td>
       </tr>
-      
+
       <tr>
-        <td class="num">20</td>
-        <td class="name">Conan der Barbar</td>
-        <td class="cost">sumTuple(3)(sum:20)</td>
-        <td><div class="hand hand-valid">7+7+6</div></td>
-        <td><div class="hand hand-invalid">7+6+6</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Zwergenkämpfer 2</td>
+        <td>2+2</td>
+        <td>2+1</td>
+        <td class="cost">[{"type":"number","value":2},{"type":"number","value":2}]</td>
+        <td class="fail">✗ FAIL</td>
       </tr>
-      
+
       <tr>
-        <td class="num">21</td>
-        <td class="name">Red Sonja</td>
-        <td class="cost">number[3] + number[5] + number[7]</td>
-        <td><div class="hand hand-valid">7+5+3</div></td>
-        <td><div class="hand hand-invalid">2</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Rotkäppchen</td>
+        <td>8+7+6+5+4</td>
+        <td>8+7+6+5+3</td>
+        <td class="cost">[{"type":"number","value":4},{"type":"number","value":5},{"type":"number","value":6},{"type":"number","value":7},{"type":"number","value":8}]</td>
+        <td class="pass">✓ PASS</td>
       </tr>
-      
+
       <tr>
-        <td class="num">22</td>
-        <td class="name">Schneewittchen</td>
-        <td class="cost">number[2]</td>
-        <td><div class="hand hand-valid">2</div></td>
-        <td><div class="hand hand-invalid">1</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Conan der Barbar</td>
+        <td>8+7+5</td>
+        <td>8+7+6</td>
+        <td class="cost">[{"type":"sumTuple","n":3,"sum":20}]</td>
+        <td class="pass">✓ PASS</td>
       </tr>
-      
+
       <tr>
-        <td class="num">23</td>
-        <td class="name">Magier</td>
-        <td class="cost">run</td>
-        <td><div class="hand hand-valid">3+2+1</div></td>
-        <td><div class="hand hand-invalid">2+1</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Red Sonja</td>
+        <td>7+5+3</td>
+        <td>7+5+2</td>
+        <td class="cost">[{"type":"number","value":3},{"type":"number","value":5},{"type":"number","value":7}]</td>
+        <td class="pass">✓ PASS</td>
       </tr>
-      
+
       <tr>
-        <td class="num">24</td>
-        <td class="name">Koboldkämpfer</td>
-        <td class="cost">nTuple(2)</td>
-        <td><div class="hand hand-valid">5+5</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Schneewittchen</td>
+        <td>2</td>
+        <td>1</td>
+        <td class="cost">[{"type":"number","value":2}]</td>
+        <td class="pass">✓ PASS</td>
       </tr>
-      
+
       <tr>
-        <td class="num">25</td>
-        <td class="name">-Fee</td>
-        <td class="cost">number[5] + number[6] + number[7]</td>
-        <td><div class="hand hand-valid">7+6+5</div></td>
-        <td><div class="hand hand-invalid">4</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Gandalf</td>
+        <td>3+2+1</td>
+        <td>2+1</td>
+        <td class="cost">[{"type":"run","length":3}]</td>
+        <td class="pass">✓ PASS</td>
       </tr>
-      
+
       <tr>
-        <td class="num">26</td>
-        <td class="name">Zwergenkämpfer 7</td>
-        <td class="cost">number[7] + number[7]</td>
-        <td><div class="hand hand-valid">7+7</div></td>
-        <td><div class="hand hand-invalid">6</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Fee</td>
+        <td>7+6+5</td>
+        <td>7+6+4</td>
+        <td class="cost">[{"type":"number","value":5},{"type":"number","value":6},{"type":"number","value":7}]</td>
+        <td class="pass">✓ PASS</td>
       </tr>
-      
+
       <tr>
-        <td class="num">27</td>
-        <td class="name">Irrlicht</td>
-        <td class="cost">drillingChoice</td>
-        <td><div class="hand hand-valid">3+3+3</div></td>
-        <td><div class="hand hand-invalid">6+3+3</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Fee</td>
+        <td>7+6+5</td>
+        <td>7+6+4</td>
+        <td class="cost">[{"type":"number","value":5},{"type":"number","value":6},{"type":"number","value":7}]</td>
+        <td class="pass">✓ PASS</td>
       </tr>
-      
+
       <tr>
-        <td class="num">28</td>
-        <td class="name">Feuerteufel</td>
-        <td class="cost">number[3] + number[3] + number[3]</td>
-        <td><div class="hand hand-valid">3+3+3</div></td>
-        <td><div class="hand hand-invalid">2</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Zwergenkämpfer 7</td>
+        <td>7+7</td>
+        <td>7+6</td>
+        <td class="cost">[{"type":"number","value":7},{"type":"number","value":7}]</td>
+        <td class="fail">✗ FAIL</td>
       </tr>
-      
+
       <tr>
-        <td class="num">29</td>
-        <td class="name">Hobbit gerade</td>
-        <td class="cost">evenTuple(3)</td>
-        <td><div class="hand hand-valid">6+4+2</div></td>
-        <td><div class="hand hand-invalid">5+3+1</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Irrlicht (3/6)</td>
+        <td>empty</td>
+        <td>empty</td>
+        <td class="cost">[{"type":"drillingChoice","value1":3,"value2":6}]</td>
+        <td class="fail">✗ FAIL</td>
       </tr>
-      
+
       <tr>
-        <td class="num">30</td>
-        <td class="name">Zwergenkämpfer 4</td>
-        <td class="cost">number[4] + number[4]</td>
-        <td><div class="hand hand-valid">4+4</div></td>
-        <td><div class="hand hand-invalid">3</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Feuerteufel</td>
+        <td>3+3+3</td>
+        <td>3+3+2</td>
+        <td class="cost">[{"type":"number","value":3},{"type":"number","value":3},{"type":"number","value":3}]</td>
+        <td class="fail">✗ FAIL</td>
       </tr>
-      
+
       <tr>
-        <td class="num">31</td>
-        <td class="name">Hänsel und Gretel</td>
-        <td class="cost">number[8] + number[8]</td>
-        <td><div class="hand hand-valid">8+8</div></td>
-        <td><div class="hand hand-invalid">7</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Hobbit (gerade)</td>
+        <td>empty</td>
+        <td>empty</td>
+        <td class="cost">[{"type":"evenTuple","n":3}]</td>
+        <td class="fail">✗ FAIL</td>
       </tr>
-      
+
       <tr>
-        <td class="num">32</td>
-        <td class="name">Hänsel und Gretel</td>
-        <td class="cost">number[8] + number[8]</td>
-        <td><div class="hand hand-valid">8+8</div></td>
-        <td><div class="hand hand-invalid">7</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Zwergenkämpfer 4</td>
+        <td>4+4</td>
+        <td>4+3</td>
+        <td class="cost">[{"type":"number","value":4},{"type":"number","value":4}]</td>
+        <td class="fail">✗ FAIL</td>
       </tr>
-      
+
       <tr>
-        <td class="num">33</td>
-        <td class="name">Zwergenkämpfer 5</td>
-        <td class="cost">number[5] + number[5]</td>
-        <td><div class="hand hand-valid">5+5</div></td>
-        <td><div class="hand hand-invalid">4</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Hänsel und Gretel</td>
+        <td>8+8</td>
+        <td>8+7</td>
+        <td class="cost">[{"type":"number","value":8},{"type":"number","value":8}]</td>
+        <td class="fail">✗ FAIL</td>
       </tr>
-      
+
       <tr>
-        <td class="num">34</td>
-        <td class="name">-gestiefelte Kater</td>
-        <td class="cost">nTuple(2)</td>
-        <td><div class="hand hand-valid">5+5</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Hänsel und Gretel</td>
+        <td>8+8</td>
+        <td>8+7</td>
+        <td class="cost">[{"type":"number","value":8},{"type":"number","value":8}]</td>
+        <td class="fail">✗ FAIL</td>
       </tr>
-      
+
       <tr>
-        <td class="num">35</td>
-        <td class="name">Einhorn</td>
-        <td class="cost">number[1] + number[2] + number[3] + number[4]</td>
-        <td><div class="hand hand-valid">4+3+2+1</div></td>
-        <td><div class="hand hand-invalid">empty</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Zwergenkämpfer 5</td>
+        <td>5+5</td>
+        <td>5+4</td>
+        <td class="cost">[{"type":"number","value":5},{"type":"number","value":5}]</td>
+        <td class="fail">✗ FAIL</td>
       </tr>
-      
+
       <tr>
-        <td class="num">36</td>
-        <td class="name">Geflügelter Affe</td>
-        <td class="cost">nTuple(2)</td>
-        <td><div class="hand hand-valid">5+5</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Gestiefelte Kater</td>
+        <td>5+4+3</td>
+        <td>5+4+2</td>
+        <td class="cost">[{"type":"number","value":3},{"type":"number","value":4},{"type":"number","value":5}]</td>
+        <td class="pass">✓ PASS</td>
       </tr>
-      
+
       <tr>
-        <td class="num">37</td>
-        <td class="name">Captain Hook</td>
-        <td class="cost">nTuple(2)</td>
-        <td><div class="hand hand-valid">5+5</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Einhorn</td>
+        <td>4+3+2+1</td>
+        <td>4+3+2</td>
+        <td class="cost">[{"type":"number","value":1},{"type":"number","value":2},{"type":"number","value":3},{"type":"number","value":4}]</td>
+        <td class="pass">✓ PASS</td>
       </tr>
-      
+
       <tr>
-        <td class="num">38</td>
-        <td class="name">Phoenix</td>
-        <td class="cost">nTuple(2)</td>
-        <td><div class="hand hand-valid">5+5</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Geflügelter Affe</td>
+        <td>8+2</td>
+        <td>8+1</td>
+        <td class="cost">[{"type":"sumAnyTuple","sum":10}]</td>
+        <td class="pass">✓ PASS</td>
       </tr>
-      
+
       <tr>
-        <td class="num">39</td>
-        <td class="name">Phoenix</td>
-        <td class="cost">nTuple(2)</td>
-        <td><div class="hand hand-valid">5+5</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Geflügelter Affe</td>
+        <td>8+2</td>
+        <td>8+1</td>
+        <td class="cost">[{"type":"sumAnyTuple","sum":10}]</td>
+        <td class="pass">✓ PASS</td>
       </tr>
-      
+
       <tr>
-        <td class="num">40</td>
-        <td class="name">Charakter 47</td>
-        <td class="cost">nTuple(2)</td>
-        <td><div class="hand hand-valid">5+5</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Geflügelter Affe</td>
+        <td>8+2</td>
+        <td>8+1</td>
+        <td class="cost">[{"type":"sumAnyTuple","sum":10}]</td>
+        <td class="pass">✓ PASS</td>
       </tr>
-      
+
       <tr>
-        <td class="num">41</td>
-        <td class="name">Charakter 48</td>
-        <td class="cost">nTuple(2)</td>
-        <td><div class="hand hand-valid">5+5</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Captain Hook</td>
+        <td>2+2+2</td>
+        <td>2+2+1</td>
+        <td class="cost">[{"type":"number","value":2},{"type":"number","value":2},{"type":"number","value":2},{"type":"diamond"}]</td>
+        <td class="fail">✗ FAIL</td>
       </tr>
-      
+
       <tr>
-        <td class="num">42</td>
-        <td class="name">Charakter 49</td>
-        <td class="cost">nTuple(2)</td>
-        <td><div class="hand hand-valid">5+5</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Phoenix</td>
+        <td>2+1</td>
+        <td>2</td>
+        <td class="cost">[{"type":"number","value":1},{"type":"number","value":2}]</td>
+        <td class="pass">✓ PASS</td>
       </tr>
-      
+
       <tr>
-        <td class="num">43</td>
-        <td class="name">Charakter 50</td>
-        <td class="cost">nTuple(2)</td>
-        <td><div class="hand hand-valid">5+5</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Phoenix</td>
+        <td>2+1</td>
+        <td>2</td>
+        <td class="cost">[{"type":"number","value":1},{"type":"number","value":2}]</td>
+        <td class="pass">✓ PASS</td>
       </tr>
-      
+
       <tr>
-        <td class="num">44</td>
-        <td class="name">Charakter 51</td>
-        <td class="cost">nTuple(2)</td>
-        <td><div class="hand hand-valid">5+5</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Löwe</td>
+        <td>8+8+8+8</td>
+        <td>8+8+8+7</td>
+        <td class="cost">[{"type":"number","value":8},{"type":"number","value":8},{"type":"number","value":8},{"type":"number","value":8}]</td>
+        <td class="fail">✗ FAIL</td>
       </tr>
-      
+
       <tr>
-        <td class="num">45</td>
-        <td class="name">Peter Pan</td>
-        <td class="cost">nTuple(2)</td>
-        <td><div class="hand hand-valid">5+5</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Tapfere Schneiderlein</td>
+        <td>5+4+3+2+1</td>
+        <td>4+3+2+1</td>
+        <td class="cost">[{"type":"run","length":5}]</td>
+        <td class="pass">✓ PASS</td>
       </tr>
-      
+
       <tr>
-        <td class="num">46</td>
-        <td class="name">Charakter 53</td>
-        <td class="cost">nTuple(2)</td>
-        <td><div class="hand hand-valid">5+5</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Golem (1357)</td>
+        <td>7+5+3+1</td>
+        <td>7+5+3</td>
+        <td class="cost">[{"type":"number","value":1},{"type":"number","value":3},{"type":"number","value":5},{"type":"number","value":7}]</td>
+        <td class="pass">✓ PASS</td>
       </tr>
-      
+
       <tr>
-        <td class="num">47</td>
-        <td class="name">Koboldkämpfer</td>
-        <td class="cost">nTuple(2)</td>
-        <td><div class="hand hand-valid">5+5</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Peter Pan</td>
+        <td>empty</td>
+        <td>8+3</td>
+        <td class="cost">[{"type":"sumTuple","n":3,"sum":10}]</td>
+        <td class="fail">✗ FAIL</td>
       </tr>
-      
+
       <tr>
-        <td class="num">48</td>
-        <td class="name">Charakter 55</td>
-        <td class="cost">nTuple(2)</td>
-        <td><div class="hand hand-valid">5+5</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Koboldkämpfer</td>
+        <td>5+5</td>
+        <td>5</td>
+        <td class="cost">[{"type":"nTuple","n":2}]</td>
+        <td class="pass">✓ PASS</td>
       </tr>
-      
+
       <tr>
-        <td class="num">49</td>
-        <td class="name">Zwergenkämpfer 3</td>
-        <td class="cost">nTuple(2)</td>
-        <td><div class="hand hand-valid">5+5</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Koboldkämpfer</td>
+        <td>5+5</td>
+        <td>5</td>
+        <td class="cost">[{"type":"nTuple","n":2}]</td>
+        <td class="pass">✓ PASS</td>
       </tr>
-      
+
       <tr>
-        <td class="num">50</td>
-        <td class="name">Charakter 58</td>
-        <td class="cost">nTuple(2)</td>
-        <td><div class="hand hand-valid">5+5</div></td>
-        <td><div class="hand hand-invalid">5</div></td>
-        <td class="test">✅</td>
-        <td class="test">✅</td>
-        <td class="status pass">✓ PASS</td>
+        <td>Koboldkämpfer</td>
+        <td>5+5</td>
+        <td>5</td>
+        <td class="cost">[{"type":"nTuple","n":2}]</td>
+        <td class="pass">✓ PASS</td>
       </tr>
-      
+
+      <tr>
+        <td>Zwergenkämpfer 3</td>
+        <td>3+3</td>
+        <td>3+2</td>
+        <td class="cost">[{"type":"number","value":3},{"type":"number","value":3}]</td>
+        <td class="fail">✗ FAIL</td>
+      </tr>
+
+      <tr>
+        <td>Irrlicht (4/5)</td>
+        <td>empty</td>
+        <td>empty</td>
+        <td class="cost">[{"type":"drillingChoice","value1":4,"value2":5}]</td>
+        <td class="fail">✗ FAIL</td>
+      </tr>
+
+      <tr>
+        <td>Zwergenkämpfer 1</td>
+        <td>1+1</td>
+        <td>1</td>
+        <td class="cost">[{"type":"number","value":1},{"type":"number","value":1}]</td>
+        <td class="fail">✗ FAIL</td>
+      </tr>
+
+      <tr>
+        <td>Golem (2468)</td>
+        <td>8+6+4+2</td>
+        <td>8+6+4+1</td>
+        <td class="cost">[{"type":"number","value":2},{"type":"number","value":4},{"type":"number","value":6},{"type":"number","value":8}]</td>
+        <td class="pass">✓ PASS</td>
+      </tr>
+
     </tbody>
   </table>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const rows = document.querySelectorAll('tbody tr');
-      const failedRows = Array.from(rows).filter(r => r.querySelector('.fail'));
-      
-      if (failedRows.length > 0) {
-        console.warn('⚠️  ' + failedRows.length + ' cards have issues');
-      } else {
-        console.log('✅ All card tests passed!');
-      }
-    });
-  </script>
+  <p>Total: 54 cards | Passed: 26</p>
 </body>
 </html>

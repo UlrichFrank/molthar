@@ -18,17 +18,12 @@ interface RawCardData {
   cardCount: number;
 }
 
-// Load cards from cards.json (single source of truth)
-// Using Vite's import.meta.glob for proper module resolution
-const modules = import.meta.glob<string>('../../resources/assets/cards.json', { query: '?raw', import: 'default' });
-const cardsJson = Object.values(modules)[0] || '[]';
-
+// Placeholder - will be populated by tests
 let RAW_CARDS: RawCardData[] = [];
-try {
-  RAW_CARDS = JSON.parse(cardsJson);
-} catch (error) {
-  console.warn('Failed to parse cards.json:', error);
-  RAW_CARDS = [];
+
+// Export for test setup
+export function __setRawCards(cards: RawCardData[]): void {
+  RAW_CARDS = cards;
 }
 
 /**

@@ -2,8 +2,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    // Exclude compiled .js test files from dist directory
-    // Tests should only run from src/**/*.test.ts files
+    globals: true,
     exclude: [
       'node_modules',
       'dist',
@@ -11,6 +10,6 @@ export default defineConfig({
       '.git',
       '.cache',
     ],
-    globals: true,
+    setupFiles: ['./vitest.setup.js'],
   },
 });
