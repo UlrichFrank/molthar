@@ -263,31 +263,10 @@ function generateValidHandForCosts(costComponents, diamondCount = 0) {
     return [];
   }
 
-  // Generate hand with diamond modifiers applied per component
-  // This matches the costCalculation.ts logic: each component is reduced independently
-  const hands = costComponents.map(comp => {
-    if (comp.type === 'number') {
-      let value = comp.value || 0;
-      // Apply diamond reduction to each 'number' component
-      if (diamondCount > 0) {
-        value = Math.max(1, value - diamondCount);
-      }
-      
-      if (value === 0) return [];
-      
-      const hand = [];
-      let remaining = value;
-      for (let i = 8; i >= 1 && remaining > 0; i--) {
-        if (remaining >= i) {
-          hand.push(createPearlCard(i));
-          remaining -= i;
-        }
-      }
-      return hand;
-    }
-    return generateHandForComponent(comp, true, 0);
-  });
-  
+  // IMPORTANT: Diamonds are an explicit player action, not automatic calculation
+  // Generate hands for BASE costs only (without diamond modification)
+  // Player chooses to use diamonds BEFORE selecting cards
+  const hands = costComponents.map(comp => generateHandForComponent(comp, true, 0));
   return mergeHands(hands);
 }
 
@@ -344,15 +323,16 @@ cards.forEach((card, index) => {
   const cardNum = index + 1;
   const isImpossible = isCostImpossible(card.cost);
   
-  const validHand = generateValidHandForCosts(card.cost, card.diamonds);
-  const positiveResult = validateCostPayment(card.cost, validHand, card.diamonds);
+  const validHand = generateValidHandForCosts(card.cost, 0);
+  // IMPORTANT: Diamonds are an explicit player choice - validate without them
+  const positiveResult = validateCostPayment(card.cost, validHand, 0);
   
-  const invalidHand = generateInvalidHandForCosts(card.cost, card.diamonds);
-  const negativeResult = validateCostPayment(card.cost, invalidHand, 0);  // No diamonds for invalid test
+  const invalidHand = generateInvalidHandForCosts(card.cost, 0);
+  const negativeResult = validateCostPayment(card.cost, invalidHand, 0);
   
   // Try to generate alternative valid hand
-  const altValidHand = generateAlternativeValidHand(card.cost, card.diamonds);
-  const altValidResult = altValidHand ? validateCostPayment(card.cost, altValidHand, card.diamonds) : null;
+  const altValidHand = generateAlternativeValidHand(card.cost, 0);
+  const altValidResult = altValidHand ? validateCostPayment(card.cost, altValidHand, 0) : null;
   
   if (positiveResult) positivePassCount++;
   if (!negativeResult) negativePassCount++;

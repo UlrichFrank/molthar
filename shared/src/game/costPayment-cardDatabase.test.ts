@@ -17,16 +17,14 @@ function createPearlCard(value: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8, hasSwapSymbol = f
   };
 }
 
-function generateHandForComponent(component: CostComponent, shouldPass: boolean, diamondCount: number = 0): PearlCard[] {
+function generateHandForComponent(component: CostComponent, shouldPass: boolean, _diamondCount: number = 0): PearlCard[] {
   const type = component.type;
 
   switch (type) {
     case 'number': {
-      let value = component.value || 10;
-      // Apply diamond modifier for 'number' type only
-      if (diamondCount > 0) {
-        value = Math.max(1, value - diamondCount);
-      }
+      // IMPORTANT: Don't apply diamond reduction here
+      // Diamonds are an explicit player choice, not automatic calculation
+      const value = component.value || 10;
       
       if (shouldPass) {
         const hand = [];
@@ -169,12 +167,15 @@ function mergeHands(hands: PearlCard[][]): PearlCard[] {
 /**
  * Generate valid hand that satisfies ALL cost components
  */
-function generateValidHandForCost(costComponents: CostComponent[] | undefined, diamondCount: number = 0): PearlCard[] {
+function generateValidHandForCost(costComponents: CostComponent[] | undefined, _diamondCount: number = 0): PearlCard[] {
   if (!costComponents || costComponents.length === 0) {
     return [];
   }
 
-  const hands = costComponents.map(comp => generateHandForComponent(comp, true, diamondCount));
+  // IMPORTANT: Diamonds are an explicit player action, not automatic calculation
+  // Generate hands for BASE costs only (without diamond modification)
+  // diamondCount parameter is ignored - player chooses diamonds explicitly
+  const hands = costComponents.map(comp => generateHandForComponent(comp, true, 0));
   return mergeHands(hands);
 }
 
@@ -210,7 +211,8 @@ allCards.forEach(card => {
   describe(`Card: ${card.name} (${card.id})`, () => {
     it('should validate with valid payment', () => {
       const validHand = generateValidHandForCost(card.cost, card.diamonds);
-      const result = validateCostPayment(card.cost, validHand, card.diamonds);
+      // IMPORTANT: Diamonds are an explicit player choice - test with NO diamonds
+      const result = validateCostPayment(card.cost, validHand, 0);
       
       if (card.cost && card.cost.length > 0) {
         const hasImpossible = card.cost.some(c => {
