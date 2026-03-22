@@ -64,9 +64,9 @@
   padding: 0.75rem;
   border-radius: 8px;
   border: 2px solid #ddd;
-  /* Use a viewport-relative cap so character list can scale with available screen height */
-  max-height: min(200px, 25vh);
-  overflow-y: auto;
+  /* Allow the character list to expand; let the dialog handle scrolling */
+  max-height: none;
+  overflow-y: visible;
 }
 
 @media (min-width: 500px) {
@@ -171,9 +171,9 @@
   background: white;
   padding: 0.75rem;
   border-radius: 8px;
-  /* Limit hand grid height relative to viewport so dialog can grow to full available height */
-  max-height: min(250px, 30vh);
-  overflow-y: auto;
+  /* Let the hand grid expand to fit content; dialog will scroll if needed */
+  max-height: none;
+  overflow-y: visible;
 }
 
 @media (min-width: 500px) {

@@ -30,10 +30,18 @@ export function CharacterActivationDialog({
     (c) => c.slotIndex === selectedCharacterSlot
   )?.card;
 
+  // Debug: Log available characters and selected character
+  console.log('CharacterActivationDialog - availableCharacters:', availableCharacters);
+  console.log('CharacterActivationDialog - selectedCharacter:', selectedCharacter);
+  console.log('CharacterActivationDialog - portalSlotIndex:', portalSlotIndex);
+
   const isValidPayment = useMemo(() => {
     if (!selectedCharacter) return false;
     const selectedCards = Array.from(selectedCardIndices).map(idx => hand[idx]);
-    return validateCostPayment(selectedCharacter.cost, selectedCards, diamonds);
+    console.log('Validating cost for:', selectedCharacter.name, 'with cost:', selectedCharacter.cost);
+    const result = validateCostPayment(selectedCharacter.cost, selectedCards, diamonds);
+    console.log('Validation result:', result);
+    return result;
   }, [selectedCharacterSlot, selectedCardIndices, selectedCharacter, hand, diamonds]);
 
   const toggleCard = (index: number) => {

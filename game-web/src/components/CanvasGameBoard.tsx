@@ -287,6 +287,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
         // Show activation dialog when player's own portal slot is clicked
         if (me && me.portal[slotIndex]) {
           const entry = me.portal[slotIndex];
+          console.log(`Portal slot ${slotIndex} clicked, opening activation dialog for:`, entry.card.name);
           dialog.openActivationDialog(entry.card, slotIndex);
         }
         break;
