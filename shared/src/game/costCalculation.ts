@@ -260,19 +260,25 @@ export function validateOddTupleCost(
 }
 
 /**
- * Validate drilling choice cost
- * Special rule: must have all cards of one color (placeholder for future expansion)
- * @param _costComponent - Cost component with type 'drillingChoice'
+ * Validate drilling choice cost (will be renamed to tripleChoice)
+ * Must have 3 cards of value1 OR 3 cards of value2
+ * @param costComponent - Cost component with type 'drillingChoice' or 'tripleChoice'
  * @param hand - Player's hand of pearl cards
- * @returns True if valid combination exists (currently always true as placeholder)
+ * @returns True if valid combination exists
  */
 export function validateDrillingChoiceCost(
-  _costComponent: CostComponent,
+  costComponent: CostComponent,
   hand: PearlCard[]
 ): boolean {
-  // Placeholder: drilling choice is a future rule
-  // For now, accept if hand is not empty
-  return hand.length > 0;
+  const value1 = costComponent.value1 || 3;
+  const value2 = costComponent.value2 || 6;
+  
+  // Count cards with each value
+  const count1 = hand.filter(c => c.value === value1).length;
+  const count2 = hand.filter(c => c.value === value2).length;
+  
+  // Need 3 of value1 OR 3 of value2
+  return count1 >= 3 || count2 >= 3;
 }
 
 /**
@@ -319,9 +325,29 @@ function validateCostComponent(
   switch (component.type) {
     case 'number': {
       // Fixed sum cost with diamond modifier
+      // Must find a subset of hand that sums to EXACTLY required value
       const required = calculateFixedSumCost(component, diamondCount);
-      const sum = hand.reduce((total, card) => total + card.value, 0);
-      return sum >= required;
+      
+      if (required <= 0) {
+        return true; // Free or negative cost
+      }
+      
+      // Use subset-finding backtracking to find cards summing to exactly required
+      function findSum(cards: PearlCard[], currentSum: number, target: number): boolean {
+        if (currentSum === target) return true;
+        if (currentSum > target || cards.length === 0) return false;
+        
+        const [first, ...rest] = cards;
+        
+        // Try including first card
+        if (findSum(rest, currentSum + first.value, target)) return true;
+        // Try excluding first card
+        if (findSum(rest, currentSum, target)) return true;
+        
+        return false;
+      }
+      
+      return findSum(hand, 0, required);
     }
 
     case 'nTuple': {

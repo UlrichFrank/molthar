@@ -17,12 +17,17 @@ function createPearlCard(value: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8, hasSwapSymbol = f
   };
 }
 
-function generateHandForComponent(component: CostComponent, shouldPass: boolean): PearlCard[] {
+function generateHandForComponent(component: CostComponent, shouldPass: boolean, diamondCount: number = 0): PearlCard[] {
   const type = component.type;
 
   switch (type) {
     case 'number': {
-      const value = component.value || 10;
+      let value = component.value || 10;
+      // Apply diamond modifier for 'number' type only
+      if (diamondCount > 0) {
+        value = Math.max(1, value - diamondCount);
+      }
+      
       if (shouldPass) {
         const hand = [];
         let remaining = value;
@@ -129,7 +134,23 @@ function generateHandForComponent(component: CostComponent, shouldPass: boolean)
     }
 
     case 'drillingChoice': {
-      return shouldPass ? [createPearlCard(5)] : [];
+      const value1 = component.value1 || 3;
+      const value2 = component.value2 || 6;
+      if (shouldPass) {
+        // Return 3 cards of value1
+        const hand = [];
+        for (let i = 0; i < 3; i++) {
+          hand.push(createPearlCard(value1 as any));
+        }
+        return hand;
+      } else {
+        // Return 2 of value1 + 1 of value2 (neither condition met)
+        const hand = [];
+        hand.push(createPearlCard(value1 as any));
+        hand.push(createPearlCard(value1 as any));
+        hand.push(createPearlCard(value2 as any));
+        return hand;
+      }
     }
 
     default:
@@ -148,12 +169,12 @@ function mergeHands(hands: PearlCard[][]): PearlCard[] {
 /**
  * Generate valid hand that satisfies ALL cost components
  */
-function generateValidHandForCost(costComponents: CostComponent[] | undefined): PearlCard[] {
+function generateValidHandForCost(costComponents: CostComponent[] | undefined, diamondCount: number = 0): PearlCard[] {
   if (!costComponents || costComponents.length === 0) {
     return [];
   }
 
-  const hands = costComponents.map(comp => generateHandForComponent(comp, true));
+  const hands = costComponents.map(comp => generateHandForComponent(comp, true, diamondCount));
   return mergeHands(hands);
 }
 
@@ -188,7 +209,7 @@ const allCards = getAllCards();
 allCards.forEach(card => {
   describe(`Card: ${card.name} (${card.id})`, () => {
     it('should validate with valid payment', () => {
-      const validHand = generateValidHandForCost(card.cost);
+      const validHand = generateValidHandForCost(card.cost, card.diamonds);
       const result = validateCostPayment(card.cost, validHand, card.diamonds);
       
       if (card.cost && card.cost.length > 0) {

@@ -43,12 +43,17 @@ function formatHand(hand) {
   return values.join('+');
 }
 
-function generateHandForComponent(component, shouldPass) {
+function generateHandForComponent(component, shouldPass, diamondCount = 0) {
   const type = component.type;
 
   switch (type) {
     case 'number': {
-      const value = component.value || 10;
+      let value = component.value || 10;
+      // Apply diamond modifier for 'number' type only (when shouldPass is true)
+      if (shouldPass && diamondCount > 0) {
+        value = Math.max(1, value - diamondCount);
+      }
+      
       if (shouldPass) {
         const hand = [];
         let remaining = value;
@@ -60,7 +65,18 @@ function generateHandForComponent(component, shouldPass) {
         }
         return hand;
       } else {
-        return [];
+        // Invalid: sum is 1 less than required
+        const hand = [];
+        let remaining = Math.max(0, value - 1);
+        if (remaining > 0) {
+          for (let i = 8; i >= 1 && remaining > 0; i--) {
+            if (remaining >= i) {
+              hand.push(createPearlCard(i));
+              remaining -= i;
+            }
+          }
+        }
+        return hand;
       }
     }
 
@@ -73,7 +89,12 @@ function generateHandForComponent(component, shouldPass) {
         }
         return hand;
       } else {
-        return [];
+        // Invalid: n-1 identical cards
+        const hand = [];
+        for (let i = 0; i < Math.max(0, n - 1); i++) {
+          hand.push(createPearlCard(5));
+        }
+        return hand;
       }
     }
 
@@ -86,7 +107,12 @@ function generateHandForComponent(component, shouldPass) {
         }
         return hand;
       } else {
-        return [];
+        // Invalid: run missing one card
+        const hand = [];
+        for (let i = 0; i < length - 1; i++) {
+          hand.push(createPearlCard(1 + i));
+        }
+        return hand;
       }
     }
 
@@ -104,7 +130,16 @@ function generateHandForComponent(component, shouldPass) {
         }
         return hand;
       } else {
-        return [];
+        // Invalid: n cards but sum is off by 1
+        const hand = [];
+        let remaining = Math.max(1, sum - 1);
+        for (let i = 0; i < n; i++) {
+          const avgNeeded = Math.ceil(remaining / (n - i));
+          const cardValue = Math.min(8, Math.max(1, avgNeeded));
+          hand.push(createPearlCard(cardValue));
+          remaining -= cardValue;
+        }
+        return hand;
       }
     }
 
@@ -122,7 +157,16 @@ function generateHandForComponent(component, shouldPass) {
         }
         return hand;
       } else {
-        return [];
+        // Invalid: sum is 1 less than required
+        const hand = [];
+        let remaining = Math.max(1, sum - 1);
+        for (let i = 8; i >= 1 && remaining > 0; i--) {
+          while (remaining >= i) {
+            hand.push(createPearlCard(i));
+            remaining -= i;
+          }
+        }
+        return hand;
       }
     }
 
@@ -136,7 +180,13 @@ function generateHandForComponent(component, shouldPass) {
         }
         return hand;
       } else {
-        return [];
+        // Invalid: odd cards instead of even
+        const hand = [];
+        const oddValues = [1, 3, 5, 7];
+        for (let i = 0; i < n; i++) {
+          hand.push(createPearlCard(oddValues[i % oddValues.length]));
+        }
+        return hand;
       }
     }
 
@@ -150,12 +200,53 @@ function generateHandForComponent(component, shouldPass) {
         }
         return hand;
       } else {
-        return [];
+        // Invalid: even cards instead of odd
+        const hand = [];
+        const evenValues = [2, 4, 6, 8];
+        for (let i = 0; i < n; i++) {
+          hand.push(createPearlCard(evenValues[i % evenValues.length]));
+        }
+        return hand;
+      }
+    }
+
+    case 'tripleChoice': {
+      const value1 = component.value1 || 3;
+      const value2 = component.value2 || 6;
+      if (shouldPass) {
+        // Return first option (3x value1)
+        const hand = [];
+        for (let i = 0; i < 3; i++) {
+          hand.push(createPearlCard(value1));
+        }
+        return hand;
+      } else {
+        // Invalid: 2 of value1 + 1 of value2
+        const hand = [];
+        hand.push(createPearlCard(value1));
+        hand.push(createPearlCard(value1));
+        hand.push(createPearlCard(value2));
+        return hand;
       }
     }
 
     case 'drillingChoice': {
-      return shouldPass ? [createPearlCard(5)] : [];
+      // Legacy - should be renamed to tripleChoice
+      const value1 = component.value1 || 3;
+      const value2 = component.value2 || 6;
+      if (shouldPass) {
+        const hand = [];
+        for (let i = 0; i < 3; i++) {
+          hand.push(createPearlCard(value1));
+        }
+        return hand;
+      } else {
+        const hand = [];
+        hand.push(createPearlCard(value1));
+        hand.push(createPearlCard(value1));
+        hand.push(createPearlCard(value2));
+        return hand;
+      }
     }
 
     default:
@@ -171,21 +262,56 @@ function mergeHands(hands) {
   return merged;
 }
 
-function generateValidHandForCosts(costComponents) {
+function generateValidHandForCosts(costComponents, diamondCount = 0) {
   if (!costComponents || costComponents.length === 0) {
     return [];
   }
 
-  const hands = costComponents.map(comp => generateHandForComponent(comp, true));
+  const hands = costComponents.map(comp => generateHandForComponent(comp, true, diamondCount));
   return mergeHands(hands);
 }
 
-function generateInvalidHandForCosts(costComponents) {
+function generateInvalidHandForCosts(costComponents, diamondCount = 0) {
   if (!costComponents || costComponents.length === 0) {
     return [];
   }
 
-  return [];
+  // Simple strategy: only provide cards for first component, but make it invalid
+  // This ensures it will always fail (unless by coincidence it happens to be valid for other components too)
+  return generateHandForComponent(costComponents[0], false, diamondCount);
+}
+
+function generateAlternativeValidHand(costComponents, diamondCount = 0) {
+  // Try to generate alternative valid hand for tripleChoice components
+  // Returns array of alternative hand + description
+  if (!costComponents || costComponents.length === 0) {
+    return null;
+  }
+
+  const tripleChoiceComp = costComponents.find(c => c.type === 'tripleChoice');
+  if (!tripleChoiceComp) {
+    return null; // No alternative for non-tripleChoice costs
+  }
+
+  const value1 = tripleChoiceComp.value1 || 3;
+  const value2 = tripleChoiceComp.value2 || 6;
+
+  // Generate alternative using value2 instead of value1
+  const hands = [];
+  const altTripleHand = [];
+  for (let i = 0; i < 3; i++) {
+    altTripleHand.push(createPearlCard(value2));
+  }
+  hands.push(altTripleHand);
+
+  // Add other components
+  for (const comp of costComponents) {
+    if (comp.type !== 'tripleChoice') {
+      hands.push(generateHandForComponent(comp, true, diamondCount));
+    }
+  }
+
+  return mergeHands(hands);
 }
 
 // Generate report
@@ -202,11 +328,15 @@ cards.forEach((card, index) => {
   const cardNum = index + 1;
   const isImpossible = isCostImpossible(card.cost);
   
-  const validHand = generateValidHandForCosts(card.cost);
+  const validHand = generateValidHandForCosts(card.cost, card.diamonds);
   const positiveResult = validateCostPayment(card.cost, validHand, card.diamonds);
   
-  const invalidHand = generateInvalidHandForCosts(card.cost);
-  const negativeResult = validateCostPayment(card.cost, invalidHand, 0);
+  const invalidHand = generateInvalidHandForCosts(card.cost, card.diamonds);
+  const negativeResult = validateCostPayment(card.cost, invalidHand, 0);  // No diamonds for invalid test
+  
+  // Try to generate alternative valid hand
+  const altValidHand = generateAlternativeValidHand(card.cost, card.diamonds);
+  const altValidResult = altValidHand ? validateCostPayment(card.cost, altValidHand, card.diamonds) : null;
   
   if (positiveResult) positivePassCount++;
   if (!negativeResult) negativePassCount++;
@@ -220,6 +350,12 @@ cards.forEach((card, index) => {
     ? '⚠️  IMPOSSIBLE' 
     : (positiveResult && !negativeResult) ? '✓ PASS' : '✗ FAIL';
   
+  // Format valid hands with alternative if available
+  let validHandStr = formatHand(validHand);
+  if (altValidHand && altValidResult) {
+    validHandStr += ` | ${formatHand(altValidHand)}`;
+  }
+  
   report.push({
     num: cardNum,
     id: card.id,
@@ -229,7 +365,7 @@ cards.forEach((card, index) => {
     cost: costStr,
     positiveTest: positiveResult ? '✅' : '❌',
     negativeTest: negativeResult ? '❌' : '✅',
-    validHand: formatHand(validHand),
+    validHand: validHandStr,
     invalidHand: formatHand(invalidHand),
     status: status,
     isImpossible: isImpossible
