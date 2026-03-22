@@ -32,7 +32,8 @@ export function CharacterActivationDialog({
 
   const isValidPayment = useMemo(() => {
     if (!selectedCharacter) return false;
-    return validateCostPayment(selectedCharacter.cost, Array.from(selectedCardIndices), hand, diamonds);
+    const selectedCards = Array.from(selectedCardIndices).map(idx => hand[idx]);
+    return validateCostPayment(selectedCharacter.cost, selectedCards, diamonds);
   }, [selectedCharacterSlot, selectedCardIndices, selectedCharacter, hand, diamonds]);
 
   const toggleCard = (index: number) => {

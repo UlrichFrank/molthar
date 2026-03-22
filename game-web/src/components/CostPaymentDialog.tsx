@@ -22,7 +22,9 @@ export function CostPaymentDialog({
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
 
   const isValidPayment = useMemo(() => {
-    return validateCostPayment(character.cost, Array.from(selectedIndices), hand, diamonds);
+    // Convert selected indices to actual PearlCard objects for validation
+    const selectedCards = Array.from(selectedIndices).map(idx => hand[idx]);
+    return validateCostPayment(character.cost, selectedCards, diamonds);
   }, [selectedIndices, character.cost, hand, diamonds]);
 
   const toggleCard = (index: number) => {
