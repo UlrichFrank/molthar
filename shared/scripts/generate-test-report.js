@@ -332,9 +332,47 @@ function generateInvalidHandForCost(costComponents) {
   return componentHands.flat();
 }
 
+/**
+ * Convert cost components to human-readable description
+ * Mirrors the describeCost function from game-web
+ */
+function describeCost(costComponents) {
+  if (!costComponents || costComponents.length === 0) {
+    return 'Free';
+  }
+
+  const descriptions = costComponents.map(component => {
+    switch (component.type) {
+      case 'number':
+        return `Total sum of ${component.value}`;
+      case 'nTuple':
+        return `${component.n} cards with same value`;
+      case 'sumAnyTuple':
+        return `Any cards summing to ${component.sum}`;
+      case 'sumTuple':
+        return `${component.n} cards summing to ${component.sum}`;
+      case 'run':
+        return `${component.length} consecutive values`;
+      case 'tripleChoice':
+        return `3 cards of value ${component.value1} OR ${component.value2}`;
+      case 'evenTuple':
+        return `${component.n} even-valued cards`;
+      case 'oddTuple':
+        return `${component.n} odd-valued cards`;
+      case 'diamond':
+        return `${component.value} diamonds`;
+      default:
+        return 'Unknown cost';
+    }
+  });
+
+  return descriptions.join(' AND ');
+}
+
 // Generate report
 const cards = getAllCards();
 const results = [];
+const seenCombinations = new Set();
 
 for (const card of cards) {
   const costComponents = card.cost || [];
@@ -347,13 +385,21 @@ for (const card of cards) {
   const isInvalidInvalid = !validateCostPayment(costComponents, invalidHand, 0);
 
   const status = isValidValid && isInvalidInvalid ? '✓ PASS' : '✗ FAIL';
+  const costStr = describeCost(costComponents);
+  
+  // Deduplicate: skip if we already tested this card name with these costs
+  const key = `${card.name}|${costStr}`;
+  if (seenCombinations.has(key)) {
+    continue;
+  }
+  seenCombinations.add(key);
 
   results.push({
     name: card.name,
     status,
     validHand: formatHand(validHand),
     invalidHand: formatHand(invalidHand),
-    costStr: JSON.stringify(costComponents),
+    costStr,
     isValidValid,
     isInvalidInvalid,
   });
@@ -366,15 +412,20 @@ const html = `<!DOCTYPE html>
   <meta charset="UTF-8">
   <title>Card Cost Validation Report</title>
   <style>
-    body { font-family: monospace; margin: 20px; background: #f5f5f5; }
-    h1 { color: #333; }
-    table { width: 100%; border-collapse: collapse; background: white; }
-    th, td { padding: 10px; text-align: left; border: 1px solid #ddd; }
-    th { background: #4CAF50; color: white; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background: #f5f5f5; }
+    h1 { color: #333; margin-bottom: 10px; }
+    .summary { font-size: 1.1em; margin-bottom: 20px; }
+    .pass-rate { font-weight: bold; color: #4CAF50; }
+    table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    th, td { padding: 12px; text-align: left; border: 1px solid #ddd; }
+    th { background: #4CAF50; color: white; font-weight: 600; }
+    tr:hover { background: #f0f0f0; }
     tr:nth-child(even) { background: #f9f9f9; }
-    .pass { color: green; font-weight: bold; }
-    .fail { color: red; font-weight: bold; }
-    .cost { font-size: 0.85em; color: #666; }
+    tr:nth-child(even):hover { background: #e8f5e9; }
+    .pass { background-color: #c8e6c9; color: #2e7d32; font-weight: bold; text-align: center; }
+    .fail { background-color: #ffcdd2; color: #c62828; font-weight: bold; text-align: center; }
+    .cost { font-size: 0.9em; color: #1976d2; font-weight: 500; max-width: 400px; }
+    .hand { font-family: monospace; color: #555; }
   </style>
 </head>
 <body>
@@ -384,25 +435,27 @@ const html = `<!DOCTYPE html>
     <thead>
       <tr>
         <th>Card</th>
-        <th>Valid Hand</th>
-        <th>Invalid Hand</th>
         <th>Cost</th>
-        <th>Status</th>
+        <th>Valid Hand (✓)</th>
+        <th>Invalid Hand (✗)</th>
+        <th>Test Result</th>
       </tr>
     </thead>
     <tbody>
 ${results.map(r => `
       <tr>
         <td>${r.name}</td>
-        <td>${r.validHand}</td>
-        <td>${r.invalidHand}</td>
         <td class="cost">${r.costStr}</td>
+        <td class="hand">${r.validHand}</td>
+        <td class="hand">${r.invalidHand}</td>
         <td class="${r.status.includes('PASS') ? 'pass' : 'fail'}">${r.status}</td>
       </tr>
 `).join('')}
     </tbody>
   </table>
-  <p>Total: ${results.length} cards | Passed: ${results.filter(r => r.status.includes('PASS')).length}</p>
+  <div class="summary">
+    <strong>Test Summary:</strong> <span class="pass-rate">${results.filter(r => r.status.includes('PASS')).length}/${results.length}</span> cards passed validation tests
+  </div>
 </body>
 </html>`;
 
