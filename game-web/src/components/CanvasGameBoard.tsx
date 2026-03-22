@@ -288,6 +288,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
         if (me && me.portal[slotIndex]) {
           const entry = me.portal[slotIndex];
           console.log(`Portal slot ${slotIndex} clicked, opening activation dialog for:`, entry.card.name);
+          console.log('Full portal array:', me.portal.map((p, i) => `[${i}]: ${p.card.name}`));
           dialog.openActivationDialog(entry.card, slotIndex);
         }
         break;

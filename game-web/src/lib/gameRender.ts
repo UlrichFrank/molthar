@@ -335,8 +335,9 @@ export function drawPlayerPortal(
   portal.portal.forEach((slot, idx) => {
     const x = slotAreaX + idx * (slotW + slotGap);
     const y = slotAreaY;
-
+    
     if (slot) {
+      console.log(`Drawing portal slot ${idx}: ${(slot.card as any).name} at x=${x}`);
       // Draw actual character card image (resolve numeric id from name or id)
       const maybeName = (slot.card as any).name || '';
       const maybeId = String((slot.card as any).id || '');
