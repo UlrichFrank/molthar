@@ -128,9 +128,9 @@ export function validateRunCost(
 }
 
 /**
- * Validate sum-based tuple cost
- * Checks if hand contains n cards that sum to a target value
- * @param costComponent - Cost component with type 'sumTuple' or 'sumAnyTuple'
+ * Validate sumTuple cost
+ * Checks if hand contains exactly n cards that sum to a target value
+ * @param costComponent - Cost component with type 'sumTuple' (must have n and sum)
  * @param hand - Player's hand of pearl cards
  * @returns True if valid combination exists
  */
@@ -145,7 +145,7 @@ export function validateSumTupleCost(
     return false;
   }
 
-  // Use recursive backtracking to find n cards that sum to target
+  // Use recursive backtracking to find exactly n cards that sum to target
   function findCombination(
     cards: PearlCard[],
     remaining: number,
@@ -175,6 +175,56 @@ export function validateSumTupleCost(
   }
 
   return findCombination(hand, n, 0, targetSum);
+}
+
+/**
+ * Validate sumAnyTuple cost
+ * Checks if hand contains any number of cards that sum to a target value
+ * @param costComponent - Cost component with type 'sumAnyTuple' (must have sum)
+ * @param hand - Player's hand of pearl cards
+ * @returns True if valid combination exists
+ */
+export function validateSumAnyTupleCost(
+  costComponent: CostComponent,
+  hand: PearlCard[]
+): boolean {
+  const targetSum = costComponent.sum || 0;
+
+  if (targetSum <= 0) {
+    return false;
+  }
+
+  // Use recursive backtracking to find any number of cards that sum to target
+  function findCombination(
+    cards: PearlCard[],
+    currentSum: number,
+    targetValue: number
+  ): boolean {
+    // Check if we've reached the target
+    if (currentSum === targetValue) {
+      return true;
+    }
+    // Check if we've exceeded the target or run out of cards
+    if (currentSum > targetValue || cards.length === 0) {
+      return false;
+    }
+
+    const [first, ...rest] = cards;
+
+    // Try including first card
+    if (findCombination(rest, currentSum + first.value, targetValue)) {
+      return true;
+    }
+
+    // Try excluding first card
+    if (findCombination(rest, currentSum, targetValue)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  return findCombination(hand, 0, targetSum);
 }
 
 /**
@@ -284,10 +334,14 @@ function validateCostComponent(
       return validateRunCost(component, hand);
     }
 
-    case 'sumTuple':
-    case 'sumAnyTuple': {
+    case 'sumTuple': {
       // N cards summing to value
       return validateSumTupleCost(component, hand);
+    }
+
+    case 'sumAnyTuple': {
+      // Any number of cards summing to value
+      return validateSumAnyTupleCost(component, hand);
     }
 
     case 'evenTuple': {

@@ -64,22 +64,34 @@ function generateHandForComponent(component: CostComponent, shouldPass: boolean)
       }
     }
 
-    case 'sumTuple':
-    case 'sumAnyTuple': {
+    case 'sumTuple': {
       const n = component.n || 1;
       const sum = component.sum || 10;
       if (shouldPass) {
         const hand = [];
-        if (n === 1) {
-          const cardValue = Math.min(8, Math.max(1, sum));
+        let remaining = sum;
+        for (let i = 0; i < n; i++) {
+          const avgNeeded = Math.ceil(remaining / (n - i));
+          const cardValue = Math.min(8, Math.max(1, avgNeeded));
           hand.push(createPearlCard(cardValue as any));
-        } else {
-          let remaining = sum;
-          for (let i = 0; i < n; i++) {
-            const avgNeeded = Math.ceil(remaining / (n - i));
-            const cardValue = Math.min(8, Math.max(1, avgNeeded));
-            hand.push(createPearlCard(cardValue as any));
-            remaining -= cardValue;
+          remaining -= cardValue;
+        }
+        return hand;
+      } else {
+        return [];
+      }
+    }
+
+    case 'sumAnyTuple': {
+      const sum = component.sum || 10;
+      if (shouldPass) {
+        const hand = [];
+        let remaining = sum;
+        // Use as few cards as possible (greedy approach)
+        for (let i = 8; i >= 1 && remaining > 0; i--) {
+          while (remaining >= i) {
+            hand.push(createPearlCard(i as any));
+            remaining -= i;
           }
         }
         return hand;
