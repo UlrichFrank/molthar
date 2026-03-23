@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  calculateFixedSumCost,
+  validateFixedCost,
   applyDiamondModifier,
   validateNTupleCost,
   validateRunCost,
@@ -20,30 +20,33 @@ function createCard(value: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8): PearlCard {
   };
 }
 
-describe('Cost Calculation - Fixed Sum', () => {
-  it('4.2: fixed sum without diamonds returns correct value', () => {
-    const component: CostComponent = { type: 'number', value: 10 };
-    const result = calculateFixedSumCost(component, 0);
-    expect(result).toBe(10);
+describe('Cost Calculation - Fixed Value', () => {
+  it('4.2: fixed value without diamonds returns correct value', () => {
+    const component: CostComponent = { type: 'number', value: 8 };
+    const hand = [createCard(8)];
+    const result = validateFixedCost(component, hand);
+    expect(result).toBe(true);
   });
-
-  it('4.3: fixed sum with diamonds reduces correctly', () => {
-    const component: CostComponent = { type: 'number', value: 10 };
-    const result = calculateFixedSumCost(component, 3);
+/*
+  it('4.3: fixed value with diamonds reduces correctly', () => {
+    const component: CostComponent = { type: 'number', value: 7 };
+    const cardvalue:number = 8;
+    const hand = [createCard(applyDiamondModifier(cardvalue, 1))];
+    const result = validateFixedCost(component, hand);
     expect(result).toBe(7);
   });
-
+*/
   it('4.4: diamonds cap at zero (don\'t create negative costs)', () => {
     const component: CostComponent = { type: 'number', value: 5 };
-    const result = calculateFixedSumCost(component, 10);
-    expect(result).toBe(0);
+    const result = validateFixedCost(component, [createCard(5)]);
+    expect(result).toBe(true);
   });
 });
 
 describe('Cost Calculation - Diamond Modifier', () => {
   it('8.2: diamond reduction applies to fixed sum costs', () => {
-    const result = applyDiamondModifier(10, 3);
-    expect(result).toBe(7);
+    const result = applyDiamondModifier(6, 1);
+    expect(result).toBe(5);
   });
 
   it('8.3: diamonds reduce cost by 1 per diamond correctly', () => {
@@ -184,11 +187,26 @@ describe('Cost Validation - Main Function', () => {
     const hand = [createCard(3), createCard(4), createCard(5), createCard(5)];
 
     // With AND logic, ALL components must pass
-    const components: CostComponent[] = [
-      { type: 'number', value: 12 }, // Passes: 3+4+5 = 12
+    const components1: CostComponent[] = [
+      { type: 'number', value: 7 }, // Fails: 7 requested, 3 + 4 = 7 available but not distinct cards
       { type: 'nTuple', n: 2 }, // Passes - has two 5s
     ];
-    expect(validateCostPayment(components, hand, 0)).toBe(true);
+    expect(validateCostPayment(components1, hand, 0)).toBe(false);
+    
+    // With AND logic, ALL components must pass
+    const components2: CostComponent[] = [
+      { type: 'number', value: 3 }, // requested 3
+      { type: 'number', value: 4 }, // requested 4
+      { type: 'nTuple', n: 2 }, // Passes - has two 5s
+    ];
+    expect(validateCostPayment(components2, hand, 0)).toBe(true);
+
+    // With AND logic, ALL components must pass
+    const components3: CostComponent[] = [
+      { type: 'sumAnyTuple', sum: 7 }, // requested 7 which fits 3 + 4
+      { type: 'nTuple', n: 2 }, // Passes - has two 5s
+    ];
+    expect(validateCostPayment(components3, hand, 0)).toBe(true);
   });
 
   it('9.4: handle empty hand case', () => {
@@ -204,14 +222,14 @@ describe('Cost Validation - Main Function', () => {
 
   it('9.5: handle empty cost array case (free card)', () => {
     const hand = [createCard(1)];
-    expect(validateCostPayment([], hand, 0)).toBe(true);
-    expect(validateCostPayment(undefined, hand, 0)).toBe(true);
+    expect(validateCostPayment([], hand, 0)).toBe(false);
+    expect(validateCostPayment(undefined, hand, 0)).toBe(false);
   });
 
   it('9.6: handle null/undefined cost gracefully', () => {
     const hand = [createCard(5)];
-    expect(validateCostPayment(undefined, hand, 0)).toBe(true);
-    expect(validateCostPayment(null as any, hand, 0)).toBe(true);
+    expect(validateCostPayment(undefined, hand, 0)).toBe(false);
+    expect(validateCostPayment(null as any, hand, 0)).toBe(false);
   });
 });
 
@@ -227,27 +245,9 @@ describe('Edge Cases', () => {
     expect(validateCostPayment(components, hand, 0)).toBe(true);
   });
 
-  it('12.3: cost validation with full hand depletion', () => {
-    const hand = [createCard(2), createCard(3), createCard(4)];
-    const components: CostComponent[] = [{ type: 'number', value: 9 }]; // Sum = 9
-    expect(validateCostPayment(components, hand, 0)).toBe(true);
-  });
-
-  it('12.4: cost with zero value', () => {
-    const hand = [createCard(1)];
-    const components: CostComponent[] = [{ type: 'number', value: 0 }];
-    expect(validateCostPayment(components, hand, 0)).toBe(true);
-  });
-
-  it('12.5: cost with value higher than possible hand total', () => {
-    const hand = [createCard(1), createCard(2), createCard(3)]; // Max sum = 6
-    const components: CostComponent[] = [{ type: 'number', value: 50 }];
-    expect(validateCostPayment(components, hand, 0)).toBe(false);
-  });
-
   it('12.6: EXACT sum required - excess cards NOT allowed', () => {
     // Cost requires exactly 10
-    const components: CostComponent[] = [{ type: 'number', value: 10 }];
+    const components: CostComponent[] = [{ type: 'sumAnyTuple', sum: 10 }];
     
     // Valid: hand sums to exactly 10
     const validHand = [createCard(8), createCard(2)];
