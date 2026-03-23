@@ -415,42 +415,118 @@ export function findCostAssignment(
     return new Map();
   }
 
-  // Check if all components can be satisfied
-  for (const component of costComponents) {
-    if (!validateCostComponent(component, availableCards, diamondCount)) {
-      return null;
+  // Use backtracking to find valid assignment
+  const assignment = new Map<number, number[]>();
+  const usedIndices = new Set<number>();
+
+  // Try to assign cards to components in order
+  if (tryAssignCards(costComponents, availableCards, diamondCount, 0, usedIndices, assignment)) {
+    return assignment;
+  }
+
+  return null;
+}
+
+/**
+ * Recursive backtracking to find valid card assignment
+ */
+function tryAssignCards(
+  components: CostComponent[],
+  availableCards: PearlCard[],
+  diamondCount: number,
+  componentIndex: number,
+  usedIndices: Set<number>,
+  assignment: Map<number, number[]>
+): boolean {
+  // Base case: all components assigned
+  if (componentIndex >= components.length) {
+    return true;
+  }
+
+  const component = components[componentIndex];
+  
+  // Get available card indices (not yet used)
+  const availableIndices = availableCards
+    .map((_, idx) => idx)
+    .filter(idx => !usedIndices.has(idx));
+
+  // Try all subsets of available cards
+  const subsets = generateSubsets(availableIndices);
+  // Sort by size: prefer smaller subsets first (more cards left for other components)
+  subsets.sort((a, b) => a.length - b.length);
+
+  for (const subset of subsets) {
+    const cardsInSubset = subset.map(idx => availableCards[idx]);
+
+    // Check if this subset satisfies the component
+    if (validateCostComponent(component, cardsInSubset, diamondCount)) {
+      // Mark these cards as used
+      subset.forEach(idx => usedIndices.add(idx));
+      assignment.set(componentIndex, subset);
+
+      // Recursively try to satisfy remaining components
+      if (tryAssignCards(components, availableCards, diamondCount, componentIndex + 1, usedIndices, assignment)) {
+        return true;
+      }
+
+      // Backtrack
+      subset.forEach(idx => usedIndices.delete(idx));
+      assignment.delete(componentIndex);
     }
   }
 
-  // Simple assignment: all cards to all components (will improve with backtracking later)
-  const assignment = new Map<number, number[]>();
-  for (let i = 0; i < costComponents.length; i++) {
-    assignment.set(i, availableCards.map((_, idx) => idx));
+  return false;
+}
+
+/**
+ * Generate all possible subsets of indices
+ */
+function generateSubsets(indices: number[]): number[][] {
+  const subsets: number[][] = [];
+  
+  for (let mask = 0; mask < (1 << indices.length); mask++) {
+    const subset: number[] = [];
+    for (let i = 0; i < indices.length; i++) {
+      if (mask & (1 << i)) {
+        subset.push(indices[i]);
+      }
+    }
+    subsets.push(subset);
   }
-  return assignment;
+  
+  return subsets;
 }
 
 /**
  * Consume (remove) cards from hand based on cost validation
  * @param costComponents - Array of cost components to satisfy
- * @param selectedCards - Player's selected cards to remove
+ * @param selectedCardIndices - Indices of cards in the hand to try to consume
+ * @param fullHand - The complete hand of the player
  * @param diamondCount - Available diamonds
  * @returns Updated state {hand, diamonds} or null if validation fails
  */
 export function consumeCosts(
   costComponents: CostComponent[] | undefined,
-  selectedCards: PearlCard[],
+  selectedCardIndices: number[],
+  fullHand: PearlCard[],
   diamondCount: number
 ): { hand: PearlCard[]; diamonds: number } | null {
+  // Get the selected card objects from the hand
+  const selectedCards = selectedCardIndices
+    .filter(idx => idx >= 0 && idx < fullHand.length)
+    .map(idx => fullHand[idx]);
+
   // First validate that assignment is possible
   const assignment = findCostAssignment(costComponents, selectedCards, diamondCount);
   if (assignment === null) {
     return null;
   }
 
-  // If valid, remove the cards
+  // If valid, remove the selected cards from the hand
+  const newHand = fullHand.filter((_, idx) => !selectedCardIndices.includes(idx));
+
   return {
-    hand: [],
+    hand: newHand,
     diamonds: diamondCount
   };
 }

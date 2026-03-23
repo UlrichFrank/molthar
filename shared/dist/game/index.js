@@ -201,7 +201,7 @@ exports.PortaleVonMolthar = {
                 .filter(idx => idx >= 0 && idx < player.hand.length)
                 .map(idx => player.hand[idx]);
             // Validate and consume costs (atomic: either all succeeds or nothing changes)
-            const consumeResult = (0, costCalculation_1.consumeCosts)(entry.card.cost, selectedCards, player.diamonds);
+            const consumeResult = (0, costCalculation_1.consumeCosts)(entry.card.cost, selectedCardIndices, player.hand, player.diamonds);
             if (!consumeResult) {
                 // Consumption failed - activation rejected
                 console.log('[activatePortalCard] Cost consumption failed, rejecting activation');

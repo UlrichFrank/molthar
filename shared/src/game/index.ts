@@ -204,7 +204,7 @@ export const PortaleVonMolthar = {
         .map(idx => player.hand[idx]);
 
       // Validate and consume costs (atomic: either all succeeds or nothing changes)
-      const consumeResult = consumeCosts(entry.card.cost, selectedCards, player.diamonds);
+      const consumeResult = consumeCosts(entry.card.cost, selectedCardIndices, player.hand, player.diamonds);
       
       if (!consumeResult) {
         // Consumption failed - activation rejected
