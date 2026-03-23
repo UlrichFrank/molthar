@@ -115,16 +115,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   const currentActions = Math.max(0, maxActions - actionCount);
   const totalPlayers = playerList.length;
   
-  // DEBUG: Log action state
-  console.debug('Action Counter Debug:', { 
-    actionCount: G.actionCount, 
-    maxActions: G.maxActions,
-    actionCountSafe: actionCount,
-    maxActionsSafe: maxActions,
-    currentActions,
-    calcRaw: `${maxActions} - ${actionCount}`
-  });
-  
   // Fallback für fehlende Daten
   const characterSlots = G.characterSlots || [];
   const pearlSlots = G.pearlSlots || [];
@@ -287,8 +277,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
         // Show activation dialog when player's own portal slot is clicked
         if (me && me.portal[slotIndex]) {
           const entry = me.portal[slotIndex];
-          console.log(`Portal slot ${slotIndex} clicked, opening activation dialog for:`, entry.card.name);
-          console.log('Full portal array:', me.portal.map((p, i) => `[${i}]: ${p.card.name}`));
           dialog.openActivationDialog(entry.card, slotIndex);
         }
         break;

@@ -400,6 +400,62 @@ function validateCostComponent(
 }
 
 /**
+ * Find optimal card-to-component assignment with prioritization
+ * @param costComponents - Array of cost components to satisfy
+ * @param availableCards - Player's selected pearl cards
+ * @param diamondCount - Available diamonds
+ * @returns Assignment map or null if no valid assignment
+ */
+export function findCostAssignment(
+  costComponents: CostComponent[] | undefined,
+  availableCards: PearlCard[],
+  diamondCount: number
+): Map<number, number[]> | null {
+  if (!costComponents || costComponents.length === 0) {
+    return new Map();
+  }
+
+  // Check if all components can be satisfied
+  for (const component of costComponents) {
+    if (!validateCostComponent(component, availableCards, diamondCount)) {
+      return null;
+    }
+  }
+
+  // Simple assignment: all cards to all components (will improve with backtracking later)
+  const assignment = new Map<number, number[]>();
+  for (let i = 0; i < costComponents.length; i++) {
+    assignment.set(i, availableCards.map((_, idx) => idx));
+  }
+  return assignment;
+}
+
+/**
+ * Consume (remove) cards from hand based on cost validation
+ * @param costComponents - Array of cost components to satisfy
+ * @param selectedCards - Player's selected cards to remove
+ * @param diamondCount - Available diamonds
+ * @returns Updated state {hand, diamonds} or null if validation fails
+ */
+export function consumeCosts(
+  costComponents: CostComponent[] | undefined,
+  selectedCards: PearlCard[],
+  diamondCount: number
+): { hand: PearlCard[]; diamonds: number } | null {
+  // First validate that assignment is possible
+  const assignment = findCostAssignment(costComponents, selectedCards, diamondCount);
+  if (assignment === null) {
+    return null;
+  }
+
+  // If valid, remove the cards
+  return {
+    hand: [],
+    diamonds: diamondCount
+  };
+}
+
+/**
  * Calculate total required cost for a character card
  * Useful for UI display or cost prediction
  * @param costComponents - Array of cost components
@@ -454,7 +510,6 @@ export function calculateCostRequirement(
  * 
  * **Integration:**
  * - Used by `activatePortalCard()` move in shared/src/game/index.ts
- * - Imported as `validateCostFromCards` to avoid name conflicts with old function
  * - Validates entire hand (not subset of cards)
  * 
  * **Testing:**

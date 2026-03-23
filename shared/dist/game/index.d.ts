@@ -1,4 +1,4 @@
-import type { GameState, PearlCard, CharacterCard, CostComponent } from './types';
+import type { GameState, PearlCard, CharacterCard } from './types';
 import './cardDatabaseLoader.js';
 /**
  * Helper function for invalid moves
@@ -30,7 +30,7 @@ export declare const PortaleVonMolthar: {
         activatePortalCard({ G, ctx }: {
             G: GameState;
             ctx: any;
-        }, portalSlotIndex: number, usedCards?: number[]): void;
+        }, portalSlotIndex: number, selectedCardIndices: number[]): void;
         replacePearlSlots({ G, ctx }: {
             G: GameState;
             ctx: any;
@@ -66,18 +66,10 @@ export declare const PortaleVonMolthar: {
     } | undefined;
 };
 /**
- * Validate that used cards satisfy a character's cost
- * @param cost - Cost components to satisfy
- * @param usedCardIndices - Indices of cards from hand being used
- * @param hand - Player's hand of pearl cards
- * @param diamonds - Player's available diamonds to reduce cost
- * @returns true if cost is satisfied, false otherwise
- */
-export declare function validateCostPayment(cost: CostComponent[], usedCardIndices: number[], hand: PearlCard[], diamonds: number): boolean;
-/**
  * Helper Functions
  */
 export declare function createPearlDeck(): PearlCard[];
 export declare function createCharacterDeck(): CharacterCard[];
 export declare function shuffleArray<T>(array: T[]): void;
+export { validateCostPayment, findCostAssignment, consumeCosts } from './costCalculation';
 //# sourceMappingURL=index.d.ts.map

@@ -18,5 +18,6 @@ exports.validateCostPayment = exports.PortaleVonMolthar = void 0;
 __exportStar(require("./game/types.js"), exports);
 var index_js_1 = require("./game/index.js");
 Object.defineProperty(exports, "PortaleVonMolthar", { enumerable: true, get: function () { return index_js_1.PortaleVonMolthar; } });
-Object.defineProperty(exports, "validateCostPayment", { enumerable: true, get: function () { return index_js_1.validateCostPayment; } });
+var costCalculation_js_1 = require("./game/costCalculation.js");
+Object.defineProperty(exports, "validateCostPayment", { enumerable: true, get: function () { return costCalculation_js_1.validateCostPayment; } });
 //# sourceMappingURL=index.js.map

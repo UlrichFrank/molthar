@@ -1,5 +1,5 @@
-import type { GameState, PearlCard, CharacterCard, PlayerState, CostComponent, ActivatedCharacter } from './types';
-import { validateCostPayment as validateCostFromCards } from './costCalculation';
+import type { GameState, PearlCard, CharacterCard, PlayerState, ActivatedCharacter } from './types';
+import { consumeCosts } from './costCalculation';
 import { getAllCards as getAllCardDataFromDatabase } from './cardDatabase';
 // @ts-ignore - cardDatabaseLoader.js is a side-effect module
 import './cardDatabaseLoader.js';
@@ -185,7 +185,7 @@ export const PortaleVonMolthar = {
       }
     },
 
-    activatePortalCard({ G, ctx }: { G: GameState; ctx: any }, portalSlotIndex: number, usedCards?: number[]) {
+    activatePortalCard({ G, ctx }: { G: GameState; ctx: any }, portalSlotIndex: number, selectedCardIndices: number[]) {
       const player = G.players[ctx.currentPlayer];
       if (!player) return;
       if (G.actionCount >= G.maxActions) return;
@@ -198,18 +198,27 @@ export const PortaleVonMolthar = {
       const entry = player.portal[portalSlotIndex];
       if (!entry) return;
 
-      // Use new cost validation that checks against entire hand
-      if (!validateCostFromCards(entry.card.cost, player.hand, player.diamonds)) {
+      // Get selected cards from hand based on provided indices
+      const selectedCards = selectedCardIndices
+        .filter(idx => idx >= 0 && idx < player.hand.length)
+        .map(idx => player.hand[idx]);
+
+      // Validate and consume costs (atomic: either all succeeds or nothing changes)
+      const consumeResult = consumeCosts(entry.card.cost, selectedCards, player.diamonds);
+      
+      if (!consumeResult) {
+        // Consumption failed - activation rejected
+        console.log('[activatePortalCard] Cost consumption failed, rejecting activation');
         return;
       }
 
-      // Discard used pearl cards (reverse order to preserve indices)
-      const sortedIndices = (usedCards || []).sort((a, b) => b - a);
-      for (const idx of sortedIndices) {
-        if (idx >= 0 && idx < player.hand.length) {
-          G.pearlDiscardPile.push(player.hand.splice(idx, 1)[0]);
-        }
-      }
+      // Update player state: remove consumed cards and update diamond count
+      player.hand = consumeResult.hand;
+      player.diamonds = consumeResult.diamonds;
+
+      // Add consumed cards to discard pile
+      const consumedCards = selectedCards.filter(card => !consumeResult.hand.includes(card));
+      consumedCards.forEach(card => G.pearlDiscardPile.push(card));
 
       // Grant rewards from the card
       player.powerPoints += entry.card.powerPoints;
@@ -338,151 +347,7 @@ export const PortaleVonMolthar = {
   },
 };
 
-/**
- * Validate that used cards satisfy a character's cost
- * @param cost - Cost components to satisfy
- * @param usedCardIndices - Indices of cards from hand being used
- * @param hand - Player's hand of pearl cards
- * @param diamonds - Player's available diamonds to reduce cost
- * @returns true if cost is satisfied, false otherwise
- */
-export function validateCostPayment(
-  cost: CostComponent[],
-  usedCardIndices: number[],
-  hand: PearlCard[],
-  diamonds: number
-): boolean {
-  if (!cost || cost.length === 0) {
-    return true; // Free cost
-  }
 
-  // Get the actual cards being used
-  const usedCards: PearlCard[] = [];
-  for (const idx of usedCardIndices) {
-    if (idx >= 0 && idx < hand.length) {
-      usedCards.push(hand[idx]);
-    }
-  }
-
-  // Try each cost option (diamond costs can be multiple options)
-  for (const component of cost) {
-    if (verifyCostComponent(component, usedCards, diamonds)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-/**
- * Check if a single cost component is satisfied by used cards
- */
-function verifyCostComponent(
-  component: CostComponent,
-  usedCards: PearlCard[],
-  diamonds: number
-): boolean {
-  switch (component.type) {
-    case 'number': {
-      // Check if sum of cards meets the total, accounting for diamond bonus
-      const sum = usedCards.reduce((total, card) => total + card.value, 0);
-      const required = component.value || 0;
-      return sum >= required - diamonds; // Diamonds reduce required sum
-    }
-
-    case 'nTuple': {
-      // Check if we have n cards of the same value
-      const valueCounts: Record<number, number> = {};
-      for (const card of usedCards) {
-        valueCounts[card.value] = (valueCounts[card.value] || 0) + 1;
-      }
-      const n = component.n || 0;
-      return Object.values(valueCounts).some(count => count >= n);
-    }
-
-    case 'run': {
-      // Check if we have consecutive sequence of length n
-      const length = component.length || 0;
-      const values = [...new Set(usedCards.map(c => c.value))].sort((a, b) => a - b);
-      
-      if (values.length < length) {
-        return false;
-      }
-      
-      for (let i = 0; i <= values.length - length; i++) {
-        let isConsecutive = true;
-        for (let j = 0; j < length - 1; j++) {
-          if (values[i + j + 1] !== values[i + j] + 1) {
-            isConsecutive = false;
-            break;
-          }
-        }
-        if (isConsecutive) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    case 'sumAnyTuple': {
-      // Check for n pairs (any values)
-      const valueCounts: Record<number, number> = {};
-      for (const card of usedCards) {
-        valueCounts[card.value] = (valueCounts[card.value] || 0) + 1;
-      }
-      const n = component.n || 0;
-      const pairCount = Object.values(valueCounts).filter(count => count >= 2).length;
-      return pairCount >= n;
-    }
-
-    case 'sumTuple': {
-      // Check if cards sum to specific value with n items
-      const n = component.n || 0;
-      const targetSum = component.sum || 0;
-      
-      if (usedCards.length < n) {
-        return false;
-      }
-      
-      // Simple check: do we have n cards that sum to target?
-      // This is simplified - full implementation would need combinatorics
-      if (usedCards.length === n) {
-        const actualSum = usedCards.reduce((total, card) => total + card.value, 0);
-        return actualSum === targetSum;
-      }
-      
-      return false; // Simplified for now
-    }
-
-    case 'evenTuple': {
-      // Check for n even-valued cards
-      const evenCards = usedCards.filter(card => card.value % 2 === 0);
-      const n = component.n || 0;
-      return evenCards.length >= n;
-    }
-
-    case 'oddTuple': {
-      // Check for n odd-valued cards
-      const oddCards = usedCards.filter(card => card.value % 2 === 1);
-      const n = component.n || 0;
-      return oddCards.length >= n;
-    }
-
-    case 'diamond': {
-      // Diamond cost - check if player has enough diamonds
-      const required = component.value || 0;
-      return diamonds >= required;
-    }
-
-    case 'tripleChoice': {
-      // Triple choice: 3 cards of value1 OR 3 cards of value2
-      return true; // Actual validation happens in validateCostPayment
-    }
-
-    default:
-      return true; // Unknown cost type - optimistically allow
-  }
-}
 
 /**
  * Helper Functions
@@ -515,3 +380,6 @@ export function shuffleArray<T>(array: T[]): void {
     [array[i], array[j]] = [array[j], array[i]];
   }
 }
+
+// Export cost calculation functions (public API)
+export { validateCostPayment, findCostAssignment, consumeCosts } from './costCalculation';

@@ -1,3 +1,4 @@
 export * from './game/types.js';
-export { PortaleVonMolthar, validateCostPayment } from './game/index.js';
+export { PortaleVonMolthar } from './game/index.js';
+export { validateCostPayment } from './game/costCalculation.js';
 //# sourceMappingURL=index.d.ts.map
