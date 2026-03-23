@@ -549,6 +549,7 @@ function tryAssignCards(
 /**
  * Recursive backtracking to find valid card assignment that uses ALL cards
  * Ensures no cards are left over after satisfying all components
+ * For variable-count components (sumAnyTuple), only accepts minimal subsets
  */
 function tryAssignCardsExhaustive(
   components: CostComponent[],
@@ -582,6 +583,14 @@ function tryAssignCardsExhaustive(
 
     // Check if this subset satisfies the component
     if (validateCostComponent(component, cardsInSubset, diamondCount)) {
+      // For variable-count components, only accept minimal subsets
+      // A subset is minimal if removing any card makes it invalid
+      if (isVariableCountComponent(component)) {
+        if (!isMinimalSubset(component, subset, availableCards, diamondCount)) {
+          continue; // Skip non-minimal subsets
+        }
+      }
+
       // Mark these cards as used
       subset.forEach(idx => usedIndices.add(idx));
       assignment.set(componentIndex, subset);
@@ -598,6 +607,43 @@ function tryAssignCardsExhaustive(
   }
 
   return false;
+}
+
+/**
+ * Check if a component has variable card count
+ */
+function isVariableCountComponent(component: CostComponent): boolean {
+  return component.type === 'sumAnyTuple';
+}
+
+/**
+ * Check if a subset is minimal for a component
+ * A subset is minimal if removing any card makes it invalid
+ */
+function isMinimalSubset(
+  component: CostComponent,
+  subset: number[],
+  availableCards: PearlCard[],
+  diamondCount: number
+): boolean {
+  // Empty subset cannot be minimal
+  if (subset.length === 0) {
+    return false;
+  }
+
+  // Check if removing any single card makes it invalid
+  for (let i = 0; i < subset.length; i++) {
+    const smallerSubset = subset.slice(0, i).concat(subset.slice(i + 1));
+    const cardsInSmallerSubset = smallerSubset.map(idx => availableCards[idx]);
+
+    if (validateCostComponent(component, cardsInSmallerSubset, diamondCount)) {
+      // A smaller subset also works, so this is not minimal
+      return false;
+    }
+  }
+
+  // No smaller subset works, so this is minimal
+  return true;
 }
 
 /**

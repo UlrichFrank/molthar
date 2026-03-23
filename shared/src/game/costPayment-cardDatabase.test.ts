@@ -194,9 +194,14 @@ function generateInvalidHandForCost(costComponents: CostComponent[] | undefined)
 }
 
 describe('Cost Calculation - Unit Tests', () => {
-  it('should validate fixed sum cost', () => {
+  it('should not validate fixed cost', () => {
     const cost = [{ type: 'number' as const, value: 5 }];
     expect(validateCostPayment(cost, [createPearlCard(3), createPearlCard(2)], 0)).toBe(false);
+  });
+
+  it('should not validate over payment', () => {
+    const cost = [{ type: 'sumAnyTuple' as const, sum: 5 }];
+    expect(validateCostPayment(cost, [createPearlCard(5), createPearlCard(4)], 0)).toBe(false);
   });
 
   it('should reject insufficient sum', () => {

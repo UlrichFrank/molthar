@@ -253,6 +253,10 @@ describe('Edge Cases', () => {
     const validHand = [createCard(8), createCard(2)];
     expect(validateCostPayment(components, validHand, 0)).toBe(true);
     
+    // Invalid: hand subset sums to exactly 10, but more is provided
+    const tooManyCards = [createCard(8), createCard(2), createCard(1)];
+    expect(validateCostPayment(components, tooManyCards, 0)).toBe(false);
+    
     // Invalid: hand sums to 11 (too much)
     const tooMuchHand = [createCard(8), createCard(3)];
     expect(validateCostPayment(components, tooMuchHand, 0)).toBe(false);
