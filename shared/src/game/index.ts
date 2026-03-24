@@ -458,3 +458,6 @@ export function shuffleArray<T>(array: T[]): void {
 
 // Export cost calculation functions (public API)
 export { validateCostPayment, findCostAssignment, consumeCosts } from './costCalculation';
+
+// Export card database function (public API)
+export { getAllCards } from './cardDatabase';
