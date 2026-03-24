@@ -1,5 +1,5 @@
 import type { GameState, PearlCard, CharacterCard, PlayerState, ActivatedCharacter } from './types';
-import { consumeCosts } from './costCalculation';
+import { consumeCosts, calculateHandLimit, getExcessCardCount } from './costCalculation';
 import { getAllCards as getAllCardDataFromDatabase } from './cardDatabase';
 // @ts-ignore - cardDatabaseLoader.js is a side-effect module
 import './cardDatabaseLoader.js';
@@ -42,7 +42,8 @@ export const PortaleVonMolthar = {
         diamonds: 0,
         readyUp: false,
         isAI: false,
-        aiDifficulty: undefined
+        aiDifficulty: undefined,
+        handLimitModifier: 0
       };
     }
     
@@ -81,6 +82,9 @@ export const PortaleVonMolthar = {
       maxActions: 3,
       finalRound: false,
       finalRoundStartingPlayer: null,
+      requiresHandDiscard: false,
+      excessCardCount: 0,
+      currentHandLimit: 5,
       startingPlayer: playerIds[0],
     };
   },
@@ -238,6 +242,16 @@ export const PortaleVonMolthar = {
         activatedCard.activated = true;
         // Add to activated characters collection
         player.activatedCharacters.push(activatedCard);
+
+        // Check if card has handLimitPlusOne ability and increment hand limit modifier
+        if (activatedCard.card.abilities && activatedCard.card.abilities.length > 0) {
+          for (const ability of activatedCard.card.abilities) {
+            if (ability.type === 'handLimitPlusOne') {
+              player.handLimitModifier += 1;
+              break; // Only count once per character even if multiple abilities
+            }
+          }
+        }
       }
 
       // Check if player reached 12+ power points to trigger final round
@@ -295,15 +309,66 @@ export const PortaleVonMolthar = {
     },
     
     endTurn({ G, ctx }: { G: GameState; ctx: any }) {
-      // Reset action count for next turn
-      G.actionCount = 0;
-      
-      // Check hand limit and trigger discard if needed
       const player = G.players[ctx.currentPlayer];
-      if (player && player.hand.length > 5) {
-        // Player needs to discard down to 5 cards
-        // This would typically use setActivePlayers if available
+      if (!player) return;
+
+      // Calculate current hand limit based on handLimitModifier
+      const handLimit = calculateHandLimit(player.handLimitModifier);
+      G.currentHandLimit = handLimit;
+
+      // Check if hand exceeds limit
+      const excess = getExcessCardCount(player.hand, handLimit);
+
+      if (excess > 0) {
+        // Hand exceeds limit - require discard before turn can end
+        G.requiresHandDiscard = true;
+        G.excessCardCount = excess;
+        // DO NOT reset actionCount or advance turn - player must discard first
+        return;
       }
+
+      // Hand is within limit - proceed with normal turn end
+      G.actionCount = 0;
+      G.requiresHandDiscard = false;
+      G.excessCardCount = 0;
+      // End turn to advance to next player
+      ctx.events.endTurn();
+    },
+
+    discardCardsForHandLimit({ G, ctx }: { G: GameState; ctx: any }, selectedCardIndices: number[]) {
+      const player = G.players[ctx.currentPlayer];
+      if (!player || !G.requiresHandDiscard) {
+        return; // Move not allowed in current state
+      }
+
+      // Validate that exactly the required number of cards are provided
+      if (selectedCardIndices.length !== G.excessCardCount) {
+        console.log(`[discardCardsForHandLimit] Invalid card count: selected ${selectedCardIndices.length}, need ${G.excessCardCount}`);
+        return; // Reject invalid selection
+      }
+
+      // Validate indices are within bounds
+      const validIndices = selectedCardIndices.filter(idx => idx >= 0 && idx < player.hand.length);
+      if (validIndices.length !== selectedCardIndices.length) {
+        return; // Invalid indices
+      }
+
+      // Remove selected cards from player hand (remove in reverse order to maintain indices)
+      const sortedIndices = [...validIndices].sort((a, b) => b - a);
+      for (const idx of sortedIndices) {
+        const discardedCard = player.hand.splice(idx, 1)[0];
+        if (discardedCard) {
+          // Add to discard pile
+          G.pearlDiscardPile.push(discardedCard);
+        }
+      }
+
+      // Clear discard state and complete turn
+      G.requiresHandDiscard = false;
+      G.excessCardCount = 0;
+      G.actionCount = 0;
+      // End turn to advance to next player
+      ctx.events.endTurn();
     },
   },
   

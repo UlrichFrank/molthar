@@ -43,6 +43,10 @@ export declare const PortaleVonMolthar: {
             G: GameState;
             ctx: any;
         }): void;
+        discardCardsForHandLimit({ G, ctx }: {
+            G: GameState;
+            ctx: any;
+        }, selectedCardIndices: number[]): void;
     };
     /**
      * Turn Configuration: Reset action count at start of each turn

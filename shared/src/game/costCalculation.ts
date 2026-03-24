@@ -36,6 +36,36 @@ import type { CostComponent, PearlCard } from './types';
  */
 
 /**
+ * Calculate the maximum hand limit for a player
+ * @param handLimitModifier - Cumulative hand limit increase from activated characters
+ * @returns Maximum number of pearl cards player can hold (5 base + modifier)
+ */
+export function calculateHandLimit(handLimitModifier: number): number {
+  return 5 + handLimitModifier;
+}
+
+/**
+ * Validate if hand size is within the limit
+ * @param hand - Player's pearl cards
+ * @param handLimit - Maximum allowed hand size
+ * @returns True if hand size is within or under the limit
+ */
+export function validateHandSize(hand: PearlCard[], handLimit: number): boolean {
+  return hand.length <= handLimit;
+}
+
+/**
+ * Calculate how many excess cards must be discarded
+ * @param hand - Player's pearl cards
+ * @param handLimit - Maximum allowed hand size
+ * @returns Number of cards that must be discarded (0 if within limit)
+ */
+export function getExcessCardCount(hand: PearlCard[], handLimit: number): number {
+  const excess = hand.length - handLimit;
+  return Math.max(0, excess);
+}
+
+/**
  * Validate fixed cost (exact card value)
  * Requires a single card with the exact value
  * @param costComponent - Cost component of type 'number'

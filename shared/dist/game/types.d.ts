@@ -32,11 +32,16 @@ export interface CharacterCard {
     abilities: CharacterAbility[];
 }
 /**
- * Character Ability (Red or Blue)
- */
+ * type
+ * - 'handLimitPlusOne': grants +1 to player's hand limit (applied on activation)
+ * persistent
+ * - true (blue ability): effect is permanent once activated
+ * - false (red ability): effect is temporary, only on activation turn
+*/
 export interface CharacterAbility {
     id: string;
-    type: 'red' | 'blue';
+    persistent: boolean;
+    type: 'handLimitPlusOne';
     description: string;
 }
 /**
@@ -61,6 +66,13 @@ export interface PlayerState {
     readyUp: boolean;
     isAI: boolean;
     aiDifficulty?: 1 | 2 | 3 | 4 | 5;
+    /**
+     * Hand limit modifier - cumulative increase from activated character abilities.
+     * Each character with the `handLimitPlusOne` ability increments this by 1.
+     * Used to calculate maximum hand size: 5 (base) + handLimitModifier.
+     * Increases only when characters are activated, does not decrease on deactivation.
+     */
+    handLimitModifier: number;
 }
 /**
  * Game State - Main game data structure
@@ -80,6 +92,9 @@ export interface GameState {
     maxActions: number;
     finalRound: boolean;
     finalRoundStartingPlayer: string | null;
+    requiresHandDiscard: boolean;
+    excessCardCount: number;
+    currentHandLimit: number;
     startingPlayer: string;
 }
 /**

@@ -38,11 +38,16 @@ export interface CharacterCard {
 }
 
 /**
- * Character Ability (Red or Blue)
- */
+ * type
+ * - 'handLimitPlusOne': grants +1 to player's hand limit (applied on activation)
+ * persistent
+ * - true (blue ability): effect is permanent once activated
+ * - false (red ability): effect is temporary, only on activation turn
+*/
 export interface CharacterAbility {
   id: string;
-  type: 'red' | 'blue'; // red = instant once, blue = persistent multiple
+  persistent: boolean; // true = blue ability, false = red ability
+  type: 'handLimitPlusOne';
   description: string;
 }
 

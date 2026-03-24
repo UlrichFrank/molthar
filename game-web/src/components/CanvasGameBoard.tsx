@@ -322,10 +322,11 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   function handleButtonClick(buttonId: string) {
     switch (buttonId) {
       case 'end-turn':
-        if (events?.endTurn) {
-          events.endTurn();
+        // Call the endTurn move to validate hand limit and potentially trigger discard
+        if (moves.endTurn) {
+          moves.endTurn();
         } else {
-          console.error('ERROR: events.endTurn is not available!');
+          console.error('ERROR: moves.endTurn is not available!');
         }
         break;
     }
@@ -372,19 +373,12 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeCharacterIndex]);
 
-  // Handle End Turn action
-  const handleEndTurn = () => {
-    // Check if hand limit discard is required
-    if (G.requiresHandDiscard && me && G.excessCardCount > 0) {
+  // Show discard dialog when hand limit discard is required
+  useEffect(() => {
+    if (G.requiresHandDiscard && me && G.excessCardCount > 0 && dialog.activeDialog === 'none') {
       dialog.openDiscardDialog(me.hand, G.excessCardCount, G.currentHandLimit);
-      return;
     }
-
-    // End current turn using boardgame.io's event
-    if (events?.endTurn) {
-      events.endTurn();
-    }
-  };
+  }, [G.requiresHandDiscard, G.excessCardCount, G.currentHandLimit, me, dialog]);
 
   return (
     <div
