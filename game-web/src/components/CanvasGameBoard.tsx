@@ -79,6 +79,9 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   const { ref, w: viewportW, h: viewportH } = useContainerSize<HTMLDivElement>();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
+  // Debug: Log available moves
+  console.log('[CanvasGameBoard] Available moves:', Object.keys(moves));
+
   // Preload images on mount
   const [imagesLoaded, setImagesLoaded] = useState(false);
   
@@ -508,7 +511,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           currentHandLimit={dialog.dialogContext.currentHandLimit}
           onDiscard={(selectedCardIndices) => {
             // Call the discard move - don't close dialog yet, it will auto-close when G.requiresHandDiscard becomes false
-            moves.discardCardsForHandLimit(selectedCardIndices);
+            moves.discardHandCards(selectedCardIndices);
           }}
           onCancel={() => {
             dialog.closeDialog();
