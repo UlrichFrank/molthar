@@ -339,7 +339,7 @@ export const PortaleVonMolthar = {
       console.log('[endTurn] ctx.events.endTurn() called');
     },
 
-    discardHandCards({ G, ctx }: { G: GameState; ctx: any }, selectedCardIndices: number[]) {
+    discardCardsForHandLimit({ G, ctx }: { G: GameState; ctx: any }, selectedCardIndices: number[]) {
       const player = G.players[ctx.currentPlayer];
       console.log('[discardCardsForHandLimit] Move called with indices:', selectedCardIndices);
       console.log('[discardCardsForHandLimit] Current state - requiresHandDiscard:', G.requiresHandDiscard, 'excessCardCount:', G.excessCardCount);
