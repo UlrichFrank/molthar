@@ -69,6 +69,13 @@ export interface PlayerState {
   readyUp: boolean;
   isAI: boolean;
   aiDifficulty?: 1 | 2 | 3 | 4 | 5; // 1=easy, 5=genius
+  /**
+   * Hand limit modifier - cumulative increase from activated character abilities.
+   * Each character with the `handLimitPlusOne` ability increments this by 1.
+   * Used to calculate maximum hand size: 5 (base) + handLimitModifier.
+   * Increases only when characters are activated, does not decrease on deactivation.
+   */
+  handLimitModifier: number;
 }
 
 /**
@@ -94,7 +101,10 @@ export interface GameState {
   maxActions: number; // Maximum actions available this turn (3 + bonuses)
   finalRound: boolean; // True if final round started
   finalRoundStartingPlayer: string | null; // Player who triggered final round
-  
+  requiresHandDiscard: boolean; // True if current player must discard cards to meet hand limit
+  excessCardCount: number; // Number of cards to discard
+  currentHandLimit: number; // Current player's hand limit for UI display
+
   // Metadata
   startingPlayer: string;
 }

@@ -12,6 +12,7 @@ import { PlayerNameDisplay } from './PlayerNameDisplay';
 import { DialogProvider, useDialog } from '../contexts/DialogContext';
 import { CharacterReplacementDialog } from './CharacterReplacementDialog';
 import { CharacterActivationDialog } from './CharacterActivationDialog';
+import { DiscardCardsDialog } from './DiscardCardsDialog';
 import '../styles/dialogModal.css';
 import '../styles/turnActionCounter.css';
 import '../styles/playerNameDisplay.css';
@@ -373,6 +374,12 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
 
   // Handle End Turn action
   const handleEndTurn = () => {
+    // Check if hand limit discard is required
+    if (G.requiresHandDiscard && me && G.excessCardCount > 0) {
+      dialog.openDiscardDialog(me.hand, G.excessCardCount, G.currentHandLimit);
+      return;
+    }
+
     // End current turn using boardgame.io's event
     if (events?.endTurn) {
       events.endTurn();
@@ -479,6 +486,21 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           portalSlotIndex={dialog.dialogContext.portalSlotIndex}
           onActivate={(portalSlotIndex, usedCardIndices) => {
             moves.activatePortalCard(portalSlotIndex, usedCardIndices);
+            dialog.closeDialog();
+          }}
+          onCancel={() => {
+            dialog.closeDialog();
+          }}
+        />
+      )}
+
+      {dialog.activeDialog === 'discard' && dialog.dialogContext.hand && dialog.dialogContext.excessCardCount !== undefined && dialog.dialogContext.currentHandLimit !== undefined && (
+        <DiscardCardsDialog
+          hand={dialog.dialogContext.hand}
+          excessCardCount={dialog.dialogContext.excessCardCount}
+          currentHandLimit={dialog.dialogContext.currentHandLimit}
+          onDiscard={(selectedCardIndices) => {
+            moves.discardCardsForHandLimit(selectedCardIndices);
             dialog.closeDialog();
           }}
           onCancel={() => {
