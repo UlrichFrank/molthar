@@ -39,14 +39,14 @@ install:
 	@echo "$(GREEN)✓ Dependencies installed$(NC)"
 
 # Build backend (requires shared to be built first)
-build: 
+build:
 	@echo "$(BLUE)Building backend...$(NC)"
 	@echo "$(BLUE)Note: Make sure shared package is built first!$(NC)"
 	cd backend && pnpm run build
 	@echo "$(GREEN)✓ Backend built$(NC)"
 
-# Build shared package first, then backend
-build-all:
+# Build shared package first, then backend (with clean builds)
+build-all: clean
 	@echo "$(BLUE)Building shared package...$(NC)"
 	cd shared && pnpm run build
 	@echo "$(GREEN)✓ Shared package built$(NC)"
