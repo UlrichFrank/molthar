@@ -373,10 +373,13 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeCharacterIndex]);
 
-  // Show discard dialog when hand limit discard is required
+  // Show/hide discard dialog when hand limit discard is required
   useEffect(() => {
     if (G.requiresHandDiscard && me && G.excessCardCount > 0 && dialog.activeDialog === 'none') {
       dialog.openDiscardDialog(me.hand, G.excessCardCount, G.currentHandLimit);
+    } else if (!G.requiresHandDiscard && dialog.activeDialog === 'discard') {
+      // Close dialog when discard is no longer required (move succeeded)
+      dialog.closeDialog();
     }
   }, [G.requiresHandDiscard, G.excessCardCount, G.currentHandLimit, me, dialog]);
 
@@ -504,8 +507,8 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           excessCardCount={dialog.dialogContext.excessCardCount}
           currentHandLimit={dialog.dialogContext.currentHandLimit}
           onDiscard={(selectedCardIndices) => {
+            // Call the discard move - don't close dialog yet, it will auto-close when G.requiresHandDiscard becomes false
             moves.discardCardsForHandLimit(selectedCardIndices);
-            dialog.closeDialog();
           }}
           onCancel={() => {
             dialog.closeDialog();
