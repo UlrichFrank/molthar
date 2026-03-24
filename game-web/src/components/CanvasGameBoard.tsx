@@ -380,6 +380,16 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     }
   }, [G.requiresHandDiscard, G.excessCardCount, G.currentHandLimit, me, dialog]);
 
+  // Handle End Turn action
+  const handleEndTurn = () => {
+    // Call the endTurn move to validate hand limit and potentially trigger discard
+    if (moves.endTurn) {
+      moves.endTurn();
+    } else {
+      console.error('ERROR: moves.endTurn is not available!');
+    }
+  };
+
   return (
     <div
       ref={ref}
