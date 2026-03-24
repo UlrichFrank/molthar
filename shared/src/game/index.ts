@@ -318,9 +318,11 @@ export const PortaleVonMolthar = {
 
       // Check if hand exceeds limit
       const excess = getExcessCardCount(player.hand, handLimit);
+      console.log('[endTurn] Hand size:', player.hand.length, 'Limit:', handLimit, 'Excess:', excess);
 
       if (excess > 0) {
         // Hand exceeds limit - require discard before turn can end
+        console.log('[endTurn] Hand exceeds limit, requiring discard');
         G.requiresHandDiscard = true;
         G.excessCardCount = excess;
         // DO NOT reset actionCount or advance turn - player must discard first
@@ -328,16 +330,22 @@ export const PortaleVonMolthar = {
       }
 
       // Hand is within limit - proceed with normal turn end
+      console.log('[endTurn] Hand within limit, ending turn');
       G.actionCount = 0;
       G.requiresHandDiscard = false;
       G.excessCardCount = 0;
       // End turn to advance to next player
       ctx.events.endTurn();
+      console.log('[endTurn] ctx.events.endTurn() called');
     },
 
     discardCardsForHandLimit({ G, ctx }: { G: GameState; ctx: any }, selectedCardIndices: number[]) {
       const player = G.players[ctx.currentPlayer];
+      console.log('[discardCardsForHandLimit] Move called with indices:', selectedCardIndices);
+      console.log('[discardCardsForHandLimit] Current state - requiresHandDiscard:', G.requiresHandDiscard, 'excessCardCount:', G.excessCardCount);
+
       if (!player || !G.requiresHandDiscard) {
+        console.log('[discardCardsForHandLimit] Move rejected - player:', !!player, 'requiresHandDiscard:', G.requiresHandDiscard);
         return; // Move not allowed in current state
       }
 
@@ -367,8 +375,10 @@ export const PortaleVonMolthar = {
       G.requiresHandDiscard = false;
       G.excessCardCount = 0;
       G.actionCount = 0;
+      console.log('[discardCardsForHandLimit] Discard completed, calling ctx.events.endTurn()');
       // End turn to advance to next player
       ctx.events.endTurn();
+      console.log('[discardCardsForHandLimit] ctx.events.endTurn() called');
     },
   },
   
