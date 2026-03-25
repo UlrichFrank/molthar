@@ -6,7 +6,6 @@ import { drawBackground, drawAuslage, drawPlayerPortal, drawActivatedCharactersG
 import { preloadAllImages } from '../lib/imageLoaderV2';
 import CardButtonOverlay from './CardButtonOverlay';
 import { ActivatedCharacterDetailView } from './ActivatedCharacterDetailView';
-import { TurnIndicatorDisplay } from './TurnIndicatorDisplay';
 import { ActionCounterDisplay } from './ActionCounterDisplay';
 import { PlayerNameDisplay } from './PlayerNameDisplay';
 import { DialogProvider, useDialog } from '../contexts/DialogContext';
@@ -448,11 +447,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           onCardHover={setHoveredCard}
         />
 
-        {/* Turn and Action Counter Display - overlaid on canvas */}
-        <TurnIndicatorDisplay
-          activePlayerIndex={activePlayerIndex >= 0 ? activePlayerIndex : 0}
-          totalPlayers={totalPlayers}
-        />
+        {/* Action Counter Display - overlaid on canvas */}
         <ActionCounterDisplay
           currentActions={currentActions}
           maxActions={maxActions}

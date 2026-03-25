@@ -78,11 +78,12 @@ export function ActionCounterDisplay({
     );
   }
 
-  // Determine button text: show "Player X Y / Z" or "End Turn"
+  // Determine button text: show "Y / Z" for active player, "Player X Y / Z" for opponent
   const hasActionsRemaining = currentActions > 0;
-  const buttonText = hasActionsRemaining
-    ? `${playerName} ${usedActions} / ${maxActions}`
-    : 'End Turn';
+  const actionDisplay = isActivePlayer
+    ? `${usedActions} / ${maxActions}`
+    : `${playerName} ${usedActions} / ${maxActions}`;
+  const buttonText = hasActionsRemaining ? actionDisplay : 'End Turn';
 
   // Show button (interactive when active player, non-interactive when out of actions)
   if (isActivePlayer) {
