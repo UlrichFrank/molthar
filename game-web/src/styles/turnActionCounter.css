@@ -30,7 +30,7 @@
 /* Action Counter Display */
 .action-counter {
   position: absolute;
-  bottom: 75px;
+  bottom: 20px;
   left: 20px;
   font-size: 18px;
   font-weight: bold;
@@ -121,7 +121,7 @@
 
   .action-counter {
     left: 10px;
-    bottom: 60px;
+    bottom: 10px;
   }
 
   .turn-label,
@@ -145,7 +145,7 @@
 /* Discard Button - positioned above action counter */
 .discard-button {
   position: absolute;
-  bottom: 140px;
+  bottom: 20px;
   left: 20px;
   z-index: 100;
   pointer-events: auto;
@@ -154,7 +154,7 @@
 @media (max-width: 768px) {
   .discard-button {
     left: 10px;
-    bottom: 125px;
+    bottom: 10px;
   }
 }
 
