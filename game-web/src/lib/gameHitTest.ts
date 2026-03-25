@@ -150,31 +150,35 @@ export function hitTestActivatedGrid(x: number, y: number): number | null {
 /**
  * Check if click is on character deck
  * Decks are rotated 90°, so we test the rotated bounds
+ * After 90° CCW rotation: bounding box shifts left by DECK_CARD_H
  */
 export function hitTestCharacterDeck(x: number, y: number, deckCount: number): boolean {
   if (deckCount <= 0) return false;
 
   // Character deck bounds - account for 90° rotation
-  // After rotation: width becomes height, height becomes width
-  const deckWidth = DECK_CARD_H; // 90° rotation
+  // After 90° CCW rotation, the deck extends from (x - DECK_CARD_H, y) to (x, y + DECK_CARD_W)
+  const deckX = CHAR_DECK_X - DECK_CARD_H;
+  const deckWidth = DECK_CARD_H;
   const deckHeight = DECK_CARD_W;
-  
-  return pointInRect(x, y, CHAR_DECK_X, CHAR_DECK_Y, deckWidth, deckHeight);
+
+  return pointInRect(x, y, deckX, CHAR_DECK_Y, deckWidth, deckHeight);
 }
 
 /**
  * Check if click is on pearl deck
  * Decks are rotated 90°, so we test the rotated bounds
+ * After 90° CCW rotation: bounding box shifts left by DECK_CARD_H
  */
 export function hitTestPearlDeck(x: number, y: number, deckCount: number): boolean {
   if (deckCount <= 0) return false;
 
   // Pearl deck bounds - account for 90° rotation
-  // After rotation: width becomes height, height becomes width
-  const deckWidth = DECK_CARD_H; // 90° rotation
+  // After 90° CCW rotation, the deck extends from (x - DECK_CARD_H, y) to (x, y + DECK_CARD_W)
+  const deckX = PEARL_DECK_X - DECK_CARD_H;
+  const deckWidth = DECK_CARD_H;
   const deckHeight = DECK_CARD_W;
-  
-  return pointInRect(x, y, PEARL_DECK_X, PEARL_DECK_Y, deckWidth, deckHeight);
+
+  return pointInRect(x, y, deckX, PEARL_DECK_Y, deckWidth, deckHeight);
 }
 
 /**
@@ -209,12 +213,13 @@ export function hitTest(x: number, y: number, characterDeckCount: number = 0, pe
 
   // Character Deck
   if (hitTestCharacterDeck(x, y, characterDeckCount)) {
-    const deckWidth = DECK_CARD_H; // After 90° rotation
+    const deckX = CHAR_DECK_X - DECK_CARD_H; // After 90° rotation, shifts left
+    const deckWidth = DECK_CARD_H;
     const deckHeight = DECK_CARD_W;
     return {
       type: 'deck-character',
       id: 'deck-character',
-      x: CHAR_DECK_X,
+      x: deckX,
       y: CHAR_DECK_Y,
       w: deckWidth,
       h: deckHeight,
@@ -223,12 +228,13 @@ export function hitTest(x: number, y: number, characterDeckCount: number = 0, pe
 
   // Pearl Deck
   if (hitTestPearlDeck(x, y, pearlDeckCount)) {
-    const deckWidth = DECK_CARD_H; // After 90° rotation
+    const deckX = PEARL_DECK_X - DECK_CARD_H; // After 90° rotation, shifts left
+    const deckWidth = DECK_CARD_H;
     const deckHeight = DECK_CARD_W;
     return {
       type: 'deck-pearl',
       id: 'deck-pearl',
-      x: PEARL_DECK_X,
+      x: deckX,
       y: PEARL_DECK_Y,
       w: deckWidth,
       h: deckHeight,
