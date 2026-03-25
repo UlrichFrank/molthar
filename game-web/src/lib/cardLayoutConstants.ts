@@ -84,14 +84,15 @@ export const DECK_CARD_OFFSET = 2; // Pixel offset between stacked cards for 3D 
 export const DECK_MAX_VISIBLE = 7; // Maximum number of cards visible in the stack
 export const DECK_BELOW_OFFSET_Y = 20; // Space between auslage cards and deck below
 
-// Character deck positioning (left edge aligned with left character card, with CARD_H/3 offset for rotation)
-export const CHAR_DECK_X = AUSLAGE_START_X + CARD_H; // Left-aligned with slight offset due to rotation
+// Character deck positioning (centered under first character card)
+// After 90° rotation, deck has width DECK_CARD_H and height DECK_CARD_W
+// Center the deck under character slot 0 (first two slots are characters)
+export const CHAR_DECK_X = AUSLAGE_START_X + CARD_W / 2 - DECK_CARD_H / 2;
 export const CHAR_DECK_Y = AUSLAGE_START_Y + CARD_H + DECK_BELOW_OFFSET_Y;
 
-// Pearl deck positioning (right edge aligned with right pearl card)
-// Right edge of rightmost pearl card: AUSLAGE_START_X + 5 * (CARD_W + CARD_GAP) + CARD_W
-// After 90° rotation, deck width is CARD_H, so: right_edge - CARD_H + (CARD_H/3) for rotation alignment
-export const PEARL_DECK_X = AUSLAGE_START_X + 5 * (CARD_W + CARD_GAP) + CARD_W - CARD_H + CARD_H;
+// Pearl deck positioning (centered under first pearl card)
+// Pearl cards start at slot 2: AUSLAGE_START_X + 2 * (CARD_W + CARD_GAP)
+export const PEARL_DECK_X = AUSLAGE_START_X + 2 * (CARD_W + CARD_GAP) + CARD_W / 2 - DECK_CARD_H / 2;
 export const PEARL_DECK_Y = AUSLAGE_START_Y + CARD_H + DECK_BELOW_OFFSET_Y;
 
 // === Deck Maximum Sizes (for proportional rendering) ===
