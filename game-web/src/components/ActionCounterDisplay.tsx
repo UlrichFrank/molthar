@@ -4,21 +4,25 @@
  *
  * Display Format:
  * - Shows "X / Y" format where X = actions used, Y = max actions available
+ * - When hand exceeds limit, displays "Discard Cards" button
  * - When all actions are consumed, displays "End Turn" button
  *
  * Color Coding:
  * - Green: Normal state (2+ actions remaining)
  * - Yellow: Low actions (1 action remaining)
- * - Red: Out of actions (0 actions remaining) - "End Turn" button appears
+ * - Red: Out of actions (0 actions remaining) or hand limit exceeded
  *
  * Behavior:
- * - Active Player: Shows action count or "End Turn" button
+ * - Active Player: Shows action count, "Discard Cards" (if needed), or "End Turn"
+ * - When requiresHandDiscard: Shows "Discard Cards" button instead of action count
  * - Opponents: Read-only display of action count
  *
  * Props:
  * - currentActions: Number of actions remaining for the current player
  * - maxActions: Maximum number of actions available (base 3 + bonuses)
  * - isActivePlayer: Whether this is the active player (controls button interactivity)
+ * - requiresHandDiscard: Whether player needs to discard cards before ending turn
+ * - onDiscardCards: Callback when Discard Cards button is clicked
  * - onEndTurn: Callback when End Turn button is clicked
  *
  * Styling: Uses turnActionCounter.css for bottom-left positioning and colors
@@ -28,6 +32,8 @@ interface ActionCounterDisplayProps {
   currentActions: number;
   maxActions: number;
   isActivePlayer: boolean;
+  requiresHandDiscard?: boolean;
+  onDiscardCards?: () => void;
   onEndTurn?: () => void;
 }
 
@@ -35,6 +41,8 @@ export function ActionCounterDisplay({
   currentActions,
   maxActions,
   isActivePlayer,
+  requiresHandDiscard = false,
+  onDiscardCards,
   onEndTurn,
 }: ActionCounterDisplayProps) {
   // Calculate used actions
@@ -46,6 +54,22 @@ export function ActionCounterDisplay({
     colorClass = 'red'; // Out of actions
   } else if (currentActions <= 1) {
     colorClass = 'yellow'; // Nearly out of actions
+  }
+
+  // When hand limit is exceeded, show "Discard Cards" button instead of action count
+  if (isActivePlayer && requiresHandDiscard) {
+    return (
+      <button
+        onClick={onDiscardCards}
+        className={`action-counter action-counter-red action-counter-button`}
+        aria-label="Discard cards to comply with hand limit"
+        title="Your hand exceeds the limit. Click to select cards to discard and return your hand to the allowed size."
+      >
+        <span className="actions-text">
+          Discard Cards
+        </span>
+      </button>
+    );
   }
 
   // Determine button text: show "X / Y" or "End Turn"

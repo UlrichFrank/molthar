@@ -43,6 +43,11 @@ export declare const PortaleVonMolthar: {
             G: GameState;
             events: any;
         }): void;
+        discardCardsForHandLimit({ G, ctx, events }: {
+            G: GameState;
+            ctx: any;
+            events: any;
+        }, selectedCardIndices: number[]): void;
         endTurn({ G, events }: {
             G: GameState;
             events: any;
@@ -62,13 +67,7 @@ export declare const PortaleVonMolthar: {
         }) => void;
         stages: {
             discard: {
-                moves: {
-                    discardCardsForHandLimit({ G, ctx, events }: {
-                        G: GameState;
-                        ctx: any;
-                        events: any;
-                    }, selectedCardIndices: number[]): void;
-                };
+                moves: {};
             };
         };
     };

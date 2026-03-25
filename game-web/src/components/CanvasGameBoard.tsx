@@ -13,7 +13,6 @@ import { DialogProvider, useDialog } from '../contexts/DialogContext';
 import { CharacterReplacementDialog } from './CharacterReplacementDialog';
 import { CharacterActivationDialog } from './CharacterActivationDialog';
 import { DiscardCardsDialog } from './DiscardCardsDialog';
-import { DiscardButton } from './DiscardButton';
 import '../styles/dialogModal.css';
 import '../styles/turnActionCounter.css';
 import '../styles/playerNameDisplay.css';
@@ -374,15 +373,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeCharacterIndex]);
 
-  // Open discard dialog when discard stage is active
-  useEffect(() => {
-    const activePlayers = ctx.activePlayers as Record<string, string> | undefined;
-    const isInDiscardStage = activePlayers && myPlayerID && activePlayers[myPlayerID] === 'discard';
-
-    if (isInDiscardStage && me && G.excessCardCount > 0 && dialog.activeDialog === 'none') {
-      dialog.openDiscardDialog(me.hand, G.excessCardCount, G.currentHandLimit);
-    }
-  }, [ctx.activePlayers, myPlayerID, me, G.excessCardCount, G.currentHandLimit, dialog]);
 
 
   // Handle End Turn action
@@ -395,13 +385,11 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     }
   };
 
-  // Handle Discard Cards button click - activate discard stage and open dialog
+  // Handle Discard Cards button click - open dialog
   const handleDiscardCards = () => {
-    // First activate the discard stage via the move
-    if (moves.discardCardsButton) {
-      moves.discardCardsButton();
+    if (me && G.excessCardCount > 0) {
+      dialog.openDiscardDialog(me.hand, G.excessCardCount, G.currentHandLimit);
     }
-    // Dialog will open via useEffect when discard stage is active
   };
 
   return (
@@ -461,16 +449,10 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           currentActions={currentActions}
           maxActions={maxActions}
           isActivePlayer={myPlayerID === activePlayerID}
+          requiresHandDiscard={G.requiresHandDiscard}
+          onDiscardCards={handleDiscardCards}
           onEndTurn={handleEndTurn}
         />
-
-        {/* Discard Button - separate from action counter */}
-        {isActive && (
-          <DiscardButton
-            requiresHandDiscard={G.requiresHandDiscard}
-            onDiscardCards={handleDiscardCards}
-          />
-        )}
 
         {/* Player Name Display - above hand cards */}
         {me && (
