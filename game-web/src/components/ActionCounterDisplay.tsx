@@ -1,27 +1,26 @@
 /**
  * Action Counter Display Component
  * Shows current/maximum actions for the active player with visual color feedback
- * 
+ *
  * Display Format:
  * - Shows "X / Y" format where X = actions used, Y = max actions available
- * - When all actions are consumed (currentActions === 0), displays "End Turn" button
- * 
+ * - When all actions are consumed, displays "End Turn" button
+ *
  * Color Coding:
  * - Green: Normal state (2+ actions remaining)
  * - Yellow: Low actions (1 action remaining)
  * - Red: Out of actions (0 actions remaining) - "End Turn" button appears
- * 
+ *
  * Behavior:
- * - Active Player: Button is enabled only when actions remain (disabled when 0 remaining)
+ * - Active Player: Shows action count or "End Turn" button
  * - Opponents: Read-only display of action count
- * - Supports bonus actions (e.g., "1 / 4" if maxActions includes +1 bonus)
- * 
+ *
  * Props:
  * - currentActions: Number of actions remaining for the current player
  * - maxActions: Maximum number of actions available (base 3 + bonuses)
  * - isActivePlayer: Whether this is the active player (controls button interactivity)
  * - onEndTurn: Callback when End Turn button is clicked
- * 
+ *
  * Styling: Uses turnActionCounter.css for bottom-left positioning and colors
  */
 
@@ -32,15 +31,15 @@ interface ActionCounterDisplayProps {
   onEndTurn?: () => void;
 }
 
-export function ActionCounterDisplay({ 
-  currentActions, 
+export function ActionCounterDisplay({
+  currentActions,
   maxActions,
   isActivePlayer,
   onEndTurn,
 }: ActionCounterDisplayProps) {
   // Calculate used actions
   const usedActions = maxActions - currentActions;
-  
+
   // Determine color based on action state
   let colorClass = 'green'; // Normal state (most actions remaining)
   if (currentActions === 0) {
@@ -51,8 +50,8 @@ export function ActionCounterDisplay({
 
   // Determine button text: show "X / Y" or "End Turn"
   const hasActionsRemaining = currentActions > 0;
-  const buttonText = hasActionsRemaining 
-    ? `${usedActions} / ${maxActions}` 
+  const buttonText = hasActionsRemaining
+    ? `${usedActions} / ${maxActions}`
     : 'End Turn';
 
   // Show button (interactive when active player, non-interactive when out of actions)

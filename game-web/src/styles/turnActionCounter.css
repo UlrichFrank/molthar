@@ -135,6 +135,22 @@
   }
 }
 
+/* Discard Button - positioned above action counter */
+.discard-button {
+  position: absolute;
+  bottom: 140px;
+  left: 20px;
+  z-index: 100;
+  pointer-events: auto;
+}
+
+@media (max-width: 768px) {
+  .discard-button {
+    left: 10px;
+    bottom: 125px;
+  }
+}
+
 /* Accessibility: Reduce motion for users who prefer it */
 @media (prefers-reduced-motion: reduce) {
   .action-counter {

@@ -13,6 +13,7 @@ import { DialogProvider, useDialog } from '../contexts/DialogContext';
 import { CharacterReplacementDialog } from './CharacterReplacementDialog';
 import { CharacterActivationDialog } from './CharacterActivationDialog';
 import { DiscardCardsDialog } from './DiscardCardsDialog';
+import { DiscardButton } from './DiscardButton';
 import '../styles/dialogModal.css';
 import '../styles/turnActionCounter.css';
 import '../styles/playerNameDisplay.css';
@@ -373,15 +374,16 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeCharacterIndex]);
 
-  // Show/hide discard dialog when hand limit discard is required
+  // Open discard dialog when discard stage is active
   useEffect(() => {
-    if (G.requiresHandDiscard && me && G.excessCardCount > 0 && dialog.activeDialog === 'none') {
+    const activePlayers = ctx.activePlayers as Record<string, string> | undefined;
+    const isInDiscardStage = activePlayers && myPlayerID && activePlayers[myPlayerID] === 'discard';
+
+    if (isInDiscardStage && me && G.excessCardCount > 0 && dialog.activeDialog === 'none') {
       dialog.openDiscardDialog(me.hand, G.excessCardCount, G.currentHandLimit);
-    } else if (!G.requiresHandDiscard && dialog.activeDialog === 'discard') {
-      // Close dialog when discard is no longer required (move succeeded)
-      dialog.closeDialog();
     }
-  }, [G.requiresHandDiscard, G.excessCardCount, G.currentHandLimit, me, dialog]);
+  }, [ctx.activePlayers, myPlayerID, me, G.excessCardCount, G.currentHandLimit, dialog]);
+
 
   // Handle End Turn action
   const handleEndTurn = () => {
@@ -391,6 +393,15 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     } else {
       console.error('ERROR: moves.endTurn is not available!');
     }
+  };
+
+  // Handle Discard Cards button click - activate discard stage and open dialog
+  const handleDiscardCards = () => {
+    // First activate the discard stage via the move
+    if (moves.discardCardsButton) {
+      moves.discardCardsButton();
+    }
+    // Dialog will open via useEffect when discard stage is active
   };
 
   return (
@@ -446,12 +457,20 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           activePlayerIndex={activePlayerIndex >= 0 ? activePlayerIndex : 0}
           totalPlayers={totalPlayers}
         />
-        <ActionCounterDisplay 
+        <ActionCounterDisplay
           currentActions={currentActions}
           maxActions={maxActions}
           isActivePlayer={myPlayerID === activePlayerID}
           onEndTurn={handleEndTurn}
         />
+
+        {/* Discard Button - separate from action counter */}
+        {isActive && (
+          <DiscardButton
+            requiresHandDiscard={G.requiresHandDiscard}
+            onDiscardCards={handleDiscardCards}
+          />
+        )}
 
         {/* Player Name Display - above hand cards */}
         {me && (
@@ -507,8 +526,9 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           excessCardCount={dialog.dialogContext.excessCardCount}
           currentHandLimit={dialog.dialogContext.currentHandLimit}
           onDiscard={(selectedCardIndices) => {
-            // Call the discard move - don't close dialog yet, it will auto-close when G.requiresHandDiscard becomes false
+            console.log('Discarding cards:', selectedCardIndices);
             moves.discardCardsForHandLimit(selectedCardIndices);
+            dialog.closeDialog();
           }}
           onCancel={() => {
             dialog.closeDialog();

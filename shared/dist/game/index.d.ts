@@ -39,14 +39,14 @@ export declare const PortaleVonMolthar: {
             G: GameState;
             ctx: any;
         }, cardIndices?: number[]): void;
-        endTurn({ G, ctx }: {
+        discardCardsButton({ G, events }: {
             G: GameState;
-            ctx: any;
+            events: any;
         }): void;
-        discardCardsForHandLimit({ G, ctx }: {
+        endTurn({ G, events }: {
             G: GameState;
-            ctx: any;
-        }, selectedCardIndices: number[]): void;
+            events: any;
+        }): void;
     };
     /**
      * Turn Configuration: Reset action count at start of each turn
@@ -56,6 +56,21 @@ export declare const PortaleVonMolthar: {
             G: GameState;
             ctx: any;
         }) => void;
+        onMove: ({ G, ctx }: {
+            G: GameState;
+            ctx: any;
+        }) => void;
+        stages: {
+            discard: {
+                moves: {
+                    discardCardsForHandLimit({ G, ctx, events }: {
+                        G: GameState;
+                        ctx: any;
+                        events: any;
+                    }, selectedCardIndices: number[]): void;
+                };
+            };
+        };
     };
     /**
      * End If Condition: Check for game end
@@ -76,4 +91,5 @@ export declare function createPearlDeck(): PearlCard[];
 export declare function createCharacterDeck(): CharacterCard[];
 export declare function shuffleArray<T>(array: T[]): void;
 export { validateCostPayment, findCostAssignment, consumeCosts } from './costCalculation';
+export { getAllCards } from './cardDatabase';
 //# sourceMappingURL=index.d.ts.map

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.consumeCosts = exports.findCostAssignment = exports.validateCostPayment = exports.PortaleVonMolthar = void 0;
+exports.getAllCards = exports.consumeCosts = exports.findCostAssignment = exports.validateCostPayment = exports.PortaleVonMolthar = void 0;
 exports.createPearlDeck = createPearlDeck;
 exports.createCharacterDeck = createCharacterDeck;
 exports.shuffleArray = shuffleArray;
@@ -290,59 +290,19 @@ exports.PortaleVonMolthar = {
                 });
             }
         },
-        endTurn({ G, ctx }) {
-            const player = G.players[ctx.currentPlayer];
-            if (!player)
-                return;
-            // Calculate current hand limit based on handLimitModifier
-            const handLimit = (0, costCalculation_1.calculateHandLimit)(player.handLimitModifier);
-            G.currentHandLimit = handLimit;
-            // Check if hand exceeds limit
-            const excess = (0, costCalculation_1.getExcessCardCount)(player.hand, handLimit);
-            if (excess > 0) {
-                // Hand exceeds limit - require discard before turn can end
-                G.requiresHandDiscard = true;
-                G.excessCardCount = excess;
-                // DO NOT reset actionCount or advance turn - player must discard first
-                return;
+        discardCardsButton({ G, events }) {
+            // Activate discard stage to allow player to select cards
+            if (G.requiresHandDiscard && G.excessCardCount > 0) {
+                events.setActivePlayers({ currentPlayer: 'discard' });
             }
-            // Hand is within limit - proceed with normal turn end
-            G.actionCount = 0;
-            G.requiresHandDiscard = false;
-            G.excessCardCount = 0;
-            // End turn to advance to next player
-            ctx.events.endTurn();
         },
-        discardCardsForHandLimit({ G, ctx }, selectedCardIndices) {
-            const player = G.players[ctx.currentPlayer];
-            if (!player || !G.requiresHandDiscard) {
-                return; // Move not allowed in current state
-            }
-            // Validate that exactly the required number of cards are provided
-            if (selectedCardIndices.length !== G.excessCardCount) {
-                console.log(`[discardCardsForHandLimit] Invalid card count: selected ${selectedCardIndices.length}, need ${G.excessCardCount}`);
-                return; // Reject invalid selection
-            }
-            // Validate indices are within bounds
-            const validIndices = selectedCardIndices.filter(idx => idx >= 0 && idx < player.hand.length);
-            if (validIndices.length !== selectedCardIndices.length) {
-                return; // Invalid indices
-            }
-            // Remove selected cards from player hand (remove in reverse order to maintain indices)
-            const sortedIndices = [...validIndices].sort((a, b) => b - a);
-            for (const idx of sortedIndices) {
-                const discardedCard = player.hand.splice(idx, 1)[0];
-                if (discardedCard) {
-                    // Add to discard pile
-                    G.pearlDiscardPile.push(discardedCard);
-                }
-            }
-            // Clear discard state and complete turn
-            G.requiresHandDiscard = false;
-            G.excessCardCount = 0;
+        endTurn({ G, events }) {
+            // If discard is required, reject - player must discard first
+            if (G.requiresHandDiscard)
+                return;
+            // Hand is within limit - proceed with turn end
             G.actionCount = 0;
-            // End turn to advance to next player
-            ctx.events.endTurn();
+            events.endTurn();
         },
     },
     /**
@@ -352,6 +312,54 @@ exports.PortaleVonMolthar = {
         onBegin: ({ G }) => {
             G.actionCount = 0;
             G.maxActions = 3;
+        },
+        onMove: ({ G, ctx }) => {
+            // After every move, check if hand exceeds limit
+            const player = G.players[ctx.currentPlayer];
+            if (!player)
+                return;
+            const handLimit = (0, costCalculation_1.calculateHandLimit)(player.handLimitModifier);
+            G.currentHandLimit = handLimit;
+            const excess = (0, costCalculation_1.getExcessCardCount)(player.hand, handLimit);
+            G.requiresHandDiscard = excess > 0;
+            G.excessCardCount = excess;
+        },
+        stages: {
+            discard: {
+                moves: {
+                    discardCardsForHandLimit({ G, ctx, events }, selectedCardIndices) {
+                        const player = G.players[ctx.currentPlayer];
+                        console.log('discardCardsForHandLimit called:', { selectedCardIndices, requiresHandDiscard: G.requiresHandDiscard, excessCardCount: G.excessCardCount, handLength: player?.hand.length });
+                        if (!player || !G.requiresHandDiscard) {
+                            console.log('Move rejected: no player or requiresHandDiscard is false');
+                            return;
+                        }
+                        if (selectedCardIndices.length !== G.excessCardCount) {
+                            console.log('Move rejected: card count mismatch', { selectedLength: selectedCardIndices.length, excessCardCount: G.excessCardCount });
+                            return;
+                        }
+                        const validIndices = selectedCardIndices.filter(idx => idx >= 0 && idx < player.hand.length);
+                        if (validIndices.length !== selectedCardIndices.length) {
+                            console.log('Move rejected: invalid indices', { selectedCardIndices, validIndices });
+                            return;
+                        }
+                        console.log('Discarding cards from indices:', validIndices);
+                        const sortedIndices = [...validIndices].sort((a, b) => b - a);
+                        for (const idx of sortedIndices) {
+                            const discardedCard = player.hand.splice(idx, 1)[0];
+                            console.log('Discarded card:', discardedCard);
+                            if (discardedCard) {
+                                G.pearlDiscardPile.push(discardedCard);
+                            }
+                        }
+                        G.requiresHandDiscard = false;
+                        G.excessCardCount = 0;
+                        G.actionCount = 0;
+                        console.log('Hand discard complete, calling endTurn');
+                        events.endTurn();
+                    },
+                },
+            },
         },
     },
     /**
@@ -411,4 +419,7 @@ var costCalculation_2 = require("./costCalculation");
 Object.defineProperty(exports, "validateCostPayment", { enumerable: true, get: function () { return costCalculation_2.validateCostPayment; } });
 Object.defineProperty(exports, "findCostAssignment", { enumerable: true, get: function () { return costCalculation_2.findCostAssignment; } });
 Object.defineProperty(exports, "consumeCosts", { enumerable: true, get: function () { return costCalculation_2.consumeCosts; } });
+// Export card database function (public API)
+var cardDatabase_2 = require("./cardDatabase");
+Object.defineProperty(exports, "getAllCards", { enumerable: true, get: function () { return cardDatabase_2.getAllCards; } });
 //# sourceMappingURL=index.js.map
