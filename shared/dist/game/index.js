@@ -1,13 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllCards = exports.consumeCosts = exports.findCostAssignment = exports.validateCostPayment = exports.PortaleVonMolthar = void 0;
+exports.waitForCardsLoaded = exports.getAllCards = exports.consumeCosts = exports.findCostAssignment = exports.validateCostPayment = exports.PortaleVonMolthar = void 0;
 exports.createPearlDeck = createPearlDeck;
 exports.createCharacterDeck = createCharacterDeck;
 exports.shuffleArray = shuffleArray;
 const costCalculation_1 = require("./costCalculation");
 const cardDatabase_1 = require("./cardDatabase");
-// @ts-ignore - cardDatabaseLoader.js is a side-effect module
+// @ts-ignore - cardDatabaseLoader.js is a side-effect module (Node.js backend only)
 require("./cardDatabaseLoader.js");
+// Load cards in browser environments
+require("./browserCardDatabaseLoader");
 /**
  * Helper function for invalid moves
  */
@@ -421,4 +423,7 @@ Object.defineProperty(exports, "consumeCosts", { enumerable: true, get: function
 // Export card database function (public API)
 var cardDatabase_2 = require("./cardDatabase");
 Object.defineProperty(exports, "getAllCards", { enumerable: true, get: function () { return cardDatabase_2.getAllCards; } });
+// Export card loader function (public API)
+var browserCardDatabaseLoader_1 = require("./browserCardDatabaseLoader");
+Object.defineProperty(exports, "waitForCardsLoaded", { enumerable: true, get: function () { return browserCardDatabaseLoader_1.waitForCardsLoaded; } });
 //# sourceMappingURL=index.js.map

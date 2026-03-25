@@ -1,5 +1,6 @@
 import type { GameState, PearlCard, CharacterCard } from './types';
 import './cardDatabaseLoader.js';
+import './browserCardDatabaseLoader';
 /**
  * Helper function for invalid moves
  */
@@ -91,4 +92,5 @@ export declare function createCharacterDeck(): CharacterCard[];
 export declare function shuffleArray<T>(array: T[]): void;
 export { validateCostPayment, findCostAssignment, consumeCosts } from './costCalculation';
 export { getAllCards } from './cardDatabase';
+export { waitForCardsLoaded } from './browserCardDatabaseLoader';
 //# sourceMappingURL=index.d.ts.map

@@ -3,7 +3,7 @@
  * Dynamically imports all images to ensure correct paths
  */
 
-import { getAllCards } from '@portale-von-molthar/shared';
+import { getAllCards, waitForCardsLoaded } from '@portale-von-molthar/shared';
 
 const imageCache = new Map<string, HTMLImageElement>();
 
@@ -85,7 +85,7 @@ export async function preloadAllImages(): Promise<void> {
     'Auslage.png',
     'Kleiderschrank Portal.png',
     'Schriftrolle.png',
-    
+
     // Opponent portals
     'Gegner Portal2.png',
     'Gegner Portal3.png',
@@ -114,8 +114,11 @@ export async function preloadAllImages(): Promise<void> {
   // Dynamically load character card images from cards database
   const characterCardImages = new Set<string>();
   characterCardImages.add('Charakterkarte Hinten.jpeg'); // Back of card
-  
+
   try {
+    // Wait for cards to be loaded from cards.json
+    await waitForCardsLoaded();
+
     const allCards = getAllCards();
     allCards.forEach(card => {
       if (card.imageName) {

@@ -1,8 +1,10 @@
 import type { GameState, PearlCard, CharacterCard, PlayerState, ActivatedCharacter } from './types';
 import { consumeCosts, calculateHandLimit, getExcessCardCount } from './costCalculation';
 import { getAllCards as getAllCardDataFromDatabase } from './cardDatabase';
-// @ts-ignore - cardDatabaseLoader.js is a side-effect module
+// @ts-ignore - cardDatabaseLoader.js is a side-effect module (Node.js backend only)
 import './cardDatabaseLoader.js';
+// Load cards in browser environments
+import './browserCardDatabaseLoader';
 
 /**
  * Helper function for invalid moves
@@ -459,3 +461,6 @@ export { validateCostPayment, findCostAssignment, consumeCosts } from './costCal
 
 // Export card database function (public API)
 export { getAllCards } from './cardDatabase';
+
+// Export card loader function (public API)
+export { waitForCardsLoaded } from './browserCardDatabaseLoader';
