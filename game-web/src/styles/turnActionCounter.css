@@ -27,17 +27,6 @@
   letter-spacing: 0.5px;
 }
 
-/* Turn indicator for non-active player - blue styling */
-.turn-indicator-inactive {
-  border-color: #3b82f6 !important;
-  background: rgba(30, 41, 59, 0.9) !important;
-  color: #3b82f6 !important;
-}
-
-.turn-indicator-inactive .turn-label {
-  color: #3b82f6;
-}
-
 /* Action Counter Display */
 .action-counter {
   position: absolute;
@@ -102,6 +91,13 @@
   color: #ffffff;
   background: rgba(239, 68, 68, 0.8);
   border: 2px solid #ef4444;
+}
+
+/* Blue: Non-active player (opponent's turn) */
+.action-counter-blue {
+  color: #3b82f6;
+  background: rgba(30, 41, 59, 0.9);
+  border: 2px solid #3b82f6;
 }
 
 .actions-text {

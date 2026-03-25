@@ -452,14 +452,12 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
         <TurnIndicatorDisplay
           activePlayerIndex={activePlayerIndex >= 0 ? activePlayerIndex : 0}
           totalPlayers={totalPlayers}
-          playerName={activePlayer?.name || `Player ${activePlayerIndex + 1}`}
-          isActivePlayer={myPlayerID === activePlayerID}
-          currentTurn={activePlayerIndex + 1}
         />
         <ActionCounterDisplay
           currentActions={currentActions}
           maxActions={maxActions}
           isActivePlayer={myPlayerID === activePlayerID}
+          playerName={activePlayer?.name || `Player ${activePlayerIndex + 1}`}
           requiresHandDiscard={G.requiresHandDiscard}
           onDiscardCards={handleDiscardCards}
           onEndTurn={handleEndTurn}
