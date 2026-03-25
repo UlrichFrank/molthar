@@ -449,9 +449,12 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
         />
 
         {/* Turn and Action Counter Display - overlaid on canvas */}
-        <TurnIndicatorDisplay 
+        <TurnIndicatorDisplay
           activePlayerIndex={activePlayerIndex >= 0 ? activePlayerIndex : 0}
           totalPlayers={totalPlayers}
+          playerName={activePlayer?.name || `Player ${activePlayerIndex + 1}`}
+          isActivePlayer={myPlayerID === activePlayerID}
+          currentTurn={activePlayerIndex + 1}
         />
         <ActionCounterDisplay
           currentActions={currentActions}
