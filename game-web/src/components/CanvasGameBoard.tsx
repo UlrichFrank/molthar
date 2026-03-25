@@ -245,6 +245,11 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
       return;
     }
 
+    // Deck clicks only allowed during takingActions phase
+    if ((target.type === 'deck-character' || target.type === 'deck-pearl') && phase !== 'takingActions') {
+      return;
+    }
+
     switch (target.type) {
       case 'auslage-card': {
         const id = target.id as number;
@@ -291,14 +296,17 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
       }
 
       case 'deck-character': {
-        // Draw random character card from deck
+        // Draw character card from deck (blind draw, no selection)
+        // Uses same Portal action flow as clicking face-up cards, but with -1 index to signal deck draw
+        // Backend (takeCharacterCard move) extracts top card from characterDeck[0]
         if (G.actionCount >= G.maxActions) {
           return;
         }
         if (G.characterDeck.length === 0) {
           return;
         }
-        moves.takeCharacterCard(-1); // -1 indicates blind draw from deck
+        // -1 indicates blind draw from deck; triggers same Portal integration as face-up cards
+        moves.takeCharacterCard(-1);
         break;
       }
 

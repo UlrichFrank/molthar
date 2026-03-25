@@ -94,6 +94,12 @@ export const CHAR_DECK_Y = AUSLAGE_START_Y + CARD_H + DECK_BELOW_OFFSET_Y;
 export const PEARL_DECK_X = AUSLAGE_START_X + 5 * (CARD_W + CARD_GAP) + CARD_W - CARD_H + CARD_H;
 export const PEARL_DECK_Y = AUSLAGE_START_Y + CARD_H + DECK_BELOW_OFFSET_Y;
 
+// === Deck Maximum Sizes (for proportional rendering) ===
+// Maximum initial deck sizes used for proportional card count calculation
+// Formula: visibleCards = Math.ceil(currentCount / maxDeckSize * 7)
+export const CHARACTER_DECK_MAX_SIZE = 52; // 54 total character cards - 2 in initial auslage
+export const PEARL_DECK_MAX_SIZE = 56; // 8 values × 7 copies per value
+
 /**
  * Calculate hand card position with fan-out layout
  * @param handCount Total number of cards in hand

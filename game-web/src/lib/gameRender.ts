@@ -48,6 +48,8 @@ import {
   CHAR_DECK_Y,
   PEARL_DECK_X,
   PEARL_DECK_Y,
+  CHARACTER_DECK_MAX_SIZE,
+  PEARL_DECK_MAX_SIZE,
   getHandCardPosition,
   getPortalSlotPosition,
   getActivatedCardPosition,
@@ -135,13 +137,23 @@ export function drawDeckStack(
   cardCount: number,
   rotation: number = DECK_ROTATION,
   deckType: 'character' | 'pearl' = 'character',
-  isHovered: boolean = false
+  isHovered: boolean = false,
+  maxDeckSize?: number
 ) {
   // Don't draw empty decks
   if (cardCount <= 0) return;
 
-  // Calculate how many cards to show (max DECK_MAX_VISIBLE)
-  const visibleCards = Math.min(cardCount, DECK_MAX_VISIBLE);
+  // Determine the maximum deck size for proportional mapping
+  // Uses deck-type-specific constants: CHARACTER_DECK_MAX_SIZE=52, PEARL_DECK_MAX_SIZE=56
+  const actualMaxDeckSize = maxDeckSize ?? (deckType === 'character' ? CHARACTER_DECK_MAX_SIZE : PEARL_DECK_MAX_SIZE);
+
+  // Calculate visible cards using proportional mapping formula: visibleCards = Math.ceil(currentCount / maxDeckSize * 7)
+  // This ensures: while currentCount > 0, always visibleCards >= 1 (prevents empty display gap)
+  // Example: With 52 character cards max:
+  //   - At 52 cards: ceil(52/52 * 7) = 7 cards shown
+  //   - At 26 cards: ceil(26/52 * 7) = 4 cards shown
+  //   - At 1 card: ceil(1/52 * 7) = 1 card shown
+  const visibleCards = Math.ceil(cardCount / actualMaxDeckSize * DECK_MAX_VISIBLE);
 
   // Save the current canvas state before applying rotation
   ctx.save();
