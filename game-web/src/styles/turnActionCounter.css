@@ -30,7 +30,7 @@
 /* Action Counter Display */
 .action-counter {
   position: absolute;
-  bottom: 75px;
+  bottom: 20px;
   left: 20px;
   font-size: 18px;
   font-weight: bold;
@@ -75,22 +75,29 @@
 /* Green: Normal state (actions available) */
 .action-counter-green {
   color: #ffffff;
-  background: rgba(34, 197, 94, 0.8);
+  background: rgba(34, 197, 94, 0.9);
   border: 2px solid #22c55e;
 }
 
 /* Yellow: At maximum capacity */
 .action-counter-yellow {
   color: #000000;
-  background: rgba(250, 204, 21, 0.8);
+  background: rgba(250, 204, 21, 0.9);
   border: 2px solid #facc15;
 }
 
 /* Red: Out of actions */
 .action-counter-red {
   color: #ffffff;
-  background: rgba(239, 68, 68, 0.8);
+  background: rgba(239, 68, 68, 0.9);
   border: 2px solid #ef4444;
+}
+
+/* Blue: Non-active player (opponent's turn) */
+.action-counter-blue {
+  color: #3b82f6;
+  background: rgba(30, 41, 59, 0.8);
+  border: 2px solid #3b82f6;
 }
 
 .actions-text {
@@ -114,7 +121,7 @@
 
   .action-counter {
     left: 10px;
-    bottom: 60px;
+    bottom: 10px;
   }
 
   .turn-label,
@@ -138,7 +145,7 @@
 /* Discard Button - positioned above action counter */
 .discard-button {
   position: absolute;
-  bottom: 140px;
+  bottom: 20px;
   left: 20px;
   z-index: 100;
   pointer-events: auto;
@@ -147,7 +154,7 @@
 @media (max-width: 768px) {
   .discard-button {
     left: 10px;
-    bottom: 125px;
+    bottom: 10px;
   }
 }
 

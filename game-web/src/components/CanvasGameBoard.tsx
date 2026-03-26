@@ -6,7 +6,6 @@ import { drawBackground, drawAuslage, drawPlayerPortal, drawActivatedCharactersG
 import { preloadAllImages } from '../lib/imageLoaderV2';
 import CardButtonOverlay from './CardButtonOverlay';
 import { ActivatedCharacterDetailView } from './ActivatedCharacterDetailView';
-import { TurnIndicatorDisplay } from './TurnIndicatorDisplay';
 import { ActionCounterDisplay } from './ActionCounterDisplay';
 import { PlayerNameDisplay } from './PlayerNameDisplay';
 import { DialogProvider, useDialog } from '../contexts/DialogContext';
@@ -305,8 +304,21 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
         if (G.characterDeck.length === 0) {
           return;
         }
-        // -1 indicates blind draw from deck; triggers same Portal integration as face-up cards
-        moves.takeCharacterCard(-1);
+
+        // Check if player's portal is full (2 characters)
+        if (me && me.portal.length >= 2) {
+          // Portal is full - show replacement dialog
+          // For blind draw, we use a placeholder with "Blind Draw" as name
+          const placeholderCard = { name: 'Blind Draw', imageName: 'Charakterkarte Hinten.jpeg' };
+          const portalCharacters = me.portal.map((entry) => entry.card);
+          dialog.openReplacementDialog(placeholderCard, portalCharacters);
+          // Set a flag to indicate this is a blind draw that needs special handling
+          // We'll store the action as a pending move in state
+          // For now, we'll handle this by closing the dialog and calling with -1 index
+        } else {
+          // Portal not full - take card directly
+          moves.takeCharacterCard(-1);
+        }
         break;
       }
 
@@ -448,15 +460,12 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           onCardHover={setHoveredCard}
         />
 
-        {/* Turn and Action Counter Display - overlaid on canvas */}
-        <TurnIndicatorDisplay 
-          activePlayerIndex={activePlayerIndex >= 0 ? activePlayerIndex : 0}
-          totalPlayers={totalPlayers}
-        />
+        {/* Action Counter Display - overlaid on canvas */}
         <ActionCounterDisplay
           currentActions={currentActions}
           maxActions={maxActions}
           isActivePlayer={myPlayerID === activePlayerID}
+          playerName={activePlayer?.name || `Player ${activePlayerIndex + 1}`}
           requiresHandDiscard={G.requiresHandDiscard}
           onDiscardCards={handleDiscardCards}
           onEndTurn={handleEndTurn}
@@ -476,12 +485,20 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           newCard={dialog.dialogContext.newCharacter}
           portalCards={dialog.dialogContext.portalCharacters}
           onSelect={(replacedSlotIndex) => {
-            // Find the character card index in the auslage
-            const characterIndex = (G.characterSlots || []).findIndex(
-              (card) => card?.id === dialog.dialogContext.newCharacter?.id
-            );
-            if (characterIndex >= 0) {
-              moves.takeCharacterCard(characterIndex, replacedSlotIndex);
+            // Check if this is a blind draw (newCharacter.name === 'Blind Draw')
+            const isBlindDraw = dialog.dialogContext.newCharacter.name === 'Blind Draw';
+
+            if (isBlindDraw) {
+              // For blind draw, use -1 as the character index
+              moves.takeCharacterCard(-1, replacedSlotIndex);
+            } else {
+              // Find the character card index in the auslage
+              const characterIndex = (G.characterSlots || []).findIndex(
+                (card) => card?.id === dialog.dialogContext.newCharacter?.id
+              );
+              if (characterIndex >= 0) {
+                moves.takeCharacterCard(characterIndex, replacedSlotIndex);
+              }
             }
             dialog.closeDialog();
           }}
