@@ -26,7 +26,7 @@ export function HandDisplay({
 
   // Helper function to get pearl card image path
   function getPearlCardImage(value: number): string {
-    return `/assets/Perlenkarte${value}.jpeg`;
+    return `/assets/Perlenkarte${value}.png`;
   }
 
   // Calculate sum of selected cards

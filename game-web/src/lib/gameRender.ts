@@ -168,7 +168,7 @@ export function drawDeckStack(
     const offsetY = i * DECK_CARD_OFFSET;
 
     // Draw card back image (rotated cards show the back)
-    const backImage = deckType === 'character' ? 'Charakterkarte Hinten.jpeg' : 'Perlenkarte Hinten.jpeg';
+    const backImage = deckType === 'character' ? 'Charakterkarte Hinten.png' : 'Perlenkarte Hinten.png';
     drawImageOrFallback(ctx, backImage, offsetX, offsetY, DECK_CARD_W, DECK_CARD_H, 'Deck');
 
     // If hovered, add a highlighted effect on the top card
@@ -251,7 +251,7 @@ export function drawAuslage(
     }
 
     // Draw card image
-    let filename = 'Charakterkarte Hinten.jpeg';
+    let filename = 'Charakterkarte Hinten.png';
     let label = 'Card';
 
     if (idx < 2) {
@@ -261,7 +261,7 @@ export function drawAuslage(
     } else {
       // Pearl card
       const value = ((card as any).value || 1);
-      filename = `Perlenkarte${value}.jpeg`;
+      filename = `Perlenkarte${value}.png`;
       label = String(value);
     }
 
@@ -381,7 +381,7 @@ export function drawPlayerPortal(
 
     // Draw actual pearl card image
     const value = ((card as unknown) as { value?: number }).value || 1;
-    drawImageOrFallback(ctx, `Perlenkarte${value}.jpeg`, -HAND_CARD_W / 2, -HAND_CARD_H / 2, HAND_CARD_W, HAND_CARD_H, String(value));
+    drawImageOrFallback(ctx, `Perlenkarte${value}.png`, -HAND_CARD_W / 2, -HAND_CARD_H / 2, HAND_CARD_W, HAND_CARD_H, String(value));
 
     // Selection border
     if (config.selectedHandIndices.includes(idx)) {

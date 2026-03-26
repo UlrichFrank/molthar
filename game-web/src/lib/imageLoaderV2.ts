@@ -93,15 +93,15 @@ export async function preloadAllImages(): Promise<void> {
     'Gegner Portal5.png',
 
     // Pearl cards
-    'Perlenkarte Hinten.jpeg',
-    'Perlenkarte1.jpeg',
-    'Perlenkarte2.jpeg',
-    'Perlenkarte3.jpeg',
-    'Perlenkarte4.jpeg',
-    'Perlenkarte5.jpeg',
-    'Perlenkarte6.jpeg',
-    'Perlenkarte7.jpeg',
-    'Perlenkarte8.jpeg',
+    'Perlenkarte Hinten.png',
+    'Perlenkarte1.png',
+    'Perlenkarte2.png',
+    'Perlenkarte3.png',
+    'Perlenkarte4.png',
+    'Perlenkarte5.png',
+    'Perlenkarte6.png',
+    'Perlenkarte7.png',
+    'Perlenkarte8.png',
 
     // Portal images
     'Portal1.jpeg',
@@ -113,7 +113,7 @@ export async function preloadAllImages(): Promise<void> {
 
   // Dynamically load character card images from cards database
   const characterCardImages = new Set<string>();
-  characterCardImages.add('Charakterkarte Hinten.jpeg'); // Back of card
+  characterCardImages.add('Charakterkarte Hinten.png'); // Back of card
 
   try {
     // Wait for cards to be loaded from cards.json

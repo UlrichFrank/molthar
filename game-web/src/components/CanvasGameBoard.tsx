@@ -309,7 +309,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
         if (me && me.portal.length >= 2) {
           // Portal is full - show replacement dialog
           // For blind draw, we use a placeholder with "Blind Draw" as name
-          const placeholderCard = { name: 'Blind Draw', imageName: 'Charakterkarte Hinten.jpeg' };
+          const placeholderCard = { name: 'Blind Draw', imageName: 'Charakterkarte Hinten.png' };
           const portalCharacters = me.portal.map((entry) => entry.card);
           dialog.openReplacementDialog(placeholderCard, portalCharacters);
           // Set a flag to indicate this is a blind draw that needs special handling
