@@ -24,7 +24,7 @@ export function FaceUpCards({
 
   // Helper function to get pearl card image path
   function getPearlCardImage(value: number): string {
-    return `/assets/Perlenkarte${value}.jpeg`;
+    return `/assets/Perlenkarte${value}.png`;
   }
 
   // Helper function to get character card image path
@@ -37,7 +37,7 @@ export function FaceUpCards({
       return `/assets/Charakterkarte${num}.jpeg`;
     }
     // Fallback to generic back image or placeholder
-    return '/assets/Charakterkarte Hinten.jpeg';
+    return '/assets/Charakterkarte Hinten.png';
   }
 
   return (

@@ -18,7 +18,7 @@ export function CharacterReplacementDialog(props: CharacterReplacementDialogProp
       const num = match[1];
       return `/assets/Charakterkarte${num}.jpeg`;
     }
-    return '/assets/Charakterkarte Hinten.jpeg';
+    return '/assets/Charakterkarte Hinten.png';
   };
 
   return (
