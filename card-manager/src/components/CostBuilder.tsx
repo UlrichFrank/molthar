@@ -128,7 +128,7 @@ export function CostBuilder({ cost, onUpdate }: CostBuilderProps) {
                     case 'number':
                       return `${c.value}`;
                     case 'nTuple':
-                      return `${c.n}x beliebig`;
+                      return `${c.n}x gleiche Zahlen`;
                     case 'evenTuple':
                       return `${c.n}x gerade`;
                     case 'oddTuple':
@@ -141,7 +141,7 @@ export function CostBuilder({ cost, onUpdate }: CostBuilderProps) {
                       return `${c.length}-Reihe`;
                     case 'diamond':
                       return '◆';
-                    case 'drillingChoice':
+                    case 'tripleChoice':
                       return `3×${c.value1}|3×${c.value2}`;
                     default:
                       return '?';

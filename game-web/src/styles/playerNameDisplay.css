@@ -1,0 +1,48 @@
+/**
+ * Player Name Display Styles
+ * Shows player name above the hand cards area
+ */
+
+.player-name-display {
+  position: absolute;
+  top: 80px;
+  left: 20px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+  background: rgba(30, 41, 59, 0.85);
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid #475569;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  z-index: 99;
+  min-width: 150px;
+  text-align: center;
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-name-text {
+  display: block;
+  letter-spacing: 0.3px;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+  .player-name-display {
+    font-size: 14px;
+    padding: 6px 12px;
+    top: 70px;
+    left: 10px;
+  }
+}
+
+/* Accessibility: Ensure sufficient color contrast */
+@media (prefers-contrast: more) {
+  .player-name-display {
+    background: rgba(20, 30, 48, 0.95);
+    border-width: 2px;
+  }
+}

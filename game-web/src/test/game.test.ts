@@ -728,12 +728,12 @@ describe('CostValidator - P1.5: Cost Component Validation', () => {
     });
   });
 
-  describe('validateCostComponent - drillingChoice', () => {
+  describe('validateCostComponent - tripleChoice', () => {
     it('should validate first choice option', () => {
       
       const result = validateCostComponent(
         mockPearls([3, 4, 5]),
-        { type: 'drillingChoice', val1: 3, val2: 5 },
+        { type: 'tripleChoice', value1: 3, value2: 5 },
         0
       );
       expect(result.isValid).toBe(true);
@@ -743,7 +743,7 @@ describe('CostValidator - P1.5: Cost Component Validation', () => {
       
       const result = validateCostComponent(
         mockPearls([4, 5, 6]),
-        { type: 'drillingChoice', val1: 3, val2: 5 },
+        { type: 'tripleChoice', value1: 3, value2: 5 },
         0
       );
       expect(result.isValid).toBe(true);
@@ -753,7 +753,7 @@ describe('CostValidator - P1.5: Cost Component Validation', () => {
       
       const result = validateCostComponent(
         mockPearls([1, 2, 4]),
-        { type: 'drillingChoice', val1: 3, val2: 5 },
+        { type: 'tripleChoice', value1: 3, value2: 5 },
         0
       );
       expect(result.isValid).toBe(false);

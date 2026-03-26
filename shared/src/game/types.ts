@@ -15,7 +15,7 @@ export interface PearlCard {
  * Cost Component - Flexible cost system
  */
 export interface CostComponent {
-  type: 'number' | 'nTuple' | 'sumAnyTuple' | 'sumTuple' | 'run' | 'evenTuple' | 'oddTuple' | 'diamond' | 'drillingChoice';
+  type: 'number' | 'nTuple' | 'sumAnyTuple' | 'sumTuple' | 'run' | 'evenTuple' | 'oddTuple' | 'diamond' | 'tripleChoice';
   value?: number;
   n?: number;
   sum?: number;
@@ -30,6 +30,7 @@ export interface CostComponent {
 export interface CharacterCard {
   id: string;
   name: string;
+  imageName: string;
   cost: CostComponent[];
   powerPoints: number;
   diamonds: number;
@@ -37,11 +38,16 @@ export interface CharacterCard {
 }
 
 /**
- * Character Ability (Red or Blue)
- */
+ * type
+ * - 'handLimitPlusOne': grants +1 to player's hand limit (applied on activation)
+ * persistent
+ * - true (blue ability): effect is permanent once activated
+ * - false (red ability): effect is temporary, only on activation turn
+*/
 export interface CharacterAbility {
   id: string;
-  type: 'red' | 'blue'; // red = instant once, blue = persistent multiple
+  persistent: boolean; // true = blue ability, false = red ability
+  type: 'handLimitPlusOne';
   description: string;
 }
 
@@ -61,12 +67,20 @@ export interface PlayerState {
   id: string;
   name: string;
   hand: PearlCard[];
-  portal: ActivatedCharacter[]; // max 2
+  portal: ActivatedCharacter[]; // max 2, cards not yet activated
+  activatedCharacters: ActivatedCharacter[]; // cards that have been activated (removed from portal)
   powerPoints: number;
   diamonds: number;
   readyUp: boolean;
   isAI: boolean;
   aiDifficulty?: 1 | 2 | 3 | 4 | 5; // 1=easy, 5=genius
+  /**
+   * Hand limit modifier - cumulative increase from activated character abilities.
+   * Each character with the `handLimitPlusOne` ability increments this by 1.
+   * Used to calculate maximum hand size: 5 (base) + handLimitModifier.
+   * Increases only when characters are activated, does not decrease on deactivation.
+   */
+  handLimitModifier: number;
 }
 
 /**
@@ -88,10 +102,14 @@ export interface GameState {
   playerOrder: string[]; // Order of players
   
   // Game state
-  actionCount: number; // Current player's action count (0-3)
+  actionCount: number; // Current player's remaining actions (0-3+)
+  maxActions: number; // Maximum actions available this turn (3 + bonuses)
   finalRound: boolean; // True if final round started
   finalRoundStartingPlayer: string | null; // Player who triggered final round
-  
+  requiresHandDiscard: boolean; // True if current player must discard cards to meet hand limit
+  excessCardCount: number; // Number of cards to discard
+  currentHandLimit: number; // Current player's hand limit for UI display
+
   // Metadata
   startingPlayer: string;
 }

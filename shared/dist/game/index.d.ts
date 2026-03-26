@@ -1,4 +1,6 @@
-import type { GameState, PearlCard, CharacterCard, CostComponent } from './types';
+import type { GameState, PearlCard, CharacterCard } from './types';
+import './cardDatabaseLoader.js';
+import './browserCardDatabaseLoader';
 /**
  * Helper function for invalid moves
  */
@@ -29,7 +31,7 @@ export declare const PortaleVonMolthar: {
         activatePortalCard({ G, ctx }: {
             G: GameState;
             ctx: any;
-        }, portalSlotIndex: number, usedCards?: number[]): void;
+        }, portalSlotIndex: number, selectedCardIndices: number[]): void;
         replacePearlSlots({ G, ctx }: {
             G: GameState;
             ctx: any;
@@ -38,10 +40,37 @@ export declare const PortaleVonMolthar: {
             G: GameState;
             ctx: any;
         }, cardIndices?: number[]): void;
-        endTurn({ G, ctx }: {
+        discardCardsButton({ G, events }: {
+            G: GameState;
+            events: any;
+        }): void;
+        discardCardsForHandLimit({ G, ctx, events }: {
             G: GameState;
             ctx: any;
+            events: any;
+        }, selectedCardIndices: number[]): void;
+        endTurn({ G, events }: {
+            G: GameState;
+            events: any;
         }): void;
+    };
+    /**
+     * Turn Configuration: Reset action count at start of each turn
+     */
+    turn: {
+        onBegin: ({ G }: {
+            G: GameState;
+            ctx: any;
+        }) => void;
+        onMove: ({ G, ctx }: {
+            G: GameState;
+            ctx: any;
+        }) => void;
+        stages: {
+            discard: {
+                moves: {};
+            };
+        };
     };
     /**
      * End If Condition: Check for game end
@@ -56,18 +85,12 @@ export declare const PortaleVonMolthar: {
     } | undefined;
 };
 /**
- * Validate that used cards satisfy a character's cost
- * @param cost - Cost components to satisfy
- * @param usedCardIndices - Indices of cards from hand being used
- * @param hand - Player's hand of pearl cards
- * @param diamonds - Player's available diamonds to reduce cost
- * @returns true if cost is satisfied, false otherwise
- */
-export declare function validateCostPayment(cost: CostComponent[], usedCardIndices: number[], hand: PearlCard[], diamonds: number): boolean;
-/**
  * Helper Functions
  */
 export declare function createPearlDeck(): PearlCard[];
 export declare function createCharacterDeck(): CharacterCard[];
 export declare function shuffleArray<T>(array: T[]): void;
+export { validateCostPayment, findCostAssignment, consumeCosts } from './costCalculation';
+export { getAllCards } from './cardDatabase';
+export { waitForCardsLoaded } from './browserCardDatabaseLoader';
 //# sourceMappingURL=index.d.ts.map

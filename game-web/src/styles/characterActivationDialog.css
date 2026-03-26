@@ -17,27 +17,39 @@
   background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
   border: 3px solid #333;
   border-radius: 12px;
-  padding: 2rem;
-  max-width: 700px;
-  width: 90%;
-  max-height: 90vh;
+  padding: 1.5rem;
+  max-width: 90vw;
+  width: 100%;
+  /* Limit dialog to viewport height minus a small offset so it never exceeds screen */
+  max-height: calc(100vh - 2rem);
   overflow-y: auto;
+  overflow-x: hidden;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 500px) {
+  .character-activation-dialog {
+    max-width: 700px;
+    width: 90%;
+    padding: 2rem;
+  }
 }
 
 .character-activation-dialog h2 {
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.8rem 0;
   text-align: center;
   color: #333;
-  font-size: 1.8rem;
+  font-size: clamp(1.3rem, 5vw, 1.8rem);
   border-bottom: 2px solid #333;
   padding-bottom: 0.5rem;
 }
 
 .character-activation-dialog h3 {
-  margin: 1rem 0 0.5rem 0;
+  margin: 0.8rem 0 0.5rem 0;
   color: #333;
-  font-size: 1.2rem;
+  font-size: clamp(1rem, 4vw, 1.2rem);
 }
 
 .character-selection {
@@ -46,12 +58,24 @@
 
 .available-characters {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 0.75rem;
   background: white;
-  padding: 1rem;
+  padding: 0.75rem;
   border-radius: 8px;
   border: 2px solid #ddd;
+  /* Allow the character list to expand; let the dialog handle scrolling */
+  max-height: none;
+  overflow-y: visible;
+}
+
+@media (min-width: 500px) {
+  .available-characters {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+    max-height: none;
+  }
 }
 
 .character-choice {
@@ -95,21 +119,27 @@
 }
 
 .character-name {
-  font-size: 0.8rem;
-  margin-bottom: 0.25rem;
+  font-size: clamp(0.65rem, 3vw, 0.8rem);
+  margin-bottom: 0.15rem;
 }
 
 .character-cost {
-  font-size: 0.7rem;
+  font-size: clamp(0.55rem, 2.5vw, 0.7rem);
   opacity: 0.9;
 }
 
 .cost-section {
   background: #fff3cd;
-  padding: 1rem;
+  padding: 0.75rem;
   border-radius: 8px;
   margin-bottom: 1rem;
   border-left: 4px solid #ffc107;
+}
+
+@media (min-width: 500px) {
+  .cost-section {
+    padding: 1rem;
+  }
 }
 
 .cost-section h3 {
@@ -118,9 +148,9 @@
 }
 
 .cost-description {
-  margin: 0.5rem 0 0 0;
+  margin: 0.3rem 0 0 0;
   color: #856404;
-  font-size: 0.95rem;
+  font-size: clamp(0.8rem, 2vw, 0.95rem);
 }
 
 .diamond-bonus {
@@ -135,29 +165,48 @@
 
 .hand-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 0.5rem;
   margin: 1rem 0;
   background: white;
-  padding: 1rem;
+  padding: 0.75rem;
   border-radius: 8px;
+  /* Let the hand grid expand to fit content; dialog will scroll if needed */
+  max-height: none;
+  overflow-y: visible;
+}
+
+@media (min-width: 500px) {
+  .hand-grid {
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 0.75rem;
+    padding: 1rem;
+    max-height: none;
+  }
 }
 
 .hand-card-selector {
   background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
   border: 3px solid #999;
   border-radius: 16px;
-  padding: 0.5rem;
+  padding: 0.35rem;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
-  min-height: 80px;
+  min-height: 70px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
   font-weight: bold;
   color: #333;
+}
+
+@media (min-width: 500px) {
+  .hand-card-selector {
+    padding: 0.5rem;
+    min-height: 80px;
+  }
 }
 
 .hand-card-selector:hover {
@@ -173,7 +222,7 @@
 }
 
 .hand-card-selector .card-value {
-  font-size: 1.8rem;
+  font-size: clamp(1.2rem, 5vw, 1.8rem);
   line-height: 1;
 }
 
@@ -201,13 +250,21 @@
 .btn-activate,
 .btn-cancel {
   flex: 1;
-  padding: 0.8rem 1rem;
-  font-size: 1rem;
+  padding: 0.6rem 0.8rem;
+  font-size: clamp(0.85rem, 3vw, 1rem);
   font-weight: bold;
   border: 2px solid #333;
   border-radius: 16px;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+@media (min-width: 500px) {
+  .btn-activate,
+  .btn-cancel {
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+  }
 }
 
 .btn-activate {

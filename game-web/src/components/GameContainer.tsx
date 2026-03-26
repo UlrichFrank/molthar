@@ -297,7 +297,6 @@ export function GameContainer() {
     <>
       <GameBoard
         gameState={gameState}
-        characters={characters}
         selectedPearl={selectedPearl}
         selectedCharacter={selectedCharacter}
         selectedHandIndices={selectedHandIndices}
@@ -318,7 +317,6 @@ export function GameContainer() {
           handleAction(GameActionType.ActivateCharacter, { characterIndex: charIdx })
         }
         onDiscardCards={() => handleAction(GameActionType.DiscardCards)}
-        onEndTurn={() => handleAction(GameActionType.EndTurn)}
       />
       <ErrorDisplay 
         error={error} 

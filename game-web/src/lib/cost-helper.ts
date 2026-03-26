@@ -13,29 +13,29 @@ export function describeCost(cost: CostComponent[]): string {
   const descriptions = cost.map(component => {
     switch (component.type) {
       case 'number':
-        return `Total sum of ${component.value}`;
+        return `a card with value ${component.value}`;
       case 'nTuple':
         return `${component.n} cards with same value`;
       case 'sumAnyTuple':
-        return `${component.n} different pairs`;
+        return `Any cards summing to ${component.sum}`;
       case 'sumTuple':
         return `${component.n} cards summing to ${component.sum}`;
       case 'run':
         return `${component.length} consecutive values`;
+      case 'tripleChoice':
+        return `3 cards of value ${component.value1} OR ${component.value2}`;
       case 'evenTuple':
         return `${component.n} even-valued cards`;
       case 'oddTuple':
         return `${component.n} odd-valued cards`;
       case 'diamond':
         return `${component.value} diamonds`;
-      case 'drillingChoice':
-        return `Choose from multiple costs`;
       default:
         return 'Unknown cost';
     }
   });
 
-  return descriptions.join(' OR ');
+  return descriptions.join(' AND ');
 }
 
 /**
@@ -89,7 +89,7 @@ export function canPotentiallySatisfyCost(
       case 'sumTuple':
       case 'evenTuple':
       case 'oddTuple':
-      case 'drillingChoice':
+      case 'tripleChoice':
       default:
         return true; // Let server validate
     }
@@ -152,11 +152,17 @@ export function getCostSummary(cost: CostComponent[]): string {
     return 'Free';
   }
 
-  const numberCost = cost.find(c => c.type === 'number');
-  if (numberCost && numberCost.value) {
-    return `Cost: ${numberCost.value}`;
+  // For single number cost, show just that value
+  if (cost.length === 1 && cost[0].type === 'number') {
+    return `Cost: ${cost[0].value}`;
   }
 
+  // For multiple components, show "Complex" and let describeCost handle details
+  if (cost.length > 1) {
+    return 'Cost: Complex';
+  }
+
+  // For other single costs
   const firstCost = cost[0];
   switch (firstCost.type) {
     case 'nTuple':
@@ -165,6 +171,10 @@ export function getCostSummary(cost: CostComponent[]): string {
       return `Cost: ${firstCost.length} consecutive`;
     case 'diamond':
       return `Cost: ${firstCost.value}💎`;
+    case 'sumTuple':
+      return `Cost: ${firstCost.n} cards sum ${firstCost.sum}`;
+    case 'sumAnyTuple':
+      return `Cost: Sum ${firstCost.sum}`;
     default:
       return 'Cost: Variable';
   }

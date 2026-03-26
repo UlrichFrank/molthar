@@ -2,3 +2,4 @@ packages:
   - 'shared'
   - 'backend'
   - 'game-web'
+  - 'card-manager'

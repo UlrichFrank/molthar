@@ -1,10 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PortaleVonMolthar = void 0;
-exports.validateCostPayment = validateCostPayment;
+exports.waitForCardsLoaded = exports.getAllCards = exports.consumeCosts = exports.findCostAssignment = exports.validateCostPayment = exports.PortaleVonMolthar = void 0;
 exports.createPearlDeck = createPearlDeck;
 exports.createCharacterDeck = createCharacterDeck;
 exports.shuffleArray = shuffleArray;
+const costCalculation_1 = require("./costCalculation");
+const cardDatabase_1 = require("./cardDatabase");
+// @ts-ignore - cardDatabaseLoader.js is a side-effect module (Node.js backend only)
+require("./cardDatabaseLoader.js");
+// Load cards in browser environments
+require("./browserCardDatabaseLoader");
 /**
  * Helper function for invalid moves
  */
@@ -34,11 +39,13 @@ exports.PortaleVonMolthar = {
                 name: `Player ${parseInt(playerId) + 1}`,
                 hand: [],
                 portal: [],
+                activatedCharacters: [],
                 powerPoints: 0,
                 diamonds: 0,
                 readyUp: false,
                 isAI: false,
-                aiDifficulty: undefined
+                aiDifficulty: undefined,
+                handLimitModifier: 0
             };
         }
         // Deal initial pearl cards to players (3 cards each)
@@ -73,8 +80,12 @@ exports.PortaleVonMolthar = {
             characterSlots,
             playerOrder: playerIds,
             actionCount: 0,
+            maxActions: 3,
             finalRound: false,
             finalRoundStartingPlayer: null,
+            requiresHandDiscard: false,
+            excessCardCount: 0,
+            currentHandLimit: 5,
             startingPlayer: playerIds[0],
         };
     },
@@ -87,8 +98,8 @@ exports.PortaleVonMolthar = {
             if (!player) {
                 return;
             }
-            // Check if player has already taken 3 actions this turn
-            if (G.actionCount >= 3) {
+            // Check if player has already taken max actions this turn
+            if (G.actionCount >= G.maxActions) {
                 return;
             }
             // Get card from slot or deck
@@ -129,7 +140,7 @@ exports.PortaleVonMolthar = {
             const player = G.players[ctx.currentPlayer];
             if (!player)
                 return;
-            if (G.actionCount >= 3)
+            if (G.actionCount >= G.maxActions)
                 return;
             // Get card from face-up slot or deck
             let card;
@@ -178,31 +189,64 @@ exports.PortaleVonMolthar = {
                     break;
             }
         },
-        activatePortalCard({ G, ctx }, portalSlotIndex, usedCards) {
+        activatePortalCard({ G, ctx }, portalSlotIndex, selectedCardIndices) {
             const player = G.players[ctx.currentPlayer];
             if (!player)
                 return;
-            if (G.actionCount >= 3)
+            if (G.actionCount >= G.maxActions)
                 return;
+            // Validate portal slot index bounds
+            if (portalSlotIndex < 0 || portalSlotIndex >= player.portal.length) {
+                return;
+            }
             const entry = player.portal[portalSlotIndex];
             if (!entry)
                 return;
-            if (entry.activated)
-                return; // already activated
-            if (!validateCostPayment(entry.card.cost, usedCards || [], player.hand, player.diamonds)) {
+            // Get selected cards from hand based on provided indices
+            const selectedCards = selectedCardIndices
+                .filter(idx => idx >= 0 && idx < player.hand.length)
+                .map(idx => player.hand[idx]);
+            // Validate and consume costs (atomic: either all succeeds or nothing changes)
+            const consumeResult = (0, costCalculation_1.consumeCosts)(entry.card.cost, selectedCardIndices, player.hand, player.diamonds);
+            if (!consumeResult) {
+                // Consumption failed - activation rejected
+                console.log('[activatePortalCard] Cost consumption failed, rejecting activation');
                 return;
             }
-            // Discard used pearl cards (reverse order to preserve indices)
-            const sortedIndices = (usedCards || []).sort((a, b) => b - a);
-            for (const idx of sortedIndices) {
-                if (idx >= 0 && idx < player.hand.length) {
-                    G.pearlDiscardPile.push(player.hand.splice(idx, 1)[0]);
-                }
-            }
-            entry.activated = true;
+            // Update player state: remove consumed cards and update diamond count
+            player.hand = consumeResult.hand;
+            player.diamonds = consumeResult.diamonds;
+            // Add consumed cards to discard pile
+            const consumedCards = selectedCards.filter(card => !consumeResult.hand.includes(card));
+            consumedCards.forEach(card => G.pearlDiscardPile.push(card));
+            // Grant rewards from the card
             player.powerPoints += entry.card.powerPoints;
             player.diamonds += entry.card.diamonds;
             G.actionCount++;
+            // CRITICAL: Move card from portal array to activatedCharacters array
+            // This is the definitive state of activation - cards in activatedCharacters
+            // are activated, cards in portal are not.
+            const activatedCard = player.portal.splice(portalSlotIndex, 1)[0];
+            if (activatedCard) {
+                // Ensure activatedCharacters array exists
+                if (!player.activatedCharacters) {
+                    player.activatedCharacters = [];
+                }
+                // Mark as activated (180° rotation indicator)
+                activatedCard.activated = true;
+                // Add to activated characters collection
+                player.activatedCharacters.push(activatedCard);
+                // Check if card has handLimitPlusOne ability and increment hand limit modifier
+                if (activatedCard.card.abilities && activatedCard.card.abilities.length > 0) {
+                    for (const ability of activatedCard.card.abilities) {
+                        if (ability.type === 'handLimitPlusOne') {
+                            player.handLimitModifier += 1;
+                            break; // Only count once per character even if multiple abilities
+                        }
+                    }
+                }
+            }
+            // Check if player reached 12+ power points to trigger final round
             if (player.powerPoints >= 12 && !G.finalRound) {
                 G.finalRound = true;
                 G.finalRoundStartingPlayer = ctx.currentPlayer;
@@ -213,7 +257,7 @@ exports.PortaleVonMolthar = {
             if (!player) {
                 return;
             }
-            if (G.actionCount >= 3) {
+            if (G.actionCount >= G.maxActions) {
                 return;
             }
             // Discard all pearl slots
@@ -248,15 +292,75 @@ exports.PortaleVonMolthar = {
                 });
             }
         },
-        endTurn({ G, ctx }) {
-            // Reset action count for next turn
-            G.actionCount = 0;
-            // Check hand limit and trigger discard if needed
-            const player = G.players[ctx.currentPlayer];
-            if (player && player.hand.length > 5) {
-                // Player needs to discard down to 5 cards
-                // This would typically use setActivePlayers if available
+        discardCardsButton({ G, events }) {
+            // Activate discard stage to allow player to select cards
+            if (G.requiresHandDiscard && G.excessCardCount > 0) {
+                events.setActivePlayers({ currentPlayer: 'discard' });
             }
+        },
+        discardCardsForHandLimit({ G, ctx, events }, selectedCardIndices) {
+            const player = G.players[ctx.currentPlayer];
+            console.log('discardCardsForHandLimit called:', { selectedCardIndices, requiresHandDiscard: G.requiresHandDiscard, excessCardCount: G.excessCardCount, handLength: player?.hand.length });
+            if (!player || !G.requiresHandDiscard) {
+                console.log('Move rejected: no player or requiresHandDiscard is false');
+                return;
+            }
+            if (selectedCardIndices.length !== G.excessCardCount) {
+                console.log('Move rejected: card count mismatch', { selectedLength: selectedCardIndices.length, excessCardCount: G.excessCardCount });
+                return;
+            }
+            const validIndices = selectedCardIndices.filter(idx => idx >= 0 && idx < player.hand.length);
+            if (validIndices.length !== selectedCardIndices.length) {
+                console.log('Move rejected: invalid indices', { selectedCardIndices, validIndices });
+                return;
+            }
+            console.log('Discarding cards from indices:', validIndices);
+            const sortedIndices = [...validIndices].sort((a, b) => b - a);
+            for (const idx of sortedIndices) {
+                const discardedCard = player.hand.splice(idx, 1)[0];
+                console.log('Discarded card:', discardedCard);
+                if (discardedCard) {
+                    G.pearlDiscardPile.push(discardedCard);
+                }
+            }
+            G.requiresHandDiscard = false;
+            G.excessCardCount = 0;
+            G.actionCount = 0;
+            console.log('Hand discard complete, calling endTurn');
+            events.endTurn();
+        },
+        endTurn({ G, events }) {
+            // If discard is required, reject - player must discard first
+            if (G.requiresHandDiscard)
+                return;
+            // Hand is within limit - proceed with turn end
+            G.actionCount = 0;
+            events.endTurn();
+        },
+    },
+    /**
+     * Turn Configuration: Reset action count at start of each turn
+     */
+    turn: {
+        onBegin: ({ G }) => {
+            G.actionCount = 0;
+            G.maxActions = 3;
+        },
+        onMove: ({ G, ctx }) => {
+            // After every move, check if hand exceeds limit
+            const player = G.players[ctx.currentPlayer];
+            if (!player)
+                return;
+            const handLimit = (0, costCalculation_1.calculateHandLimit)(player.handLimitModifier);
+            G.currentHandLimit = handLimit;
+            const excess = (0, costCalculation_1.getExcessCardCount)(player.hand, handLimit);
+            G.requiresHandDiscard = excess > 0;
+            G.excessCardCount = excess;
+        },
+        stages: {
+            discard: {
+                moves: {},
+            },
         },
     },
     /**
@@ -286,125 +390,6 @@ exports.PortaleVonMolthar = {
     },
 };
 /**
- * Validate that used cards satisfy a character's cost
- * @param cost - Cost components to satisfy
- * @param usedCardIndices - Indices of cards from hand being used
- * @param hand - Player's hand of pearl cards
- * @param diamonds - Player's available diamonds to reduce cost
- * @returns true if cost is satisfied, false otherwise
- */
-function validateCostPayment(cost, usedCardIndices, hand, diamonds) {
-    if (!cost || cost.length === 0) {
-        return true; // Free cost
-    }
-    // Get the actual cards being used
-    const usedCards = [];
-    for (const idx of usedCardIndices) {
-        if (idx >= 0 && idx < hand.length) {
-            usedCards.push(hand[idx]);
-        }
-    }
-    // Try each cost option (diamond costs can be multiple options)
-    for (const component of cost) {
-        if (verifyCostComponent(component, usedCards, diamonds)) {
-            return true;
-        }
-    }
-    return false;
-}
-/**
- * Check if a single cost component is satisfied by used cards
- */
-function verifyCostComponent(component, usedCards, diamonds) {
-    switch (component.type) {
-        case 'number': {
-            // Check if sum of cards meets the total, accounting for diamond bonus
-            const sum = usedCards.reduce((total, card) => total + card.value, 0);
-            const required = component.value || 0;
-            return sum >= required - diamonds; // Diamonds reduce required sum
-        }
-        case 'nTuple': {
-            // Check if we have n cards of the same value
-            const valueCounts = {};
-            for (const card of usedCards) {
-                valueCounts[card.value] = (valueCounts[card.value] || 0) + 1;
-            }
-            const n = component.n || 0;
-            return Object.values(valueCounts).some(count => count >= n);
-        }
-        case 'run': {
-            // Check if we have consecutive sequence of length n
-            const length = component.length || 0;
-            const values = [...new Set(usedCards.map(c => c.value))].sort((a, b) => a - b);
-            if (values.length < length) {
-                return false;
-            }
-            for (let i = 0; i <= values.length - length; i++) {
-                let isConsecutive = true;
-                for (let j = 0; j < length - 1; j++) {
-                    if (values[i + j + 1] !== values[i + j] + 1) {
-                        isConsecutive = false;
-                        break;
-                    }
-                }
-                if (isConsecutive) {
-                    return true;
-                }
-            }
-            return false;
-        }
-        case 'sumAnyTuple': {
-            // Check for n pairs (any values)
-            const valueCounts = {};
-            for (const card of usedCards) {
-                valueCounts[card.value] = (valueCounts[card.value] || 0) + 1;
-            }
-            const n = component.n || 0;
-            const pairCount = Object.values(valueCounts).filter(count => count >= 2).length;
-            return pairCount >= n;
-        }
-        case 'sumTuple': {
-            // Check if cards sum to specific value with n items
-            const n = component.n || 0;
-            const targetSum = component.sum || 0;
-            if (usedCards.length < n) {
-                return false;
-            }
-            // Simple check: do we have n cards that sum to target?
-            // This is simplified - full implementation would need combinatorics
-            if (usedCards.length === n) {
-                const actualSum = usedCards.reduce((total, card) => total + card.value, 0);
-                return actualSum === targetSum;
-            }
-            return false; // Simplified for now
-        }
-        case 'evenTuple': {
-            // Check for n even-valued cards
-            const evenCards = usedCards.filter(card => card.value % 2 === 0);
-            const n = component.n || 0;
-            return evenCards.length >= n;
-        }
-        case 'oddTuple': {
-            // Check for n odd-valued cards
-            const oddCards = usedCards.filter(card => card.value % 2 === 1);
-            const n = component.n || 0;
-            return oddCards.length >= n;
-        }
-        case 'diamond': {
-            // Diamond cost - check if player has enough diamonds
-            const required = component.value || 0;
-            return diamonds >= required;
-        }
-        case 'drillingChoice': {
-            // Multiple cost options - this would be handled at a higher level
-            // For now, return true if any option passed
-            return true;
-        }
-        default:
-            return true; // Unknown cost type - optimistically allow
-    }
-}
-/**
  * Helper Functions
  */
 function createPearlDeck() {
@@ -422,24 +407,7 @@ function createPearlDeck() {
     return deck;
 }
 function createCharacterDeck() {
-    // Placeholder: 54 character cards
-    const deck = [];
-    for (let i = 0; i < 54; i++) {
-        deck.push({
-            id: `character-${i}`,
-            name: `Character ${i + 1}`,
-            cost: [
-                {
-                    type: 'number',
-                    value: 5 + Math.floor(i / 10),
-                }
-            ],
-            powerPoints: 1 + (i % 5),
-            diamonds: Math.floor(i / 20),
-            abilities: [],
-        });
-    }
-    return deck;
+    return (0, cardDatabase_1.getAllCards)();
 }
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -447,4 +415,15 @@ function shuffleArray(array) {
         [array[i], array[j]] = [array[j], array[i]];
     }
 }
+// Export cost calculation functions (public API)
+var costCalculation_2 = require("./costCalculation");
+Object.defineProperty(exports, "validateCostPayment", { enumerable: true, get: function () { return costCalculation_2.validateCostPayment; } });
+Object.defineProperty(exports, "findCostAssignment", { enumerable: true, get: function () { return costCalculation_2.findCostAssignment; } });
+Object.defineProperty(exports, "consumeCosts", { enumerable: true, get: function () { return costCalculation_2.consumeCosts; } });
+// Export card database function (public API)
+var cardDatabase_2 = require("./cardDatabase");
+Object.defineProperty(exports, "getAllCards", { enumerable: true, get: function () { return cardDatabase_2.getAllCards; } });
+// Export card loader function (public API)
+var browserCardDatabaseLoader_1 = require("./browserCardDatabaseLoader");
+Object.defineProperty(exports, "waitForCardsLoaded", { enumerable: true, get: function () { return browserCardDatabaseLoader_1.waitForCardsLoaded; } });
 //# sourceMappingURL=index.js.map

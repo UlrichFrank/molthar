@@ -1,3 +1,11 @@
+/* Card Size Configuration */
+:root {
+  --card-aspect-ratio: 59 / 92;
+  --card-width-desktop: 5vw;
+  --card-width-tablet: 4vw;
+  --card-width-mobile: 3.5vw;
+}
+
 /* Button Styles */
 .btn {
   padding: 0.75rem 1.5rem;
@@ -175,44 +183,77 @@
 /* Opponent Portals */
 .opponent-portals {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
 }
 
-.opponent-portal-compact {
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid #475569;
-  border-radius: 0.375rem;
-  padding: 1rem;
-  transition: all 0.2s ease;
+.opponent-portal-card {
+  background: rgba(30, 41, 59, 0.7);
+  border: 2px solid #475569;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
-.opponent-portal-compact:hover {
+.opponent-portal-card.open {
   border-color: #60a5fa;
-  background: rgba(30, 41, 59, 0.8);
 }
 
-.opponent-portal-compact .player-name {
-  margin: 0 0 0.75rem 0;
-  font-size: 1rem;
-  color: #60a5fa;
+.opponent-portal-card.closed {
+  border-color: #6b7280;
+  opacity: 0.7;
 }
 
-.stats-row {
-  display: flex;
-  gap: 1.5rem;
-  margin-bottom: 0.5rem;
+.opponent-info {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  background: rgba(15, 23, 42, 0.95);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid #475569;
+  z-index: 20;
+  max-width: 150px;
+}
+
+.opponent-portal-card .player-name {
+  margin: 0;
   font-size: 0.9rem;
+  font-weight: 600;
+  color: #60a5fa;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.stats-row .stat {
-  color: #f1f5f9;
+.opponent-portal-card .stats-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.opponent-portal-card .stat {
+  color: #cbd5e1;
+  white-space: nowrap;
 }
 
 .active-count {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  background: rgba(15, 23, 42, 0.95);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid #475569;
   font-size: 0.8rem;
-  color: #34d399;
-  font-weight: 500;
+  color: #fbbf24;
+  font-weight: bold;
+  z-index: 20;
 }
 
 /* Player Hand */
@@ -370,7 +411,7 @@
   border: 2px solid #475569;
   border-radius: 1rem;
   padding: 3rem 2rem;
-  max-width: 500px;
+  max-width: 50vw;
   box-shadow: 0 20px 25px rgba(0, 0, 0, 0.3);
 }
 
@@ -441,7 +482,7 @@
   border: 2px solid #475569;
   border-radius: 1rem;
   padding: 3rem 2rem;
-  max-width: 600px;
+  max-width: 60vw;
   box-shadow: 0 20px 25px rgba(0, 0, 0, 0.3);
 }
 
@@ -522,7 +563,7 @@
   border: 2px solid #475569;
   border-radius: 0.5rem;
   padding: 1rem;
-  min-width: 250px;
+  min-width: 25vw;
 }
 
 .card-info-panel .card-name {
@@ -592,21 +633,6 @@
   }
 }
 
-@media (max-width: 1400px) {
-  .character-info-popup {
-    right: -270px;
-  }
-}
-
-@media (max-width: 1200px) {
-  .character-info-popup {
-    position: fixed;
-    right: 10px;
-    top: 10%;
-    z-index: 100;
-  }
-}
-
 /* Error Display */
 .error-display {
   position: fixed;
@@ -625,7 +651,7 @@
   border-radius: 0.5rem;
   padding: 1rem;
   color: white;
-  min-width: 300px;
+  min-width: 30vw;
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
 }
 
@@ -690,10 +716,10 @@
 
 /* Hand Display */
 .hand-display {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  border: 2px solid #334155;
-  border-radius: 0.75rem;
-  padding: 1rem;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
 }
 
 .hand-header {
@@ -710,10 +736,10 @@
 }
 
 .hand-count {
-  background: rgba(59, 130, 246, 0.1);
+  background: transparent;
   color: #60a5fa;
-  padding: 0.25rem 0.75rem;
-  border-radius: 0.25rem;
+  padding: 0;
+  border-radius: 0;
   font-size: 0.85rem;
   font-weight: bold;
 }
@@ -723,10 +749,10 @@
   gap: 1rem;
   align-items: center;
   margin-bottom: 0.75rem;
-  padding: 0.5rem;
-  background: rgba(34, 197, 94, 0.1);
-  border-left: 3px solid #22c55e;
-  border-radius: 0.25rem;
+  padding: 0;
+  background: transparent;
+  border-left: 0;
+  border-radius: 0;
 }
 
 .stat-item {
@@ -764,7 +790,7 @@
 
 .hand-card {
   position: relative;
-  aspect-ratio: 3/4;
+  aspect-ratio: var(--card-aspect-ratio);
   background: linear-gradient(135deg, #3b82f6, #1e40af);
   border: 2px solid #1e40af;
   border-radius: 0.4rem;
@@ -839,10 +865,10 @@
 
 /* Action Buttons */
 .action-buttons {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  border: 2px solid #334155;
-  border-radius: 0.75rem;
-  padding: 1rem;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
 }
 
 .phase-indicator {
@@ -850,10 +876,10 @@
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 1rem;
-  padding: 0.75rem;
-  background: rgba(15, 23, 42, 0.6);
-  border-left: 4px solid #3b82f6;
-  border-radius: 0.25rem;
+  padding: 0;
+  background: transparent;
+  border-left: 0;
+  border-radius: 0;
 }
 
 .phase-label {
@@ -906,7 +932,7 @@
   flex-direction: column;
   gap: 0.35rem;
   flex: 1;
-  min-width: 200px;
+  min-width: 20vw;
 }
 
 .group-label {
@@ -1043,20 +1069,6 @@
   margin: 0;
 }
 
-@media (max-width: 768px) {
-  .actions-row {
-    flex-direction: column;
-  }
-
-  .btn {
-    width: 100%;
-  }
-
-  .action-group {
-    min-width: auto;
-  }
-}
-
 /* Start Screen */
 .start-screen {
   min-height: 100vh;
@@ -1072,7 +1084,7 @@
   border: 2px solid #334155;
   border-radius: 1rem;
   padding: 2rem;
-  max-width: 500px;
+  max-width: 50vw;
   width: 100%;
 }
 
@@ -1253,7 +1265,7 @@
   border: 2px solid #334155;
   border-radius: 1rem;
   padding: 2rem;
-  max-width: 600px;
+  max-width: 60vw;
   width: 100%;
 }
 
@@ -1374,34 +1386,13 @@
   font-size: 0.9rem;
 }
 
-@media (max-width: 640px) {
-  .start-container,
-  .finished-container {
-    padding: 1.5rem;
-  }
-
-  .start-title,
-  .finished-title {
-    font-size: 2rem;
-  }
-
-  .player-names-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .winner-stats {
-    flex-direction: column;
-    gap: 1rem;
-  }
-}
-
 /* Game Log */
 .game-log {
   background: rgba(15, 23, 42, 0.8);
   border: 1px solid #334155;
   border-radius: 0.5rem;
   padding: 0.75rem;
-  max-height: 250px;
+  max-height: 25vh;
   display: flex;
   flex-direction: column;
 }
@@ -1482,8 +1473,532 @@
   flex: 1;
 }
 
-@media (max-width: 480px) {
-  .button-group {
-    flex-direction: column;
-  }
+/* Auslage (FaceUpCards) Container */
+.auslage-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.auslage-cards-row {
+  position: absolute;
+  top: 8.6%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.auslage-card {
+  width: var(--card-width-desktop) !important;
+  aspect-ratio: var(--card-aspect-ratio) !important;
+  padding: 0.5rem !important;
+}
+
+.auslage-card.pearl-card .card-value {
+  font-size: 2.5rem !important;
+}
+
+/* Player Portal Container with rendered Portal image */
+.player-portal-container {
+  position: relative;
+  background: rgba(30, 41, 59, 0.5);
+  border: 2px solid #475569;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.player-portal-container.current {
+  border-color: #60a5fa;
+  background: rgba(30, 41, 59, 0.7);
+}
+
+.player-portal-info {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 20;
+  background: rgba(15, 23, 42, 0.9);
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #475569;
+}
+
+.player-name {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #60a5fa;
+}
+
+.portal-stats {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.stat {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.stat .label {
+  color: #94a3b8;
+}
+
+.stat .value {
+  color: #fbbf24;
+  font-weight: bold;
+}
+
+.stat .value.power {
+  color: #f97316;
+}
+
+.stat .value.diamonds {
+  color: #6366f1;
+}
+
+.diamonds-section {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  z-index: 20;
+  background: rgba(15, 23, 42, 0.9);
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #475569;
+}
+
+.diamonds-display {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  max-width: 200px;
+}
+
+.diamond {
+  font-size: 1.5rem;
+}
+
+.active-characters {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 20;
+  background: rgba(15, 23, 42, 0.9);
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #475569;
+  max-width: 300px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.section-label {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.85rem;
+  color: #60a5fa;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.characters-display {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.active-character {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: rgba(30, 41, 59, 0.5);
+  border-radius: 0.375rem;
+  font-size: 0.85rem;
+  color: #cbd5e1;
+}
+
+.active-character .name {
+  font-weight: 500;
+  color: #e2e8f0;
+}
+
+.active-character .power {
+  color: #f97316;
+  font-weight: bold;
+}
+
+/* Opponent Portals Container */
+.opponent-portals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.opponent-portal-card {
+  background: rgba(30, 41, 59, 0.7);
+  border: 2px solid #475569;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.opponent-portal-card.open {
+  border-color: #60a5fa;
+}
+
+.opponent-portal-card.closed {
+  border-color: #6b7280;
+  opacity: 0.7;
+}
+
+.opponent-info {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  background: rgba(15, 23, 42, 0.95);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid #475569;
+  z-index: 20;
+  max-width: 150px;
+}
+
+.opponent-portal-card .player-name {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #60a5fa;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.opponent-portal-card .stats-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.opponent-portal-card .stat {
+  color: #cbd5e1;
+  white-space: nowrap;
+}
+
+.active-count {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  background: rgba(15, 23, 42, 0.95);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid #475569;
+  font-size: 0.8rem;
+  color: #fbbf24;
+  font-weight: bold;
+  z-index: 20;
+}
+
+/* Auslage (FaceUpCards) Container with background image */
+.auslage-container {
+  position: relative;
+  background-image: url('/assets/Auslage.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  aspect-ratio: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  padding: 1rem;
+  margin: 0;
+}
+
+.auslage-card.pearl-card .card-value {
+  font-size: 2rem !important;
+}
+
+/* Portal Hand Container - invisible, only for positioning */
+.portal-hand-container {
+  position: absolute !important;
+  left: 1vw !important;
+  bottom: 2.5vh !important;
+  width: 18vw !important;
+  height: auto !important;
+  pointer-events: none !important;
+  z-index: 10 !important;
+}
+
+.portal-hand-container > * {
+  pointer-events: auto !important;
+}
+
+/* Hide the hand-display wrapper completely */
+.portal-hand-container .hand-display {
+  background: none !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+  display: block !important;
+}
+
+/* Hide all headers and labels */
+.portal-hand-container .hand-header {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.portal-hand-container .hand-title {
+  display: none !important;
+}
+
+.portal-hand-container .hand-count {
+  display: none !important;
+}
+
+.portal-hand-container .hand-stats {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.portal-hand-container .empty-hand {
+  display: none !important;
+}
+
+/* Show only the grid with cards */
+.portal-hand-container .hand-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 0.4rem !important;
+  width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: none !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+.portal-hand-container .hand-card {
+  width: var(--card-width-mobile) !important;
+  aspect-ratio: var(--card-aspect-ratio) !important;
+  font-size: 1.1rem !important;
+  border: 1px solid #1e40af !important;
+  background: linear-gradient(135deg, #3b82f6, #1e40af) !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0.4rem !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.portal-hand-container .hand-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
+}
+
+.portal-hand-container .hand-card.selected {
+  background: linear-gradient(135deg, #10b981, #047857) !important;
+  border-color: #34d399 !important;
+  box-shadow: 0 0 12px rgba(52, 211, 153, 0.5) !important;
+}
+
+.portal-hand-container .empty-hand {
+  display: none !important;
+}
+
+/* Portal Actions Container - invisible, only for positioning */
+.portal-actions-container {
+  position: absolute !important;
+  right: 1vw !important;
+  bottom: 2.5vh !important;
+  width: 18vw !important;
+  height: auto !important;
+  pointer-events: none !important;
+  z-index: 10 !important;
+}
+
+.portal-actions-container > * {
+  pointer-events: auto !important;
+}
+
+/* Hide the action-buttons wrapper completely */
+.portal-actions-container .action-buttons {
+  background: none !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+  display: block !important;
+}
+
+/* Hide phase indicator completely */
+.portal-actions-container .phase-indicator {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.portal-actions-container .phase-label {
+  display: none !important;
+}
+
+.portal-actions-container .phase-badge {
+  display: none !important;
+}
+
+/* Show action content - flex layout for buttons */
+.portal-actions-container .action-phase-content {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.3rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  background: none !important;
+  border: none !important;
+}
+
+.portal-actions-container .actions-row {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.3rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  background: none !important;
+  border: none !important;
+}
+
+/* Style the buttons themselves */
+.portal-actions-container .btn {
+  padding: 0.4rem 0.6rem !important;
+  font-size: 0.75rem !important;
+  flex: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  border-radius: 0.3rem !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-weight: 600 !important;
+}
+
+.portal-actions-container .btn:hover:not(:disabled) {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3) !important;
+}
+
+.portal-actions-container .btn-primary {
+  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+  color: white !important;
+  border: 1px solid #1e40af !important;
+}
+
+.portal-actions-container .btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #60a5fa, #3b82f6) !important;
+}
+
+.portal-actions-container .btn-secondary {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important;
+  color: white !important;
+  border: 1px solid #6d28d9 !important;
+}
+
+.portal-actions-container .btn-warning {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  color: white !important;
+  border: 1px solid #991b1b !important;
+}
+
+.portal-actions-container .btn:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* Hide the action group label */
+.portal-actions-container .action-group {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.2rem !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: none !important;
+  border: none !important;
+}
+
+.portal-actions-container .group-label {
+  display: none !important;
+}
+
+.portal-actions-container .character-select {
+  font-size: 0.75rem !important;
+  padding: 0.3rem !important;
+  width: 100% !important;
+}
+
+.portal-actions-container .help-text {
+  display: none !important;
+}
+
+/* Discard and finished phase content */
+.portal-actions-container .discard-phase-content,
+.portal-actions-container .finished-phase-content {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.3rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  background: none !important;
+  border: none !important;
+}
+
+.portal-actions-container .discard-info {
+  display: none !important;
+}
+
+.portal-actions-container .info-text {
+  display: none !important;
+}
+
+.portal-actions-container .finished-message {
+  display: none !important;
+}
+
+/* Hide btn-badge and btn-large styling */
+.portal-actions-container .btn-badge {
+  display: inline-flex !important;
+  background: rgba(255,255,255,0.3) !important;
+  font-size: 0.7rem !important;
 }

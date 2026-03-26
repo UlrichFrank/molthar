@@ -1,4 +1,4 @@
-.PHONY: help install dev build start stop clean
+.PHONY: help install dev build start stop clean test test-report
 
 # Colors for output
 BLUE := \033[0;34m
@@ -21,6 +21,12 @@ help:
 	@echo "  make build          Build backend only"
 	@echo "  make build-all      Build backend and shared packages"
 	@echo ""
+	@echo "$(GREEN)Testing:$(NC)"
+	@echo "  make test           Run all tests (shared + game-web)"
+	@echo "  make test-shared    Run tests for shared package"
+	@echo "  make test-watch    Run tests in watch mode (shared)"
+	@echo "  make test-report    Generate test report for card validation"
+	@echo ""
 	@echo "$(GREEN)Cleanup:$(NC)"
 	@echo "  make stop           Stop all running services"
 	@echo "  make clean          Remove node_modules and build artifacts"
@@ -33,14 +39,14 @@ install:
 	@echo "$(GREEN)✓ Dependencies installed$(NC)"
 
 # Build backend (requires shared to be built first)
-build: 
+build:
 	@echo "$(BLUE)Building backend...$(NC)"
 	@echo "$(BLUE)Note: Make sure shared package is built first!$(NC)"
 	cd backend && pnpm run build
 	@echo "$(GREEN)✓ Backend built$(NC)"
 
-# Build shared package first, then backend
-build-all:
+# Build shared package first, then backend (with clean builds)
+build-all: clean
 	@echo "$(BLUE)Building shared package...$(NC)"
 	cd shared && pnpm run build
 	@echo "$(GREEN)✓ Shared package built$(NC)"
@@ -105,3 +111,28 @@ status:
 	@echo "$(BLUE)Checking service status...$(NC)"
 	@echo -n "Backend (3001): "; nc -z localhost 3001 >/dev/null 2>&1 && echo "$(GREEN)✓ Running$(NC)" || echo "$(RED)✗ Stopped$(NC)"
 	@echo -n "Frontend (5173): "; nc -z localhost 5173 >/dev/null 2>&1 && echo "$(GREEN)✓ Running$(NC)" || echo "$(RED)✗ Stopped$(NC)"
+
+# Run all tests (shared package)
+test:
+	@echo "$(BLUE)Running all tests...$(NC)"
+	cd shared && pnpm test -- --run
+	@echo "$(GREEN)✓ All tests completed$(NC)"
+
+# Run tests for shared package only
+test-shared:
+	@echo "$(BLUE)Running tests for shared package...$(NC)"
+	cd shared && pnpm test -- --run
+	@echo "$(GREEN)✓ Tests completed$(NC)"
+
+# Run tests in watch mode (useful for development)
+test-watch:
+	@echo "$(BLUE)Running tests in watch mode (shared)...$(NC)"
+	@echo "$(GREEN)Press Ctrl+C to exit watch mode$(NC)"
+	cd shared && pnpm test
+
+# Generate detailed test report for card cost validation
+test-report:
+	@echo "$(BLUE)Generating test report...$(NC)"
+	@cd shared && npm run build >/dev/null 2>&1 || echo "Building shared package first..."
+	@cd shared && node scripts/generate-test-report.js
+	@echo "$(GREEN)✓ Report saved to shared/test-report.html$(NC)"

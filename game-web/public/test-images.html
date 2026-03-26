@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Test</title>
+</head>
+<body>
+    <h1>Testing Asset Loading</h1>
+    <div id="results"></div>
+    <script>
+        const tests = [
+            '/assets/Perlenkarte1.jpeg',
+            '/favicon.svg',
+            '/icons.svg',
+        ];
+        
+        const results = document.getElementById('results');
+        
+        tests.forEach(url => {
+            const img = new Image();
+            const start = Date.now();
+            
+            img.onload = () => {
+                const time = Date.now() - start;
+                results.innerHTML += `<p>✓ ${url} (${time}ms, ${img.width}x${img.height})</p>`;
+            };
+            
+            img.onerror = () => {
+                results.innerHTML += `<p>✗ ${url} (failed to load)</p>`;
+            };
+            
+            img.src = url;
+        });
+        
+        // Also test fetch
+        fetch('/assets/Perlenkarte1.jpeg')
+            .then(r => {
+                results.innerHTML += `<p>Fetch /assets/Perlenkarte1.jpeg: ${r.status} ${r.statusText}</p>`;
+            })
+            .catch(e => {
+                results.innerHTML += `<p>Fetch failed: ${e.message}</p>`;
+            });
+    </script>
+</body>
+</html>

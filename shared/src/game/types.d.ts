@@ -11,7 +11,7 @@ export interface PearlCard {
  * Cost Component - Flexible cost system
  */
 export interface CostComponent {
-    type: 'number' | 'nTuple' | 'sumAnyTuple' | 'sumTuple' | 'run' | 'evenTuple' | 'oddTuple' | 'diamond' | 'drillingChoice';
+    type: 'number' | 'nTuple' | 'sumAnyTuple' | 'sumTuple' | 'run' | 'evenTuple' | 'oddTuple' | 'diamond' | 'tripleChoice';
     value?: number;
     n?: number;
     sum?: number;
@@ -25,6 +25,7 @@ export interface CostComponent {
 export interface CharacterCard {
     id: string;
     name: string;
+    imageName: string;
     cost: CostComponent[];
     powerPoints: number;
     diamonds: number;
@@ -75,6 +76,7 @@ export interface GameState {
     };
     playerOrder: string[];
     actionCount: number;
+    maxActions: number;
     finalRound: boolean;
     finalRoundStartingPlayer: string | null;
     startingPlayer: string;

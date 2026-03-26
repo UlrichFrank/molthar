@@ -8,7 +8,7 @@ export type CostComponent =
   | { type: 'sumAnyTuple'; sum: number }
   | { type: 'run'; length: number }
   | { type: 'diamond' }
-  | { type: 'drillingChoice'; value1: number; value2: number };
+  | { type: 'tripleChoice'; value1: number; value2: number };
 
 // Cost is now an array of components (all required = AND)
 export type Cost = CostComponent[];
@@ -33,6 +33,7 @@ export type AbilityType =
   | 'anyAddditionalCardActions'
   | 'numberAddditionalCardActions'
   | 'changeHandActions'
+  | 'changeCharacterActions'
   | 'nextPlayerOneExtraAction'
   | 'discardOpponentCharacter'
   | 'stealOpponentHandCard'
@@ -78,6 +79,6 @@ export interface AbilityInfo {
   type: AbilityType;
   label: string;
   description: string;
-  category: 'red' | 'blue' | 'special' | 'none';
+  category: 'red' | 'blue' | 'none';
   hasParameters: boolean;
 }

@@ -11,7 +11,7 @@ export function CostComponentPreview({ component }: CostComponentPreviewProps) {
         return `${component.value}`;
       
       case 'nTuple':
-        return `${component.n}x beliebig`;
+        return `${component.n}x gleiche Zahlen`;
       
       case 'evenTuple':
         return `${component.n}x gerade Zahl`;
@@ -31,7 +31,7 @@ export function CostComponentPreview({ component }: CostComponentPreviewProps) {
       case 'diamond':
         return 'Diamant';
       
-      case 'drillingChoice':
+      case 'tripleChoice':
         return `Drilling (3x ${component.value1} ODER 3x ${component.value2})`;
       
       default:

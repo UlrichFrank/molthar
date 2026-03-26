@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { PearlCard } from '../lib/types';
+import type { PearlCard } from '@portale-von-molthar/shared';
 import '../styles/Components.css';
 
 interface HandDisplayProps {
@@ -24,7 +24,13 @@ export function HandDisplay({
   const isDiscardPhase = phase === 'discardingExcessCards';
   const isGameFinished = phase === 'gameFinished';
 
+  // Helper function to get pearl card image path
+  function getPearlCardImage(value: number): string {
+    return `/assets/Perlenkarte${value}.jpeg`;
+  }
+
   // Calculate sum of selected cards
+  // Check if hand[idx] exists (it should)
   const selectedSum = selectedIndices.reduce((sum, idx) => {
     return sum + (hand[idx]?.value || 0);
   }, 0);
@@ -57,22 +63,23 @@ export function HandDisplay({
           hand.map((card, idx) => (
             <button
               key={idx}
-              className={`hand-card ${selectedIndices.includes(idx) ? 'selected' : ''}`}
+              className={`hand-card card-with-image ${selectedIndices.includes(idx) ? 'selected' : ''}`}
               onClick={() => !isGameFinished && onSelect(idx)}
               onMouseEnter={() => setHoveredIdx(idx)}
               onMouseLeave={() => setHoveredIdx(null)}
               disabled={isGameFinished}
               title={`Pearl ${card.value}${card.hasSwapSymbol ? ' (Swap)' : ''}`}
+              style={{
+                backgroundImage: `url(${getPearlCardImage(card.value)})`,
+                backgroundSize: 'contain',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
+                color: 'transparent' // Hide text if image loads
+              }}
             >
-              <div className="card-value-large">{card.value}</div>
+              <div className="card-value-large visually-hidden">{card.value}</div>
               {card.hasSwapSymbol && (
-                <div className="swap-indicator">⇄</div>
-              )}
-              {hoveredIdx === idx && (
-                <div className="card-tooltip">
-                  Pearl {card.value}
-                  {isDiscardPhase && ' (select to discard)'}
-                </div>
+                <div className="swap-indicator visually-hidden">⇄</div>
               )}
             </button>
           ))

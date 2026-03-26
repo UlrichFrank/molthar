@@ -1,0 +1,350 @@
+/**
+ * Responsive layout CSS for flexible game board areas.
+ * Uses CSS Grid and Flexbox with media queries for responsive design.
+ * Mobile-first approach.
+ */
+
+/* ============================================================
+   CSS CUSTOM PROPERTIES – Easy customization
+   ============================================================ */
+:root {
+  /* Mobile breakpoints */
+  --bp-sm: 640px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
+
+  /* Responsive sizing with clamp() */
+  --font-size-sm: clamp(12px, 3vw, 14px);
+  --font-size-base: clamp(14px, 4vw, 16px);
+  --font-size-lg: clamp(16px, 5vw, 18px);
+
+  --touch-target: 44px;
+  --gap-base: clamp(4px, 2vw, 16px);
+  --gap-lg: clamp(8px, 3vw, 24px);
+
+  /* Colors and styling */
+  --bg-overlay: rgba(10, 15, 30, 0.72);
+  --border-color: rgba(59, 130, 246, 0.4);
+}
+
+/* ============================================================
+   RESPONSIVE LAYOUT CONTAINER
+   ============================================================ */
+.responsive-board-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr auto;
+  gap: 0;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* ============================================================
+   AREA BASE STYLES – Common styling for all areas
+   ============================================================ */
+.board-area {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 4px;
+}
+
+.board-area:focus-within {
+  border-color: rgba(59, 130, 246, 0.6);
+}
+
+/* ============================================================
+   MOBILE PORTRAIT LAYOUT (≤ 640px)
+   ============================================================ */
+
+/* Mobile: Full-width stack */
+.responsive-board-layout {
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto 1fr auto auto;
+  grid-template-areas:
+    "header"
+    "opponents"
+    "faceUpCards"
+    "deck"
+    "playerHand"
+    "actions";
+}
+
+.board-area.opponents { grid-area: opponents; width: 100%; height: clamp(40px, 12vh, 80px); }
+.board-area.faceUpCards { grid-area: faceUpCards; width: 100%; height: clamp(80px, 30vh, 200px); }
+.board-area.deck { grid-area: deck; width: clamp(60px, 15vw, 120px); height: clamp(80px, 15vh, 150px); }
+.board-area.playerHand { grid-area: playerHand; width: 100%; height: clamp(100px, 50vh, 300px); }
+.board-area.actions { grid-area: actions; width: clamp(50vw, 80%, 90%); height: clamp(44px, 8vh, 70px); }
+
+/* Mobile: Flexbox within areas */
+.opponents-container {
+  display: flex;
+  flex-direction: row;
+  gap: var(--gap-base);
+  width: 100%;
+  height: 100%;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  padding: var(--gap-base);
+}
+
+.player-hand-container {
+  display: flex;
+  flex-direction: row;
+  gap: var(--gap-base);
+  width: 100%;
+  height: 100%;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  overflow-y: auto;
+  padding: var(--gap-base);
+  align-content: flex-start;
+}
+
+.face-up-cards-container {
+  display: flex;
+  flex-direction: row;
+  gap: var(--gap-base);
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  flex-wrap: wrap;
+  overflow-y: auto;
+  padding: var(--gap-base);
+  align-content: center;
+}
+
+.deck-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-base);
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+  padding: var(--gap-base);
+}
+
+.actions-container {
+  display: flex;
+  flex-direction: row;
+  gap: var(--gap-base);
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: var(--gap-base);
+}
+
+/* ============================================================
+   TABLET LAYOUT (768px - 1024px)
+   ============================================================ */
+
+@media (min-width: 768px) {
+  .responsive-board-layout {
+    grid-template-columns: minmax(120px, 25%) 1fr minmax(70px, 20%);
+    grid-template-rows: auto auto 1fr auto;
+    grid-template-areas:
+      "opponents opponents opponents"
+      "deck faceUpCards actions"
+      "deck faceUpCards actions"
+      "playerHand playerHand playerHand";
+    gap: var(--gap-base);
+    padding: var(--gap-base);
+  }
+
+  .board-area.opponents { grid-area: opponents; width: 100%; height: clamp(50px, 15vh, 100px); }
+  .board-area.faceUpCards { grid-area: faceUpCards; width: 100%; height: 100%; }
+  .board-area.deck { grid-area: deck; width: 100%; height: 100%; }
+  .board-area.playerHand { grid-area: playerHand; width: 100%; height: clamp(80px, 20vh, 180px); }
+  .board-area.actions { grid-area: actions; width: 100%; height: clamp(50px, 12vh, 80px); }
+
+  .player-hand-container {
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .face-up-cards-container {
+    flex-direction: row;
+    justify-content: space-around;
+  }
+}
+
+/* ============================================================
+   DESKTOP LAYOUT (> 1024px)
+   ============================================================ */
+
+@media (min-width: 1024px) {
+  .responsive-board-layout {
+    grid-template-columns: minmax(80px, 15%) 1fr minmax(140px, 20%);
+    grid-template-rows: auto auto 1fr auto;
+    grid-template-areas:
+      "opponents opponents opponents"
+      "deck faceUpCards playerHand"
+      "deck faceUpCards playerHand"
+      "actions actions actions";
+    gap: var(--gap-lg);
+    padding: var(--gap-lg);
+  }
+
+  .board-area.opponents { grid-area: opponents; width: 100%; height: clamp(60px, 12vh, 120px); }
+  .board-area.faceUpCards { grid-area: faceUpCards; width: 100%; height: 100%; }
+  .board-area.deck { grid-area: deck; width: 100%; height: 100%; }
+  .board-area.playerHand { grid-area: playerHand; width: 100%; height: 100%; }
+  .board-area.actions { grid-area: actions; width: clamp(40vw, 60%, 80%); height: clamp(60px, 10vh, 90px); }
+
+  .player-hand-container {
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+}
+
+/* ============================================================
+   RESPONSIVE IMAGE SCALING
+   ============================================================ */
+
+.card-image,
+.card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+.card-container {
+  aspect-ratio: auto;
+  width: clamp(60px, 12vw, 120px);
+  height: auto;
+}
+
+.card-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* ============================================================
+   RESPONSIVE TEXT AND ICONS
+   ============================================================ */
+
+.area-label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  margin-bottom: var(--gap-base);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card-name,
+.player-name {
+  font-size: var(--font-size-sm);
+  text-align: center;
+  word-wrap: break-word;
+  max-width: 100%;
+}
+
+@media (min-width: 768px) {
+  .card-name,
+  .player-name {
+    font-size: var(--font-size-base);
+  }
+}
+
+/* Action buttons – maintain 44px+ minimum touch target */
+.action-button {
+  min-width: var(--touch-target);
+  min-height: var(--touch-target);
+  padding: var(--gap-base) var(--gap-lg);
+  font-size: var(--font-size-sm);
+  border-radius: 4px;
+  flex: 1 1 auto;
+  max-width: 200px;
+}
+
+/* ============================================================
+   RESPONSIVE SPACING AND PADDING
+   ============================================================ */
+
+.area-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--gap-base);
+}
+
+/* ============================================================
+   TOUCH-FRIENDLY RESPONSIVE PADDING
+   ============================================================ */
+
+@media (max-width: 640px) {
+  /* Larger touch targets on mobile */
+  .action-button {
+    min-height: 48px;
+    padding: 8px 16px;
+  }
+
+  .board-area {
+    border-width: 2px;
+  }
+}
+
+/* ============================================================
+   LANDSCAPE ORIENTATION OPTIMIZATION
+   ============================================================ */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  :root {
+    --font-size-sm: clamp(10px, 2vh, 12px);
+    --font-size-base: clamp(12px, 3vh, 14px);
+  }
+
+  .board-area {
+    padding: 4px;
+  }
+
+  .area-content {
+    padding: 2px;
+  }
+}
+
+/* ============================================================
+   HIGH DPI DISPLAYS
+   ============================================================ */
+
+@media (min-width: 1440px) {
+  .card-container {
+    width: clamp(100px, 10vw, 150px);
+  }
+
+  .action-button {
+    max-width: 250px;
+  }
+}
+
+/* ============================================================
+   ACCESSIBILITY: FOCUS VISIBLE
+   ============================================================ */
+
+.board-area:focus-visible,
+.action-button:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.board-area:focus-within {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}

@@ -21,6 +21,14 @@ export function CharacterActivationDialog({
   onActivate,
   onCancel,
 }: CharacterActivationDialogProps) {
+  console.group('[CharacterActivationDialog] Component loaded/updated');
+  console.debug('Props:', {
+    availableCharactersCount: availableCharacters?.length,
+    handSize: hand?.length,
+    diamonds,
+    portalSlotIndex
+  });
+
   const [selectedCharacterSlot, setSelectedCharacterSlot] = useState<number | null>(
     availableCharacters.length > 0 ? availableCharacters[0].slotIndex : null
   );
@@ -30,9 +38,36 @@ export function CharacterActivationDialog({
     (c) => c.slotIndex === selectedCharacterSlot
   )?.card;
 
+  console.debug('[CharacterActivationDialog] Selected character:', {
+    selectedCharacterSlot,
+    characterName: selectedCharacter?.name,
+    hasCost: !!selectedCharacter?.cost,
+    costLength: selectedCharacter?.cost?.length
+  });
+  console.groupEnd();
+
   const isValidPayment = useMemo(() => {
-    if (!selectedCharacter) return false;
-    return validateCostPayment(selectedCharacter.cost, Array.from(selectedCardIndices), hand, diamonds);
+    console.group('[CharacterActivationDialog] useMemo: validating payment');
+    
+    if (!selectedCharacter) {
+      console.debug('No selected character - returning false');
+      console.groupEnd();
+      return false;
+    }
+    
+    const selectedCards = Array.from(selectedCardIndices).map(idx => hand[idx]);
+    console.debug('Before validateCostPayment call:', {
+      selectedCharacterName: selectedCharacter.name,
+      costComponents: selectedCharacter.cost,
+      selectedCardValues: selectedCards.map(c => c.value),
+      diamondCount: diamonds
+    });
+    
+    const result = validateCostPayment(selectedCharacter.cost, selectedCards, diamonds);
+    
+    console.debug('validateCostPayment returned:', result);
+    console.groupEnd();
+    return result;
   }, [selectedCharacterSlot, selectedCardIndices, selectedCharacter, hand, diamonds]);
 
   const toggleCard = (index: number) => {
@@ -66,7 +101,7 @@ export function CharacterActivationDialog({
                   selectedCharacterSlot === slotIndex ? 'selected' : ''
                 }`}
                 style={{
-                  backgroundImage: `url(/assets/Charakterkarte${card.name.match(/\d+/)?.[0] || 'unknown'}.jpeg)`,
+                  backgroundImage: `url(/assets/${encodeURIComponent(card.imageName)})`,
                 }}
                 onClick={() => {
                   setSelectedCharacterSlot(slotIndex);

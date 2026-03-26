@@ -54,3 +54,5 @@ Icon?
 *.bak
 *.tmp
 Thumbs.db
+
+shared/test-report.html
