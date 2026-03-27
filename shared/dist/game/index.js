@@ -4,6 +4,7 @@ exports.waitForCardsLoaded = exports.getAllCards = exports.consumeCosts = export
 exports.createPearlDeck = createPearlDeck;
 exports.createCharacterDeck = createCharacterDeck;
 exports.shuffleArray = shuffleArray;
+const core_1 = require("boardgame.io/core");
 const costCalculation_1 = require("./costCalculation");
 const cardDatabase_1 = require("./cardDatabase");
 // @ts-ignore - cardDatabaseLoader.js is a side-effect module (Node.js backend only)
@@ -87,6 +88,7 @@ exports.PortaleVonMolthar = {
             excessCardCount: 0,
             currentHandLimit: 5,
             startingPlayer: playerIds[0],
+            portalEntryCounter: 0,
         };
     },
     /**
@@ -95,13 +97,10 @@ exports.PortaleVonMolthar = {
     moves: {
         takePearlCard({ G, ctx }, slotIndex) {
             const player = G.players[ctx.currentPlayer];
-            if (!player) {
-                return;
-            }
-            // Check if player has already taken max actions this turn
-            if (G.actionCount >= G.maxActions) {
-                return;
-            }
+            if (!player)
+                return core_1.INVALID_MOVE;
+            if (G.actionCount >= G.maxActions)
+                return core_1.INVALID_MOVE;
             // Get card from slot or deck
             let card;
             if (slotIndex >= 0 && slotIndex < 4) {
@@ -112,36 +111,21 @@ exports.PortaleVonMolthar = {
                 card = G.pearlDeck.pop();
             }
             else {
-                return;
+                return core_1.INVALID_MOVE;
             }
-            if (!card) {
-                return;
-            }
+            if (!card)
+                return core_1.INVALID_MOVE;
             player.hand.push(card);
             G.actionCount++;
-            // Refill pearl slots
-            while (G.pearlSlots.length < 4) {
-                let refillCard = G.pearlDeck.pop();
-                if (!refillCard && G.pearlDiscardPile.length > 0) {
-                    // Reshuffle discard pile
-                    G.pearlDeck = G.pearlDiscardPile.splice(0);
-                    shuffleArray(G.pearlDeck);
-                    refillCard = G.pearlDeck.pop();
-                }
-                if (refillCard) {
-                    G.pearlSlots.push(refillCard);
-                }
-                else {
-                    break;
-                }
-            }
+            refillSlots(G.pearlSlots, G.pearlDeck, G.pearlDiscardPile, 4);
+            return;
         },
         takeCharacterCard({ G, ctx }, slotIndex, replacedSlotIndex) {
             const player = G.players[ctx.currentPlayer];
             if (!player)
-                return;
+                return core_1.INVALID_MOVE;
             if (G.actionCount >= G.maxActions)
-                return;
+                return core_1.INVALID_MOVE;
             // Get card from face-up slot or deck
             let card;
             if (slotIndex >= 0 && slotIndex < G.characterSlots.length) {
@@ -152,12 +136,13 @@ exports.PortaleVonMolthar = {
                 card = G.characterDeck.pop();
             }
             else {
-                return;
+                return core_1.INVALID_MOVE;
             }
             if (!card)
-                return;
+                return core_1.INVALID_MOVE;
+            G.portalEntryCounter += 1;
             const portalEntry = {
-                id: `${player.id}-${Date.now()}-${Math.random()}`,
+                id: `${player.id}-${G.portalEntryCounter}`,
                 card,
                 activated: false,
             };
@@ -172,36 +157,25 @@ exports.PortaleVonMolthar = {
                 player.portal[replacedSlotIndex] = portalEntry;
             }
             else {
-                return;
+                return core_1.INVALID_MOVE;
             }
             G.actionCount++;
-            // Refill character slots to 2
-            while (G.characterSlots.length < 2) {
-                let refillCard = G.characterDeck.pop();
-                if (!refillCard && G.characterDiscardPile.length > 0) {
-                    G.characterDeck = G.characterDiscardPile.splice(0);
-                    shuffleArray(G.characterDeck);
-                    refillCard = G.characterDeck.pop();
-                }
-                if (refillCard)
-                    G.characterSlots.push(refillCard);
-                else
-                    break;
-            }
+            refillSlots(G.characterSlots, G.characterDeck, G.characterDiscardPile, 2);
+            return;
         },
         activatePortalCard({ G, ctx }, portalSlotIndex, selectedCardIndices) {
             const player = G.players[ctx.currentPlayer];
             if (!player)
-                return;
+                return core_1.INVALID_MOVE;
             if (G.actionCount >= G.maxActions)
-                return;
+                return core_1.INVALID_MOVE;
             // Validate portal slot index bounds
             if (portalSlotIndex < 0 || portalSlotIndex >= player.portal.length) {
-                return;
+                return core_1.INVALID_MOVE;
             }
             const entry = player.portal[portalSlotIndex];
             if (!entry)
-                return;
+                return core_1.INVALID_MOVE;
             // Get selected cards from hand based on provided indices
             const selectedCards = selectedCardIndices
                 .filter(idx => idx >= 0 && idx < player.hand.length)
@@ -209,9 +183,7 @@ exports.PortaleVonMolthar = {
             // Validate and consume costs (atomic: either all succeeds or nothing changes)
             const consumeResult = (0, costCalculation_1.consumeCosts)(entry.card.cost, selectedCardIndices, player.hand, player.diamonds);
             if (!consumeResult) {
-                // Consumption failed - activation rejected
-                console.log('[activatePortalCard] Cost consumption failed, rejecting activation');
-                return;
+                return core_1.INVALID_MOVE;
             }
             // Update player state: remove consumed cards and update diamond count
             player.hand = consumeResult.hand;
@@ -251,37 +223,24 @@ exports.PortaleVonMolthar = {
                 G.finalRound = true;
                 G.finalRoundStartingPlayer = ctx.currentPlayer;
             }
+            return;
         },
         replacePearlSlots({ G, ctx }) {
             const player = G.players[ctx.currentPlayer];
-            if (!player) {
-                return;
-            }
-            if (G.actionCount >= G.maxActions) {
-                return;
-            }
-            // Discard all pearl slots
-            G.pearlSlots.forEach(card => G.pearlDiscardPile.push(card));
-            G.pearlSlots = [];
-            // Refill with new cards
-            for (let i = 0; i < 4; i++) {
-                let card = G.pearlDeck.pop();
-                if (!card && G.pearlDiscardPile.length > 0) {
-                    G.pearlDeck = G.pearlDiscardPile.splice(0);
-                    shuffleArray(G.pearlDeck);
-                    card = G.pearlDeck.pop();
-                }
-                if (card) {
-                    G.pearlSlots.push(card);
-                }
-            }
+            if (!player)
+                return core_1.INVALID_MOVE;
+            if (G.actionCount >= G.maxActions)
+                return core_1.INVALID_MOVE;
+            // Discard all pearl slots, then refill
+            G.pearlDiscardPile.push(...G.pearlSlots.splice(0));
+            refillSlots(G.pearlSlots, G.pearlDeck, G.pearlDiscardPile, 4);
             G.actionCount++;
+            return;
         },
         discardCards({ G, ctx }, cardIndices) {
             const player = G.players[ctx.currentPlayer];
-            if (!player) {
-                return;
-            }
+            if (!player)
+                return core_1.INVALID_MOVE;
             // Discard cards exceeding hand limit
             if (cardIndices) {
                 cardIndices.forEach(idx => {
@@ -291,6 +250,7 @@ exports.PortaleVonMolthar = {
                     }
                 });
             }
+            return;
         },
         discardCardsButton({ G, events }) {
             // Activate discard stage to allow player to select cards
@@ -300,25 +260,16 @@ exports.PortaleVonMolthar = {
         },
         discardCardsForHandLimit({ G, ctx, events }, selectedCardIndices) {
             const player = G.players[ctx.currentPlayer];
-            console.log('discardCardsForHandLimit called:', { selectedCardIndices, requiresHandDiscard: G.requiresHandDiscard, excessCardCount: G.excessCardCount, handLength: player?.hand.length });
-            if (!player || !G.requiresHandDiscard) {
-                console.log('Move rejected: no player or requiresHandDiscard is false');
-                return;
-            }
-            if (selectedCardIndices.length !== G.excessCardCount) {
-                console.log('Move rejected: card count mismatch', { selectedLength: selectedCardIndices.length, excessCardCount: G.excessCardCount });
-                return;
-            }
+            if (!player || !G.requiresHandDiscard)
+                return core_1.INVALID_MOVE;
+            if (selectedCardIndices.length !== G.excessCardCount)
+                return core_1.INVALID_MOVE;
             const validIndices = selectedCardIndices.filter(idx => idx >= 0 && idx < player.hand.length);
-            if (validIndices.length !== selectedCardIndices.length) {
-                console.log('Move rejected: invalid indices', { selectedCardIndices, validIndices });
-                return;
-            }
-            console.log('Discarding cards from indices:', validIndices);
+            if (validIndices.length !== selectedCardIndices.length)
+                return core_1.INVALID_MOVE;
             const sortedIndices = [...validIndices].sort((a, b) => b - a);
             for (const idx of sortedIndices) {
                 const discardedCard = player.hand.splice(idx, 1)[0];
-                console.log('Discarded card:', discardedCard);
                 if (discardedCard) {
                     G.pearlDiscardPile.push(discardedCard);
                 }
@@ -326,8 +277,8 @@ exports.PortaleVonMolthar = {
             G.requiresHandDiscard = false;
             G.excessCardCount = 0;
             G.actionCount = 0;
-            console.log('Hand discard complete, calling endTurn');
             events.endTurn();
+            return;
         },
         endTurn({ G, events }) {
             // If discard is required, reject - player must discard first
@@ -392,6 +343,24 @@ exports.PortaleVonMolthar = {
 /**
  * Helper Functions
  */
+/**
+ * Refill a slot array from a deck, reshuffling the discard pile if the deck runs out.
+ * Mutates all three arrays in place (compatible with boardgame.io/Immer).
+ */
+function refillSlots(slots, deck, discardPile, maxSlots) {
+    while (slots.length < maxSlots) {
+        let card = deck.pop();
+        if (!card && discardPile.length > 0) {
+            deck.push(...discardPile.splice(0));
+            shuffleArray(deck);
+            card = deck.pop();
+        }
+        if (card)
+            slots.push(card);
+        else
+            break;
+    }
+}
 function createPearlDeck() {
     const deck = [];
     // Create 7 copies of each value 1-8

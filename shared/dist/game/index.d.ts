@@ -23,23 +23,23 @@ export declare const PortaleVonMolthar: {
         takePearlCard({ G, ctx }: {
             G: GameState;
             ctx: any;
-        }, slotIndex: number): void;
+        }, slotIndex: number): "INVALID_MOVE" | undefined;
         takeCharacterCard({ G, ctx }: {
             G: GameState;
             ctx: any;
-        }, slotIndex: number, replacedSlotIndex?: number): void;
+        }, slotIndex: number, replacedSlotIndex?: number): "INVALID_MOVE" | undefined;
         activatePortalCard({ G, ctx }: {
             G: GameState;
             ctx: any;
-        }, portalSlotIndex: number, selectedCardIndices: number[]): void;
+        }, portalSlotIndex: number, selectedCardIndices: number[]): "INVALID_MOVE" | undefined;
         replacePearlSlots({ G, ctx }: {
             G: GameState;
             ctx: any;
-        }): void;
+        }): "INVALID_MOVE" | undefined;
         discardCards({ G, ctx }: {
             G: GameState;
             ctx: any;
-        }, cardIndices?: number[]): void;
+        }, cardIndices?: number[]): "INVALID_MOVE" | undefined;
         discardCardsButton({ G, events }: {
             G: GameState;
             events: any;
@@ -48,7 +48,7 @@ export declare const PortaleVonMolthar: {
             G: GameState;
             ctx: any;
             events: any;
-        }, selectedCardIndices: number[]): void;
+        }, selectedCardIndices: number[]): "INVALID_MOVE" | undefined;
         endTurn({ G, events }: {
             G: GameState;
             events: any;
@@ -84,9 +84,6 @@ export declare const PortaleVonMolthar: {
         };
     } | undefined;
 };
-/**
- * Helper Functions
- */
 export declare function createPearlDeck(): PearlCard[];
 export declare function createCharacterDeck(): CharacterCard[];
 export declare function shuffleArray<T>(array: T[]): void;

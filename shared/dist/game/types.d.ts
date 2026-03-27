@@ -96,6 +96,7 @@ export interface GameState {
     excessCardCount: number;
     currentHandLimit: number;
     startingPlayer: string;
+    portalEntryCounter: number;
 }
 /**
  * boardgame.io Context (provided by framework)

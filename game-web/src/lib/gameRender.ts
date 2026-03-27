@@ -4,6 +4,7 @@
  * Wird von CanvasGameBoard aufgerufen
  */
 
+import type { CharacterCard, PearlCard, ActivatedCharacter } from '@portale-von-molthar/shared';
 import { drawImageOrFallback } from './imageLoaderV2';
 import {
   BASE_W,
@@ -61,20 +62,23 @@ export interface DrawConfig {
   selectedHandIndices: number[];
 }
 
-export interface CardData {
-  name: string;
-  value?: number;
-}
-
-export interface PortalSlot {
-  card: CardData;
-  activated: boolean;
-}
-
 export interface PlayerPortalData {
   diamonds: number;
-  portal: (PortalSlot | null)[];
-  hand: CardData[];
+  portal: ActivatedCharacter[];
+  hand: PearlCard[];
+}
+
+function drawEmptySlot(ctx: CanvasRenderingContext2D, x: number, y: number, label: string) {
+  ctx.fillStyle = '#2b3440';
+  ctx.fillRect(x, y, CARD_W, CARD_H);
+  ctx.strokeStyle = '#475569';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x, y, CARD_W, CARD_H);
+  ctx.fillStyle = '#9ca3af';
+  ctx.font = 'bold 12px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(label, x + CARD_W / 2, y + CARD_H / 2);
 }
 
 export function drawBackground(ctx: CanvasRenderingContext2D) {
@@ -195,8 +199,8 @@ export function drawDeckStack(
 
 export function drawAuslage(
   ctx: CanvasRenderingContext2D,
-  characterSlots: CardData[],
-  pearlSlots: CardData[],
+  characterSlots: CharacterCard[],
+  pearlSlots: PearlCard[],
   config: DrawConfig,
   characterDeckCount: number = 0,
   pearlDeckCount: number = 0,
@@ -220,60 +224,38 @@ export function drawAuslage(
   // Place Auslage at 5% from top of Auslage area
   const startY = ZONE_TOP_H + ZONE_CENTER_H * 0.05;
 
-  // Ensure we always render 2 character slots + 4 pearl slots (6 slots total)
-  const chars = [characterSlots[0] || null, characterSlots[1] || null];
-  const pearls = [pearlSlots[0] || null, pearlSlots[1] || null, pearlSlots[2] || null, pearlSlots[3] || null];
-  const allCards = [...chars, ...pearls];
-
-  allCards.forEach((card, idx) => {
+  // Draw 2 character slots
+  for (let idx = 0; idx < 2; idx++) {
     const x = startX + idx * (CARD_W + CARD_GAP);
-    const y = startY;
-
-    const isSelected =
-      (idx < 2 && config.selectedCharacter === idx) ||
-      (idx >= 2 && config.selectedPearl === idx - 2);
-
+    const card = characterSlots[idx] ?? null;
     if (!card) {
-      // Draw empty slot placeholder
-      ctx.fillStyle = '#2b3440';
-      ctx.fillRect(x, y, CARD_W, CARD_H);
-      ctx.strokeStyle = '#475569';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(x, y, CARD_W, CARD_H);
-
-      ctx.fillStyle = '#9ca3af';
-      ctx.font = 'bold 12px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      const label = idx < 2 ? `Char ${idx + 1}` : `Pearl ${idx - 1}`;
-      ctx.fillText(label, x + CARD_W / 2, y + CARD_H / 2);
-      return;
-    }
-
-    // Draw card image
-    let filename = 'Charakterkarte Hinten.png';
-    let label = 'Card';
-
-    if (idx < 2) {
-      // Character card - use imageName directly
-      filename = (card as any).imageName;
-      label = (card as any).name || 'Card';
+      drawEmptySlot(ctx, x, startY, `Char ${idx + 1}`);
     } else {
-      // Pearl card
-      const value = ((card as any).value || 1);
-      filename = `Perlenkarte${value}.png`;
-      label = String(value);
+      drawImageOrFallback(ctx, card.imageName, x, startY, CARD_W, CARD_H, card.name);
+      if (config.selectedCharacter === idx) {
+        ctx.strokeStyle = '#FFD700';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x, startY, CARD_W, CARD_H);
+      }
     }
+  }
 
-    drawImageOrFallback(ctx, filename, x, y, CARD_W, CARD_H, label);
-
-    // Draw selection border if selected
-    if (isSelected) {
-      ctx.strokeStyle = '#FFD700';
-      ctx.lineWidth = 3;
-      ctx.strokeRect(x, y, CARD_W, CARD_H);
+  // Draw 4 pearl slots
+  for (let pearlIdx = 0; pearlIdx < 4; pearlIdx++) {
+    const idx = pearlIdx + 2;
+    const x = startX + idx * (CARD_W + CARD_GAP);
+    const card = pearlSlots[pearlIdx] ?? null;
+    if (!card) {
+      drawEmptySlot(ctx, x, startY, `Pearl ${pearlIdx + 1}`);
+    } else {
+      drawImageOrFallback(ctx, `Perlenkarte${card.value}.png`, x, startY, CARD_W, CARD_H, String(card.value));
+      if (config.selectedPearl === pearlIdx) {
+        ctx.strokeStyle = '#FFD700';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x, startY, CARD_W, CARD_H);
+      }
     }
-  });
+  }
 
   // Draw character deck below the character cards
   drawDeckStack(
@@ -337,21 +319,9 @@ export function drawPlayerPortal(
   portal.portal.forEach((slot, idx) => {
     const x = slotAreaX + idx * (slotW + slotGap);
     const y = slotAreaY;
-    
+
     if (slot) {
-      console.log(`Drawing portal slot ${idx}: ${(slot.card as any).name} at x=${x}`);
-      // Draw actual character card image - use imageName directly
-      const imageName = (slot.card as any).imageName;
-      
-      drawImageOrFallback(
-        ctx,
-        imageName,
-        x,
-        y,
-        slotW,
-        slotH,
-        (slot.card as any).name || 'Card'
-      );
+      drawImageOrFallback(ctx, slot.card.imageName, x, y, slotW, slotH, slot.card.name);
     } else {
       // Empty slot
       ctx.fillStyle = '#334155';
@@ -379,9 +349,7 @@ export function drawPlayerPortal(
     ctx.translate(cx, cy);
     ctx.rotate(angle);
 
-    // Draw actual pearl card image
-    const value = ((card as unknown) as { value?: number }).value || 1;
-    drawImageOrFallback(ctx, `Perlenkarte${value}.png`, -HAND_CARD_W / 2, -HAND_CARD_H / 2, HAND_CARD_W, HAND_CARD_H, String(value));
+    drawImageOrFallback(ctx, `Perlenkarte${card.value}.png`, -HAND_CARD_W / 2, -HAND_CARD_H / 2, HAND_CARD_W, HAND_CARD_H, String(card.value));
 
     // Selection border
     if (config.selectedHandIndices.includes(idx)) {
@@ -396,7 +364,7 @@ export function drawPlayerPortal(
 
 export function drawActivatedCharactersGrid(
   ctx: CanvasRenderingContext2D,
-  activatedCards: any[],
+  activatedCards: CharacterCard[],
   config: DrawConfig
 ) {
   // Display up to 12 activated character cards in a 3x4 grid
@@ -417,18 +385,7 @@ export function drawActivatedCharactersGrid(
     ctx.rotate(Math.PI); // 180° rotation
     ctx.translate(-(cardX + w / 2), -(cardY + h / 2));
     
-    // Draw character card image - use imageName directly
-    const filename = card.imageName;
-    
-    drawImageOrFallback(
-      ctx,
-      filename,
-      cardX,
-      cardY,
-      w,
-      h,
-      card.name || 'Card'
-    );
+    drawImageOrFallback(ctx, card.imageName, cardX, cardY, w, h, card.name);
     
     ctx.restore();
   });

@@ -112,6 +112,7 @@ export interface GameState {
 
   // Metadata
   startingPlayer: string;
+  portalEntryCounter: number; // Monotone counter for deterministic portal entry IDs
 }
 
 /**

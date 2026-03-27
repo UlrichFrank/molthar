@@ -89,6 +89,7 @@ export const PortaleVonMolthar = {
       excessCardCount: 0,
       currentHandLimit: 5,
       startingPlayer: playerIds[0],
+      portalEntryCounter: 0,
     };
   },
   
@@ -116,22 +117,8 @@ export const PortaleVonMolthar = {
       
       player.hand.push(card);
       G.actionCount++;
-      
-      // Refill pearl slots
-      while (G.pearlSlots.length < 4) {
-        let refillCard = G.pearlDeck.pop();
-        if (!refillCard && G.pearlDiscardPile.length > 0) {
-          // Reshuffle discard pile
-          G.pearlDeck = G.pearlDiscardPile.splice(0);
-          shuffleArray(G.pearlDeck);
-          refillCard = G.pearlDeck.pop();
-        }
-        if (refillCard) {
-          G.pearlSlots.push(refillCard);
-        } else {
-          break;
-        }
-      }
+      refillSlots(G.pearlSlots, G.pearlDeck, G.pearlDiscardPile, 4);
+      return;
     },
     
     takeCharacterCard({ G, ctx }: { G: GameState; ctx: any }, slotIndex: number, replacedSlotIndex?: number) {
@@ -151,8 +138,9 @@ export const PortaleVonMolthar = {
       }
       if (!card) return INVALID_MOVE;
 
+      G.portalEntryCounter += 1;
       const portalEntry: ActivatedCharacter = {
-        id: `${player.id}-${Date.now()}-${Math.random()}`,
+        id: `${player.id}-${G.portalEntryCounter}`,
         card,
         activated: false,
       };
@@ -170,18 +158,8 @@ export const PortaleVonMolthar = {
       }
 
       G.actionCount++;
-
-      // Refill character slots to 2
-      while (G.characterSlots.length < 2) {
-        let refillCard = G.characterDeck.pop();
-        if (!refillCard && G.characterDiscardPile.length > 0) {
-          G.characterDeck = G.characterDiscardPile.splice(0);
-          shuffleArray(G.characterDeck);
-          refillCard = G.characterDeck.pop();
-        }
-        if (refillCard) G.characterSlots.push(refillCard);
-        else break;
-      }
+      refillSlots(G.characterSlots, G.characterDeck, G.characterDiscardPile, 2);
+      return;
     },
 
     activatePortalCard({ G, ctx }: { G: GameState; ctx: any }, portalSlotIndex: number, selectedCardIndices: number[]) {
@@ -252,6 +230,7 @@ export const PortaleVonMolthar = {
         G.finalRound = true;
         G.finalRoundStartingPlayer = ctx.currentPlayer;
       }
+      return;
     },
 
     replacePearlSlots({ G, ctx }: { G: GameState; ctx: any }) {
@@ -259,24 +238,11 @@ export const PortaleVonMolthar = {
       if (!player) return INVALID_MOVE;
       if (G.actionCount >= G.maxActions) return INVALID_MOVE;
       
-      // Discard all pearl slots
-      G.pearlSlots.forEach(card => G.pearlDiscardPile.push(card));
-      G.pearlSlots = [];
-      
-      // Refill with new cards
-      for (let i = 0; i < 4; i++) {
-        let card = G.pearlDeck.pop();
-        if (!card && G.pearlDiscardPile.length > 0) {
-          G.pearlDeck = G.pearlDiscardPile.splice(0);
-          shuffleArray(G.pearlDeck);
-          card = G.pearlDeck.pop();
-        }
-        if (card) {
-          G.pearlSlots.push(card);
-        }
-      }
-      
+      // Discard all pearl slots, then refill
+      G.pearlDiscardPile.push(...G.pearlSlots.splice(0));
+      refillSlots(G.pearlSlots, G.pearlDeck, G.pearlDiscardPile, 4);
       G.actionCount++;
+      return;
     },
     
     discardCards({ G, ctx }: { G: GameState; ctx: any }, cardIndices?: number[]) {
@@ -292,6 +258,7 @@ export const PortaleVonMolthar = {
           }
         });
       }
+      return;
     },
     
     discardCardsButton({ G, events }: { G: GameState; events: any }) {
@@ -322,6 +289,7 @@ export const PortaleVonMolthar = {
       G.excessCardCount = 0;
       G.actionCount = 0;
       events.endTurn();
+      return;
     },
 
     endTurn({ G, events }: { G: GameState; events: any }) {
@@ -397,6 +365,23 @@ export const PortaleVonMolthar = {
 /**
  * Helper Functions
  */
+
+/**
+ * Refill a slot array from a deck, reshuffling the discard pile if the deck runs out.
+ * Mutates all three arrays in place (compatible with boardgame.io/Immer).
+ */
+function refillSlots<T>(slots: T[], deck: T[], discardPile: T[], maxSlots: number): void {
+  while (slots.length < maxSlots) {
+    let card = deck.pop();
+    if (!card && discardPile.length > 0) {
+      deck.push(...discardPile.splice(0));
+      shuffleArray(deck);
+      card = deck.pop();
+    }
+    if (card) slots.push(card);
+    else break;
+  }
+}
 
 export function createPearlDeck(): PearlCard[] {
   const deck: PearlCard[] = [];
