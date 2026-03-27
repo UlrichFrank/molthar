@@ -298,9 +298,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
         // Draw character card from deck (blind draw, no selection)
         // Uses same Portal action flow as clicking face-up cards, but with -1 index to signal deck draw
         // Backend (takeCharacterCard move) extracts top card from characterDeck[0]
-        if (G.actionCount >= G.maxActions) {
-          return;
-        }
         if (G.characterDeck.length === 0) {
           return;
         }
@@ -324,9 +321,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
 
       case 'deck-pearl': {
         // Draw random pearl card from deck
-        if (G.actionCount >= G.maxActions) {
-          return;
-        }
         if (G.pearlDeck.length === 0) {
           return;
         }
@@ -395,16 +389,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
 
 
 
-  // Handle End Turn action
-  const handleEndTurn = () => {
-    // Call the endTurn move to validate hand limit and potentially trigger discard
-    if (moves.endTurn) {
-      moves.endTurn();
-    } else {
-      console.error('ERROR: moves.endTurn is not available!');
-    }
-  };
-
   // Handle Discard Cards button click - open dialog
   const handleDiscardCards = () => {
     if (me && G.excessCardCount > 0) {
@@ -468,7 +452,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           playerName={activePlayer?.name || `Player ${activePlayerIndex + 1}`}
           requiresHandDiscard={G.requiresHandDiscard}
           onDiscardCards={handleDiscardCards}
-          onEndTurn={handleEndTurn}
+          onEndTurn={() => handleButtonClick('end-turn')}
         />
 
         {/* Player Name Display - above hand cards */}
@@ -533,7 +517,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           excessCardCount={dialog.dialogContext.excessCardCount}
           currentHandLimit={dialog.dialogContext.currentHandLimit}
           onDiscard={(selectedCardIndices) => {
-            console.log('Discarding cards:', selectedCardIndices);
             moves.discardCardsForHandLimit(selectedCardIndices);
             dialog.closeDialog();
           }}

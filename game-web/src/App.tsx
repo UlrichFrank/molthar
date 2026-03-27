@@ -7,7 +7,7 @@ import { PortaleVonMolthar } from '@portale-von-molthar/shared';
 import { CanvasGameBoard } from './components/CanvasGameBoard';
 import './App.css';
 
-const SERVER_URL = 'http://127.0.0.1:3001';
+const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? 'http://127.0.0.1:3001';
 
 const lobbyClient = new LobbyClient({ server: SERVER_URL });
 
