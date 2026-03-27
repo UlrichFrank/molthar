@@ -36,7 +36,7 @@ export function getImageUrl(filename: string): string {
 export async function findUnreferencedCharacterImages(existingImageNames: string[]): Promise<string[]> {
   try {
     const allImages = await loadAvailableImages();
-    const characterImagePattern = /^Charakterkarte\d+\.jpeg$/i;
+    const characterImagePattern = /^Charakterkarte\d+\.png$/i;
     const referencedSet = new Set(existingImageNames);
     
     return allImages

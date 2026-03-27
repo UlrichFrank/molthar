@@ -30,11 +30,11 @@ export function FaceUpCards({
   // Helper function to get character card image path
   function getCharacterCardImage(cardName: string): string {
     // Card names are like "Character 1", "Character 2", etc.
-    // Assets are named "Charakterkarte1.jpeg", "Charakterkarte2.jpeg", etc.
+    // Assets are named "Charakterkarte1.png", "Charakterkarte2.png", etc.
     const match = cardName.match(/(\d+)/);
     if (match) {
       const num = match[1];
-      return `/assets/Charakterkarte${num}.jpeg`;
+      return `/assets/Charakterkarte${num}.png`;
     }
     // Fallback to generic back image or placeholder
     return '/assets/Charakterkarte Hinten.png';

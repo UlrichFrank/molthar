@@ -32,7 +32,7 @@ export function Header({ cardCount, onExport, onImport, onAddNew, onCreateFromIm
             onClick={onCreateFromImages}
             variant="outline"
             className="gap-2"
-            title="Erstelle automatisch Karten für alle unreferenzierten CharakterKarte*.jpeg Bilder"
+            title="Erstelle automatisch Karten für alle unreferenzierten CharakterKarte*.png Bilder"
           >
             <Image size={18} />
             Aus Bildern

@@ -16,7 +16,7 @@ export function CharacterReplacementDialog(props: CharacterReplacementDialogProp
     const match = cardName.match(/(\d+)/);
     if (match) {
       const num = match[1];
-      return `/assets/Charakterkarte${num}.jpeg`;
+      return `/assets/Charakterkarte${num}.png`;
     }
     return '/assets/Charakterkarte Hinten.png';
   };
