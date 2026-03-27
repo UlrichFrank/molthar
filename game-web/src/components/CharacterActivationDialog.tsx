@@ -97,22 +97,19 @@ export function CharacterActivationDialog({
             {availableCharacters.map(({ card, slotIndex }) => (
               <button
                 key={slotIndex}
-                className={`character-choice card-with-image ${
+                className={`character-choice ${
                   selectedCharacterSlot === slotIndex ? 'selected' : ''
                 }`}
-                style={{
-                  backgroundImage: `url(/assets/${encodeURIComponent(card.imageName)})`,
-                }}
                 onClick={() => {
                   setSelectedCharacterSlot(slotIndex);
                   setSelectedCardIndices(new Set());
                 }}
-                title={`${card.name} - Cost: ${getCostSummary(card.cost)}`}
               >
-                <div className="character-choice-overlay">
-                  <div className="character-name">{card.name}</div>
-                  <div className="character-cost">{getCostSummary(card.cost)}</div>
-                </div>
+                <img
+                  src={`/assets/${encodeURIComponent(card.imageName)}`}
+                  alt={card.name}
+                  className="character-choice-image"
+                />
               </button>
             ))}
           </div>
