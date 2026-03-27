@@ -84,7 +84,7 @@ export function useCardManager() {
     const unreferencedImages = await findUnreferencedCharacterImages(existingImageNames);
     
     if (unreferencedImages.length === 0) {
-      alert('Keine neuen Charakterkarte*.jpeg Bilder gefunden');
+      alert('Keine neuen Charakterkarte*.png Bilder gefunden');
       return;
     }
 
@@ -94,7 +94,7 @@ export function useCardManager() {
     
     if (confirmCreate) {
       const cardNames = unreferencedImages.map(image => {
-        // Extract name from "Charakterkarte1.jpeg" → "Charakter 1"
+        // Extract name from "Charakterkarte1.png" → "Charakter 1"
         const match = image.match(/Charakterkarte(\d+)/i);
         return match ? `Charakter ${match[1]}` : image;
       });

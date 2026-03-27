@@ -129,7 +129,7 @@ export async function preloadAllImages(): Promise<void> {
     console.warn('Failed to load character cards from database:', err);
     // Fallback to hardcoded list if database fails
     for (let i = 1; i <= 60; i++) {
-      characterCardImages.add(`Charakterkarte${i}.jpeg`);
+      characterCardImages.add(`Charakterkarte${i}.png`);
     }
   }
 
