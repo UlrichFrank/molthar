@@ -1,41 +1,49 @@
 ## Context
 
-Das Spiel rendert das Spielfeld auf einem `<canvas>` Element (Modell-Koordinaten 1200×800, skaliert auf Viewport). Bisher liegt ein unsichtbarer HTML-Button-Layer (`CardButtonOverlay`) als `position:absolute` über dem Canvas. Dieser Layer enthält `CardButton`-Elemente, die Hover- und Click-Events verarbeiten und visuelles Feedback per CSS-Klassen liefern.
+Das Spiel rendert das Spielfeld auf einem `<canvas>` Element (Modell-Koordinaten 1536×1024, skaliert auf Viewport). Bisher liegt ein unsichtbarer HTML-Button-Layer (`CardButtonOverlay`) als `position:absolute` über dem Canvas. Dieser Layer enthält `CardButton`-Elemente, die Hover- und Click-Events verarbeiten und visuelles Feedback per CSS-Klassen liefern.
 
 Das führt zu doppelter Positionslogik: Drawing-Code und Button-Overlay berechnen Koordinaten unabhängig — verbunden nur durch `cardLayoutConstants.ts`. Hover-Effekte sind auf CSS beschränkt; Canvas-basierte Animationen (Glow, Flash) sind so nicht umsetzbar.
 
 Das Canvas hat bereits `onPointerMove` / `onPointerDown` Handler mit vollständigem Hit-Testing. Die Infrastruktur für reine Canvas-Interaktion ist vorhanden, nur der visuelle Feedback-Teil fehlt.
 
+`ActionCounterDisplay` ist ein weiteres React-Overlay: es zeigt Aktionsanzahl, "End Turn" und "Discard Cards". Es hat seinen eigenen Event-Handler und ist vollständig unabhängig vom Canvas. `hitTestButtons()` in `gameHitTest.ts` sowie die `BTN_*`-Konstanten existieren als toter Code — der End-Turn-Button war nie auf dem Canvas gezeichnet, der Canvas-Hit-Test für Buttons wurde durch das React-Overlay faktisch nie erreicht.
+
 ## Goals / Non-Goals
 
 **Goals:**
 - Hover-Glow (golden, smooth) und Click-Flash (weiß, ~200ms) im Canvas selbst zeichnen
-- `CardRegion`-Konzept: ein Objekt pro Karte kapselt Position + Hit-Test + Animations-Zustand
+- `CanvasRegion`-Konzept: ein Objekt pro interaktivem Element kapselt Position + Hit-Test + Animations-Zustand (Karten, Decks, UI-Buttons)
 - `requestAnimationFrame`-Loop für zeitbasierte Animationen
 - Touch-Support: Flash bei Tap, kein Hover
-- `CardButtonOverlay` und `CardButton` entfernen
+- `CardButtonOverlay`, `CardButton` und `ActionCounterDisplay` entfernen
+- Aktionsanzeige, "End Turn" und "Discard Cards" auf Canvas zeichnen
+- Toten Code entfernen: `hitTestButtons()`, `BTN_*`-Konstanten
 
 **Non-Goals:**
 - Keyboard-Navigation / Accessibility
 - Änderungen an Game-Logic, Moves, Backend
 - Änderungen an Dialog-Komponenten (CharacterActivationDialog etc.)
-- Änderungen an `cardLayoutConstants.ts` oder `gameHitTest.ts`
 
 ## Decisions
 
-### CardRegion als Deskriptor-Objekt
+### CanvasRegion als Deskriptor-Objekt
 
-Ein `CardRegion`-Interface kapselt alle Informationen einer interaktiven Karte:
+Ein `CanvasRegion`-Interface kapselt alle Informationen eines interaktiven Canvas-Elements (Karten, Decks, UI-Buttons):
 
 ```typescript
-interface CardRegion {
-  type: HitTarget['type']
+interface CanvasRegion {
+  type: 'auslage-card' | 'portal-slot' | 'hand-card' | 'activated-character'
+       | 'deck-character' | 'deck-pearl'
+       | 'ui-end-turn' | 'ui-discard-cards'
   id: number | string
   x: number; y: number; w: number; h: number
   angle?: number
   // Animations-Zustand (mutable, direkt auf dem Objekt)
   hoverProgress: number   // 0–1, smooth Hover-Übergang
   flashProgress: number   // 0–1, Click/Tap-Flash, zerfällt nach Trigger
+  // UI-spezifisch
+  label?: string          // Text für UI-Buttons ("End Turn", "Discard Cards")
+  enabled?: boolean       // UI-Buttons können disabled sein
 }
 ```
 
@@ -47,12 +55,12 @@ Plain objects reichen; Hit-Testing und Drawing sind standalone-Funktionen, kein 
 
 ---
 
-### buildCardRegions(G) als Single Source of Truth
+### buildCanvasRegions(G) als Single Source of Truth
 
-Eine Funktion `buildCardRegions(G, playerID)` baut das `CardRegion[]`-Array aus dem Game-State. Sie wird bei jedem Game-State-Update aufgerufen und schreibt Positionen in das bestehende `regionsRef`-Array (Update in-place um Animations-Zustand zu erhalten).
+Eine Funktion `buildCanvasRegions(G, playerID)` baut das `CanvasRegion[]`-Array aus dem Game-State. Sie deckt ab: Karten (Auslage, Portal, Hand, Aktiviert), Decks und UI-Buttons (End Turn, Discard Cards — mit aktuellem enabled-State).
 
 **Warum in-place Update statt neu erstellen?**
-Bei Neu-Erstellung würden `hoverProgress` / `flashProgress` zurückgesetzt. In-place Update behält laufende Animationen.
+Bei Neu-Erstellung würden `hoverProgress` / `flashProgress` zurückgesetzt. In-place Update behält laufende Animationen. UI-Buttons sind immer vorhanden (feste IDs), Karten und Decks werden per type+id gematcht.
 
 ---
 

@@ -6,20 +6,23 @@ Der HTML-Button-Overlay (CardButtonOverlay + CardButton) dupliziert die Position
 
 - **BREAKING** `CardButtonOverlay.tsx` wird entfernt — alle Pointer-Interaktionen laufen künftig direkt über den Canvas
 - **BREAKING** `CardButton.tsx` wird entfernt
-- Neues `CardRegion`-Konzept: ein Objekt kapselt Position, Hit-Test und Animations-Zustand einer Karte
-- Neue `buildCardRegions(G)` Funktion baut aus dem GameState ein `CardRegion[]`-Array als Single Source of Truth für Drawing und Hit-Testing
+- **BREAKING** `ActionCounterDisplay.tsx` als React-Overlay wird entfernt — Aktionsanzeige, "End Turn" und "Discard Cards" werden auf dem Canvas gezeichnet
+- Neues `CanvasRegion`-Konzept (ersetzt `CardRegion`): ein Objekt kapselt Position, Hit-Test und Animations-Zustand für **alle** interaktiven Canvas-Elemente (Karten, Decks, UI-Buttons)
+- Neue `buildCanvasRegions(G)` Funktion baut aus dem GameState ein `CanvasRegion[]`-Array als Single Source of Truth für Drawing und Hit-Testing
 - `requestAnimationFrame`-Loop ersetzt das event-getriggerte `useEffect`-Redraw
-- Hover-Effekt: goldener Glow (Canvas `shadowBlur`) smooth ein-/ausgeblendet bei Mouse-Hover
+- Hover-Effekt: goldener Glow (Canvas `shadowBlur`) smooth ein-/ausgeblendet bei Mouse-Hover (Karten + Decks + Buttons)
 - Click-Feedback: weißes Flash-Overlay (~200ms) bei Klick (Mouse) und Tap (Touch)
 - Touch-Verhalten: kein Hover-State, nur Flash bei `pointerDown`, dann sofort Aktion
-- Cursor: `pointer` wenn über einer Karte, sonst `default`
+- Cursor: `pointer` wenn über einem interaktiven Element, sonst `default`
+- **Toter Code entfernt:** `hitTestButtons()` in `gameHitTest.ts` und zugehörige `BTN_*`-Konstanten in `cardLayoutConstants.ts` (End-Turn-Button war nie auf Canvas gezeichnet, wurde durch React-Overlay abgedeckt)
 
 ## Capabilities
 
 ### New Capabilities
 
-- `canvas-card-interaction`: Canvas-native Hover (Glow) und Click-Feedback (Flash) für Karten, mit einheitlichem `CardRegion`-Deskriptor für Drawing und Hit-Testing
+- `canvas-card-interaction`: Canvas-native Hover (Glow) und Click-Feedback (Flash) für alle interaktiven Canvas-Elemente (Karten, Decks, UI-Buttons), mit einheitlichem `CanvasRegion`-Deskriptor für Drawing und Hit-Testing
 - `canvas-animation-loop`: `requestAnimationFrame`-basierter Render-Loop mit zeitbasierter Animation (hoverProgress, flashProgress)
+- `canvas-ui-rendering`: Aktionsanzeige, "End Turn" und "Discard Cards" werden direkt auf dem Canvas gezeichnet statt als React-Overlay
 
 ### Modified Capabilities
 
@@ -29,8 +32,10 @@ Der HTML-Button-Overlay (CardButtonOverlay + CardButton) dupliziert die Position
 
 - `game-web/src/components/CardButtonOverlay.tsx` — wird gelöscht
 - `game-web/src/components/CardButton.tsx` — wird gelöscht
-- `game-web/src/components/CanvasGameBoard.tsx` — Umbau auf rAF-Loop, CardRegion-Integration
-- `game-web/src/lib/gameHitTest.ts` — bleibt, wird von CardRegion genutzt
-- `game-web/src/lib/gameRender.ts` — Drawing-Funktionen erhalten CardRegion[] und zeichnen Hover/Flash
-- `game-web/src/lib/cardLayoutConstants.ts` — bleibt unverändert
+- `game-web/src/components/ActionCounterDisplay.tsx` — wird gelöscht (Funktionalität wandert auf Canvas)
+- `game-web/src/components/CanvasGameBoard.tsx` — Umbau auf rAF-Loop, CanvasRegion-Integration, ActionCounter-Logik übernehmen
+- `game-web/src/lib/gameHitTest.ts` — `hitTestButtons()` und tote Button-Typen entfernen
+- `game-web/src/lib/gameRender.ts` — Drawing-Funktionen erhalten CanvasRegion[] und zeichnen Hover/Flash; neue `drawActionCounter()`-Funktion
+- `game-web/src/lib/cardLayoutConstants.ts` — `BTN_*`-Konstanten entfernen, neue UI-Konstanten für Canvas-Buttons
+- `game-web/src/styles/turnActionCounter.css` — wird gelöscht (nicht mehr benötigt)
 - Keine Änderungen an Game-Logic (moves, shared, backend)
