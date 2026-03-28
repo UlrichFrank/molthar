@@ -7,7 +7,6 @@ import {
   drawAuslage,
   drawPlayerPortal,
   drawActivatedCharactersGrid,
-  drawUI,
   drawUIButton,
   drawOpponentActionCounter,
   drawRegionEffects,
@@ -237,7 +236,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
       { selectedPearl: null, selectedCharacter: null, selectedHandIndices: [] });
     drawActivatedCharactersGrid(drawCtx, activatedCards_,
       { selectedPearl: null, selectedCharacter: null, selectedHandIndices: [] });
-    drawUI(drawCtx, phase);
 
     // Canvas UI panel
     if (isActive) {
