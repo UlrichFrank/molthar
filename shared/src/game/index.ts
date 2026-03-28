@@ -8,10 +8,6 @@ import './cardDatabaseLoader.js';
 import './browserCardDatabaseLoader';
 
 /**
- * Helper function for invalid moves
- */
-
-/**
  * PortaleVonMolthar - Complete boardgame.io implementation
  * Turn-based card game with 2-5 players
  */
@@ -205,11 +201,6 @@ export const PortaleVonMolthar = {
       // are activated, cards in portal are not.
       const activatedCard = player.portal.splice(portalSlotIndex, 1)[0];
       if (activatedCard) {
-        // Ensure activatedCharacters array exists
-        if (!player.activatedCharacters) {
-          player.activatedCharacters = [];
-        }
-        // Mark as activated (180° rotation indicator)
         activatedCard.activated = true;
         // Add to activated characters collection
         player.activatedCharacters.push(activatedCard);
@@ -261,13 +252,6 @@ export const PortaleVonMolthar = {
       return;
     },
     
-    discardCardsButton({ G, events }: { G: GameState; events: any }) {
-      // Activate discard stage to allow player to select cards
-      if (G.requiresHandDiscard && G.excessCardCount > 0) {
-        events.setActivePlayers({ currentPlayer: 'discard' });
-      }
-    },
-
     discardCardsForHandLimit({ G, ctx, events }: { G: GameState; ctx: any; events: any }, selectedCardIndices: number[]) {
       const player = G.players[ctx.currentPlayer];
 
@@ -293,12 +277,10 @@ export const PortaleVonMolthar = {
     },
 
     endTurn({ G, events }: { G: GameState; events: any }) {
-      // If discard is required, reject - player must discard first
-      if (G.requiresHandDiscard) return;
-
-      // Hand is within limit - proceed with turn end
+      if (G.requiresHandDiscard) return INVALID_MOVE;
       G.actionCount = 0;
       events.endTurn();
+      return;
     },
 
   },

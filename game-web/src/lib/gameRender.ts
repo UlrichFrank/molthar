@@ -88,40 +88,6 @@ export function drawBackground(ctx: CanvasRenderingContext2D) {
 
   // Try to draw Spielfläche as background (if available)
   drawImageOrFallback(ctx, 'Spielflaeche.png', 0, 0, BASE_W, BASE_H);
-
-  // Optional: Draw zone guides (for debugging, can be disabled)
-  ctx.strokeStyle = 'rgba(255, 230, 0, 0.15)';
-  ctx.lineWidth = 1;
-
-  // Horizontal guides
-  ctx.setLineDash([5, 5]);
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.lineTo(BASE_W, 0);
-  ctx.stroke(); // Header line
-
-  ctx.beginPath();
-  ctx.moveTo(0, ZONE_TOP_H);
-  ctx.lineTo(BASE_W, ZONE_TOP_H);
-  ctx.stroke(); // Top zones end
-
-  ctx.beginPath();
-  ctx.moveTo(0, ZONE_TOP_H + ZONE_CENTER_H);
-  ctx.lineTo(BASE_W, ZONE_TOP_H + ZONE_CENTER_H);
-  ctx.stroke(); // Player zone start
-
-  // Vertical guides
-  ctx.beginPath();
-  ctx.moveTo(MARGIN_H, 0);
-  ctx.lineTo(MARGIN_H, BASE_H);
-  ctx.stroke(); // Left margin
-
-  ctx.beginPath();
-  ctx.moveTo(BASE_W - MARGIN_H, 0);
-  ctx.lineTo(BASE_W - MARGIN_H, BASE_H);
-  ctx.stroke(); // Right margin
-
-  ctx.setLineDash([]);
 }
 
 /**
@@ -214,10 +180,6 @@ export function drawAuslage(
 
   // Draw Auslage background (fits within zone)
   drawImageOrFallback(ctx, 'Auslage.png', centerX, auslageY, centerW, auslageH);
-
-  // Optional: Draw semi-transparent overlay for better readability (disabled for now)
-  // ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-  // ctx.fillRect(centerX, auslageY, centerW, auslageH);
 
   // Draw cards on top
   const startX = centerX + (centerW - (6 * CARD_W + 5 * CARD_GAP)) / 2;
