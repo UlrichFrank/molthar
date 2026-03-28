@@ -154,28 +154,28 @@ export function getCostSummary(cost: CostComponent[]): string {
 
   // For single number cost, show just that value
   if (cost.length === 1 && cost[0].type === 'number') {
-    return `Cost: ${cost[0].value}`;
+    return `${cost[0].value}`;
   }
 
   // For multiple components, show "Complex" and let describeCost handle details
   if (cost.length > 1) {
-    return 'Cost: Complex';
+    return 'Complex';
   }
 
   // For other single costs
   const firstCost = cost[0];
   switch (firstCost.type) {
     case 'nTuple':
-      return `Cost: ${firstCost.n} of same`;
+      return `${firstCost.n} of same`;
     case 'run':
-      return `Cost: ${firstCost.length} consecutive`;
+      return `${firstCost.length} consecutive`;
     case 'diamond':
-      return `Cost: ${firstCost.value}💎`;
+      return `${firstCost.value}💎`;
     case 'sumTuple':
-      return `Cost: ${firstCost.n} cards sum ${firstCost.sum}`;
+      return `${firstCost.n} cards sum ${firstCost.sum}`;
     case 'sumAnyTuple':
-      return `Cost: Sum ${firstCost.sum}`;
+      return `Sum ${firstCost.sum}`;
     default:
-      return 'Cost: Variable';
+      return 'Variable';
   }
 }
