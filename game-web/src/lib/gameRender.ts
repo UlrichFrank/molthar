@@ -4,8 +4,9 @@
  * Wird von CanvasGameBoard aufgerufen
  */
 
-import type { CharacterCard, PearlCard, ActivatedCharacter } from '@portale-von-molthar/shared';
+import type { CharacterCard, PearlCard, ActivatedCharacter, GameState } from '@portale-von-molthar/shared';
 import { drawImageOrFallback } from './imageLoaderV2';
+import type { CanvasRegion } from './canvasRegions';
 import {
   BASE_W,
   BASE_H,
@@ -51,6 +52,10 @@ import {
   PEARL_DECK_Y,
   CHARACTER_DECK_MAX_SIZE,
   PEARL_DECK_MAX_SIZE,
+  UI_PANEL_X,
+  UI_PANEL_Y,
+  UI_PANEL_W,
+  UI_PANEL_H,
   getHandCardPosition,
   getPortalSlotPosition,
   getActivatedCardPosition,
@@ -98,7 +103,7 @@ export function drawBackground(ctx: CanvasRenderingContext2D) {
  * @param cardCount - Number of cards remaining in the deck
  * @param rotation - Rotation angle in radians (default 90°)
  * @param deckType - 'character' or 'pearl' for different card back images
- * @param isHovered - Whether the deck is currently being hovered
+ * @param hoverProgress - 0–1 glow intensity on the top card (from CanvasRegion animation)
  */
 export function drawDeckStack(
   ctx: CanvasRenderingContext2D,
@@ -107,59 +112,37 @@ export function drawDeckStack(
   cardCount: number,
   rotation: number = DECK_ROTATION,
   deckType: 'character' | 'pearl' = 'character',
-  isHovered: boolean = false,
+  hoverProgress: number = 0,
   maxDeckSize?: number
 ) {
-  // Don't draw empty decks
   if (cardCount <= 0) return;
 
-  // Determine the maximum deck size for proportional mapping
-  // Uses deck-type-specific constants: CHARACTER_DECK_MAX_SIZE=52, PEARL_DECK_MAX_SIZE=56
   const actualMaxDeckSize = maxDeckSize ?? (deckType === 'character' ? CHARACTER_DECK_MAX_SIZE : PEARL_DECK_MAX_SIZE);
-
-  // Calculate visible cards using proportional mapping formula: visibleCards = Math.ceil(currentCount / maxDeckSize * 7)
-  // This ensures: while currentCount > 0, always visibleCards >= 1 (prevents empty display gap)
-  // Example: With 52 character cards max:
-  //   - At 52 cards: ceil(52/52 * 7) = 7 cards shown
-  //   - At 26 cards: ceil(26/52 * 7) = 4 cards shown
-  //   - At 1 card: ceil(1/52 * 7) = 1 card shown
   const visibleCards = Math.ceil(cardCount / actualMaxDeckSize * DECK_MAX_VISIBLE);
 
-  // Save the current canvas state before applying rotation
   ctx.save();
-
-  // Move to the position and rotate
   ctx.translate(x, y);
   ctx.rotate(rotation);
 
-  // Draw card backs with stacking offset
   for (let i = 0; i < visibleCards; i++) {
     const offsetX = i * DECK_CARD_OFFSET;
     const offsetY = i * DECK_CARD_OFFSET;
-
-    // Draw card back image (rotated cards show the back)
     const backImage = deckType === 'character' ? 'Charakterkarte Hinten.png' : 'Perlenkarte Hinten.png';
     drawImageOrFallback(ctx, backImage, offsetX, offsetY, DECK_CARD_W, DECK_CARD_H, 'Deck');
-
-    // If hovered, add a highlighted effect on the top card
-    if (isHovered && i === visibleCards - 1) {
-      // Draw a shadow/lift effect for the top card
-      ctx.shadowColor = 'rgba(255, 215, 0, 0.6)';
-      ctx.shadowBlur = 12;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = -4;
-      
-      ctx.strokeStyle = '#FFD700';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(offsetX + 1, offsetY + 1, DECK_CARD_W - 2, DECK_CARD_H - 2);
-      
-      // Reset shadow
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
-    }
   }
 
-  // Restore the canvas state
+  // Glow on the top card (highest index = visually on top)
+  if (hoverProgress > 0.01) {
+    const topOffset = (visibleCards - 1) * DECK_CARD_OFFSET;
+    ctx.shadowColor = `rgba(255, 215, 0, ${hoverProgress * 0.85})`;
+    ctx.shadowBlur = hoverProgress * 22;
+    ctx.strokeStyle = `rgba(255, 215, 0, ${hoverProgress * 0.7})`;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(topOffset + 1, topOffset + 1, DECK_CARD_W - 2, DECK_CARD_H - 2);
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'transparent';
+  }
+
   ctx.restore();
 }
 
@@ -170,7 +153,8 @@ export function drawAuslage(
   config: DrawConfig,
   characterDeckCount: number = 0,
   pearlDeckCount: number = 0,
-  hoveredDeck: 'character' | 'pearl' | null = null
+  charDeckHover: number = 0,
+  pearlDeckHover: number = 0
 ) {
   // Auslage in center zone - respects zone boundaries like HTML <div>
   const centerX = MARGIN_H;
@@ -220,26 +204,10 @@ export function drawAuslage(
   }
 
   // Draw character deck below the character cards
-  drawDeckStack(
-    ctx,
-    CHAR_DECK_X,
-    CHAR_DECK_Y,
-    characterDeckCount,
-    DECK_ROTATION,
-    'character',
-    hoveredDeck === 'character'
-  );
+  drawDeckStack(ctx, CHAR_DECK_X, CHAR_DECK_Y, characterDeckCount, DECK_ROTATION, 'character', charDeckHover);
 
   // Draw pearl deck below the pearl cards
-  drawDeckStack(
-    ctx,
-    PEARL_DECK_X,
-    PEARL_DECK_Y,
-    pearlDeckCount,
-    DECK_ROTATION,
-    'pearl',
-    hoveredDeck === 'pearl'
-  );
+  drawDeckStack(ctx, PEARL_DECK_X, PEARL_DECK_Y, pearlDeckCount, DECK_ROTATION, 'pearl', pearlDeckHover);
 }
 
 export function drawPlayerPortal(
@@ -366,6 +334,152 @@ export function drawUI(ctx: CanvasRenderingContext2D, phase: string = 'takingAct
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   ctx.fillText(`Phase: ${phase}`, MARGIN_H + 15, 10);
+}
+
+/**
+ * Draw the action counter / End Turn / Discard Cards UI panel on canvas.
+ * Called once per frame for the active player.
+ */
+export function drawUIButton(ctx: CanvasRenderingContext2D, region: CanvasRegion) {
+  const { x, y, w, h, label, enabled, type } = region;
+
+  // Background color based on type and state
+  let bgColor: string;
+  let borderColor: string;
+  let textColor: string;
+
+  if (type === 'ui-discard-cards') {
+    bgColor = 'rgba(239, 68, 68, 0.9)';
+    borderColor = '#ef4444';
+    textColor = '#ffffff';
+  } else if (enabled) {
+    // End Turn — enabled (actions exhausted)
+    bgColor = 'rgba(239, 68, 68, 0.9)';
+    borderColor = '#ef4444';
+    textColor = '#ffffff';
+  } else {
+    // Action counter — disabled (actions remaining)
+    const label_ = label ?? '';
+    const parts = label_.split(' / ');
+    const used = parseInt(parts[0] ?? '0', 10);
+    const max = parseInt(parts[1] ?? '3', 10);
+    const remaining = max - used;
+    if (remaining <= 1) {
+      bgColor = 'rgba(250, 204, 21, 0.9)';
+      borderColor = '#facc15';
+      textColor = '#000000';
+    } else {
+      bgColor = 'rgba(34, 197, 94, 0.9)';
+      borderColor = '#22c55e';
+      textColor = '#ffffff';
+    }
+  }
+
+  ctx.save();
+
+  // Background
+  ctx.fillStyle = bgColor;
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, 8);
+  ctx.fill();
+
+  // Border
+  ctx.strokeStyle = borderColor;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, 8);
+  ctx.stroke();
+
+  // Label
+  ctx.fillStyle = textColor;
+  ctx.font = 'bold 16px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(label ?? '', x + w / 2, y + h / 2);
+
+  ctx.restore();
+}
+
+/**
+ * Draw non-active player's action counter (read-only, blue).
+ */
+export function drawOpponentActionCounter(
+  ctx: CanvasRenderingContext2D,
+  G: GameState,
+  activePlayerName: string
+) {
+  const maxActions = G.maxActions ?? 3;
+  const actionCount = G.actionCount ?? 0;
+  const label = `${activePlayerName} ${actionCount} / ${maxActions}`;
+
+  ctx.save();
+
+  ctx.fillStyle = 'rgba(30, 41, 59, 0.8)';
+  ctx.beginPath();
+  ctx.roundRect(UI_PANEL_X, UI_PANEL_Y, UI_PANEL_W, UI_PANEL_H, 8);
+  ctx.fill();
+
+  ctx.strokeStyle = '#3b82f6';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(UI_PANEL_X, UI_PANEL_Y, UI_PANEL_W, UI_PANEL_H, 8);
+  ctx.stroke();
+
+  ctx.fillStyle = '#3b82f6';
+  ctx.font = 'bold 14px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(label, UI_PANEL_X + UI_PANEL_W / 2, UI_PANEL_Y + UI_PANEL_H / 2);
+
+  ctx.restore();
+}
+
+/**
+ * Second-pass rendering: draw hover glow and click flash for all regions.
+ * Call this AFTER all regular draw calls so effects appear on top.
+ */
+export function drawRegionEffects(ctx: CanvasRenderingContext2D, regions: CanvasRegion[]) {
+  for (const region of regions) {
+    // Decks draw their own glow in drawDeckStack — skip here
+    if (region.type === 'deck-character' || region.type === 'deck-pearl') continue;
+
+    if (region.hoverProgress <= 0.01 && region.flashProgress <= 0.01) continue;
+
+    const { x, y, w, h, centered, angle, hoverProgress, flashProgress } = region;
+
+    // Resolve top-left from centered coordinates
+    const rx = centered ? x - w / 2 : x;
+    const ry = centered ? y - h / 2 : y;
+
+    ctx.save();
+
+    if (centered && angle) {
+      // Rotate around center (x, y)
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+      ctx.translate(-x, -y);
+    }
+
+    // Hover: golden glow border
+    if (hoverProgress > 0.01) {
+      ctx.shadowColor = `rgba(255, 215, 0, ${hoverProgress * 0.85})`;
+      ctx.shadowBlur = hoverProgress * 22;
+      ctx.strokeStyle = `rgba(255, 215, 0, ${hoverProgress * 0.7})`;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(rx + 1, ry + 1, w - 2, h - 2);
+      ctx.shadowBlur = 0;
+      ctx.shadowColor = 'transparent';
+    }
+
+    // Flash: white overlay fading out
+    if (flashProgress > 0.01) {
+      ctx.globalAlpha = flashProgress * 0.55;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(rx, ry, w, h);
+    }
+
+    ctx.restore();
+  }
 }
 
 /**

@@ -1,7 +1,7 @@
 /**
  * Centralized Card Layout Constants
  * Single source of truth for all card positioning, dimensions, and layout calculations
- * Used by: gameRender.ts, gameHitTest.ts, CardButtonOverlay.tsx
+ * Used by: gameRender.ts, gameHitTest.ts, canvasRegions.ts
  *
  * Layout Overview:
  * - BASE_W=1200, BASE_H=800 (3:2 aspect ratio)
@@ -55,13 +55,12 @@ export const HAND_CARD_W = Math.round(CARD_W * 0.9); // 80
 export const HAND_CARD_H = Math.round(CARD_H * 0.9); // 124
 export const HAND_MAX = 9; // Maximum hand cards to display
 
-// === Button Positioning (right margin) ===
-export const BTN_X = BASE_W - 150; // Positioned more to the left to be visible
-export const BTN_W = 130;
-export const BTN_H = 35;
-export const BTN_Y_1 = PORTAL_Y + 40;
-export const BTN_Y_2 = BTN_Y_1 + BTN_H + 8;
-export const BTN_Y_3 = BTN_Y_1 + (BTN_H + 8) * 2;
+// === Canvas UI Panel (action counter + end-turn / discard button) ===
+// Bottom-left of the player area, mirroring the previous React overlay position
+export const UI_PANEL_X = 15;
+export const UI_PANEL_Y = BASE_H - 75; // = 725
+export const UI_PANEL_W = 185;
+export const UI_PANEL_H = 55;
 
 // === Activated Characters Grid Positioning (right of portal slots) ===
 // Grid displays 3 rows × 4 columns of activated character cards at 50% size
