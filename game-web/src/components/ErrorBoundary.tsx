@@ -1,5 +1,4 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
-import '../styles/ErrorBoundary.css';
 
 interface Props {
   children: ReactNode;
@@ -36,25 +35,25 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="error-boundary" role="alert">
-          <div className="error-container">
-            <div className="error-icon">⚠️</div>
-            <h2 className="error-title">Something Went Wrong</h2>
-            <p className="error-message">{this.state.error.message}</p>
-            <details className="error-details">
-              <summary>Error Details</summary>
-              <pre className="error-stack">{this.state.error.stack}</pre>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-red-100 p-5" role="alert">
+          <div className="bg-white rounded-xl shadow-[0_10px_40px_rgba(220,38,38,0.15)] p-10 max-w-xl w-full border-l-4 border-red-600">
+            <div className="text-5xl text-center mb-5">⚠️</div>
+            <h2 className="text-red-600 text-2xl text-center mb-2.5">Something Went Wrong</h2>
+            <p className="text-gray-500 text-base leading-relaxed text-center mb-5">{this.state.error.message}</p>
+            <details className="my-5 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <summary className="cursor-pointer text-gray-500 font-medium select-none hover:text-gray-800 focus-visible:outline-2 focus-visible:outline-blue-400 focus-visible:outline-offset-2">Error Details</summary>
+              <pre className="mt-2.5 p-2.5 bg-gray-100 rounded overflow-x-auto text-xs leading-snug text-gray-700">{this.state.error.stack}</pre>
             </details>
-            <div className="error-actions">
+            <div className="flex gap-2.5 justify-center mt-5 flex-wrap">
               <button
-                className="btn btn-primary"
+                className="min-w-[120px] px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md cursor-pointer"
                 onClick={this.handleRetry}
                 aria-label="Retry"
               >
                 🔄 Retry
               </button>
               <button
-                className="btn btn-secondary"
+                className="min-w-[120px] px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white font-medium rounded-md cursor-pointer"
                 onClick={() => (window.location.href = '/')}
                 aria-label="Go to home page"
               >

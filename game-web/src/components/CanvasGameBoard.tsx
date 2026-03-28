@@ -19,8 +19,6 @@ import { CharacterReplacementDialog } from './CharacterReplacementDialog';
 import { CharacterActivationDialog } from './CharacterActivationDialog';
 import { DiscardCardsDialog } from './DiscardCardsDialog';
 import { PlayerNameDisplay } from './PlayerNameDisplay';
-import '../styles/dialogModal.css';
-import '../styles/playerNameDisplay.css';
 
 interface CanvasGameBoardProps {
   G: GameState;
