@@ -43,10 +43,10 @@
 
 ## 6. Verifikation
 
-- [ ] 6.1 Manuell testen: Hover-Glow erscheint und verschwindet smooth auf Desktop (Karten, Decks, Buttons)
-- [ ] 6.2 Manuell testen: Click-Flash sichtbar bei Mausklick auf Karten und UI-Buttons
+- [x] 6.1 Manuell testen: Hover-Glow erscheint und verschwindet smooth auf Desktop (Karten, Decks, Buttons)
+- [x] 6.2 Manuell testen: Click-Flash sichtbar bei Mausklick auf Karten und UI-Buttons
 - [ ] 6.3 Manuell testen: Touch-Tap auf iPhone/iPad zeigt Flash und löst Aktion aus (kein Hover)
-- [ ] 6.4 Manuell testen: Aktionsanzeige zeigt korrekte Farben (grün/gelb/rot/blau)
-- [ ] 6.5 Manuell testen: End-Turn-Button erscheint wenn 0 Aktionen verbleiben, ist zuvor deaktiviert
-- [ ] 6.6 Manuell testen: Discard-Cards-Button erscheint wenn Handlimit überschritten
-- [ ] 6.7 Bestehende Tests laufen durch (`make test-shared`)
+- [x] 6.4 Manuell testen: Aktionsanzeige zeigt korrekte Farben (grün/gelb/rot/blau)
+- [x] 6.5 Manuell testen: End-Turn-Button erscheint wenn 0 Aktionen verbleiben, ist zuvor deaktiviert
+- [x] 6.6 Manuell testen: Discard-Cards-Button erscheint wenn Handlimit überschritten
+- [x] 6.7 Bestehende Tests laufen durch (`make test-shared`)
