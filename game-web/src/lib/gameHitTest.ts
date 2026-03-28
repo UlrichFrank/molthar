@@ -30,12 +30,6 @@ import {
   HAND_CARD_W,
   HAND_CARD_H,
   HAND_MAX,
-  BTN_X,
-  BTN_W,
-  BTN_H,
-  BTN_Y_1,
-  BTN_Y_2,
-  BTN_Y_3,
   ACTIVATED_GRID_X,
   ACTIVATED_GRID_Y,
   ACTIVATED_CARD_W,
@@ -54,7 +48,7 @@ import {
 } from './cardLayoutConstants';
 
 export interface HitTarget {
-  type: 'auslage-card' | 'portal-slot' | 'hand-card' | 'activated-character' | 'deck-character' | 'deck-pearl' | 'button' | 'none';
+  type: 'auslage-card' | 'portal-slot' | 'hand-card' | 'activated-character' | 'deck-character' | 'deck-pearl' | 'none';
   id: number | string;
   x: number;
   y: number;
@@ -182,22 +176,6 @@ export function hitTestPearlDeck(x: number, y: number, deckCount: number): boole
 }
 
 /**
- * Finde welcher Button geklickt wurde
- */
-export function hitTestButtons(x: number, y: number): string | null {
-  const buttons = [
-    { id: 'end-turn', y: BTN_Y_1 },
-  ];
-
-  for (const btn of buttons) {
-    if (pointInRect(x, y, BTN_X, btn.y, BTN_W, BTN_H)) {
-      return btn.id;
-    }
-  }
-  return null;
-}
-
-/**
  * Haupt-Hit-Detection: Welches Objekt wurde geklickt?
  * @param x - X coordinate
  * @param y - Y coordinate
@@ -205,12 +183,6 @@ export function hitTestButtons(x: number, y: number): string | null {
  * @param pearlDeckCount - Number of cards in pearl deck (optional, for deck hit testing)
  */
 export function hitTest(x: number, y: number, characterDeckCount: number = 0, pearlDeckCount: number = 0): HitTarget {
-  // Buttons first (highest priority)
-  const button = hitTestButtons(x, y);
-  if (button) {
-    return { type: 'button', id: button, x: BTN_X, y: 0, w: BTN_W, h: BTN_H };
-  }
-
   // Character Deck
   if (hitTestCharacterDeck(x, y, characterDeckCount)) {
     const deckX = CHAR_DECK_X - DECK_CARD_H; // After 90° rotation, shifts left

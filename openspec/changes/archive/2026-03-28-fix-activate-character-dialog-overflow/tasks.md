@@ -90,10 +90,10 @@
 - [x] 8.2 Verify built assets include updated CSS with no sourcemap issues
 - [x] 8.3 Test locally on mobile emulation one final time
 - [x] 8.4 Verify git diff shows only CSS changes (no component/logic changes)
-- [ ] 8.5 Create pull request with title: "Fix CharacterActivationDialog overflow on small screens"
-- [ ] 8.6 Add PR description referencing this OpenSpec change
-- [ ] 8.7 Request code review
-- [ ] 8.8 Address review feedback and merge when approved
+- [X] 8.5 Create pull request with title: "Fix CharacterActivationDialog overflow on small screens"
+- [X] 8.6 Add PR description referencing this OpenSpec change
+- [X] 8.7 Request code review
+- [X] 8.8 Address review feedback and merge when approved
 
 ## Success Criteria
 
