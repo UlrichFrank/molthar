@@ -2,7 +2,14 @@ import type { CostComponent, PearlCard } from './types';
 
 /**
  * Cost Calculation Module
- * Handles all cost validation and calculation for character card activation
+ * Handles all cost validation and calculation for character card activation.
+ *
+ * ## Public API
+ *
+ * - `validateCostPayment` — for **human players**: validates that the exact set of selected
+ *   cards satisfies the card's cost. Too many or too few cards both return false.
+ * - `findCostAssignment` — for **AI/computer players only**: finds a valid card-to-component
+ *   assignment from a larger set of available cards. Must NOT be used for human player moves.
  *
  * ## Cost Types
  *
@@ -45,16 +52,6 @@ export function calculateHandLimit(handLimitModifier: number): number {
 }
 
 /**
- * Validate if hand size is within the limit
- * @param hand - Player's pearl cards
- * @param handLimit - Maximum allowed hand size
- * @returns True if hand size is within or under the limit
- */
-export function validateHandSize(hand: PearlCard[], handLimit: number): boolean {
-  return hand.length <= handLimit;
-}
-
-/**
  * Calculate how many excess cards must be discarded
  * @param hand - Player's pearl cards
  * @param handLimit - Maximum allowed hand size
@@ -81,17 +78,6 @@ export function validateFixedCost(
 }
 
 /**
- * Apply diamond modifier to a base cost value
- * Diamonds reduce cost by 1 per diamond, minimum 0
- * @param baseCost - Base cost before diamond reduction
- * @param diamondCount - Number of diamonds to apply
- * @returns Reduced cost (never negative)
- */
-export function applyDiamondModifier(baseCost: number, diamondCount: number): number {
-  return Math.max(0, baseCost - diamondCount);
-}
-
-/**
  * Validate n-tuple cost (pairs, triplets, etc.)
  * Checks if hand contains n cards of the same value
  * @param costComponent - Cost component with type 'nTuple', should have n property
@@ -103,7 +89,7 @@ export function validateNTupleCost(
   hand: PearlCard[]
 ): boolean {
   const n = costComponent.n || 0;
-  if (n <= 0 || hand.length < n) {
+  if (n <= 0 || hand.length !== n) {
     return false;
   }
 
@@ -135,7 +121,7 @@ export function validateRunCost(
   hand: PearlCard[]
 ): boolean {
   const runLength = costComponent.length || 0;
-  if (runLength <= 0 || hand.length < runLength) {
+  if (runLength <= 0 || hand.length !== runLength) {
     return false;
   }
 
@@ -170,10 +156,10 @@ export function validateSumTupleCost(
   costComponent: CostComponent,
   hand: PearlCard[]
 ): boolean {
-  const n = costComponent.n || 1;
+  const n = costComponent.n || hand.length;
   const targetSum = costComponent.sum || 0;
 
-  if (hand.length < n || targetSum <= 0) {
+  if (hand.length !== n || targetSum <= 0) {
     return false;
   }
 
@@ -271,6 +257,7 @@ export function validateEvenTupleCost(
   hand: PearlCard[]
 ): boolean {
   const n = costComponent.n || 0;
+  if (hand.length !== n) return false;
   const evenCards = hand.filter(card => card.value % 2 === 0);
   return evenCards.length >= n;
 }
@@ -287,6 +274,7 @@ export function validateOddTupleCost(
   hand: PearlCard[]
 ): boolean {
   const n = costComponent.n || 0;
+  if (hand.length !== n) return false;
   const oddCards = hand.filter(card => card.value % 2 === 1);
   return oddCards.length >= n;
 }
@@ -314,27 +302,31 @@ export function validateTripleChoiceCost(
 }
 
 /**
- * Main cost validation function
- * Checks if player can afford a character card with given cost components
- * ALL cost components must be satisfied (AND logic)
- * Each card from hand is used exactly once (no cards left over)
+ * Validates whether a human player's selected cards exactly pay for a character card.
+ *
+ * Use this function when a human player confirms their card selection for payment.
+ * ALL cost components must be satisfied, and every selected card must be used —
+ * too many cards return false just as too few or wrong cards would.
+ *
+ * Do NOT use for AI/computer players — use `findCostAssignment` instead.
+ *
  * @param costComponents - Array of cost components to satisfy (all must be met)
- * @param hand - Player's pearl cards
+ * @param selectedCards - The exact set of pearl cards the player selected for payment
  * @param diamondCount - Player's available diamonds
- * @returns True if ALL cost components can be satisfied using exactly the provided hand
+ * @returns True only if the selected cards satisfy all cost components with no cards left over
  */
 export function validateCostPayment(
   costComponents: CostComponent[] | undefined,
-  hand: PearlCard[],
+  selectedCards: PearlCard[],
   diamondCount: number
 ): boolean {
   // Empty cost = free card
   if (!costComponents || costComponents.length === 0) {
-    return hand.length === 0; // No cost, so hand must be empty
+    return selectedCards.length === 0; // No cost, so selectedCards must be empty
   }
 
   // Use backtracking to find valid assignment that uses all cards
-  const assignment = findCostAssignmentExhaustive(costComponents, hand, diamondCount);
+  const assignment = findCostAssignmentExhaustive(costComponents, selectedCards, diamondCount);
 
   if (assignment === null) {
     return false;
@@ -349,7 +341,7 @@ export function validateCostPayment(
   }
 
   // All cards must be used, no cards left over
-  return usedIndices.size === hand.length;
+  return usedIndices.size === selectedCards.length;
 }
 
 /**
@@ -498,11 +490,20 @@ function validateCostComponent(
 }
 
 /**
- * Find optimal card-to-component assignment with prioritization
+ * Finds a valid card-to-component assignment for AI/computer players.
+ *
+ * Use this function when an AI player needs to determine which cards from its hand
+ * to spend for a given card cost. Unlike `validateCostPayment`, this does NOT require
+ * all provided cards to be used — the AI passes its full hand and gets back which cards
+ * to spend.
+ *
+ * Must NOT be used for human player moves — human selections must be validated
+ * with `validateCostPayment` instead.
+ *
  * @param costComponents - Array of cost components to satisfy
- * @param availableCards - Player's selected pearl cards
+ * @param availableCards - The AI player's available pearl cards (full hand or subset)
  * @param diamondCount - Available diamonds
- * @returns Assignment map or null if no valid assignment
+ * @returns Map of component-index → card-indices, or null if no valid assignment exists
  */
 export function findCostAssignment(
   costComponents: CostComponent[] | undefined,
@@ -729,31 +730,7 @@ export function consumeCosts(
   };
 }
 
-/**
- * Calculate total required cost for a character card
- * Useful for UI display or cost prediction
- * @param costComponents - Array of cost components
- * @returns Total cost in pearl points
- */
-export function calculateCostRequirement(
-  costComponents: CostComponent[] | undefined
-): number {
-  if (!costComponents || costComponents.length === 0) {
-    return 0;
-  }
-
-  // For display purposes, return the first fixed cost found
-  for (const component of costComponents) {
-    if (component.type === 'number') {
-      return component.value || 0;
-    }
-  }
-
-  // If no fixed cost, return 0 (other cost types are harder to quantify)
-  return 0;
-}
-
-function validateDiamondCost(component: CostComponent, diamondCount: number): boolean {
+export function validateDiamondCost(component: CostComponent, diamondCount: number): boolean {
   const requiredDiamonds = component.value || 0;
-  return diamondCount >= requiredDiamonds;
+  return diamondCount === requiredDiamonds;
 }

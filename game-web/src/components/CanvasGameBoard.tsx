@@ -150,7 +150,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     drawBackground(canvasCtx);
     
     // Auslage - no selection highlighting
-    // @ts-expect-error - PearlCard and CharacterCard don't have exact CardData interface but work for rendering
     drawAuslage(canvasCtx, characterSlots, pearlSlots, {
       selectedPearl: null,
       selectedCharacter: null,
@@ -158,11 +157,9 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     }, G.characterDeck?.length ?? 0, G.pearlDeck?.length ?? 0, hoveredDeck);
 
     // Portal - no selection highlighting
-    // @ts-expect-error: PearlCard[] doesn't match CardData[] but works for rendering
     drawPlayerPortal(canvasCtx, {
       diamonds: playerDiamonds,
       portal: playerPortal,
-      // @ts-expect-error - PearlCard values work for rendering
       hand: playerHand,
     }, {
       selectedPearl: null,
@@ -298,9 +295,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
         // Draw character card from deck (blind draw, no selection)
         // Uses same Portal action flow as clicking face-up cards, but with -1 index to signal deck draw
         // Backend (takeCharacterCard move) extracts top card from characterDeck[0]
-        if (G.actionCount >= G.maxActions) {
-          return;
-        }
         if (G.characterDeck.length === 0) {
           return;
         }
@@ -324,9 +318,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
 
       case 'deck-pearl': {
         // Draw random pearl card from deck
-        if (G.actionCount >= G.maxActions) {
-          return;
-        }
         if (G.pearlDeck.length === 0) {
           return;
         }
@@ -395,16 +386,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
 
 
 
-  // Handle End Turn action
-  const handleEndTurn = () => {
-    // Call the endTurn move to validate hand limit and potentially trigger discard
-    if (moves.endTurn) {
-      moves.endTurn();
-    } else {
-      console.error('ERROR: moves.endTurn is not available!');
-    }
-  };
-
   // Handle Discard Cards button click - open dialog
   const handleDiscardCards = () => {
     if (me && G.excessCardCount > 0) {
@@ -468,7 +449,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           playerName={activePlayer?.name || `Player ${activePlayerIndex + 1}`}
           requiresHandDiscard={G.requiresHandDiscard}
           onDiscardCards={handleDiscardCards}
-          onEndTurn={handleEndTurn}
+          onEndTurn={() => handleButtonClick('end-turn')}
         />
 
         {/* Player Name Display - above hand cards */}
@@ -480,21 +461,19 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
       </div>
 
       {/* Dialog Modals */}
-      {dialog.activeDialog === 'replacement' && dialog.dialogContext.newCharacter && dialog.dialogContext.portalCharacters && (
+      {dialog.dialog.type === 'replacement' && (
         <CharacterReplacementDialog
-          newCard={dialog.dialogContext.newCharacter}
-          portalCards={dialog.dialogContext.portalCharacters}
+          newCard={dialog.dialog.newCharacter}
+          portalCards={dialog.dialog.portalCharacters}
           onSelect={(replacedSlotIndex) => {
             // Check if this is a blind draw (newCharacter.name === 'Blind Draw')
-            const isBlindDraw = dialog.dialogContext.newCharacter.name === 'Blind Draw';
+            const isBlindDraw = dialog.dialog.type === 'replacement' && dialog.dialog.newCharacter.name === 'Blind Draw';
 
             if (isBlindDraw) {
-              // For blind draw, use -1 as the character index
               moves.takeCharacterCard(-1, replacedSlotIndex);
-            } else {
-              // Find the character card index in the auslage
+            } else if (dialog.dialog.type === 'replacement') {
               const characterIndex = (G.characterSlots || []).findIndex(
-                (card) => card?.id === dialog.dialogContext.newCharacter?.id
+                (card) => card?.id === dialog.dialog.newCharacter.id
               );
               if (characterIndex >= 0) {
                 moves.takeCharacterCard(characterIndex, replacedSlotIndex);
@@ -502,44 +481,37 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
             }
             dialog.closeDialog();
           }}
-          onCancel={() => {
-            dialog.closeDialog();
-          }}
+          onCancel={() => dialog.closeDialog()}
         />
       )}
 
-      {dialog.activeDialog === 'activation' && dialog.dialogContext.character !== undefined && dialog.dialogContext.portalSlotIndex !== undefined && me && (
+      {dialog.dialog.type === 'activation' && me && (
         <CharacterActivationDialog
           availableCharacters={[{
-            card: dialog.dialogContext.character,
-            slotIndex: dialog.dialogContext.portalSlotIndex,
+            card: dialog.dialog.character,
+            slotIndex: dialog.dialog.portalSlotIndex,
           }]}
           hand={me.hand}
           diamonds={me.diamonds}
-          portalSlotIndex={dialog.dialogContext.portalSlotIndex}
+          portalSlotIndex={dialog.dialog.portalSlotIndex}
           onActivate={(portalSlotIndex, usedCardIndices) => {
             moves.activatePortalCard(portalSlotIndex, usedCardIndices);
             dialog.closeDialog();
           }}
-          onCancel={() => {
-            dialog.closeDialog();
-          }}
+          onCancel={() => dialog.closeDialog()}
         />
       )}
 
-      {dialog.activeDialog === 'discard' && dialog.dialogContext.hand && dialog.dialogContext.excessCardCount !== undefined && dialog.dialogContext.currentHandLimit !== undefined && (
+      {dialog.dialog.type === 'discard' && (
         <DiscardCardsDialog
-          hand={dialog.dialogContext.hand}
-          excessCardCount={dialog.dialogContext.excessCardCount}
-          currentHandLimit={dialog.dialogContext.currentHandLimit}
+          hand={dialog.dialog.hand}
+          excessCardCount={dialog.dialog.excessCardCount}
+          currentHandLimit={dialog.dialog.currentHandLimit}
           onDiscard={(selectedCardIndices) => {
-            console.log('Discarding cards:', selectedCardIndices);
             moves.discardCardsForHandLimit(selectedCardIndices);
             dialog.closeDialog();
           }}
-          onCancel={() => {
-            dialog.closeDialog();
-          }}
+          onCancel={() => dialog.closeDialog()}
         />
       )}
 

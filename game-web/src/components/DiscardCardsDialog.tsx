@@ -62,22 +62,21 @@ export function DiscardCardsDialog({
             {hand.map((card, idx) => (
               <button
                 key={idx}
-                className={`hand-card-selector ${selectedCardIndices.has(idx) ? 'selected' : ''}`}
+                className="hand-card-selector"
                 onClick={() => toggleCard(idx)}
               >
-                <div className="card-value">{card.value}</div>
-                {card.hasSwapSymbol && <div className="swap-symbol">⟳</div>}
+                <img
+                  src={`/assets/Perlenkarte${card.value}.png`}
+                  alt={`Pearl ${card.value}`}
+                  className="hand-card-image"
+                />
+                {selectedCardIndices.has(idx) && (
+                  <div className="hand-card-selected-overlay" />
+                )}
               </button>
             ))}
           </div>
         </div>
-
-        {selectedCardIndices.size > 0 && !isValidSelection && (
-          <div className="error-message">
-            Selected: {selectedCardIndices.size} card{selectedCardIndices.size !== 1 ? 's' : ''}
-            (need {excessCardCount})
-          </div>
-        )}
 
         <div className="actions">
           <button

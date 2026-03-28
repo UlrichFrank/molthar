@@ -1,19 +1,14 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import type { CharacterCard, PearlCard } from '@portale-von-molthar/shared';
 
-export type DialogType = 'none' | 'replacement' | 'activation' | 'discard';
+export type DialogState =
+  | { type: 'none' }
+  | { type: 'replacement'; newCharacter: CharacterCard; portalCharacters: CharacterCard[] }
+  | { type: 'activation'; character: CharacterCard; portalSlotIndex: number }
+  | { type: 'discard'; hand: PearlCard[]; excessCardCount: number; currentHandLimit: number };
 
 export interface DialogContextType {
-  activeDialog: DialogType;
-  dialogContext: {
-    newCharacter?: CharacterCard;
-    portalCharacters?: CharacterCard[];
-    character?: CharacterCard;
-    portalSlotIndex?: number;
-    hand?: PearlCard[];
-    excessCardCount?: number;
-    currentHandLimit?: number;
-  };
+  dialog: DialogState;
   openReplacementDialog: (newCharacter: CharacterCard, portalCharacters: CharacterCard[]) => void;
   openActivationDialog: (character: CharacterCard, portalSlotIndex: number) => void;
   openDiscardDialog: (hand: PearlCard[], excessCardCount: number, currentHandLimit: number) => void;
@@ -23,32 +18,26 @@ export interface DialogContextType {
 const DialogContext = createContext<DialogContextType | undefined>(undefined);
 
 export function DialogProvider({ children }: { children: React.ReactNode }) {
-  const [activeDialog, setActiveDialog] = useState<DialogType>('none');
-  const [dialogContext, setDialogContext] = useState<DialogContextType['dialogContext']>({});
+  const [dialog, setDialog] = useState<DialogState>({ type: 'none' });
 
   const openReplacementDialog = useCallback((newCharacter: CharacterCard, portalCharacters: CharacterCard[]) => {
-    setActiveDialog('replacement');
-    setDialogContext({ newCharacter, portalCharacters });
+    setDialog({ type: 'replacement', newCharacter, portalCharacters });
   }, []);
 
   const openActivationDialog = useCallback((character: CharacterCard, portalSlotIndex: number) => {
-    setActiveDialog('activation');
-    setDialogContext({ character, portalSlotIndex });
+    setDialog({ type: 'activation', character, portalSlotIndex });
   }, []);
 
   const openDiscardDialog = useCallback((hand: PearlCard[], excessCardCount: number, currentHandLimit: number) => {
-    setActiveDialog('discard');
-    setDialogContext({ hand, excessCardCount, currentHandLimit });
+    setDialog({ type: 'discard', hand, excessCardCount, currentHandLimit });
   }, []);
 
   const closeDialog = useCallback(() => {
-    setActiveDialog('none');
-    setDialogContext({});
+    setDialog({ type: 'none' });
   }, []);
 
   const value: DialogContextType = {
-    activeDialog,
-    dialogContext,
+    dialog,
     openReplacementDialog,
     openActivationDialog,
     openDiscardDialog,
