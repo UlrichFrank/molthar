@@ -115,12 +115,20 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   const activePlayerRef = useRef(activePlayer);
   const imagesLoadedRef = useRef(false);
   const rafIdRef = useRef(0);
+  /** Set to true whenever a redraw is needed; cleared after drawing. */
+  const dirtyRef = useRef(true);
+  /** Cached 2d context to avoid getContext() every frame. */
+  const draw2dRef = useRef<CanvasRenderingContext2D | null>(null);
 
-  // Keep refs in sync with latest values
-  useEffect(() => { cssWRef.current = cssW; cssHRef.current = cssH; }, [cssW, cssH]);
-  useEffect(() => { gRef.current = G; }, [G]);
-  useEffect(() => { phaseRef.current = phase; }, [phase]);
-  useEffect(() => { isActiveRef.current = isActive; }, [isActive]);
+  // Keep refs in sync and mark dirty on any change
+  useEffect(() => {
+    cssWRef.current = cssW;
+    cssHRef.current = cssH;
+    dirtyRef.current = true;
+  }, [cssW, cssH]);
+  useEffect(() => { gRef.current = G; dirtyRef.current = true; }, [G]);
+  useEffect(() => { phaseRef.current = phase; dirtyRef.current = true; }, [phase]);
+  useEffect(() => { isActiveRef.current = isActive; dirtyRef.current = true; }, [isActive]);
   useEffect(() => { myPlayerIDRef.current = myPlayerID; }, [myPlayerID]);
   useEffect(() => { activePlayerIDRef.current = activePlayerID; }, [activePlayerID]);
   useEffect(() => { activePlayerRef.current = activePlayer; }, [activePlayer]);
@@ -139,12 +147,14 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     canvas.style.height = `${cssH}px`;
     canvas.width = Math.floor(cssW * dpr);
     canvas.height = Math.floor(cssH * dpr);
+    // Cache context after resize (resize invalidates it)
+    draw2dRef.current = canvas.getContext('2d');
   }, [cssW, cssH]);
 
   // ── Image preload ───────────────────────────────────────────────────────────
   useEffect(() => {
     preloadAllImages()
-      .then(() => { imagesLoadedRef.current = true; })
+      .then(() => { imagesLoadedRef.current = true; dirtyRef.current = true; })
       .catch(err => console.error('Failed to load card images:', err));
   }, []);
 
@@ -159,25 +169,37 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
       const regions = regionsRef.current;
       const hoverKey = hoverKeyRef.current;
 
-      // Animate each region
+      // Animate each region; track whether any animation is still in motion
+      let animating = false;
       for (const region of regions) {
         const isHoverTarget = hoverKey === `${region.type}:${region.id}`;
         const targetHover = isHoverTarget && region.enabled !== false ? 1 : 0;
-        region.hoverProgress += (targetHover - region.hoverProgress) * Math.min(1, dt * 8);
-        if (Math.abs(region.hoverProgress - targetHover) < 0.005) region.hoverProgress = targetHover;
-        if (region.flashProgress > 0) {
+
+        if (Math.abs(region.hoverProgress - targetHover) > 0.005) {
+          region.hoverProgress += (targetHover - region.hoverProgress) * Math.min(1, dt * 8);
+          animating = true;
+        } else {
+          region.hoverProgress = targetHover;
+        }
+
+        if (region.flashProgress > 0.005) {
           region.flashProgress = Math.max(0, region.flashProgress - dt * 5);
+          animating = true;
+        } else if (region.flashProgress > 0) {
+          region.flashProgress = 0;
         }
       }
 
-      // Draw
-      const canvas = canvasRef.current;
-      if (canvas && cssWRef.current > 0 && imagesLoadedRef.current) {
-        const dpr = Math.max(1, window.devicePixelRatio || 1);
-        const scale = Math.min(cssWRef.current / BASE_W, cssHRef.current / BASE_H);
-        const drawCtx = canvas.getContext('2d')!;
-        drawCtx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
-        renderFrame(drawCtx, regions);
+      // Only redraw when state changed or an animation is running
+      if ((dirtyRef.current || animating) && cssWRef.current > 0 && imagesLoadedRef.current) {
+        const drawCtx = draw2dRef.current ?? canvasRef.current?.getContext('2d') ?? null;
+        if (drawCtx) {
+          const dpr = Math.max(1, window.devicePixelRatio || 1);
+          const scale = Math.min(cssWRef.current / BASE_W, cssHRef.current / BASE_H);
+          drawCtx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+          renderFrame(drawCtx, regions);
+          dirtyRef.current = false;
+        }
       }
 
       rafIdRef.current = requestAnimationFrame(animate);
@@ -246,15 +268,16 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
 
   // ── Pointer handlers ─────────────────────────────────────────────────────────
   const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (e.pointerType !== 'mouse') return;
+
     const { x, y } = toModelCoords(e.clientX, e.clientY);
     const region = hitTestRegions(x, y, regionsRef.current);
+    const newKey = region && region.enabled !== false ? `${region.type}:${region.id}` : null;
 
-    if (e.pointerType === 'mouse') {
-      hoverKeyRef.current = region && region.enabled !== false
-        ? `${region.type}:${region.id}`
-        : null;
-      canvasRef.current!.style.cursor =
-        region && region.enabled !== false ? 'pointer' : 'default';
+    if (newKey !== hoverKeyRef.current) {
+      hoverKeyRef.current = newKey;
+      dirtyRef.current = true; // trigger animation start
+      canvasRef.current!.style.cursor = newKey ? 'pointer' : 'default';
     }
   };
 
@@ -271,6 +294,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
 
     // Flash feedback
     region.flashProgress = 1.0;
+    dirtyRef.current = true;
 
     // Dispatch action
     if (region.type === 'ui-end-turn' || region.type === 'ui-discard-cards') {
@@ -281,7 +305,10 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   };
 
   const onPointerLeave = () => {
-    hoverKeyRef.current = null;
+    if (hoverKeyRef.current !== null) {
+      hoverKeyRef.current = null;
+      dirtyRef.current = true;
+    }
     if (canvasRef.current) canvasRef.current.style.cursor = 'default';
   };
 
