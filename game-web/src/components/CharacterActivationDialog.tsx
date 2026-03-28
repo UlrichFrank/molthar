@@ -81,11 +81,17 @@ export function CharacterActivationDialog({
                 {hand.map((card, idx) => (
                   <button
                     key={idx}
-                    className={`hand-card-selector ${selectedCardIndices.has(idx) ? 'selected' : ''}`}
+                    className="hand-card-selector"
                     onClick={() => toggleCard(idx)}
                   >
-                    <div className="card-value">{card.value}</div>
-                    {card.hasSwapSymbol && <div className="swap-symbol">⟳</div>}
+                    <img
+                      src={`/assets/Perlenkarte${card.value}.png`}
+                      alt={`Pearl ${card.value}`}
+                      className="hand-card-image"
+                    />
+                    {selectedCardIndices.has(idx) && (
+                      <div className="hand-card-selected-overlay" />
+                    )}
                   </button>
                 ))}
               </div>
@@ -105,12 +111,6 @@ export function CharacterActivationDialog({
             Cancel
           </button>
         </div>
-
-        {!isValidPayment && selectedCardIndices.size > 0 && selectedCharacter && (
-          <div className="error-message">
-            The selected cards do not satisfy the cost for {selectedCharacter.name}. Please adjust your selection.
-          </div>
-        )}
       </div>
     </div>
   );

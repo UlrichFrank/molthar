@@ -156,59 +156,37 @@
 }
 
 .hand-card-selector {
-  background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
-  border: 2px solid #999;
-  border-radius: 12px;
-  padding: 0.15rem;
+  -webkit-appearance: none;
+  appearance: none;
+  background: none;
+  border: none;
+  outline: none;
+  padding: 0;
   cursor: pointer;
-  transition: all 0.2s ease;
   position: relative;
-  min-height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  font-weight: bold;
-  color: #333;
-}
-
-@media (min-width: 500px) {
-  .hand-card-selector {
-    padding: 0.25rem;
-    min-height: 65px;
-  }
+  /* aspect-ratio 59:92 */
+  width: 59px;
+  aspect-ratio: 59 / 92;
+  display: block;
+  overflow: hidden;
+  border-radius: 1px;
 }
 
 .hand-card-selector:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.hand-card-selector.selected {
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-  border-color: #2e7d32;
-  color: white;
-  box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
+.hand-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  display: block;
 }
 
-.hand-card-selector .card-value {
-  font-size: clamp(1rem, 4vw, 1.5rem);
-  line-height: 1;
-}
-
-.hand-card-selector .swap-symbol {
-  font-size: 0.8rem;
+.hand-card-selected-overlay {
   position: absolute;
-  top: 2px;
-  right: 2px;
-  background: #ff9800;
-  color: white;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  inset: 0;
+  background: rgba(76, 175, 80, 0.5);
 }
 
 .actions {
