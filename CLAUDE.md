@@ -182,3 +182,50 @@ After building:
 - **game-web/dist/** — Static frontend bundle (deployable to CDN/Vercel)
 
 The backend must be built before running `make backend` or `make dev`.
+
+## Character Ability System
+
+**File:** `shared/src/game/abilityHandlers.ts`, `shared/src/game/index.ts`
+
+Character cards have abilities in two tiers:
+
+### Red Abilities (persistent: false) — executed once on activation
+| Type | Effect | Example |
+|------|--------|---------|
+| `threeExtraActions` | +3 actions this turn | `G.maxActions += 3` |
+| `nextPlayerOneExtraAction` | Next player +1 action | Sets `G.nextPlayerExtraAction = true` |
+| `discardOpponentCharacter` | Remove opponent portal card | First opponent with card in portal |
+| `stealOpponentHandCard` | Steal opponent hand card | First opponent with cards |
+| `takeBackPlayedPearl` | Retrieve last played pearl | Uses `G.lastPlayedPearlId` |
+
+### Blue Abilities (persistent: true) — permanent after activation
+| Type | Effect | Where applied |
+|------|--------|---------------|
+| `handLimitPlusOne` | +1 hand limit | `player.handLimitModifier++` |
+| `oneExtraActionPerTurn` | +1 action per turn | `turn.onBegin` recalculates |
+| `onesCanBeEights` | 1-pearls count as 8 in cost | Frontend `PaymentSelection` |
+| `threesCanBeAny` | 3-pearls count as any value | Frontend `PaymentSelection` |
+| `decreaseWithPearl` | Spend 1 diamond to reduce pearl value by 1 | Frontend `PaymentSelection` |
+| `changeCharacterActions` | Swap portal card before first action | `swapPortalCharacter` move |
+| `changeHandActions` | Redraw hand after last action | `rehandCards` move |
+| `previewCharacter` | Peek at character deck before first action | `peekCharacterDeck` move |
+| `tradeTwoForDiamond` | Trade a 2-pearl for 1 diamond | `tradeForDiamond` move |
+| `numberAdditionalCardActions` | Card has a printed pearl value | Frontend `PaymentSelection` |
+| `anyAdditionalCardActions` | Card has a printed wildcard pearl | Frontend `PaymentSelection` |
+| `irrlicht` | Shared activation — neighbors can activate | `activateSharedCharacter` move |
+
+### Payment Selection (TIER 2+)
+
+`activatePortalCard` accepts `PaymentSelection[]` instead of raw card indices:
+```typescript
+// Basic hand card
+{ source: 'hand', handCardIndex: 0, value: 5 }
+
+// Hand card with ability modifier (e.g. onesCanBeEights)
+{ source: 'hand', handCardIndex: 1, value: 8, abilityType: 'onesCanBeEights' }
+
+// Printed pearl from activated character (TIER 6)
+{ source: 'ability', characterId: 'activated-char-id', value: 5 }
+```
+
+The backend validates all declarations (ability active, card exists, diamonds available). `costCalculation.ts` remains unchanged — it receives a pre-built virtual hand.

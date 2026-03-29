@@ -5,7 +5,35 @@
  * Getrennt von index.ts damit sie in Tests ohne boardgame.io/cardDatabaseLoader-Abhängigkeiten importierbar sind.
  */
 
-import type { GameState, PlayerState, CharacterAbility } from './types';
+import type { GameState, PlayerState, CharacterAbility, CharacterAbilityType, ActivatedCharacter } from './types';
+
+/**
+ * Blaue (persistente) Fähigkeitstypen.
+ * Alle anderen sind rote Einmal-Fähigkeiten.
+ */
+export const PERSISTENT_ABILITY_TYPES: ReadonlySet<CharacterAbilityType> = new Set([
+  'handLimitPlusOne',
+  'oneExtraActionPerTurn',
+  'onesCanBeEights',
+  'threesCanBeAny',
+  'decreaseWithPearl',
+  'changeCharacterActions',
+  'changeHandActions',
+  'previewCharacter',
+  'tradeTwoForDiamond',
+  'numberAdditionalCardActions',
+  'anyAdditionalCardActions',
+  'irrlicht',
+]);
+
+/**
+ * Leitet die aktiven blauen Fähigkeiten aus den aktivierten Charakteren ab.
+ * Verlässt sich NICHT auf das `persistent`-Flag der Fähigkeit (kann bei alten
+ * Spielzuständen fehlen), sondern prüft den Typ direkt.
+ */
+export function deriveActiveAbilities(activatedCharacters: ActivatedCharacter[]): CharacterAbility[] {
+  return activatedCharacters.flatMap(ac => ac.card.abilities).filter(a => PERSISTENT_ABILITY_TYPES.has(a.type));
+}
 
 /**
  * Rote Fähigkeit sofort auf den Spielzustand anwenden.

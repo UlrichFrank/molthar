@@ -466,8 +466,10 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           }]}
           hand={me.hand}
           diamonds={me.diamonds}
-          onActivate={(portalSlotIndex, usedCardIndices) => {
-            moves.activatePortalCard(portalSlotIndex, usedCardIndices);
+          activeAbilities={me.activeAbilities}
+          activatedCharacters={me.activatedCharacters}
+          onActivate={(portalSlotIndex, selections) => {
+            moves.activatePortalCard(portalSlotIndex, selections);
             dialog.closeDialog();
           }}
           onCancel={() => dialog.closeDialog()}

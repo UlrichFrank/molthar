@@ -1,4 +1,5 @@
 import type { CharacterCard } from './types';
+import { PERSISTENT_ABILITY_TYPES } from './abilityHandlers';
 
 // Raw card data structure from cards.json
 interface RawCardData {
@@ -31,6 +32,16 @@ export function __setRawCards(cards: RawCardData[]): void {
  * Handles field name transformations and ability parsing
  */
 function mapRawCard(raw: RawCardData): CharacterCard {
+  const abilities =
+    raw.ability.type === 'none'
+      ? []
+      : [{
+          id: `${raw.id}-${raw.ability.type}`,
+          type: raw.ability.type as any,
+          persistent: PERSISTENT_ABILITY_TYPES.has(raw.ability.type as any),
+          description: '',
+        }];
+
   return {
     id: raw.id,
     name: raw.name,
@@ -38,7 +49,8 @@ function mapRawCard(raw: RawCardData): CharacterCard {
     cost: raw.cost as any,
     powerPoints: raw.powerPoints,
     diamonds: raw.diamondsReward,
-    abilities: raw.ability.type === 'none' ? [] : [raw.ability as any],
+    abilities,
+    sharedActivation: raw.ability.type === 'irrlicht' ? true : undefined,
   };
 }
 

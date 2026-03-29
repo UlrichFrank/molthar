@@ -31,14 +31,14 @@
 
 ## TIER 2: Virtuelle Bezahlkarten (Frontend-Auswahl & Backend-Validierung)
 
-- [ ] 2.1 Neues `PaymentSelection`-Interface in `types.ts` definieren (`source`, `value`, `handCardIndex`, `abilityType`, `diamondsUsed`)
-- [ ] 2.2 `activatePortalCard`-Move so umbauen, dass er Parameter `selections: PaymentSelection[]` statt `selectedCardIndices` akzeptiert
-- [ ] 2.3 Backend-Verifizierung: Prüfen, ob für jede `PaymentSelection` die echten Voraussetzungen (Handkarten existieren, Diamanten vorhanden, Fähigkeiten aktiv) erfüllt sind
-- [ ] 2.4 Backend-Mapping: Die validierten `PaymentSelection`s in virtuelle `PearlCard`-Strukturen umwandeln und an die *unveränderte* `validateCostPayment` weiterleiten
-- [ ] 2.5 Die Entfernungs-Logik aktualisieren, sodass die tatsächlich konsumierten originären Handkarten und Diamanten sicher entfernt werden
-- [ ] 2.6 Unit Tests: Testen der Backend-Validierung (Missbrauchsprävention) von illegalen `selections` (z.B. Diamant eingesetzt ohne Diamant-Besitz)
-- [ ] 2.7 Frontend (CharacterActivationDialog): Spieler listet seine echten Handkarten + einsetzbare aktivierte Perlen-Fähigkeiten auf und formt daraus die `PaymentSelection`s
-- [ ] 2.8 Integrationstest: Erfolgreiche `activatePortalCard`-Ausführung mit modifizierten/virtuellen Perlen
+- [x] 2.1 Neues `PaymentSelection`-Interface in `types.ts` definieren (`source`, `value`, `handCardIndex`, `abilityType`, `diamondsUsed`)
+- [x] 2.2 `activatePortalCard`-Move so umbauen, dass er Parameter `selections: PaymentSelection[]` statt `selectedCardIndices` akzeptiert
+- [x] 2.3 Backend-Verifizierung: Prüfen, ob für jede `PaymentSelection` die echten Voraussetzungen (Handkarten existieren, Diamanten vorhanden, Fähigkeiten aktiv) erfüllt sind
+- [x] 2.4 Backend-Mapping: Die validierten `PaymentSelection`s in virtuelle `PearlCard`-Strukturen umwandeln und an die *unveränderte* `validateCostPayment` weiterleiten
+- [x] 2.5 Die Entfernungs-Logik aktualisieren, sodass die tatsächlich konsumierten originären Handkarten und Diamanten sicher entfernt werden
+- [x] 2.6 Unit Tests: Testen der Backend-Validierung (Missbrauchsprävention) von illegalen `selections` (z.B. Diamant eingesetzt ohne Diamant-Besitz)
+- [x] 2.7 Frontend (CharacterActivationDialog): Spieler listet seine echten Handkarten + einsetzbare aktivierte Perlen-Fähigkeiten auf und formt daraus die `PaymentSelection`s
+- [x] 2.8 Integrationstest: Erfolgreiche `activatePortalCard`-Ausführung mit modifizierten/virtuellen Perlen
 
 ## TIER 3: Blaue Aktions-Modulation (oneExtraActionPerTurn)
 
@@ -72,30 +72,30 @@
 
 ## TIER 6: Kartenspezifisch – Aufgedruckte Perlenwerte mit manueller Auswahl (numberAdditionalCardActions, anyAdditionalCardActions)
 
-- [ ] 6.1 Backend: Validierungslogik für `PaymentSelection` (`source === 'ability'`) in `activatePortalCard` hinzufügen, die prüft, ob der Spieler eine aktive Charakterkarte mit `numberAdditionalCardActions` oder `anyAdditionalCardActions` besitzt.
-- [ ] 6.2 Backend: Sicherstellen, dass diese virtuellen Bonuskarten nicht vom Handkartenstapel entfernt werden, sondern nur als einmalige temporäre Zahlhilfen bei `consumeCosts` dienen.
-- [ ] 6.3 Test: Backend erlaubt Kostenvalidierung durch Kombination aus z.B. Handwert 4 + `PaymentSelection` für gedruckten Wert 5 aus Charakterfähigkeit.
-- [ ] 6.4 Test: Backend erlaubt Kostenvalidierung mit `PaymentSelection` (source: 'ability') für gedruckte `?`-Wildcards, sofern die Fähigkeit `anyAdditionalCardActions` aktiv ist.
-- [ ] 6.5 Test: Backend blockiert illegale `PaymentSelection`s (z.B. beanspruchte Bonuskarte, obwohl der Charakter nicht aktiv ist).
-- [ ] 6.6 Frontend (CharacterActivationDialog): Das Dialog-UI listet neben den Handkarten auch die aufgedruckten Perlen der aktivierten Charaktere auf und erlaubt ihre Aufnahme in die Bezahl-Selektion.
+- [x] 6.1 Backend: Validierungslogik für `PaymentSelection` (`source === 'ability'`) in `activatePortalCard` hinzufügen, die prüft, ob der Spieler eine aktive Charakterkarte mit `numberAdditionalCardActions` oder `anyAdditionalCardActions` besitzt.
+- [x] 6.2 Backend: Sicherstellen, dass diese virtuellen Bonuskarten nicht vom Handkartenstapel entfernt werden, sondern nur als einmalige temporäre Zahlhilfen bei `consumeCosts` dienen.
+- [x] 6.3 Test: Backend erlaubt Kostenvalidierung durch Kombination aus z.B. Handwert 4 + `PaymentSelection` für gedruckten Wert 5 aus Charakterfähigkeit.
+- [x] 6.4 Test: Backend erlaubt Kostenvalidierung mit `PaymentSelection` (source: 'ability') für gedruckte `?`-Wildcards, sofern die Fähigkeit `anyAdditionalCardActions` aktiv ist.
+- [x] 6.5 Test: Backend blockiert illegale `PaymentSelection`s (z.B. beanspruchte Bonuskarte, obwohl der Charakter nicht aktiv ist).
+- [x] 6.6 Frontend (CharacterActivationDialog): Das Dialog-UI listet neben den Handkarten auch die aufgedruckten Perlen der aktivierten Charaktere auf und erlaubt ihre Aufnahme in die Bezahl-Selektion.
 
 ## TIER 7: Sonder-/Komplex (irrlicht)
 
-- [ ] 7.1 irrlicht-Karte(n) in der Kartendatenbank identifizieren
-- [ ] 7.2 Flag „geteilte Aktivierung" zu `CharacterCard`-Typ hinzufügen
-- [ ] 7.3 Geteilte Aktivierungslogik implementieren: Nachbarn des irrlicht-Besitzers können es aktivieren
-- [ ] 7.4 Verfolgen, welcher Spieler irrlicht aktiviert hat (für Siegpunkte-Zuweisung)
-- [ ] 7.5 Move `activateSharedCharacter` zur `PortaleVonMolthar.moves` hinzufügen (aufrufbar von nicht aktiven Spielern via boardgame.io)
-- [ ] 7.6 Test: Drei-Spieler-Spiel – alle drei können irrlicht aktivieren, wenn es auf dem Portal eines Spielers liegt
-- [ ] 7.7 Test: Siegpunkte gehen an den richtigen Spieler (denjenigen, der aktiviert hat)
+- [x] 7.1 irrlicht-Karte(n) in der Kartendatenbank identifizieren
+- [x] 7.2 Flag „geteilte Aktivierung" zu `CharacterCard`-Typ hinzufügen
+- [x] 7.3 Geteilte Aktivierungslogik implementieren: Nachbarn des irrlicht-Besitzers können es aktivieren
+- [x] 7.4 Verfolgen, welcher Spieler irrlicht aktiviert hat (für Siegpunkte-Zuweisung)
+- [x] 7.5 Move `activateSharedCharacter` zur `PortaleVonMolthar.moves` hinzufügen (aufrufbar von nicht aktiven Spielern via boardgame.io)
+- [x] 7.6 Test: Drei-Spieler-Spiel – alle drei können irrlicht aktivieren, wenn es auf dem Portal eines Spielers liegt
+- [x] 7.7 Test: Siegpunkte gehen an den richtigen Spieler (denjenigen, der aktiviert hat)
 
 ## TIER 8: Integration & Validierung
 
-- [ ] 8.1 Vollständige Spielsimulation: 5-Zug-Spiel mit mehreren aktiven Fähigkeiten spielen
-- [ ] 8.2 Prüfen, dass keine Fähigkeits-Nebeneffekte zwischen Spielern durchsickern
-- [ ] 8.3 Prüfen, dass Fähigkeitseffekte korrekt über mehrere Züge persistieren
-- [ ] 8.4 TypeScript-Prüfung: `cd shared && pnpm run type-check` schlägt nicht fehl
-- [ ] 8.5 Testsuite: `cd shared && pnpm test -- --run` alle Tests bestehen
+- [x] 8.1 Vollständige Spielsimulation: 5-Zug-Spiel mit mehreren aktiven Fähigkeiten spielen
+- [x] 8.2 Prüfen, dass keine Fähigkeits-Nebeneffekte zwischen Spielern durchsickern
+- [x] 8.3 Prüfen, dass Fähigkeitseffekte korrekt über mehrere Züge persistieren
+- [x] 8.4 TypeScript-Prüfung: `cd shared && pnpm run type-check` schlägt nicht fehl
+- [x] 8.5 Testsuite: `cd shared && pnpm test -- --run` alle Tests bestehen
 - [ ] 8.6 Manueller Test: boardgame.io-Spiel mit allen Fähigkeitstypen starten und UI-Feedback prüfen
-- [ ] 8.7 Code-Review: Fähigkeitslogik ist in `costCalculation.ts` und Move-Handlern isoliert
-- [ ] 8.8 Dokumentation: Fähigkeits-Referenz zu `CLAUDE.md` hinzufügen mit Beispiel für jedes Tier
+- [x] 8.7 Code-Review: Fähigkeitslogik ist in `costCalculation.ts` und Move-Handlern isoliert
+- [x] 8.8 Dokumentation: Fähigkeits-Referenz zu `CLAUDE.md` hinzufügen mit Beispiel für jedes Tier

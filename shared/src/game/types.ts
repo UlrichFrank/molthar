@@ -37,6 +37,8 @@ export interface CharacterCard {
   abilities: CharacterAbility[];
   /** Aufgedruckte Perlenwerte auf der Karte (für numberAdditionalCardActions / anyAdditionalCardActions) */
   printedPearls?: PrintedPearlValue[];
+  /** Geteilte Aktivierung: Nachbarn des Besitzers können diese Karte in ihren Zügen aktivieren (irrlicht) */
+  sharedActivation?: boolean;
 }
 
 /**
@@ -94,6 +96,22 @@ export interface CharacterAbility {
   persistent: boolean; // true = blaue Fähigkeit, false = rote Fähigkeit
   type: CharacterAbilityType;
   description: string;
+}
+
+/**
+ * Definiert eine Zahlungskarte (echt oder virtuell), die vom UI zusammengestellt wird.
+ */
+export interface PaymentSelection {
+  source: 'hand' | 'ability';
+  value: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+  
+  // Nur relevant, wenn source === 'hand'
+  handCardIndex?: number;
+  abilityType?: CharacterAbilityType; 
+  diamondsUsed?: number;
+
+  // Nur relevant, wenn source === 'ability'
+  characterId?: string; 
 }
 
 /**

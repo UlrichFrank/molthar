@@ -412,13 +412,14 @@ describe('TIER 3 – oneExtraActionPerTurn (Aktions-Modulation)', () => {
 // ---------------------------------------------------------------------------
 
 import { PortaleVonMolthar } from './index';
+import type { PaymentSelection } from './types';
 
 describe('TIER 2 – Integration: Charakter mit Wildcard-Fähigkeit aktivieren', () => {
-  it('2.13 – activatePortalCard nutzt activeAbilities für cost validation', () => {
+  it('2.8 – activatePortalCard akzeptiert PaymentSelection[] mit onesCanBeEights', () => {
     const G = makeMinimalGameState();
     const player = G.players['0']!;
-    
-    // Charakter ins Portal legen, der ein 8er-Paar kostet
+
+    // Charakter ins Portal: kostet Summe 16 (= zwei 8er)
     player.portal.push({
       id: 'entry-1',
       activated: false,
@@ -428,37 +429,139 @@ describe('TIER 2 – Integration: Charakter mit Wildcard-Fähigkeit aktivieren',
         imageName: 'img',
         powerPoints: 1,
         diamonds: 0,
-        cost: [{ type: 'nTuple', n: 2 }], // Verlangt 2 von der Liste (hier im Test wollen wir eigentlich dass es auch auf Wert 8 ankommt, nehmen wir also sumTuple oder so)
+        cost: [{ type: 'sumAnyTuple', sum: 16 }],
         abilities: []
       }
     });
 
-    // Wir ändern die Kosten auf genauen Betrag: brauche 2 Achten! wait, there's no fixed value nTuple right now, nTuple just means any pair. 
-    // Let's use number value=8 and another number value=8. But we need onesCanBeEights to work.
-    // Let's make the cost: sumAnyTuple = 16. With two cards, if they are 1s, sum=2 without modifier, sum=16 with modifier!
-    player.portal[0]!.card.cost = [{ type: 'sumAnyTuple', sum: 16 }];
-    
     // Spieler hat 2 Einser auf der Hand
     player.hand.push({ id: 'pearl-1-1', value: 1, hasSwapSymbol: false });
     player.hand.push({ id: 'pearl-1-2', value: 1, hasSwapSymbol: false });
 
     const ctx = makeCtx('0');
 
-    // Ohne Modifier: activatePortalCard schlägt fehl
-    let result = PortaleVonMolthar.moves!.activatePortalCard({ G, ctx }, 0, [0, 1]);
-    expect(result).toBe('INVALID_MOVE'); // Im boardgame.io Kontext gibt der Move `INVALID_MOVE` zurück
+    // Ohne Modifier: schlägt fehl (Summe 1+1=2 ≠ 16)
+    let result = PortaleVonMolthar.moves!.activatePortalCard({ G, ctx }, 0,
+      [{ source: 'hand', handCardIndex: 0, value: 1 }, { source: 'hand', handCardIndex: 1, value: 1 }] as PaymentSelection[]
+    );
+    expect(result).toBe('INVALID_MOVE');
 
-    // Jetzt bekommt der Spieler die onesCanBeEights-Fähigkeit (als bereits aktiviert)
+    // Spieler erhält die onesCanBeEights-Fähigkeit
     applyBlueAbility(player, makeAbility('onesCanBeEights', true));
 
-    // Mit Modifier: onesCanBeEights - die beiden 1er zählen als 8, 8+8=16. Move ist gültig!
-    result = PortaleVonMolthar.moves!.activatePortalCard({ G, ctx }, 0, [0, 1]);
+    // Mit expliziter PaymentSelection (deklariert 1er als 8): valid!
+    result = PortaleVonMolthar.moves!.activatePortalCard({ G, ctx }, 0, [
+      { source: 'hand', handCardIndex: 0, value: 8, abilityType: 'onesCanBeEights' },
+      { source: 'hand', handCardIndex: 1, value: 8, abilityType: 'onesCanBeEights' },
+    ] as PaymentSelection[]);
     expect(result).not.toBe('INVALID_MOVE');
-    
-    // Karte ist aktiviert worden
+
     expect(player.portal).toHaveLength(0);
     expect(player.activatedCharacters).toHaveLength(1);
-    expect(player.hand).toHaveLength(0); // Karten ausgegeben
+    expect(player.hand).toHaveLength(0);
+  });
+
+  it('2.8 – activatePortalCard akzeptiert PaymentSelection[] mit threesCanBeAny', () => {
+    const G = makeMinimalGameState();
+    const player = G.players['0']!;
+    player.portal.push({
+      id: 'entry-2',
+      activated: false,
+      card: {
+        id: 'card-2', name: 'Char2', imageName: 'img', powerPoints: 1, diamonds: 0,
+        cost: [{ type: 'number', value: 7 }],
+        abilities: []
+      }
+    });
+    player.hand.push({ id: 'pearl-3-0', value: 3, hasSwapSymbol: false });
+    applyBlueAbility(player, makeAbility('threesCanBeAny', true));
+
+    const ctx = makeCtx('0');
+
+    // Ohne Modifier: 3 ≠ 7 → fehlschlag
+    let result = PortaleVonMolthar.moves!.activatePortalCard({ G, ctx }, 0,
+      [{ source: 'hand', handCardIndex: 0, value: 3 }] as PaymentSelection[]
+    );
+    expect(result).toBe('INVALID_MOVE');
+
+    // Mit threesCanBeAny deklariert zu 7: valid!
+    result = PortaleVonMolthar.moves!.activatePortalCard({ G, ctx }, 0,
+      [{ source: 'hand', handCardIndex: 0, value: 7, abilityType: 'threesCanBeAny' }] as PaymentSelection[]
+    );
+    expect(result).not.toBe('INVALID_MOVE');
+  });
+
+  it('2.6 – Backend blockiert onesCanBeEights ohne Fähigkeit', () => {
+    const G = makeMinimalGameState();
+    const player = G.players['0']!;
+    player.portal.push({
+      id: 'entry-3', activated: false,
+      card: { id: 'card-3', name: 'C', imageName: '', powerPoints: 0, diamonds: 0, cost: [{ type: 'sumAnyTuple', sum: 16 }], abilities: [] }
+    });
+    player.hand.push({ id: 'pearl-1-1', value: 1, hasSwapSymbol: false });
+    player.hand.push({ id: 'pearl-1-2', value: 1, hasSwapSymbol: false });
+    const ctx = makeCtx('0');
+
+    // Kein Ability → INVALID_MOVE (Betrugsversuch)
+    const result = PortaleVonMolthar.moves!.activatePortalCard({ G, ctx }, 0, [
+      { source: 'hand', handCardIndex: 0, value: 8, abilityType: 'onesCanBeEights' },
+      { source: 'hand', handCardIndex: 1, value: 8, abilityType: 'onesCanBeEights' },
+    ] as PaymentSelection[]);
+    expect(result).toBe('INVALID_MOVE');
+  });
+
+  it('2.6 – Backend blockiert threesCanBeAny auf Nicht-3-Karte', () => {
+    const G = makeMinimalGameState();
+    const player = G.players['0']!;
+    player.portal.push({
+      id: 'entry-4', activated: false,
+      card: { id: 'card-4', name: 'C', imageName: '', powerPoints: 0, diamonds: 0, cost: [{ type: 'number', value: 7 }], abilities: [] }
+    });
+    player.hand.push({ id: 'pearl-5-0', value: 5, hasSwapSymbol: false });
+    applyBlueAbility(player, makeAbility('threesCanBeAny', true));
+    const ctx = makeCtx('0');
+
+    // threesCanBeAny auf Karte mit Wert 5 → INVALID_MOVE (nur 3er können transformiert werden)
+    const result = PortaleVonMolthar.moves!.activatePortalCard({ G, ctx }, 0,
+      [{ source: 'hand', handCardIndex: 0, value: 7, abilityType: 'threesCanBeAny' }] as PaymentSelection[]
+    );
+    expect(result).toBe('INVALID_MOVE');
+  });
+
+  it('2.6 – Backend blockiert decreaseWithPearl ohne ausreichende Diamanten', () => {
+    const G = makeMinimalGameState();
+    const player = G.players['0']!;
+    player.diamonds = 0;
+    player.portal.push({
+      id: 'entry-5', activated: false,
+      card: { id: 'card-5', name: 'C', imageName: '', powerPoints: 0, diamonds: 0, cost: [{ type: 'number', value: 4 }], abilities: [] }
+    });
+    player.hand.push({ id: 'pearl-5-0', value: 5, hasSwapSymbol: false });
+    applyBlueAbility(player, makeAbility('decreaseWithPearl', true));
+    const ctx = makeCtx('0');
+
+    // Keine Diamanten vorhanden → INVALID_MOVE
+    const result = PortaleVonMolthar.moves!.activatePortalCard({ G, ctx }, 0,
+      [{ source: 'hand', handCardIndex: 0, value: 4, abilityType: 'decreaseWithPearl', diamondsUsed: 1 }] as PaymentSelection[]
+    );
+    expect(result).toBe('INVALID_MOVE');
+  });
+
+  it('2.6 – Backend blockiert doppelte Nutzung derselben Handkarte', () => {
+    const G = makeMinimalGameState();
+    const player = G.players['0']!;
+    player.portal.push({
+      id: 'entry-6', activated: false,
+      card: { id: 'card-6', name: 'C', imageName: '', powerPoints: 0, diamonds: 0, cost: [{ type: 'nTuple', n: 2 }], abilities: [] }
+    });
+    player.hand.push({ id: 'pearl-5-0', value: 5, hasSwapSymbol: false });
+    const ctx = makeCtx('0');
+
+    // Dieselbe Karte zweimal → INVALID_MOVE
+    const result = PortaleVonMolthar.moves!.activatePortalCard({ G, ctx }, 0,
+      [{ source: 'hand', handCardIndex: 0, value: 5 }, { source: 'hand', handCardIndex: 0, value: 5 }] as PaymentSelection[]
+    );
+    expect(result).toBe('INVALID_MOVE');
   });
 });
 
@@ -532,5 +635,299 @@ describe('TIER 5 – Blaue Information & Ressourcen', () => {
     expect(player.hand.find(c => c.value === 2)).toBeUndefined();
     expect(G.pearlDiscardPile).toHaveLength(1);
     expect(G.pearlDiscardPile[0]!.id).toBe('p2');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// TIER 6: Aufgedruckte Perlenwerte (numberAdditionalCardActions, anyAdditionalCardActions)
+// ---------------------------------------------------------------------------
+
+describe('TIER 6 – Aufgedruckte Perlenwerte (source: ability)', () => {
+  const makePortalEntry = (id: string, cost: any[], _abilityType: string) => ({
+    id: `portal-${id}`,
+    activated: false as const,
+    card: {
+      id, name: id, imageName: '', powerPoints: 1, diamonds: 0, cost, abilities: []
+    }
+  });
+
+  const makeActivatedChar = (id: string, abilityType: 'numberAdditionalCardActions' | 'anyAdditionalCardActions') => ({
+    id: `act-${id}`,
+    activated: true as const,
+    card: {
+      id, name: id, imageName: '', powerPoints: 1, diamonds: 0, cost: [],
+      abilities: [{ id: `ab-${id}`, type: abilityType as any, persistent: true, description: '' }],
+      printedPearls: abilityType === 'numberAdditionalCardActions'
+        ? [{ value: 5 as const }]
+        : undefined,
+    }
+  });
+
+  it('6.3 – Backend erlaubt Zahlung durch Kombination: Handkarte + Bonusperle aus Charakterfähigkeit', () => {
+    const G = makeMinimalGameState();
+    const player = G.players['0']!;
+
+    // Charakter im Portal kostet Summe 9
+    player.portal.push(makePortalEntry('target', [{ type: 'sumAnyTuple', sum: 9 }], 'numberAdditionalCardActions'));
+    // Spieler hat nur eine 4 in der Hand
+    player.hand.push({ id: 'h1', value: 4, hasSwapSymbol: false });
+    // Spieler hat aktivierten Charakter mit aufgedruckter 5
+    player.activatedCharacters.push(makeActivatedChar('bonus-char', 'numberAdditionalCardActions') as any);
+
+    const ctx = makeCtx('0');
+    const charId = 'act-bonus-char';
+
+    // Nur Handkarte: Summe 4 ≠ 9 → fehlschlag
+    let result = PortaleVonMolthar.moves!.activatePortalCard({ G, ctx }, 0,
+      [{ source: 'hand', handCardIndex: 0, value: 4 }] as PaymentSelection[]
+    );
+    expect(result).toBe('INVALID_MOVE');
+
+    // Handkarte 4 + Bonusperle 5 = 9 → valid!
+    result = PortaleVonMolthar.moves!.activatePortalCard({ G, ctx }, 0, [
+      { source: 'hand', handCardIndex: 0, value: 4 },
+      { source: 'ability', characterId: charId, value: 5 },
+    ] as PaymentSelection[]);
+    expect(result).not.toBe('INVALID_MOVE');
+
+    // Echte Handkarte wurde verbraucht, Bonusperle aber nicht
+    expect(player.hand).toHaveLength(0);
+    // activatedCharacters bleibt unverändert (Bonuskarte wird nicht verbraucht)
+    expect(player.activatedCharacters).toHaveLength(2); // alten + neu aktivierten
+  });
+
+  it('6.4 – Backend erlaubt anyAdditionalCardActions als Wildcard (beliebiger Wert)', () => {
+    const G = makeMinimalGameState();
+    const player = G.players['0']!;
+
+    player.portal.push(makePortalEntry('target2', [{ type: 'number', value: 7 }], 'anyAdditionalCardActions'));
+    player.activatedCharacters.push(makeActivatedChar('wildcard-char', 'anyAdditionalCardActions') as any);
+
+    const ctx = makeCtx('0');
+    const charId = 'act-wildcard-char';
+
+    // Wildcard als 7 deklarieren → valid!
+    const result = PortaleVonMolthar.moves!.activatePortalCard({ G, ctx }, 0,
+      [{ source: 'ability', characterId: charId, value: 7 }] as PaymentSelection[]
+    );
+    expect(result).not.toBe('INVALID_MOVE');
+  });
+
+  it('6.5 – Backend blockiert source:ability wenn Charakter keine Bonus-Fähigkeit hat', () => {
+    const G = makeMinimalGameState();
+    const player = G.players['0']!;
+
+    player.portal.push(makePortalEntry('target3', [{ type: 'number', value: 5 }], 'none'));
+    // Charakter ohne Bonusperle
+    player.activatedCharacters.push({
+      id: 'act-no-bonus',
+      activated: true,
+      card: { id: 'no-bonus', name: 'N', imageName: '', powerPoints: 0, diamonds: 0, cost: [], abilities: [] }
+    });
+
+    const ctx = makeCtx('0');
+
+    // Betrugsversuch: Charakter ohne Fähigkeit als Bonusperle → INVALID_MOVE
+    const result = PortaleVonMolthar.moves!.activatePortalCard({ G, ctx }, 0,
+      [{ source: 'ability', characterId: 'act-no-bonus', value: 5 }] as PaymentSelection[]
+    );
+    expect(result).toBe('INVALID_MOVE');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// TIER 7: irrlicht – geteilte Aktivierung
+// ---------------------------------------------------------------------------
+
+describe('TIER 7 – irrlicht (geteilte Aktivierung)', () => {
+  function makeIrrlichtGame() {
+    // 3-player game with playerOrder [0, 1, 2]
+    const makeP = (id: string): PlayerState => ({
+      id, name: `P${id}`, hand: [], portal: [], activatedCharacters: [],
+      powerPoints: 0, diamonds: 0, readyUp: false, isAI: false,
+      handLimitModifier: 0, activeAbilities: [],
+    });
+    const G = {
+      ...makeMinimalGameState(),
+      players: { '0': makeP('0'), '1': makeP('1'), '2': makeP('2') },
+      playerOrder: ['0', '1', '2'],
+    } as GameState;
+
+    // Place irrlicht on player 1's portal
+    const irrlichtCard = {
+      id: 'irrlicht-1', name: 'Irrlicht', imageName: 'img', powerPoints: 3,
+      diamonds: 0, cost: [], abilities: [{ id: 'a1', type: 'irrlicht' as const, persistent: false, description: '' }],
+      sharedActivation: true,
+    };
+    G.players['1']!.portal.push({ id: 'portal-irrlicht', card: irrlichtCard, activated: false });
+    return G;
+  }
+
+  it('7.6 – neighbors (player 0 and 2) can activate irrlicht on player 1\'s portal', () => {
+    // Player 0 (left neighbor) can activate
+    const G0 = makeIrrlichtGame();
+    G0.players['0']!.hand = []; // Irrlicht costs nothing in this test
+    const result0 = PortaleVonMolthar.moves!.activateSharedCharacter(
+      { G: G0, ctx: makeCtx('0') }, '1', 0, []
+    );
+    expect(result0).not.toBe('INVALID_MOVE');
+    expect(G0.players['1']!.portal).toHaveLength(0);
+    expect(G0.players['0']!.activatedCharacters).toHaveLength(1);
+
+    // Player 2 (right neighbor) can activate
+    const G2 = makeIrrlichtGame();
+    G2.players['2']!.hand = [];
+    const result2 = PortaleVonMolthar.moves!.activateSharedCharacter(
+      { G: G2, ctx: makeCtx('2') }, '1', 0, []
+    );
+    expect(result2).not.toBe('INVALID_MOVE');
+    expect(G2.players['1']!.portal).toHaveLength(0);
+    expect(G2.players['2']!.activatedCharacters).toHaveLength(1);
+  });
+
+  it('7.6 – non-neighbor player cannot activate irrlicht', () => {
+    // In a 5-player game, player 3 is not a neighbor of player 0
+    const makeP = (id: string): PlayerState => ({
+      id, name: `P${id}`, hand: [], portal: [], activatedCharacters: [],
+      powerPoints: 0, diamonds: 0, readyUp: false, isAI: false,
+      handLimitModifier: 0, activeAbilities: [],
+    });
+    const G = {
+      ...makeMinimalGameState(),
+      players: { '0': makeP('0'), '1': makeP('1'), '2': makeP('2'), '3': makeP('3'), '4': makeP('4') },
+      playerOrder: ['0', '1', '2', '3', '4'],
+    } as GameState;
+    const irrlichtCard = {
+      id: 'irrlicht-1', name: 'Irrlicht', imageName: 'img', powerPoints: 3,
+      diamonds: 0, cost: [], abilities: [{ id: 'a1', type: 'irrlicht' as const, persistent: false, description: '' }],
+      sharedActivation: true,
+    };
+    G.players['0']!.portal.push({ id: 'portal-irrlicht', card: irrlichtCard, activated: false });
+
+    // Player 3 is not a neighbor of player 0 (neighbors are 1 and 4) → INVALID_MOVE
+    const result = PortaleVonMolthar.moves!.activateSharedCharacter(
+      { G, ctx: makeCtx('3') }, '0', 0, []
+    );
+    expect(result).toBe('INVALID_MOVE');
+  });
+
+  it('7.7 – power points go to the activating player (not the owner)', () => {
+    const G = makeIrrlichtGame();
+    G.players['0']!.hand = [];
+    expect(G.players['0']!.powerPoints).toBe(0);
+    expect(G.players['1']!.powerPoints).toBe(0);
+
+    PortaleVonMolthar.moves!.activateSharedCharacter(
+      { G, ctx: makeCtx('0') }, '1', 0, []
+    );
+
+    // Player 0 activated irrlicht → gets 3 power points
+    expect(G.players['0']!.powerPoints).toBe(3);
+    // Player 1 (owner) gets nothing
+    expect(G.players['1']!.powerPoints).toBe(0);
+  });
+
+  it('7.7 – activateSharedCharacter fails for non-irrlicht card', () => {
+    const G = makeIrrlichtGame();
+    // Add a regular card to player 1's portal
+    G.players['1']!.portal.push({
+      id: 'portal-regular', activated: false,
+      card: { id: 'regular', name: 'R', imageName: '', powerPoints: 1, diamonds: 0, cost: [], abilities: [] }
+    });
+    const result = PortaleVonMolthar.moves!.activateSharedCharacter(
+      { G, ctx: makeCtx('0') }, '1', 1, []
+    );
+    expect(result).toBe('INVALID_MOVE');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// TIER 8: Integration & Validierung
+// ---------------------------------------------------------------------------
+
+describe('TIER 8 – Integration & Validierung', () => {
+  function simulateTurnEnd(G: GameState, playerId: string) {
+    PortaleVonMolthar.turn!.onEnd!({ G, ctx: makeCtx(playerId) } as any);
+  }
+  function simulateTurnBegin(G: GameState, playerId: string) {
+    PortaleVonMolthar.turn!.onBegin!({ G, ctx: makeCtx(playerId) } as any);
+  }
+
+  it('8.1/8.2 – 5-turn simulation with multiple abilities, no cross-player bleed', () => {
+    const G = makeMinimalGameState();
+    const p0 = G.players['0']!;
+    const p1 = G.players['1']!;
+
+    // Turn 1: Player 0 activates a threeExtraActions card
+    simulateTurnBegin(G, '0');
+    expect(G.maxActions).toBe(3);
+
+    p0.portal.push({
+      id: 'entry-red', activated: false,
+      card: { id: 'red-card', name: 'RedCard', imageName: '', powerPoints: 1, diamonds: 0, cost: [],
+        abilities: [{ id: 'r1', type: 'threeExtraActions' as const, persistent: false, description: '' }] }
+    });
+    PortaleVonMolthar.moves!.activatePortalCard({ G, ctx: makeCtx('0') }, 0, []);
+    expect(G.maxActions).toBe(6);
+    expect(p0.powerPoints).toBe(1);
+    expect(p1.powerPoints).toBe(0);
+    expect(p1.activeAbilities).toHaveLength(0);
+    simulateTurnEnd(G, '0');
+
+    // Turn 2: Player 1 - no extra action from player 0's ability
+    simulateTurnBegin(G, '1');
+    expect(G.maxActions).toBe(3);
+    expect(G.nextPlayerExtraAction).toBe(false);
+    simulateTurnEnd(G, '1');
+
+    // Turn 3: Player 0 activates a oneExtraActionPerTurn card (blue)
+    simulateTurnBegin(G, '0');
+    p0.portal.push({
+      id: 'entry-blue', activated: false,
+      card: { id: 'blue-card', name: 'BlueCard', imageName: '', powerPoints: 2, diamonds: 0, cost: [],
+        abilities: [{ id: 'b1', type: 'oneExtraActionPerTurn' as const, persistent: true, description: '' }] }
+    });
+    PortaleVonMolthar.moves!.activatePortalCard({ G, ctx: makeCtx('0') }, 0, []);
+    expect(p0.activeAbilities).toHaveLength(1);
+    expect(p0.activeAbilities[0]!.type).toBe('oneExtraActionPerTurn');
+    expect(p1.activeAbilities).toHaveLength(0); // No bleed to player 1
+    simulateTurnEnd(G, '0');
+
+    // Turn 4: Player 0 gets permanent +1 action
+    simulateTurnBegin(G, '0');
+    expect(G.maxActions).toBe(4);
+    simulateTurnEnd(G, '0');
+
+    // Turn 5: Player 1 unaffected
+    simulateTurnBegin(G, '1');
+    expect(G.maxActions).toBe(3);
+    expect(G.players['1']!.activeAbilities).toHaveLength(0);
+    simulateTurnEnd(G, '1');
+  });
+
+  it('8.3 – blue ability effects persist correctly across multiple turns', () => {
+    const G = makeMinimalGameState();
+    const p0 = G.players['0']!;
+
+    // Set up via activatedCharacters (the source of truth) so syncPlayerAbilities works
+    const makeActivatedCard = (id: string, abilityType: string, persistent: boolean) => ({
+      id: `act-${id}`, activated: true as const,
+      card: {
+        id, name: id, imageName: '', powerPoints: 0, diamonds: 0, cost: [],
+        abilities: [{ id: `ab-${id}`, type: abilityType as any, persistent, description: '' }],
+      }
+    });
+    p0.activatedCharacters.push(makeActivatedCard('c1', 'oneExtraActionPerTurn', true));
+    p0.activatedCharacters.push(makeActivatedCard('c2', 'oneExtraActionPerTurn', true));
+    p0.activatedCharacters.push(makeActivatedCard('c3', 'handLimitPlusOne', true));
+
+    for (let turn = 0; turn < 3; turn++) {
+      simulateTurnBegin(G, '0');
+      expect(G.maxActions).toBe(5); // 3 + 2
+      expect(p0.handLimitModifier).toBe(1);
+      G.actionCount = G.maxActions;
+      simulateTurnEnd(G, '0');
+    }
+    expect(p0.activeAbilities).toHaveLength(3);
   });
 });
