@@ -292,11 +292,11 @@ export function validateTripleChoiceCost(
 ): boolean {
   const value1 = costComponent.value1 || 3;
   const value2 = costComponent.value2 || 6;
-  
+
   // Count cards with each value
   const count1 = hand.filter(c => c.value === value1).length;
   const count2 = hand.filter(c => c.value === value2).length;
-  
+
   // Need 3 of value1 OR 3 of value2
   return count1 >= 3 || count2 >= 3;
 }
@@ -682,7 +682,7 @@ function isMinimalSubset(
  */
 function generateSubsets(indices: number[]): number[][] {
   const subsets: number[][] = [];
-  
+
   for (let mask = 0; mask < (1 << indices.length); mask++) {
     const subset: number[] = [];
     for (let i = 0; i < indices.length; i++) {
@@ -692,7 +692,7 @@ function generateSubsets(indices: number[]): number[][] {
     }
     subsets.push(subset);
   }
-  
+
   return subsets;
 }
 

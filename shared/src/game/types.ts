@@ -35,19 +35,64 @@ export interface CharacterCard {
   powerPoints: number;
   diamonds: number;
   abilities: CharacterAbility[];
+  /** Aufgedruckte Perlenwerte auf der Karte (für numberAdditionalCardActions / anyAdditionalCardActions) */
+  printedPearls?: PrintedPearlValue[];
 }
 
 /**
- * type
- * - 'handLimitPlusOne': grants +1 to player's hand limit (applied on activation)
- * persistent
- * - true (blue ability): effect is permanent once activated
- * - false (red ability): effect is temporary, only on activation turn
-*/
+ * Aufgedruckter Perlenwert auf einer Charakterkarte.
+ * Kann ein fester Wert (1–8) oder eine Wildcard ('?') sein.
+ */
+export type PrintedPearlValue = { value: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 } | { wildcard: true };
+
+/**
+ * Alle 18 Fähigkeitstypen:
+ * Rote (persistent: false) – werden sofort nach Aktivierung ausgeführt:
+ * - 'threeExtraActions': +3 Aktionen im aktuellen Zug
+ * - 'nextPlayerOneExtraAction': nächster Spieler erhält +1 Aktion
+ * - 'discardOpponentCharacter': entfernt eine Charakterkarte vom Portal eines Gegners
+ * - 'stealOpponentHandCard': stiehlt eine Perlenkarte aus der Hand eines Gegners
+ * - 'takeBackPlayedPearl': holt die zuletzt gespielte Perlenkarte vom Ablagestapel zurück
+ *
+ * Blaue (persistent: true) – dauerhafter Effekt:
+ * - 'handLimitPlusOne': +1 Handlimit (bereits implementiert)
+ * - 'oneExtraActionPerTurn': +1 Aktion pro Zug dauerhaft
+ * - 'onesCanBeEights': 1-Perlen können bei Kostenprüfung als 8 gelten
+ * - 'threesCanBeAny': 3-Perlen können bei Kostenprüfung beliebigen Wert (1–8) haben
+ * - 'decreaseWithPearl': Diamant kann Perlenwert um 1 reduzieren (min. 1)
+ * - 'changeCharacterActions': Portal-Karte vor der ersten Aktion tauschen
+ * - 'changeHandActions': Hand nach der letzten Aktion neu ziehen
+ * - 'previewCharacter': Deck vor der ersten Aktion einsehen
+ * - 'tradeTwoForDiamond': 2-Perle gegen 1 Diamant tauschen
+ * - 'numberAdditionalCardActions': Karte hat aufgedruckten Perlenwert (fester Wert)
+ * - 'anyAdditionalCardActions': Karte hat aufgedruckte Wildcard-Perle (?)
+ * - 'irrlicht': geteilte Aktivierung – unmittelbare Nachbarn können aktivieren
+ * - 'none': keine Fähigkeit
+ */
+export type CharacterAbilityType =
+  | 'handLimitPlusOne'
+  | 'oneExtraActionPerTurn'
+  | 'threeExtraActions'
+  | 'nextPlayerOneExtraAction'
+  | 'discardOpponentCharacter'
+  | 'stealOpponentHandCard'
+  | 'takeBackPlayedPearl'
+  | 'onesCanBeEights'
+  | 'threesCanBeAny'
+  | 'decreaseWithPearl'
+  | 'changeCharacterActions'
+  | 'changeHandActions'
+  | 'previewCharacter'
+  | 'tradeTwoForDiamond'
+  | 'numberAdditionalCardActions'
+  | 'anyAdditionalCardActions'
+  | 'irrlicht'
+  | 'none';
+
 export interface CharacterAbility {
   id: string;
-  persistent: boolean; // true = blue ability, false = red ability
-  type: 'handLimitPlusOne';
+  persistent: boolean; // true = blaue Fähigkeit, false = rote Fähigkeit
+  type: CharacterAbilityType;
   description: string;
 }
 
@@ -67,20 +112,29 @@ export interface PlayerState {
   id: string;
   name: string;
   hand: PearlCard[];
-  portal: ActivatedCharacter[]; // max 2, cards not yet activated
-  activatedCharacters: ActivatedCharacter[]; // cards that have been activated (removed from portal)
+  portal: ActivatedCharacter[]; // max 2, Karten noch nicht aktiviert
+  activatedCharacters: ActivatedCharacter[]; // aktivierte Karten (aus Portal entfernt)
   powerPoints: number;
   diamonds: number;
   readyUp: boolean;
   isAI: boolean;
-  aiDifficulty?: 1 | 2 | 3 | 4 | 5; // 1=easy, 5=genius
+  aiDifficulty?: 1 | 2 | 3 | 4 | 5; // 1=leicht, 5=genius
   /**
-   * Hand limit modifier - cumulative increase from activated character abilities.
-   * Each character with the `handLimitPlusOne` ability increments this by 1.
-   * Used to calculate maximum hand size: 5 (base) + handLimitModifier.
-   * Increases only when characters are activated, does not decrease on deactivation.
+   * Handlimit-Modifier – kumulativer Anstieg durch aktivierte Charakterfähigkeiten.
+   * Jeder Charakter mit der Fähigkeit `handLimitPlusOne` erhöht diesen Wert um 1.
+   * Effektives Handlimit: 5 (Basis) + handLimitModifier.
    */
   handLimitModifier: number;
+  /**
+   * Aktive blaue Fähigkeiten dieses Spielers (persistent nach Aktivierung).
+   * Wird durch `activatePortalCard` befüllt, niemals geleert.
+   */
+  activeAbilities: CharacterAbility[];
+  /**
+   * Die vom Spieler mit `previewCharacter` eingesehene Karte vom Nachziehstapel.
+   * Wird verwendet, um dem Spieler per playerView das Geheimnis zu zeigen.
+   */
+  peekedCard?: CharacterCard | null;
 }
 
 /**
@@ -93,26 +147,38 @@ export interface GameState {
   pearlDiscardPile: PearlCard[];
   characterDiscardPile: CharacterCard[];
   
-  // Face-up cards
-  pearlSlots: PearlCard[]; // 4 face-up pearl cards
-  characterSlots: CharacterCard[]; // 2 face-up character cards
+  // Auslage
+  pearlSlots: PearlCard[]; // 4 offene Perlenkarten
+  characterSlots: CharacterCard[]; // 2 offene Charakterkarten
   
-  // Players
+  // Spieler
   players: { [playerId: string]: PlayerState };
-  playerOrder: string[]; // Order of players
+  playerOrder: string[]; // Spielerreihenfolge
   
-  // Game state
-  actionCount: number; // Current player's remaining actions (0-3+)
-  maxActions: number; // Maximum actions available this turn (3 + bonuses)
-  finalRound: boolean; // True if final round started
-  finalRoundStartingPlayer: string | null; // Player who triggered final round
-  requiresHandDiscard: boolean; // True if current player must discard cards to meet hand limit
-  excessCardCount: number; // Number of cards to discard
-  currentHandLimit: number; // Current player's hand limit for UI display
+  // Spielzustand
+  actionCount: number; // Aktionszähler des aktuellen Spielers (0–3+)
+  maxActions: number; // Maximale Aktionen dieses Zuges (3 + Boni)
+  finalRound: boolean; // true wenn die letzte Runde begonnen hat
+  finalRoundStartingPlayer: string | null; // Spieler der die letzte Runde ausgelöst hat
+  requiresHandDiscard: boolean; // true wenn aktueller Spieler Karten abwerfen muss
+  excessCardCount: number; // Anzahl abzuwerfender Karten
+  currentHandLimit: number; // Aktuelles Handlimit für UI-Anzeige
 
-  // Metadata
+  /**
+   * Flag für rote Fähigkeit `nextPlayerOneExtraAction`.
+   * Wird in `turn.onBegin` des nächsten Spielers ausgewertet und danach gelöscht.
+   */
+  nextPlayerExtraAction: boolean;
+
+  /**
+   * ID der zuletzt gespielten Perlenkarte (für `takeBackPlayedPearl`).
+   * Wird auf null zurückgesetzt, wenn die Karte zurückgeholt wurde oder der Zug endet.
+   */
+  lastPlayedPearlId: string | null;
+
+  // Metadaten
   startingPlayer: string;
-  portalEntryCounter: number; // Monotone counter for deterministic portal entry IDs
+  portalEntryCounter: number; // Monotoner Zähler für deterministische Portal-Eintrags-IDs
 }
 
 /**
@@ -135,8 +201,10 @@ export interface TakePearlCardPayload {
 }
 
 export interface ActivateCharacterPayload {
-  characterSlotIndex: number; // 0-1 for face-up
-  pearlCardIndices: number[]; // Indices from hand to use
+  characterSlotIndex: number; // 0–1 für offene Karten
+  pearlCardIndices: number[]; // Indizes der Handkarten
+  /** Vom Spieler explizit gewählte aufgedruckte Perlenwerte der zu aktivierenden Karte (TIER 6) */
+  selectedPrintedPearls?: PrintedPearlValue[];
 }
 
 export interface ReplaceCharacterPayload {
