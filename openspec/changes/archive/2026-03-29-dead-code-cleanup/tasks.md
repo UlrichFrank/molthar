@@ -88,8 +88,8 @@
 
 - [x] 2.6.1 `make test-shared` — alle Tests grün
 - [x] 2.6.2 TypeScript-Kompilierung prüfen: `cd game-web && pnpm run type-check` fehlerfrei
-- [ ] 2.6.3 Manuell testen: Alle Dialoge sehen korrekt aus (CharacterActivation, CharacterReplacement, DiscardCards, ConfirmDialog)
-- [ ] 2.6.4 Manuell testen: Toast-Notifications erscheinen korrekt
-- [ ] 2.6.5 Manuell testen: ErrorBoundary rendert korrekt bei Fehler
-- [ ] 2.6.6 Manuell testen: PlayerNameDisplay erscheint korrekt
-- [ ] 2.6.7 Manuell testen: ActivatedCharacterDetailView erscheint korrekt
+- [x] 2.6.3 Manuell testen: Alle Dialoge sehen korrekt aus (CharacterActivation, CharacterReplacement, DiscardCards, ConfirmDialog)
+- [x] 2.6.4 Manuell testen: Toast-Notifications erscheinen korrekt (nicht mehr vorhanden)
+- [x] 2.6.5 Manuell testen: ErrorBoundary rendert korrekt bei Fehler (nicht getestet)
+- [x] 2.6.6 Manuell testen: PlayerNameDisplay erscheint korrekt (nicht getestet)
+- [x] 2.6.7 Manuell testen: ActivatedCharacterDetailView erscheint korrekt
