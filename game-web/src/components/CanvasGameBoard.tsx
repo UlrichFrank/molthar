@@ -7,7 +7,6 @@ import {
   drawAuslage,
   drawPlayerPortal,
   drawActivatedCharactersGrid,
-  drawUI,
   drawUIButton,
   drawOpponentActionCounter,
   drawRegionEffects,
@@ -19,8 +18,7 @@ import { CharacterReplacementDialog } from './CharacterReplacementDialog';
 import { CharacterActivationDialog } from './CharacterActivationDialog';
 import { DiscardCardsDialog } from './DiscardCardsDialog';
 import { PlayerNameDisplay } from './PlayerNameDisplay';
-import '../styles/dialogModal.css';
-import '../styles/playerNameDisplay.css';
+import '../styles/dialogs.css';
 
 interface CanvasGameBoardProps {
   G: GameState;
@@ -239,7 +237,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
       { selectedPearl: null, selectedCharacter: null, selectedHandIndices: [] });
     drawActivatedCharactersGrid(drawCtx, activatedCards_,
       { selectedPearl: null, selectedCharacter: null, selectedHandIndices: [] });
-    drawUI(drawCtx, phase);
 
     // Canvas UI panel
     if (isActive) {
@@ -469,7 +466,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           }]}
           hand={me.hand}
           diamonds={me.diamonds}
-          portalSlotIndex={dialog.dialog.portalSlotIndex}
           onActivate={(portalSlotIndex, usedCardIndices) => {
             moves.activatePortalCard(portalSlotIndex, usedCardIndices);
             dialog.closeDialog();

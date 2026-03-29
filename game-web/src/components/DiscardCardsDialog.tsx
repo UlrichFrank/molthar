@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import type { PearlCard } from '@portale-von-molthar/shared';
-import '../styles/discardCardsDialog.css';
+import { GameDialog, GameDialogTitle, GameDialogActions, CardPicker } from './GameDialog';
 
 interface DiscardCardsDialogProps {
   hand: PearlCard[];
@@ -40,57 +40,40 @@ export function DiscardCardsDialog({
   };
 
   return (
-    <div className="discard-cards-dialog-overlay">
-      <div className="discard-cards-dialog">
-        <h2>Discard Pearl Cards</h2>
+    <GameDialog>
+      <GameDialogTitle>Discard Pearl Cards</GameDialogTitle>
 
-        <div className="info-section">
-          <p className="info-text">
-            Hand size: <strong>{hand.length}</strong> cards
-          </p>
-          <p className="info-text">
-            Hand limit: <strong>{currentHandLimit}</strong> cards
-          </p>
-          <p className="info-text warning">
-            You must discard <strong>{excessCardCount}</strong> card{excessCardCount !== 1 ? 's' : ''}
-          </p>
-        </div>
-
-        <div className="hand-section">
-          <h3>Select {excessCardCount} card{excessCardCount !== 1 ? 's' : ''} to discard</h3>
-          <div className="hand-grid">
-            {hand.map((card, idx) => (
-              <button
-                key={idx}
-                className="hand-card-selector"
-                onClick={() => toggleCard(idx)}
-              >
-                <img
-                  src={`/assets/Perlenkarte${card.value}.png`}
-                  alt={`Pearl ${card.value}`}
-                  className="hand-card-image"
-                />
-                {selectedCardIndices.has(idx) && (
-                  <div className="hand-card-selected-overlay" />
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="actions">
-          <button
-            className="btn-confirm"
-            onClick={handleDiscard}
-            disabled={!isValidSelection}
-          >
-            {isValidSelection ? 'Confirm Discard' : 'Invalid Selection'}
-          </button>
-          <button className="btn-cancel" onClick={onCancel}>
-            Cancel
-          </button>
-        </div>
+      <div className="game-dialog-info">
+        <p className="game-dialog-info-text">
+          Hand size: <strong>{hand.length}</strong> cards
+        </p>
+        <p className="game-dialog-info-text">
+          Hand limit: <strong>{currentHandLimit}</strong> cards
+        </p>
+        <p className="game-dialog-info-text game-dialog-info-text--warning">
+          You must discard <strong>{excessCardCount}</strong> card{excessCardCount !== 1 ? 's' : ''}
+        </p>
       </div>
-    </div>
+
+      <div>
+        <h3 style={{ margin: '0.5rem 0', fontSize: 'clamp(1rem, 4vw, 1.2rem)' }}>
+          Select {excessCardCount} card{excessCardCount !== 1 ? 's' : ''} to discard
+        </h3>
+        <CardPicker
+          cards={hand}
+          selected={selectedCardIndices}
+          onToggle={toggleCard}
+          getImageSrc={(card) => `/assets/Perlenkarte${card.value}.png`}
+          getAlt={(card) => `Pearl ${card.value}`}
+        />
+      </div>
+
+      <GameDialogActions
+        confirmLabel={isValidSelection ? 'Confirm Discard' : 'Invalid Selection'}
+        confirmDisabled={!isValidSelection}
+        onConfirm={handleDiscard}
+        onCancel={onCancel}
+      />
+    </GameDialog>
   );
 }

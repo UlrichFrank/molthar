@@ -321,21 +321,6 @@ export function drawActivatedCharactersGrid(
   });
 }
 
-export function drawUI(ctx: CanvasRenderingContext2D, phase: string = 'takingActions') {
-  // Phase info (top-left)
-  ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
-  ctx.fillRect(MARGIN_H + 10, 5, 200, 28);
-  ctx.strokeStyle = '#475569';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(MARGIN_H + 10, 5, 200, 28);
-
-  ctx.fillStyle = '#60a5fa';
-  ctx.font = 'bold 12px Arial';
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  ctx.fillText(`Phase: ${phase}`, MARGIN_H + 15, 10);
-}
-
 /**
  * Draw the action counter / End Turn / Discard Cards UI panel on canvas.
  * Called once per frame for the active player.

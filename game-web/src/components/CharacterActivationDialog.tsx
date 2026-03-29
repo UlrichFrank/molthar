@@ -2,13 +2,12 @@ import React, { useState, useMemo } from 'react';
 import type { CharacterCard, PearlCard } from '@portale-von-molthar/shared';
 import { validateCostPayment } from '@portale-von-molthar/shared';
 import { getCostSummary, describeCost } from '../lib/cost-helper';
-import '../styles/characterActivationDialog.css';
+import { GameDialog, GameDialogTitle, GameDialogActions, CardPicker } from './GameDialog';
 
 interface CharacterActivationDialogProps {
   availableCharacters: Array<{ card: CharacterCard; slotIndex: number }>;
   hand: PearlCard[];
   diamonds: number;
-  portalSlotIndex: number;
   onActivate: (characterSlotIndex: number, usedCardIndices: number[]) => void;
   onCancel: () => void;
 }
@@ -17,7 +16,6 @@ export function CharacterActivationDialog({
   availableCharacters,
   hand,
   diamonds,
-  portalSlotIndex,
   onActivate,
   onCancel,
 }: CharacterActivationDialogProps) {
@@ -49,69 +47,53 @@ export function CharacterActivationDialog({
   };
 
   return (
-    <div className="character-activation-dialog-overlay">
-      <div className="character-activation-dialog">
-        <h2>Activate Character</h2>
-        
-          <div className="available-characters">
-            {availableCharacters.map(({ card, slotIndex }) => (
-              <img
-                key={slotIndex}
-                src={`/assets/${encodeURIComponent(card.imageName)}`}
-                alt={card.name}
-                className="character-choice-image"
-              />
-            ))}
-          </div>
+    <GameDialog>
+      <GameDialogTitle>Activate Character</GameDialogTitle>
 
-        {selectedCharacter && (
-          <>
-            {import.meta.env.VITE_DEBUG_COST === 'true' && (
-            <div className="cost-section">
-              <h3>Cost: {getCostSummary(selectedCharacter.cost)}</h3>              
-              <p className="cost-description">{describeCost(selectedCharacter.cost)}</p>
-              {diamonds > 0 && (
-                <p className="diamond-bonus">💎 {diamonds} available (reduces cost)</p>
-              )}
-            </div>)}
-
-            <div className="hand-section">
-              <h3>Select Cards to Pay ({selectedCardIndices.size} selected)</h3>
-              <div className="hand-grid">
-                {hand.map((card, idx) => (
-                  <button
-                    key={idx}
-                    className="hand-card-selector"
-                    onClick={() => toggleCard(idx)}
-                  >
-                    <img
-                      src={`/assets/Perlenkarte${card.value}.png`}
-                      alt={`Pearl ${card.value}`}
-                      className="hand-card-image"
-                    />
-                    {selectedCardIndices.has(idx) && (
-                      <div className="hand-card-selected-overlay" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
-
-        <div className="actions">
-          <button
-            className="btn-activate"
-            onClick={handleActivate}
-            disabled={!isValidPayment}
-          >
-            {isValidPayment ? 'Activate' : 'Invalid Payment'}
-          </button>
-          <button className="btn-cancel" onClick={onCancel}>
-            Cancel
-          </button>
-        </div>
+      <div className="flex flex-wrap justify-center gap-1.5 bg-white/10 p-1.5 rounded-lg sm:gap-2.5 sm:p-2">
+        {availableCharacters.map(({ card, slotIndex }) => (
+          <img
+            key={slotIndex}
+            src={`/assets/${encodeURIComponent(card.imageName)}`}
+            alt={card.name}
+            className="w-auto h-full max-h-[200px] object-contain block rounded-lg sm:max-h-[280px]"
+          />
+        ))}
       </div>
-    </div>
+
+      {selectedCharacter && (
+        <>
+          {import.meta.env.VITE_DEBUG_COST === 'true' && (
+            <div className="game-dialog-info">
+              <p className="game-dialog-info-text">Cost: {getCostSummary(selectedCharacter.cost)}</p>
+              <p className="game-dialog-info-text">{describeCost(selectedCharacter.cost)}</p>
+              {diamonds > 0 && (
+                <p className="game-dialog-info-text">💎 {diamonds} available (reduces cost)</p>
+              )}
+            </div>
+          )}
+
+          <div>
+            <h3 style={{ margin: '1rem 0 0.5rem', fontSize: 'clamp(0.9rem, 4vw, 1.1rem)' }}>
+              Select Cards to Pay ({selectedCardIndices.size} selected)
+            </h3>
+            <CardPicker
+              cards={hand}
+              selected={selectedCardIndices}
+              onToggle={toggleCard}
+              getImageSrc={(card) => `/assets/Perlenkarte${card.value}.png`}
+              getAlt={(card) => `Pearl ${card.value}`}
+            />
+          </div>
+        </>
+      )}
+
+      <GameDialogActions
+        confirmLabel={isValidPayment ? 'Activate' : 'Invalid Payment'}
+        confirmDisabled={!isValidPayment}
+        onConfirm={handleActivate}
+        onCancel={onCancel}
+      />
+    </GameDialog>
   );
 }

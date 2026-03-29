@@ -1,0 +1,187 @@
+/* =====================================================
+   Game Dialog Styles
+   Unified theme for all game dialogs
+   ===================================================== */
+
+.game-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.game-dialog {
+  background: #1a1a2e;
+  border: 2px solid #16c784;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: min(600px, 95vw);
+  width: 100%;
+  max-height: calc(100vh - 1rem);
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  color: #ccc;
+}
+
+.game-dialog--wide {
+  max-width: min(800px, 95vw);
+}
+
+.game-dialog--split {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.game-dialog-title {
+  margin: 0 0 1.5rem 0;
+  color: #16c784;
+  font-size: 1.6rem;
+  font-weight: bold;
+  text-align: center;
+  border-bottom: 2px solid #16c784;
+  padding-bottom: 0.75rem;
+}
+
+.game-dialog-info {
+  background: #fff3cd;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #ffc107;
+}
+
+.game-dialog-info-text {
+  margin: 0.5rem 0 0 0;
+  color: #856404;
+  font-size: 0.9rem;
+}
+
+.game-dialog-info-text--warning {
+  color: #d32f2f;
+  font-weight: bold;
+}
+
+.game-dialog-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.game-dialog-card-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  background: none;
+  border: none;
+  outline: none;
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+  width: 59px;
+  aspect-ratio: 59 / 92;
+  display: block;
+  overflow: hidden;
+  border-radius: 1px;
+  transition: transform 0.2s ease;
+}
+
+.game-dialog-card-btn:hover {
+  transform: translateY(-2px);
+}
+
+.game-dialog-card-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  display: block;
+}
+
+.game-dialog-card-selected-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(76, 175, 80, 0.5);
+}
+
+.game-dialog-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.game-dialog-btn-confirm,
+.game-dialog-btn-cancel,
+.game-dialog-btn-neutral {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+  border: 2px solid #333;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.game-dialog-btn-confirm {
+  background: #4CAF50;
+  color: white;
+}
+
+.game-dialog-btn-confirm:hover:not(:disabled) {
+  background: #45a049;
+  transform: scale(1.02);
+}
+
+.game-dialog-btn-confirm:disabled {
+  background: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.game-dialog-btn-cancel {
+  background: #f44336;
+  color: white;
+}
+
+.game-dialog-btn-cancel:hover {
+  background: #da190b;
+  transform: scale(1.02);
+}
+
+.game-dialog-btn-neutral {
+  background: #444;
+  color: white;
+  border-color: #666;
+}
+
+.game-dialog-btn-neutral:hover {
+  background: #555;
+  transform: scale(1.02);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .game-dialog {
+    padding: 1rem;
+  }
+
+  .game-dialog--split {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .game-dialog-card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .game-dialog-actions {
+    flex-direction: column;
+  }
+}
