@@ -63,7 +63,7 @@ Das Spiel SHALL alle 18 Fähigkeitstypen mit eindeutigen Bezeichnern und Metadat
 #### Scenario: Alle 18 Fähigkeitstypen werden erkannt
 - **WHEN** eine Charakterkarte mit einem Fähigkeitstyp aus assets/cards.json geladen wird
 - **THEN** wird der Fähigkeitstyp erkannt und in CharacterCard.abilities gespeichert
-- **AND** folgende Typen werden unterstützt: none, handLimitPlusOne, oneExtraActionPerTurn, threeExtraActions, nextPlayerOneExtraAction, discardOpponentCharacter, stealOpponentHandCard, takeBackPlayedPearl, onesCanBeEights, threesCanBeAny, decreaseWithPearl, changeCharacterActions, changeHandActions, previewCharacter, tradeTwoForDiamond, numberAddditionalCardActions, anyAddditionalCardActions, irrlicht
+- **AND** folgende Typen werden unterstützt: none, handLimitPlusOne, oneExtraActionPerTurn, threeExtraActions, nextPlayerOneExtraAction, discardOpponentCharacter, stealOpponentHandCard, takeBackPlayedPearl, onesCanBeEights, threesCanBeAny, decreaseWithPearl, changeCharacterActions, changeHandActions, previewCharacter, tradeTwoForDiamond, numberAdditionalCardActions, anyAdditionalCardActions, irrlicht
 - **AND** unbekannte Typen werden ignoriert und in der Console als Warning ausgegeben (keine Auswirkung auf Gameplay)
 
 #### Scenario: Klassifizierung in rote und blaue Fähigkeiten

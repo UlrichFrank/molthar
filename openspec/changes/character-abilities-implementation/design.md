@@ -34,7 +34,7 @@ Die Spielarchitektur verwendet:
 - Barrierefreiheitsfunktionen oder UI-Animationen für Fähigkeits-Trigger (werden separat implementiert)
 - Fähigkeits-Kombos oder Stapelregeln (es wird von orthogonalen Effekten ausgegangen)
 - Balancing/Tuning (Fokus auf Implementierungskorrektheit)
-- irrlicht-Sonderregel (Tier 7, zukünftige Überlegung)
+- Barrierefreiheitsfunktionen oder UI-Animationen für Fähigkeits-Trigger (werden separat implementiert)
 
 ## Entscheidungen
 
@@ -207,6 +207,64 @@ Auch gedruckte Perlenwerte aus aktivierten Charakteren (`numberAdditionalCardAct
 **Verworfene Alternativen**:
 - Move-Handler prüfen Fähigkeiten → Kosten vor Validierung anpassen. Abgelehnt: dupliziert Validierungslogik.
 - Ein „Super-Validator" pro Fähigkeit. Abgelehnt: 18 Validatoren = Wartungs-Albtraum.
+
+### Entscheidung 6: CharacterActivationDialog – visuelle Struktur der Bezahl-Sektion
+
+**Wahl**: Der Dialog erhält zwei klar getrennte Sektionen: „Handkarten" und „Fähigkeiten". In der Fähigkeiten-Sektion erscheinen nur aktivierte Charaktere mit bezahl-relevanten Fähigkeiten (`onesCanBeEights`, `threesCanBeAny`, `decreaseWithPearl`, `numberAdditionalCardActions`, `anyAdditionalCardActions`).
+
+```
+┌─────────────────────────────────────────────┐
+│  [Charakterkarte die aktiviert werden soll] │
+├─────────────────────────────────────────────┤
+│  Handkarten                                 │
+│  ┌───┐ ┌───┐ ┌───┐ ┌───┐                   │
+│  │ 3 │ │ 1 │ │ 5 │ │ 3 │  ← Auswählbar     │
+│  └───┘ └───┘ └───┘ └───┘                   │
+│      ↑ ausgewählte Karten: Badges darunter  │
+│  ┌───────────────────────────────────────┐  │
+│  │ [−1💎]  (decreaseWithPearl-Badge)    │  │
+│  └───────────────────────────────────────┘  │
+├─────────────────────────────────────────────┤
+│  Fähigkeiten (nur wenn vorhanden)           │
+│  ┌──────────────────────────────────────┐   │
+│  │ [Kartenbild]  Peter Pan              │   │
+│  │ Deine 1er können als 8 zählen        │   │
+│  │ (aktiv sobald eine 1 in Handkarten   │   │
+│  │  ausgewählt ist)                     │   │
+│  └──────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────┐   │
+│  │ [Kartenbild]  Zwergenkämpfer (3)     │   │
+│  │  [ +3 hinzufügen ]                   │   │
+│  └──────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────┐   │
+│  │ [Kartenbild]  Weißer Drache          │   │
+│  │  [ +1 ][ +2 ][ +3 ]...[ +8 ]        │   │
+│  └──────────────────────────────────────┘   │
+├─────────────────────────────────────────────┤
+│         [ Aktivieren ]  [ Abbrechen ]       │
+└─────────────────────────────────────────────┘
+```
+
+**Fähigkeitstypen – visuelle Behandlung:**
+
+| Fähigkeit | Karte | Darstellung |
+|---|---|---|
+| `onesCanBeEights` | Peter Pan | Kleiner Badge „1→8" unterhalb der ausgewählten 1er-Handkarte. Immer aktiv wenn Fähigkeit vorhanden — kein separater Button. |
+| `threesCanBeAny` | Feuerteufel | Wertauswahl [1][2]…[8] unterhalb der ausgewählten 3er-Handkarte. |
+| `decreaseWithPearl` | Red Sonja | Badge „−1 💎" unterhalb jeder ausgewählten Handkarte mit Wert > 1. Ein Klick togglet die Anwendung (kostet 1 Diamant). |
+| `numberAdditionalCardActions` | Zwergenkämpfer, Phoenix | Kartenbild + Button „+N hinzufügen" (N = aufgedruckter Perlenwert aus `printedPearls`). Nur einmal pro Karte nutzbar. |
+| `anyAdditionalCardActions` | Weißer Drache | Kartenbild + [+1][+2]…[+8] Wertauswahl. Nur einmal pro Karte nutzbar. |
+
+**`decreaseWithPearl` als Badge (nicht Button in separatem Bereich):** Der Badge erscheint direkt unterhalb der ausgewählten Handkarte, sobald Red Sonja aktiviert ist und die Karte einen Wert > 1 hat. Damit ist die räumliche Beziehung zwischen Karte und Modifikation klar. Ein Klick auf den Badge wendet −1 an (Diamant wird reserviert), ein zweiter Klick hebt es auf.
+
+**`onesCanBeEights` automatisch:** Wenn Peter Pan aktiviert ist und eine 1 ausgewählt wird, erscheint automatisch der „1→8"-Badge. Der Spieler muss nicht aktiv klicken — er muss lediglich keine 1 auswählen, wenn er die Fähigkeit nicht nutzen will. (Kann via Badge-Klick deaktiviert werden.)
+
+**Begründung**: Bezahl-Fähigkeiten sind kontextuell an bestimmte Handkarten-Auswahlen gebunden (`decreaseWithPearl`, `onesCanBeEights`, `threesCanBeAny`) oder stellen eigenständige virtuelle Karten dar (`numberAdditionalCardActions`, `anyAdditionalCardActions`). Die räumliche Trennung macht diese Unterscheidung sofort sichtbar. Kartenbilder (statt nur Text) bieten Wiedererkennungswert und spiegeln die physische Spielerfahrung wider.
+
+**Verworfene Alternativen**:
+- Abilities als Text-Buttons nach Kartenauswahl (aktueller Stand): nicht auffindbar, kein Kartenbild, kein Zusammenhang zwischen Fähigkeit und betroffener Karte.
+- Modal-in-Modal für Wertauswahl: zu viel Interaktionstiefe für eine einfache Wahl.
+- Automatische Anwendung aller Fähigkeiten: macht es für den Spieler unmöglich, Fähigkeiten bewusst NICHT zu nutzen.
 
 ## Risiken / Trade-offs
 
