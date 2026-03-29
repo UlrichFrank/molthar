@@ -25,21 +25,19 @@ export function CharacterReplacementDialog({ newCard, portalCards, onSelect, onC
       <GameDialogTitle>Replace Portal Card</GameDialogTitle>
       <p style={{ margin: '0 0 1.5rem', textAlign: 'center' }}>Both portal slots are full. Choose which card to replace:</p>
 
-      <div className="flex flex-col gap-4 mb-6">
-        <div className="flex justify-center">
-          <CharacterImage
-            card={newCard}
-            className="w-auto max-h-[200px] object-contain block rounded-lg"
-          />
-        </div>
+      <div className="flex flex-col items-center gap-4 mb-6">
+        <CharacterImage
+          card={newCard}
+          className="w-auto max-h-[200px] object-contain block rounded-lg"
+        />
 
-        <div className="text-center text-[#16c784] text-2xl">↓</div>
+        <div className="text-[#16c784] text-2xl">↓</div>
 
-        <div className="flex gap-4 justify-center flex-wrap">
+        <div className="flex gap-6 justify-center">
           {portalCards.map((card, idx) => (
             <button
               key={idx}
-              className="bg-transparent border-2 border-[#444] rounded-lg p-2 cursor-pointer flex flex-col items-center gap-2 hover:border-[#16c784] hover:shadow-[0_0_12px_rgba(22,199,132,0.3)] transition-all duration-200"
+              className="appearance-none bg-transparent border-none outline-none p-0 cursor-pointer hover:-translate-y-0.5 transition-transform"
               onClick={() => onSelect(idx)}
             >
               <CharacterImage
