@@ -4,12 +4,12 @@ Das Spiel definiert 18 verschiedene Charakter-Fähigkeitstypen in `assets/cards.
 
 ## Was sich ändert
 
-- **Alle 18 Charakter-Fähigkeitstypen implementieren** (rote und blaue) in der Spielzustands-Maschine und der Kostenvalidierung
+- **Alle 18 Charakter-Fähigkeitstypen implementieren** (rote und blaue) in der Spielzustands-Maschine
 - **Fähigkeits-Ausführungsmodell einführen** mit deklarativem State: `PlayerState.activeAbilities`, `PlayerState.handLimitModifier`, `GameState.nextPlayerExtraAction`, `GameState.lastPlayedPearlId`
 - **CharacterAbility-Typsystem erweitern** in `types.ts` auf alle 18 Typen (aktuell nur `handLimitPlusOne` bekannt)
-- **Kostenvalidierung anpassen** (`costCalculation.ts`) für Fähigkeits-Modifikatoren: Wildcard-Substitutionen (`onesCanBeEights`, `threesCanBeAny`), Diamant-Modulation (`decreaseWithPearl`), gedruckte Perlenwerte (`numberAdditionalCardActions`, `anyAdditionalCardActions`)
-- **Manuelle Spielerauswahl bei Cost-Abilities**: Der Spieler wählt explizit, welche aufgedruckten Perlenwerte er zur Kostenerfüllung einsetzt – das Spiel prüft, ob eine gültige Kombination aus Handkarten und ausgewählten gedruckten Perlen existiert
-- **Fähigkeits-Trigger zum richtigen Zeitpunkt einbauen**: vor der ersten Aktion, während einer Aktion (Kostenvalidierung), nach der letzten Aktion, Zugende
+- **Kostenvalidierung bleibt unverändert**: Die bestehende Logik (`costCalculation.ts`) wird nicht angetastet. Stattdessen wird die "Bezahl-Hand" (Karten) vom Frontend zusammengestellt und validiert an die Kernfunktion übergeben.
+- **Manuelle Spielerauswahl bei Cost-Abilities**: Der Spieler wählt im `CharacterActivationDialog` explizit aus, welche echten Handkarten er für welchen Wert nutzt (unter Anwendung von z. B. `onesCanBeEights` oder `decreaseWithPearl`) und welche zusätzlichen virtuellen Perlenkarten durch aktivierte Charaktere bereitgestellt werden. Diese Auswahl wird als angewendete "virtuelle Hand" an das Backend gesendet.
+- **Fähigkeits-Trigger zum richtigen Zeitpunkt einbauen**: vor der ersten Aktion, während einer Aktion, nach der letzten Aktion, Zugende
 - **Rote Fähigkeits-Nebeneffekte behandeln**: zusätzliche Aktionen für aktuellen Spieler, zusätzliche Aktionen für nächsten Spieler, Gegner-Karte entfernen, Handkarte stehlen, Perlenkarte zurückholen
 
 ## Fähigkeiten
@@ -19,12 +19,12 @@ Das Spiel definiert 18 verschiedene Charakter-Fähigkeitstypen in `assets/cards.
 - `ability-cost-modifiers`: Erweiterungen der Kostenvalidierung für Wildcard-Substitutionen, Diamant-Wertanpassung und manuelle Auswahl aufgedruckter Perlenwerte
 
 ### Geänderte Fähigkeiten
-- `game-web-spec`: Kostenvalidierung unterstützt jetzt Fähigkeits-Modifikatoren (Wildcards substituieren Perlenwerte, Diamanten reduzieren Werte, gedruckte Perlen ergänzen Handkarten durch Spielerauswahl)
+- `game-web-spec`: Im UI können Spieler nun ihre Fähigkeiten auf Handkarten anwenden (Werte überschreiben, Diamanten opfern) und virtuelle Bonuskarten zu ihrer kombinierten Bezahlhand hinzufügen.
 
 ## Auswirkungen
 
-- **shared/src/game/types.ts**: Erweiterung des CharacterAbility-Typs (18 Typen)
-- **shared/src/game/index.ts**: Spielzustands-Maschine (Fähigkeitsausführung in Moves, State-Updates, `turn.onBegin`/`turn.onEnd`-Hooks)
-- **shared/src/game/costCalculation.ts**: Wildcard- und Reduktionslogik für Fähigkeits-Modifikatoren, Unterstützung für gedruckte Perlenwerte via Spielerauswahl
+- **shared/src/game/types.ts**: Erweiterung des CharacterAbility-Typs (18 Typen) sowie Definition vom neuen Interface `PaymentSelection`.
+- **shared/src/game/index.ts**: Spielzustands-Maschine (Fähigkeitsausführung in Moves, State-Updates, Move `activatePortalCard` erhält modifizierte Karten).
+- **shared/src/game/costCalculation.ts**: Bleibt in ihrer Kern-Validierungslogik völlig unangetastet, da transformierte Werte übergeben werden.
 - **Spielbalance**: 17 bisher inaktive Charakterkarten werden strategisch relevant
-- **Spieler-API**: Keine Breaking Changes an der Client/Server-Schnittstelle (Fähigkeiten sind interne State-Effekte)
+- **Spieler-API**: `activatePortalCard` empfängt nun ein Array von `PaymentSelection` anstelle von simplen Kartenindizes.

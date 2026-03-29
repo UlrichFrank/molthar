@@ -178,26 +178,31 @@ Spielschleifenzeitpunkte:
 - Event-basiert: „wenn Aktion abgeschlossen" auslösen. Abgelehnt: implizite Reihenfolge, schwer kontrollierbar.
 - Karten-spezifisches Timing: Jede Fähigkeit gibt an, wann sie auslöst. Abgelehnt: erhöht Datenpflege, dupliziert Spielschleifenwissen.
 
-### Entscheidung 5: Kostenvalidierung + Fähigkeits-Modifikatoren
+### Entscheidung 5: Manuelle Zusammenstellung der virtuellen Bezahlhand (via Frontend)
 
-**Wahl**: `costCalculation.ts` erweitern, um Fähigkeits-Modifikator-Kontext zu akzeptieren, statt Fähigkeitslogik in Move-Handler einzubetten.
+**Wahl**: `costCalculation.ts` bleibt unberührt. Stattdessen werden die Fähigkeiten im Frontend (`CharacterActivationDialog`) angewendet.
 
 ```
-validateCostPayment(
-  cost: CostComponent[],
-  selectedCards: PearlCard[],
-  diamonds: number,
-  abilityModifiers?: {  // NEU
-    wildcardsAvailable: { ones: boolean, threes: boolean },  // aus Fähigkeiten
-    canDecreaseBy: number,                                   // aus decreaseWithPearl
-    selectedPrintedPearls: PearlCard[]                       // manuelle Spielerauswahl
-  }
-) → boolean
+// Neues Interface für die Auswahl der Bezahl-Karten
+interface PaymentSelection {
+  source: 'hand' | 'ability';
+  handCardIndex?: number;
+  abilityType?: CharacterAbilityType; 
+  value: 1|2|3|4|5|6|7|8; // Der gewünschte finale Wert
+  diamondsUsed?: number;  // Im Frontend zugewiesene Diamanten
+}
+
+activatePortalCard(
+  cardIndex: number,
+  selections: PaymentSelection[]
+) → void
 ```
 
-**Begründung**: Die Kostenvalidierung ist bereits komplex (~600 Zeilen, 9 Komponentenarten). Fähigkeiten modifizieren Kostenanforderungen, daher gehören sie in dieses Modul, nicht verteilt über Move-Handler. Komplexität bleibt lokalisiert.
+**Begründung**: Die Kostenvalidierung ist bereits komplex (~600 Zeilen). Indem das Frontend die Bezahl-Karten explizit formt – d.h. aus einer 3 eine 8 macht (`threesCanBeAny`) oder eine 6 durch einen Diamanten auf 5 reduziert (`decreaseWithPearl`) –, bleiben diese wilden Mutationen aus dem Kern-Algorithmus heraus.
+Die Backend-Move-Logik `activatePortalCard` führt (aus Sicherheitsgründen) lediglich eine Integritätsprüfung durch (Hat der Spieler die Karte? Besitzt er die Fähigkeit? Reichen die Diamanten?), konvertiert die `PaymentSelection`s in reguläre `PearlCard`-Objekte und überreicht diese an die originale, dumme Validierungsfunktion `validateCostPayment`.
 
-**Manuelle Auswahl bei aufgedruckten Perlen**: Der Spieler wählt im UI explizit, welche aufgedruckten Perlenwerte (oder Wildcards) er zur Kostenerfüllung hinzuzieht. Diese Auswahl wird als `selectedPrintedPearls` an die Validierungsfunktion übergeben. Die Funktion prüft dann, ob Handkarten + gewählte gedruckte Perlen die Kosten decken. Wildcard-Wertbelegungen werden automatisch ermittelt, sofern eine gültige Kombination existiert.
+**Manuelle Auswahl**: Der Spieler macht im UI alle Angaben manuell. Er wählt "Ich benutze Perlenkarte X auf Platz 2 mit Wert 3, wende meine Wildcard-Fähigkeit an und mache sie zu einer 8".
+Auch gedruckte Perlenwerte aus aktivierten Charakteren (`numberAdditionalCardActions`) werden im Dialog als anklickbare virtuelle Perlen dargestellt, die der Bezahl-Selektion hinzugefügt werden können.
 
 **Verworfene Alternativen**:
 - Move-Handler prüfen Fähigkeiten → Kosten vor Validierung anpassen. Abgelehnt: dupliziert Validierungslogik.

@@ -29,21 +29,16 @@
 - [x] 1.14 Integrationstest: Charakter mit roter Fähigkeit aktivieren, G-State spiegelt Effekt wider (nicht Move-Rückgabewert)
 - [x] 1.15 Integrationstest: Alle 5 roten Fähigkeiten werden via `applyRedAbility` ausgeführt und stören sich nicht gegenseitig
 
-## TIER 2: Blaue Wildcards (onesCanBeEights, threesCanBeAny, decreaseWithPearl)
+## TIER 2: Virtuelle Bezahlkarten (Frontend-Auswahl & Backend-Validierung)
 
-- [ ] 2.1 `costCalculation.validateCostPayment` auf optionalen `abilityModifiers`-Parameter refaktorieren
-- [ ] 2.2 Wildcard-Substitutionslogik hinzufügen: `onesCanBeEights` (1 wird bei Validierung als 8 behandelt)
-- [ ] 2.3 Wildcard-Substitutionslogik hinzufügen: `threesCanBeAny` (3 wird als beliebiger Wert 1–8 behandelt)
-- [ ] 2.4 Test: Kostenvalidierung mit `onesCanBeEights`: eine einzelne 1 erfüllt eine 8er-Anforderung
-- [ ] 2.5 Test: Kostenvalidierung mit `threesCanBeAny`: eine einzelne 3 erfüllt eine beliebige Einzelwert-Anforderung
-- [ ] 2.6 Test: Kostenvalidierung mit beiden Wildcards: kombinierte Permutationen funktionieren korrekt
-- [ ] 2.7 `decreaseWithPearl`-Logik hinzufügen: Diamant kann den Perlenwert um 1 reduzieren
-- [ ] 2.8 Einschränkungen erzwingen: nur 1 Diamant pro Perlenkarte, Mindestwert ist 1
-- [ ] 2.9 Test: `decreaseWithPearl`: 7 + Diamant = 6 gilt, 1 + Diamant wird abgelehnt
-- [ ] 2.10 Test: `decreaseWithPearl` in Kombination mit Wildcard: Modifier-Stapelung in einer Kostenprüfung
-- [ ] 2.11 Prüfen, dass bestehende `costCalculation`-Tests weiterhin bestehen (keine Regression durch neue Parameter)
-- [ ] 2.12 `activateCharacter`-Move aktualisieren: `activeAbilities` sammeln und an `validateCostPayment` übergeben
-- [ ] 2.13 Integrationstest: Charakter mit Wildcard-Fähigkeit aktivieren, Kostenvalidierung nutzt Modifier
+- [ ] 2.1 Neues `PaymentSelection`-Interface in `types.ts` definieren (`source`, `value`, `handCardIndex`, `abilityType`, `diamondsUsed`)
+- [ ] 2.2 `activatePortalCard`-Move so umbauen, dass er Parameter `selections: PaymentSelection[]` statt `selectedCardIndices` akzeptiert
+- [ ] 2.3 Backend-Verifizierung: Prüfen, ob für jede `PaymentSelection` die echten Voraussetzungen (Handkarten existieren, Diamanten vorhanden, Fähigkeiten aktiv) erfüllt sind
+- [ ] 2.4 Backend-Mapping: Die validierten `PaymentSelection`s in virtuelle `PearlCard`-Strukturen umwandeln und an die *unveränderte* `validateCostPayment` weiterleiten
+- [ ] 2.5 Die Entfernungs-Logik aktualisieren, sodass die tatsächlich konsumierten originären Handkarten und Diamanten sicher entfernt werden
+- [ ] 2.6 Unit Tests: Testen der Backend-Validierung (Missbrauchsprävention) von illegalen `selections` (z.B. Diamant eingesetzt ohne Diamant-Besitz)
+- [ ] 2.7 Frontend (CharacterActivationDialog): Spieler listet seine echten Handkarten + einsetzbare aktivierte Perlen-Fähigkeiten auf und formt daraus die `PaymentSelection`s
+- [ ] 2.8 Integrationstest: Erfolgreiche `activatePortalCard`-Ausführung mit modifizierten/virtuellen Perlen
 
 ## TIER 3: Blaue Aktions-Modulation (oneExtraActionPerTurn)
 
@@ -55,42 +50,34 @@
 
 ## TIER 4: Blaue Hand-/Portal-Aktionen (changeCharacterActions, changeHandActions)
 
-- [ ] 4.1 Move `swapPortalCharacter` zur `PortaleVonMolthar.moves` hinzufügen (neuer boardgame.io-Move)
-- [ ] 4.2 Guard: `swapPortalCharacter` gibt `INVALID_MOVE` zurück, wenn `G.actionCount > 0` (nicht vor der ersten Aktion)
-- [ ] 4.3 Guard: `swapPortalCharacter` gibt `INVALID_MOVE` zurück, wenn Spieler keine `changeCharacterActions`-Fähigkeit hat
-- [ ] 4.4 Test: `swapPortalCharacter` funktioniert mit `actionCount === 0`, wird bei `actionCount > 0` abgelehnt
-- [ ] 4.5 Move `rehandCards` zur `PortaleVonMolthar.moves` hinzufügen (neuer boardgame.io-Move)
-- [ ] 4.6 Guard: `rehandCards` gibt `INVALID_MOVE` zurück, wenn `G.actionCount < G.maxActions` (nicht nach der letzten Aktion)
-- [ ] 4.7 Guard: `rehandCards` gibt `INVALID_MOVE` zurück, wenn Spieler keine `changeHandActions`-Fähigkeit hat
-- [ ] 4.8 Test: `rehandCards` funktioniert nur nach der letzten Aktion, zieht gleich viele Karten wie abgelegt
+- [x] 4.1 Move `swapPortalCharacter` zur `PortaleVonMolthar.moves` hinzufügen (neuer boardgame.io-Move)
+- [x] 4.2 Guard: `swapPortalCharacter` gibt `INVALID_MOVE` zurück, wenn `G.actionCount > 0` (nicht vor der ersten Aktion)
+- [x] 4.3 Guard: `swapPortalCharacter` gibt `INVALID_MOVE` zurück, wenn Spieler keine `changeCharacterActions`-Fähigkeit hat
+- [x] 4.4 Test: `swapPortalCharacter` funktioniert mit `actionCount === 0`, wird bei `actionCount > 0` abgelehnt
+- [x] 4.5 Move `rehandCards` zur `PortaleVonMolthar.moves` hinzufügen (neuer boardgame.io-Move)
+- [x] 4.6 Guard: `rehandCards` gibt `INVALID_MOVE` zurück, wenn `G.actionCount < G.maxActions` (nicht nach der letzten Aktion)
+- [x] 4.7 Guard: `rehandCards` gibt `INVALID_MOVE` zurück, wenn Spieler keine `changeHandActions`-Fähigkeit hat
+- [x] 4.8 Test: `rehandCards` funktioniert nur nach der letzten Aktion, zieht gleich viele Karten wie abgelegt
 
 ## TIER 5: Blaue Information & Ressourcen (previewCharacter, tradeTwoForDiamond)
 
-- [ ] 5.1 Move `peekCharacterDeck` zur `PortaleVonMolthar.moves` hinzufügen
-- [ ] 5.2 Guard: `peekCharacterDeck` gibt `INVALID_MOVE` zurück, wenn `G.actionCount > 0` oder Spieler keine `previewCharacter`-Fähigkeit hat
-- [ ] 5.3 boardgame.io Secret State: eingesehene Karte in `G.players[id].peekedCard` speichern (geheim für Gegner via `playerView`)
-- [ ] 5.4 Test: `peekCharacterDeck` zeigt die oberste Karte dem Spieler, nicht sichtbar in der Gegner-Ansicht
-- [ ] 5.5 Move `tradeForDiamond` zur `PortaleVonMolthar.moves` hinzufügen
-- [ ] 5.6 Guard: `tradeForDiamond` gibt `INVALID_MOVE` zurück, wenn Spieler keine 2-Perle oder keine `tradeTwoForDiamond`-Fähigkeit hat
-- [ ] 5.7 Test: `tradeForDiamond` entfernt eine 2-Perle aus der Hand, fügt 1 Diamant zu `G.players[id].diamonds` hinzu
-- [ ] 5.8 Test: Tausch kann mehrfach ausgeführt werden, wenn mehrere 2-Perlen auf der Hand sind
+- [x] 5.1 Move `peekCharacterDeck` zur `PortaleVonMolthar.moves` hinzufügen
+- [x] 5.2 Guard: `peekCharacterDeck` gibt `INVALID_MOVE` zurück, wenn `G.actionCount > 0` oder Spieler keine `previewCharacter`-Fähigkeit hat
+- [x] 5.3 boardgame.io Secret State: eingesehene Karte in `G.players[id].peekedCard` speichern (geheim für Gegner via `playerView`)
+- [x] 5.4 Test: `peekCharacterDeck` zeigt die oberste Karte dem Spieler, nicht sichtbar in der Gegner-Ansicht
+- [x] 5.5 Move `tradeForDiamond` zur `PortaleVonMolthar.moves` hinzufügen
+- [x] 5.6 Guard: `tradeForDiamond` gibt `INVALID_MOVE` zurück, wenn Spieler keine 2-Perle oder keine `tradeTwoForDiamond`-Fähigkeit hat
+- [x] 5.7 Test: `tradeForDiamond` entfernt eine 2-Perle aus der Hand, fügt 1 Diamant zu `G.players[id].diamonds` hinzu
+- [x] 5.8 Test: Tausch kann mehrfach ausgeführt werden, wenn mehrere 2-Perlen auf der Hand sind
 
 ## TIER 6: Kartenspezifisch – Aufgedruckte Perlenwerte mit manueller Auswahl (numberAdditionalCardActions, anyAdditionalCardActions)
 
-- [ ] 6.1 Feld `printedPearls: PrintedPearlValue[]` zu `CharacterCard` hinzufügen (Wert oder Wildcard `?`)
-- [ ] 6.2 `cardDatabase.ts` aktualisieren: aufgedruckte Perlenwerte aus Kartendaten parsen
-- [ ] 6.3 Typdefinition `PrintedPearlValue` anlegen: `{ value: number } | { wildcard: true }`
-- [ ] 6.4 `activateCharacter`-Move erweitern: optionalen Parameter `selectedPrintedPearls: PrintedPearlValue[]` aufnehmen
-- [ ] 6.5 Validierung im Move: gegebene `selectedPrintedPearls` müssen eine Teilmenge der gedruckten Perlen der aktivierten Karte sein
-- [ ] 6.6 `validateCostPayment` erweitern: `selectedPrintedPearls` in `abilityModifiers` übergeben und bei der Kostenerfüllung berücksichtigen
-- [ ] 6.7 Logik: Handkarten + gewählte gedruckte Perlen = kombinierter Pool für Kostenvalidierung; gedruckte Perlen verbrauchen keine Handkarte
-- [ ] 6.8 Wildcard-Belegung (`?`) für gedruckte Wildcards serverseitig automatisch ermitteln, sofern eine gültige Kombination existiert
-- [ ] 6.9 Test: Kostenvalidierung mit aufgedruckter Perle: Handwert 4 + gedruckter Wert 5 erfüllt eine 9er-Anforderung
-- [ ] 6.10 Test: Kostenvalidierung mit aufgedruckter Wildcard: `?`-Perle kann jeden fehlenden Wert ersetzen
-- [ ] 6.11 Test: Aufgedruckte Perlen verbrauchen keine Handkarte (nur tatsächlich gespielte Handkarten kommen auf Ablagestapel)
-- [ ] 6.12 Test: Spieler sendet leeres `selectedPrintedPearls` → kein Fehler, Validierung ignoriert gedruckte Perlen
-- [ ] 6.13 Test: Spieler sendet ungültige Auswahl (Wert nicht auf Karte vorhanden) → `INVALID_MOVE`
-- [ ] 6.14 Integrationstest: Charakter mit aufgedruckter Perle aktivieren, Kostenvalidierung berücksichtigt manuelle Auswahl
+- [ ] 6.1 Backend: Validierungslogik für `PaymentSelection` (`source === 'ability'`) in `activatePortalCard` hinzufügen, die prüft, ob der Spieler eine aktive Charakterkarte mit `numberAdditionalCardActions` oder `anyAdditionalCardActions` besitzt.
+- [ ] 6.2 Backend: Sicherstellen, dass diese virtuellen Bonuskarten nicht vom Handkartenstapel entfernt werden, sondern nur als einmalige temporäre Zahlhilfen bei `consumeCosts` dienen.
+- [ ] 6.3 Test: Backend erlaubt Kostenvalidierung durch Kombination aus z.B. Handwert 4 + `PaymentSelection` für gedruckten Wert 5 aus Charakterfähigkeit.
+- [ ] 6.4 Test: Backend erlaubt Kostenvalidierung mit `PaymentSelection` (source: 'ability') für gedruckte `?`-Wildcards, sofern die Fähigkeit `anyAdditionalCardActions` aktiv ist.
+- [ ] 6.5 Test: Backend blockiert illegale `PaymentSelection`s (z.B. beanspruchte Bonuskarte, obwohl der Charakter nicht aktiv ist).
+- [ ] 6.6 Frontend (CharacterActivationDialog): Das Dialog-UI listet neben den Handkarten auch die aufgedruckten Perlen der aktivierten Charaktere auf und erlaubt ihre Aufnahme in die Bezahl-Selektion.
 
 ## TIER 7: Sonder-/Komplex (irrlicht)
 
