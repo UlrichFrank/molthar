@@ -18,6 +18,7 @@ import { CharacterReplacementDialog } from './CharacterReplacementDialog';
 import { CharacterActivationDialog } from './CharacterActivationDialog';
 import { DiscardCardsDialog } from './DiscardCardsDialog';
 import { PlayerNameDisplay } from './PlayerNameDisplay';
+import '../styles/dialogs.css';
 
 interface CanvasGameBoardProps {
   G: GameState;
@@ -465,7 +466,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           }]}
           hand={me.hand}
           diamonds={me.diamonds}
-          portalSlotIndex={dialog.dialog.portalSlotIndex}
           onActivate={(portalSlotIndex, usedCardIndices) => {
             moves.activatePortalCard(portalSlotIndex, usedCardIndices);
             dialog.closeDialog();

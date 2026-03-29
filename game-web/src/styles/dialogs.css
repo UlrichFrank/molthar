@@ -18,15 +18,18 @@
   border: 2px solid #16c784;
   border-radius: 12px;
   padding: 2rem;
-  max-width: 600px;
+  max-width: min(600px, 95vw);
   width: 100%;
   max-height: calc(100vh - 1rem);
   overflow-y: auto;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  color: #ccc;
 }
 
 .game-dialog--wide {
-  max-width: 800px;
+  max-width: min(800px, 95vw);
 }
 
 .game-dialog--split {
@@ -76,6 +79,7 @@
 }
 
 .game-dialog-card-btn {
+  -webkit-appearance: none;
   appearance: none;
   background: none;
   border: none;
@@ -168,8 +172,7 @@
 /* Responsive */
 @media (max-width: 600px) {
   .game-dialog {
-    padding: 1.5rem;
-    margin: 0 1rem;
+    padding: 1rem;
   }
 
   .game-dialog--split {
