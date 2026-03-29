@@ -104,33 +104,33 @@
 
 ### 9.1 Datenladen: `printedPearls` in `mapRawCard` befüllen
 
-- [ ] 9.1 `mapRawCard` in `cardDatabase.ts`: Wenn `ability.type === 'numberAdditionalCardActions'`, setze `card.printedPearls = [{ value: raw.ability.value }]`. Wenn `ability.type === 'anyAdditionalCardActions'`, setze `card.printedPearls = [{ wildcard: true }]`. Für alle anderen Typen: `printedPearls` weglassen.
+- [x] 9.1 `mapRawCard` in `cardDatabase.ts`: Wenn `ability.type === 'numberAdditionalCardActions'`, setze `card.printedPearls = [{ value: raw.ability.value }]`. Wenn `ability.type === 'anyAdditionalCardActions'`, setze `card.printedPearls = [{ wildcard: true }]`. Für alle anderen Typen: `printedPearls` weglassen.
 
 ### 9.2 Dialog-Grundstruktur: Zwei Sektionen
 
-- [ ] 9.2 Dialog in zwei klare Sektionen aufteilen: „Handkarten" (bestehend, bereinigt) und „Fähigkeiten" (neu). Die Fähigkeiten-Sektion erscheint nur, wenn mindestens eine bezahl-relevante Fähigkeit aktiv ist (`onesCanBeEights`, `threesCanBeAny`, `decreaseWithPearl`, `numberAdditionalCardActions`, `anyAdditionalCardActions`). Jede Fähigkeitskarte zeigt ihr Kartenbild (`activatedCharacters[].card.imageName`) plus Typ-spezifische Interaktionselemente.
+- [x] 9.2 Dialog in zwei klare Sektionen aufteilen: „Handkarten" (bestehend, bereinigt) und „Fähigkeiten" (neu). Die Fähigkeiten-Sektion erscheint nur, wenn mindestens eine bezahl-relevante Fähigkeit aktiv ist (`onesCanBeEights`, `threesCanBeAny`, `decreaseWithPearl`, `numberAdditionalCardActions`, `anyAdditionalCardActions`). Jede Fähigkeitskarte zeigt ihr Kartenbild (`activatedCharacters[].card.imageName`) plus Typ-spezifische Interaktionselemente.
 
 ### 9.3 `onesCanBeEights` – Badge auf ausgewählter 1er-Handkarte
 
-- [ ] 9.3 Wenn Peter Pan (`onesCanBeEights`) aktiv ist und eine Handkarte mit Wert `1` ausgewählt wird: Badge „1→8" direkt unterhalb der Karte anzeigen. Badge ist klickbar: an = Karte zählt als 8, aus = Karte zählt als 1. Standard: an (automatisch aktiviert bei Auswahl der 1).
+- [x] 9.3 Wenn Peter Pan (`onesCanBeEights`) aktiv ist und eine Handkarte mit Wert `1` ausgewählt wird: Badge „1→8" direkt unterhalb der Karte anzeigen. Badge ist klickbar: an = Karte zählt als 8, aus = Karte zählt als 1. Standard: an (automatisch aktiviert bei Auswahl der 1).
 
 ### 9.4 `threesCanBeAny` – Wertauswahl unterhalb ausgewählter 3er-Handkarte
 
-- [ ] 9.4 Wenn Feuerteufel (`threesCanBeAny`) aktiv ist und eine Handkarte mit Wert `3` ausgewählt wird: Kompakte Wertauswahl [1][2][3][4][5][6][7][8] direkt unterhalb der Karte einblenden. Standardwert: `3` (unverändert). Gewählter Wert hebt sich visuell hervor.
+- [x] 9.4 Wenn Feuerteufel (`threesCanBeAny`) aktiv ist und eine Handkarte mit Wert `3` ausgewählt wird: Kompakte Wertauswahl [1][2][3][4][5][6][7][8] direkt unterhalb der Karte einblenden. Standardwert: `3` (unverändert). Gewählter Wert hebt sich visuell hervor.
 
 ### 9.5 `decreaseWithPearl` – Badge unterhalb ausgewählter Handkarten
 
-- [ ] 9.5 Wenn Red Sonja (`decreaseWithPearl`) aktiv ist: Unterhalb jeder ausgewählten Handkarte mit Wert > 1 einen Badge „−1 💎" anzeigen. Klick auf Badge reserviert 1 Diamant und reduziert den Kartenwert um 1. Zweiter Klick hebt die Reservierung auf. Badge ist ausgegraut, wenn keine Diamanten mehr verfügbar.
+- [x] 9.5 Wenn Red Sonja (`decreaseWithPearl`) aktiv ist: Unterhalb jeder ausgewählten Handkarte mit Wert > 1 einen Badge „−1 💎" anzeigen. Klick auf Badge reserviert 1 Diamant und reduziert den Kartenwert um 1. Zweiter Klick hebt die Reservierung auf. Badge ist ausgegraut, wenn keine Diamanten mehr verfügbar.
 
 ### 9.6 `numberAdditionalCardActions` – Kartenbild + „+N hinzufügen"-Button
 
-- [ ] 9.6 In der Fähigkeiten-Sektion: Für jede aktivierte Karte mit `numberAdditionalCardActions`: Kartenbild anzeigen (klein, z. B. `max-h-[80px]`), darunter Button „+{N} hinzufügen" (N aus `printedPearls[0].value`). Klick fügt die Perle zur `abilitySelections` hinzu; Button wird zu „✕ Entfernen". Pro Karte maximal eine Nutzung.
+- [x] 9.6 In der Fähigkeiten-Sektion: Für jede aktivierte Karte mit `numberAdditionalCardActions`: Kartenbild anzeigen (klein, z. B. `max-h-[80px]`), darunter Button „+{N} hinzufügen" (N aus `printedPearls[0].value`). Klick fügt die Perle zur `abilitySelections` hinzu; Button wird zu „✕ Entfernen". Pro Karte maximal eine Nutzung.
 
 ### 9.7 `anyAdditionalCardActions` – Kartenbild + Wertauswahl [+1]…[+8]
 
-- [ ] 9.7 In der Fähigkeiten-Sektion: Für jede aktivierte Karte mit `anyAdditionalCardActions` (Weißer Drache): Kartenbild anzeigen, darunter Wertauswahl [+1][+2]…[+8]. Klick wählt Wert und fügt ihn zu `abilitySelections` hinzu; ausgewählter Wert zeigt „✕". Pro Karte maximal eine Nutzung.
+- [x] 9.7 In der Fähigkeiten-Sektion: Für jede aktivierte Karte mit `anyAdditionalCardActions` (Weißer Drache): Kartenbild anzeigen, darunter Wertauswahl [+1][+2]…[+8]. Klick wählt Wert und fügt ihn zu `abilitySelections` hinzu; ausgewählter Wert zeigt „✕". Pro Karte maximal eine Nutzung.
 
 ### 9.8 Tests & Qualität
 
-- [ ] 9.8 `cd shared && pnpm run type-check` schlägt nicht fehl (inkl. geänderter `mapRawCard`)
-- [ ] 9.9 `cd shared && pnpm test -- --run` alle Tests bestehen (insbesondere TIER 6 Tests, die `printedPearls` voraussetzen)
+- [x] 9.8 `cd shared && pnpm run type-check` schlägt nicht fehl (inkl. geänderter `mapRawCard`)
+- [x] 9.9 `cd shared && pnpm test -- --run` alle Tests bestehen (insbesondere TIER 6 Tests, die `printedPearls` voraussetzen)

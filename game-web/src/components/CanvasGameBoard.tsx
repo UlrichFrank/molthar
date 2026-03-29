@@ -367,9 +367,10 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
       case 'deck-character': {
         if (G.characterDeck.length === 0) break;
         if (me && me.portal.length >= 2) {
-          const placeholderCard = { name: 'Blind Draw', imageName: 'Charakterkarte Hinten.png' };
+          const topCard = G.characterDeck[G.characterDeck.length - 1];
+          if (!topCard) break;
           const portalCharacters = me.portal.map(entry => entry.card);
-          dialog.openReplacementDialog(placeholderCard, portalCharacters);
+          dialog.openReplacementDialog(topCard, portalCharacters);
         } else {
           moves.takeCharacterCard(-1);
         }
@@ -441,16 +442,12 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           newCard={dialog.dialog.newCharacter}
           portalCards={dialog.dialog.portalCharacters}
           onSelect={(replacedSlotIndex) => {
-            const isBlindDraw = dialog.dialog.type === 'replacement' && dialog.dialog.newCharacter.name === 'Blind Draw';
-            if (isBlindDraw) {
-              moves.takeCharacterCard(-1, replacedSlotIndex);
-            } else if (dialog.dialog.type === 'replacement') {
+            if (dialog.dialog.type === 'replacement') {
               const characterIndex = (G.characterSlots || []).findIndex(
                 card => card?.id === dialog.dialog.newCharacter.id
               );
-              if (characterIndex >= 0) {
-                moves.takeCharacterCard(characterIndex, replacedSlotIndex);
-              }
+              // characterIndex === -1 means card came from the deck
+              moves.takeCharacterCard(characterIndex, replacedSlotIndex);
             }
             dialog.closeDialog();
           }}

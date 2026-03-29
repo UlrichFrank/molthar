@@ -42,6 +42,13 @@ function mapRawCard(raw: RawCardData): CharacterCard {
           description: '',
         }];
 
+  const printedPearls =
+    raw.ability.type === 'numberAdditionalCardActions' && typeof raw.ability.value === 'number'
+      ? [{ value: raw.ability.value as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 }]
+      : raw.ability.type === 'anyAdditionalCardActions'
+        ? [{ wildcard: true as const }]
+        : undefined;
+
   return {
     id: raw.id,
     name: raw.name,
@@ -51,6 +58,7 @@ function mapRawCard(raw: RawCardData): CharacterCard {
     diamonds: raw.diamondsReward,
     abilities,
     sharedActivation: raw.ability.type === 'irrlicht' ? true : undefined,
+    printedPearls,
   };
 }
 
