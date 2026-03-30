@@ -202,7 +202,7 @@ export function buildCanvasRegions(
     const maxActions = G.maxActions ?? 3;
     const actionCount = G.actionCount ?? 0;
 
-    if (G.requiresHandDiscard) {
+    if (G.requiresHandDiscard && actionCount >= maxActions) {
       // Show "Discard Cards" button (replaces End Turn)
       regions.push({
         type: 'ui-discard-cards', id: 'ui-discard-cards',
