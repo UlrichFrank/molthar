@@ -30,8 +30,8 @@ export interface OldCost {
 export type AbilityType =
   | 'none'
   | 'threeExtraActions'
-  | 'anyAddditionalCardActions'
-  | 'numberAddditionalCardActions'
+  | 'anyAdditionalCardActions'
+  | 'numberAdditionalCardActions'
   | 'changeHandActions'
   | 'changeCharacterActions'
   | 'nextPlayerOneExtraAction'
@@ -53,7 +53,7 @@ export type AbilityTiming = 'beforeAction' | 'duringTurn' | 'afterAction';
 export interface Ability {
   type: AbilityType;
   timing?: AbilityTiming; // When the ability can be used
-  value?: number | null; // Used for providesVirtualPearl and numberAddditionalCardActions
+  value?: number | null; // Used for providesVirtualPearl and numberAdditionalCardActions
 }
 
 export interface CharacterCard {

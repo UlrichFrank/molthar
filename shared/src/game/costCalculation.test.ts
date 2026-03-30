@@ -263,7 +263,7 @@ describe('Cost Validation - Even/Odd Tuples', () => {
     expect(validateCostPayment([component2], selected, 0)).toBe(false);
   });
 });
- 
+
 
 describe('Cost Validation - Main Function', () => {
   it('7.1: Integrated: comprehensive unit test for mixed cost types', () => {
@@ -279,7 +279,7 @@ describe('Cost Validation - Main Function', () => {
 
   it('7.2: Integrated: comprehensive unit test for mixed cost types', () => {
     const selected = [createCard(3), createCard(4), createCard(5), createCard(5)];
-   
+
     // With AND logic, ALL components must pass
     const components2: CostComponent[] = [
       { type: 'number', value: 3 }, // requested 3
@@ -334,19 +334,19 @@ describe('Edge Cases', () => {
   it('8.2: EXACT sum required - excess cards NOT allowed', () => {
     // Cost requires exactly 10
     const components: CostComponent[] = [{ type: 'sumAnyTuple', sum: 10 }];
-    
+
     // Valid: hand sums to exactly 10
     const validHand = [createCard(8), createCard(2)];
     expect(validateCostPayment(components, validHand, 0)).toBe(true);
-    
+
     // Invalid: hand subset sums to exactly 10, but more is provided
     const tooManyCards = [createCard(8), createCard(2), createCard(1)];
     expect(validateCostPayment(components, tooManyCards, 0)).toBe(false);
-    
+
     // Invalid: hand sums to 11 (too much)
     const tooMuchHand = [createCard(8), createCard(3)];
     expect(validateCostPayment(components, tooMuchHand, 0)).toBe(false);
-    
+
     // Invalid: hand sums to 9 (too little)
     const tooLittleHand = [createCard(8), createCard(1)];
     expect(validateCostPayment(components, tooLittleHand, 0)).toBe(false);

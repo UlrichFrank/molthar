@@ -194,7 +194,7 @@
       }
     ],
     "ability": {
-      "type": "anyAddditionalCardActions"
+      "type": "anyAdditionalCardActions"
     },
     "cardCount": 1
   },
@@ -215,7 +215,7 @@
       }
     ],
     "ability": {
-      "type": "numberAddditionalCardActions",
+      "type": "numberAdditionalCardActions",
       "timing": "duringTurn",
       "value": 6
     },
@@ -293,7 +293,7 @@
       }
     ],
     "ability": {
-      "type": "numberAddditionalCardActions",
+      "type": "numberAdditionalCardActions",
       "timing": "duringTurn",
       "value": 2
     },
@@ -453,7 +453,7 @@
       }
     ],
     "ability": {
-      "type": "numberAddditionalCardActions",
+      "type": "numberAdditionalCardActions",
       "timing": "duringTurn",
       "value": 7
     },
@@ -536,7 +536,7 @@
       }
     ],
     "ability": {
-      "type": "numberAddditionalCardActions",
+      "type": "numberAdditionalCardActions",
       "timing": "duringTurn",
       "value": 4
     },
@@ -580,7 +580,7 @@
       }
     ],
     "ability": {
-      "type": "numberAddditionalCardActions",
+      "type": "numberAdditionalCardActions",
       "timing": "duringTurn",
       "value": 5
     },
@@ -704,7 +704,7 @@
       }
     ],
     "ability": {
-      "type": "numberAddditionalCardActions",
+      "type": "numberAdditionalCardActions",
       "timing": "duringTurn",
       "value": 8
     },
@@ -840,7 +840,7 @@
       }
     ],
     "ability": {
-      "type": "numberAddditionalCardActions",
+      "type": "numberAdditionalCardActions",
       "timing": "duringTurn",
       "value": 3
     },
@@ -883,7 +883,7 @@
       }
     ],
     "ability": {
-      "type": "numberAddditionalCardActions",
+      "type": "numberAdditionalCardActions",
       "timing": "duringTurn",
       "value": 1
     }

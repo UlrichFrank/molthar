@@ -35,8 +35,8 @@
 ## 3. Verifikation
 
 - [x] 3.1 TypeScript-Kompilierung prüfen: `cd game-web && pnpm run type-check` fehlerfrei
-- [ ] 3.2 Manuell testen: CharacterActivationDialog — Karten-Grid, Confirm/Cancel, disabled state korrekt
-- [ ] 3.3 Manuell testen: CharacterReplacementDialog — Portal-Karten auswählbar, Cancel funktioniert
-- [ ] 3.4 Manuell testen: DiscardCardsDialog — Multi-Select, Confirm disabled bis korrekte Anzahl
-- [ ] 3.5 Manuell testen: ActivatedCharacterDetailView — Split-Layout (Bild + Info), schließt bei Overlay-Klick
-- [ ] 3.6 Manuell testen: Alle Dialoge haben einheitliches Thema (dunkler Hintergrund, grüner Akzent)
+- [x] 3.2 Manuell testen: CharacterActivationDialog — Karten-Grid, Confirm/Cancel, disabled state korrekt
+- [x] 3.3 Manuell testen: CharacterReplacementDialog — Portal-Karten auswählbar, Cancel funktioniert
+- [x] 3.4 Manuell testen: DiscardCardsDialog — Multi-Select, Confirm disabled bis korrekte Anzahl
+- [x] 3.5 Manuell testen: ActivatedCharacterDetailView — Split-Layout (Bild + Info), schließt bei Overlay-Klick
+- [x] 3.6 Manuell testen: Alle Dialoge haben einheitliches Thema (dunkler Hintergrund, grüner Akzent)

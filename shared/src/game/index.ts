@@ -1,7 +1,8 @@
 import { INVALID_MOVE } from 'boardgame.io/core';
-import type { GameState, PearlCard, CharacterCard, PlayerState, ActivatedCharacter } from './types';
-import { consumeCosts, calculateHandLimit, getExcessCardCount } from './costCalculation';
+import type { GameState, PearlCard, CharacterCard, PlayerState, ActivatedCharacter, PaymentSelection } from './types';
+import { calculateHandLimit, getExcessCardCount, validateCostPayment } from './costCalculation';
 import { getAllCards as getAllCardDataFromDatabase } from './cardDatabase';
+import { applyRedAbility, applyBlueAbility, deriveActiveAbilities } from './abilityHandlers';
 // @ts-ignore - cardDatabaseLoader.js is a side-effect module (Node.js backend only)
 import './cardDatabaseLoader.js';
 // Load cards in browser environments
@@ -42,7 +43,9 @@ export const PortaleVonMolthar = {
         readyUp: false,
         isAI: false,
         aiDifficulty: undefined,
-        handLimitModifier: 0
+        handLimitModifier: 0,
+        activeAbilities: [],
+        peekedCard: null,
       };
     }
     
@@ -86,6 +89,8 @@ export const PortaleVonMolthar = {
       currentHandLimit: 5,
       startingPlayer: playerIds[0],
       portalEntryCounter: 0,
+      nextPlayerExtraAction: false,
+      lastPlayedPearlId: null,
     };
   },
   
@@ -158,7 +163,7 @@ export const PortaleVonMolthar = {
       return;
     },
 
-    activatePortalCard({ G, ctx }: { G: GameState; ctx: any }, portalSlotIndex: number, selectedCardIndices: number[]) {
+    activatePortalCard({ G, ctx }: { G: GameState; ctx: any }, portalSlotIndex: number, selectedCardIndicesOrSelections: number[] | PaymentSelection[]) {
       const player = G.players[ctx.currentPlayer];
       if (!player) return INVALID_MOVE;
       if (G.actionCount >= G.maxActions) return INVALID_MOVE;
@@ -171,46 +176,128 @@ export const PortaleVonMolthar = {
       const entry = player.portal[portalSlotIndex];
       if (!entry) return INVALID_MOVE;
 
-      // Get selected cards from hand based on provided indices
-      const selectedCards = selectedCardIndices
-        .filter(idx => idx >= 0 && idx < player.hand.length)
-        .map(idx => player.hand[idx]);
+      // Einheitliches Format herstellen (Legacy number[] vs neues PaymentSelection[])
+      const selections: PaymentSelection[] = (selectedCardIndicesOrSelections.length > 0 && typeof selectedCardIndicesOrSelections[0] === 'number')
+        ? (selectedCardIndicesOrSelections as number[]).map(idx => ({
+            source: 'hand',
+            handCardIndex: idx,
+            value: player.hand[idx]?.value as any
+          }))
+        : (selectedCardIndicesOrSelections as PaymentSelection[]);
 
-      // Validate and consume costs (atomic: either all succeeds or nothing changes)
-      const consumeResult = consumeCosts(entry.card.cost, selectedCardIndices, player.hand, player.diamonds);
-      
-      if (!consumeResult) {
+      const virtualHand: PearlCard[] = [];
+      const handIndicesToRemove = new Set<number>();
+      let diamondsToSpend = 0;
+
+      for (let i = 0; i < selections.length; i++) {
+        const sel = selections[i];
+        if (sel.source === 'hand') {
+          const handIdx = sel.handCardIndex;
+          if (handIdx === undefined || handIdx < 0 || handIdx >= player.hand.length) return INVALID_MOVE;
+          
+          // Jede Handkarte darf nur einmal genutzt werden
+          if (handIndicesToRemove.has(handIdx)) return INVALID_MOVE;
+          handIndicesToRemove.add(handIdx);
+
+          const realCard = player.hand[handIdx]!;
+          let expectedValue = realCard.value;
+
+          if (sel.abilityType) {
+            const hasAbility = player.activeAbilities.some(a => a.type === sel.abilityType);
+            if (!hasAbility) return INVALID_MOVE;
+
+            if (sel.abilityType === 'decreaseWithPearl') {
+              const du = sel.diamondsUsed || 0;
+              if (du < 0 || du > 1) return INVALID_MOVE;
+              diamondsToSpend += du;
+              expectedValue = Math.max(1, realCard.value - du) as PearlCard['value'];
+            } else if (sel.abilityType === 'onesCanBeEights') {
+              if (realCard.value !== 1) return INVALID_MOVE;
+              expectedValue = 8;
+            } else if (sel.abilityType === 'threesCanBeAny') {
+              if (realCard.value !== 3) return INVALID_MOVE;
+              expectedValue = sel.value; 
+            } else {
+              if (sel.value !== expectedValue) return INVALID_MOVE;
+            }
+          }
+
+          if (sel.value !== expectedValue) return INVALID_MOVE;
+
+          virtualHand.push({
+            id: `virtual-${realCard.id}`,
+            value: sel.value,
+            hasSwapSymbol: realCard.hasSwapSymbol
+          });
+
+        } else if (sel.source === 'ability') {
+          if (!sel.characterId) return INVALID_MOVE;
+          const charCard = player.activatedCharacters.find(c => c.id === sel.characterId);
+          if (!charCard) return INVALID_MOVE;
+
+          const isNumberBonus = charCard.card.abilities.some(a => a.type === 'numberAdditionalCardActions');
+          const isAnyBonus = charCard.card.abilities.some(a => a.type === 'anyAdditionalCardActions');
+
+          if (!isNumberBonus && !isAnyBonus) return INVALID_MOVE;
+          
+          virtualHand.push({
+            id: `virtual-bonus-${charCard.id}-${i}`,
+            value: sel.value,
+            hasSwapSymbol: false
+          });
+        }
+      }
+
+      if (player.diamonds < diamondsToSpend) return INVALID_MOVE;
+      const remainingDiamondsForValidation = player.diamonds - diamondsToSpend;
+
+      // Reine Kostenvalidierung mit der konstruierten, virtuellen Hand
+      const isValid = validateCostPayment(entry.card.cost, virtualHand, remainingDiamondsForValidation);
+      if (!isValid) {
         return INVALID_MOVE;
       }
 
-      // Update player state: remove consumed cards and update diamond count
-      player.hand = consumeResult.hand;
-      player.diamonds = consumeResult.diamonds;
+      // Update player state: konsumierte Karten und Diamanten entfernen
+      const unconsumedCards: PearlCard[] = [];
+      const consumedCards: PearlCard[] = [];
+      
+      for (let i = 0; i < player.hand.length; i++) {
+        if (handIndicesToRemove.has(i)) {
+          consumedCards.push(player.hand[i]!);
+        } else {
+          unconsumedCards.push(player.hand[i]!);
+        }
+      }
 
-      // Add consumed cards to discard pile
-      const consumedCards = selectedCards.filter(card => !consumeResult.hand.includes(card));
+      player.hand = unconsumedCards;
+      player.diamonds -= diamondsToSpend;
+      
+      // CostComponents vom Typ 'diamond' wurden in validateCostPayment bestätigt.
+      // Wir müssen diese auch abziehen! (Anzahl an diamonds in Cost components ermitteln)
+      const diamondCosts = entry.card.cost?.filter(c => c.type === 'diamond').reduce((sum, c) => sum + (c.value || 0), 0) || 0;
+      player.diamonds -= diamondCosts;
+
+      // Consumed Karten auf den Ablagestapel (nur echte Handkarten!)
       consumedCards.forEach(card => G.pearlDiscardPile.push(card));
 
-      // Grant rewards from the card
+      // Belohnungen der Karte gutschreiben
       player.powerPoints += entry.card.powerPoints;
       player.diamonds += entry.card.diamonds;
       G.actionCount++;
 
-      // CRITICAL: Move card from portal array to activatedCharacters array
-      // This is the definitive state of activation - cards in activatedCharacters
-      // are activated, cards in portal are not.
+      // WICHTIG: Karte vom Portal-Array zu activatedCharacters verschieben
       const activatedCard = player.portal.splice(portalSlotIndex, 1)[0];
       if (activatedCard) {
         activatedCard.activated = true;
-        // Add to activated characters collection
         player.activatedCharacters.push(activatedCard);
 
-        // Check if card has handLimitPlusOne ability and increment hand limit modifier
+        // Fähigkeiten anwenden
         if (activatedCard.card.abilities && activatedCard.card.abilities.length > 0) {
           for (const ability of activatedCard.card.abilities) {
-            if (ability.type === 'handLimitPlusOne') {
-              player.handLimitModifier += 1;
-              break; // Only count once per character even if multiple abilities
+            if (ability.persistent) {
+              applyBlueAbility(player, ability);
+            } else {
+              applyRedAbility(G, ctx, ability);
             }
           }
         }
@@ -235,7 +322,178 @@ export const PortaleVonMolthar = {
       G.actionCount++;
       return;
     },
+
+    swapPortalCharacter({ G, ctx }: { G: GameState; ctx: any }, portalSlotIndex: number, tableSlotIndex: number) {
+      const player = G.players[ctx.currentPlayer];
+      if (!player) return INVALID_MOVE;
+      // Guard: must be used BEFORE the first action
+      if (G.actionCount > 0) return INVALID_MOVE;
+      
+      // Guard: must have the ability
+      const hasAbility = player.activeAbilities.some(a => a.type === 'changeCharacterActions');
+      if (!hasAbility) return INVALID_MOVE;
+
+      // Validate bounds
+      if (portalSlotIndex < 0 || portalSlotIndex >= player.portal.length) return INVALID_MOVE;
+      if (tableSlotIndex < 0 || tableSlotIndex >= G.characterSlots.length) return INVALID_MOVE;
+
+      const portalChar = player.portal[portalSlotIndex]!;
+      const tableChar = G.characterSlots[tableSlotIndex]!;
+
+      // Swap the character cards (IDs and entries stay the same, just the actual card payload shifts)
+      G.characterSlots[tableSlotIndex] = portalChar.card;
+      portalChar.card = tableChar;
+
+      // Swap takes no actions per rules / design
+      return;
+    },
+
+    rehandCards({ G, ctx }: { G: GameState; ctx: any }) {
+      const player = G.players[ctx.currentPlayer];
+      if (!player) return INVALID_MOVE;
+
+      // Guard: must be used AFTER the last action (actionCount >= maxActions)
+      if (G.actionCount < G.maxActions) return INVALID_MOVE;
+
+      // Guard: must have the ability
+      const hasAbility = player.activeAbilities.some(a => a.type === 'changeHandActions');
+      if (!hasAbility) return INVALID_MOVE;
+
+      const currentHandSize = player.hand.length;
+      if (currentHandSize === 0) return; // Nothing to discard/rehand
+
+      // Discard current hand
+      const discarded = player.hand.splice(0, currentHandSize);
+      G.pearlDiscardPile.push(...discarded);
+
+      // Draw exactly the same amount of cards
+      for (let i = 0; i < currentHandSize; i++) {
+        let card = G.pearlDeck.pop();
+        if (!card && G.pearlDiscardPile.length > 0) {
+          G.pearlDeck.push(...G.pearlDiscardPile.splice(0));
+          shuffleArray(G.pearlDeck);
+          card = G.pearlDeck.pop();
+        }
+        if (card) {
+          player.hand.push(card);
+        } else {
+          // Deck and discard pile empty
+          break;
+        }
+      }
+      return;
+    },
     
+    activateSharedCharacter({ G, ctx }: { G: GameState; ctx: any }, ownerPlayerId: string, portalSlotIndex: number, selectionsOrIndices: number[] | PaymentSelection[]) {
+      const caller = G.players[ctx.currentPlayer];
+      if (!caller) return INVALID_MOVE;
+      if (G.actionCount >= G.maxActions) return INVALID_MOVE;
+
+      // The caller must be a neighbor of the owner (immediate predecessor or successor in play order)
+      const ownerIdx = G.playerOrder.indexOf(ownerPlayerId);
+      if (ownerIdx === -1) return INVALID_MOVE;
+      const callerIdx = G.playerOrder.indexOf(ctx.currentPlayer);
+      if (callerIdx === -1) return INVALID_MOVE;
+      const total = G.playerOrder.length;
+      const prevIdx = (ownerIdx - 1 + total) % total;
+      const nextIdx = (ownerIdx + 1) % total;
+      const isNeighbor = callerIdx === prevIdx || callerIdx === nextIdx;
+      if (!isNeighbor) return INVALID_MOVE;
+
+      const owner = G.players[ownerPlayerId];
+      if (!owner) return INVALID_MOVE;
+      if (portalSlotIndex < 0 || portalSlotIndex >= owner.portal.length) return INVALID_MOVE;
+
+      const entry = owner.portal[portalSlotIndex];
+      if (!entry) return INVALID_MOVE;
+
+      // Must be a shared-activation (irrlicht) card
+      const isIrrlicht = entry.card.abilities.some(a => a.type === 'irrlicht') || entry.card.sharedActivation;
+      if (!isIrrlicht) return INVALID_MOVE;
+
+      // Normalize to PaymentSelection[]
+      const selections: PaymentSelection[] = (selectionsOrIndices.length > 0 && typeof selectionsOrIndices[0] === 'number')
+        ? (selectionsOrIndices as number[]).map(idx => ({
+            source: 'hand' as const,
+            handCardIndex: idx,
+            value: caller.hand[idx]?.value as any
+          }))
+        : (selectionsOrIndices as PaymentSelection[]);
+
+      const virtualHand: import('./types').PearlCard[] = [];
+      const handIndicesToRemove = new Set<number>();
+      let diamondsToSpend = 0;
+
+      for (const sel of selections) {
+        if (sel.source === 'hand') {
+          const handIdx = sel.handCardIndex;
+          if (handIdx === undefined || handIdx < 0 || handIdx >= caller.hand.length) return INVALID_MOVE;
+          if (handIndicesToRemove.has(handIdx)) return INVALID_MOVE;
+          handIndicesToRemove.add(handIdx);
+
+          const realCard = caller.hand[handIdx]!;
+          let effectiveValue = realCard.value;
+
+          if (sel.abilityType) {
+            const hasAbility = caller.activeAbilities.some(a => a.type === sel.abilityType);
+            if (!hasAbility) return INVALID_MOVE;
+            if (sel.abilityType === 'decreaseWithPearl') {
+              const du = sel.diamondsUsed || 0;
+              if (du < 0 || du > 1) return INVALID_MOVE;
+              diamondsToSpend += du;
+              effectiveValue = Math.max(1, realCard.value - du) as typeof effectiveValue;
+            } else if (sel.abilityType === 'onesCanBeEights') {
+              if (realCard.value !== 1) return INVALID_MOVE;
+              effectiveValue = 8;
+            } else if (sel.abilityType === 'threesCanBeAny') {
+              if (realCard.value !== 3) return INVALID_MOVE;
+              effectiveValue = sel.value;
+            }
+          }
+          if (sel.value !== effectiveValue) return INVALID_MOVE;
+          virtualHand.push({ id: `virtual-${realCard.id}`, value: sel.value, hasSwapSymbol: realCard.hasSwapSymbol });
+        }
+      }
+
+      if (caller.diamonds < diamondsToSpend) return INVALID_MOVE;
+      const remainingDiamonds = caller.diamonds - diamondsToSpend;
+
+      const isValid = validateCostPayment(entry.card.cost, virtualHand, remainingDiamonds);
+      if (!isValid) return INVALID_MOVE;
+
+      // Consume hand cards
+      const consumed: import('./types').PearlCard[] = [];
+      const unconsumed: import('./types').PearlCard[] = [];
+      for (let i = 0; i < caller.hand.length; i++) {
+        if (handIndicesToRemove.has(i)) consumed.push(caller.hand[i]!);
+        else unconsumed.push(caller.hand[i]!);
+      }
+      caller.hand = unconsumed;
+      caller.diamonds -= diamondsToSpend;
+
+      const diamondCosts = entry.card.cost?.filter(c => c.type === 'diamond').reduce((sum, c) => sum + (c.value || 0), 0) || 0;
+      caller.diamonds -= diamondCosts;
+      consumed.forEach(c => G.pearlDiscardPile.push(c));
+
+      // Power points and diamonds go to the caller
+      caller.powerPoints += entry.card.powerPoints;
+      caller.diamonds += entry.card.diamonds;
+      G.actionCount++;
+
+      // Remove card from owner's portal, add to caller's activatedCharacters
+      const activatedEntry = owner.portal.splice(portalSlotIndex, 1)[0];
+      if (activatedEntry) {
+        activatedEntry.activated = true;
+        caller.activatedCharacters.push(activatedEntry);
+      }
+
+      if (caller.powerPoints >= 12 && !G.finalRound) {
+        G.finalRound = true;
+        G.finalRoundStartingPlayer = ctx.currentPlayer;
+      }
+      return;
+    },
+
     discardCards({ G, ctx }: { G: GameState; ctx: any }, cardIndices?: number[]) {
       const player = G.players[ctx.currentPlayer];
       if (!player) return INVALID_MOVE;
@@ -252,6 +510,48 @@ export const PortaleVonMolthar = {
       return;
     },
     
+    peekCharacterDeck({ G, ctx }: { G: GameState; ctx: any }) {
+      const player = G.players[ctx.currentPlayer];
+      if (!player) return INVALID_MOVE;
+      
+      // Guard: must be used BEFORE the first action
+      if (G.actionCount > 0) return INVALID_MOVE;
+
+      // Guard: must have the ability
+      const hasAbility = player.activeAbilities.some(a => a.type === 'previewCharacter');
+      if (!hasAbility) return INVALID_MOVE;
+
+      if (G.characterDeck.length > 0) {
+        // Deck ist ein Array, pop() entfernt das letzte Element -> also ist characterDeck[length - 1] die oberste Karte
+        player.peekedCard = G.characterDeck[G.characterDeck.length - 1];
+      }
+      return;
+    },
+
+    tradeForDiamond({ G, ctx }: { G: GameState; ctx: any }, handCardIndex: number) {
+      const player = G.players[ctx.currentPlayer];
+      if (!player) return INVALID_MOVE;
+
+      // Guard: must have the ability
+      const hasAbility = player.activeAbilities.some(a => a.type === 'tradeTwoForDiamond');
+      if (!hasAbility) return INVALID_MOVE;
+
+      if (handCardIndex < 0 || handCardIndex >= player.hand.length) return INVALID_MOVE;
+      
+      const card = player.hand[handCardIndex];
+      // It must be a 2-pearl card
+      if (card.value !== 2) return INVALID_MOVE;
+
+      const discardedCard = player.hand.splice(handCardIndex, 1)[0];
+      if (discardedCard) {
+        G.pearlDiscardPile.push(discardedCard);
+      }
+      player.diamonds += 1;
+      
+      // Does not consume an action (free effect)
+      return;
+    },
+
     discardCardsForHandLimit({ G, ctx, events }: { G: GameState; ctx: any; events: any }, selectedCardIndices: number[]) {
       const player = G.players[ctx.currentPlayer];
 
@@ -289,14 +589,40 @@ export const PortaleVonMolthar = {
    * Turn Configuration: Reset action count at start of each turn
    */
   turn: {
-    onBegin: ({ G }: { G: GameState; ctx: any }) => {
+    onBegin: ({ G, ctx }: { G: GameState; ctx: any }) => {
       G.actionCount = 0;
-      G.maxActions = 3;
+      // Basisaktionen: 3 + dauerhafte oneExtraActionPerTurn-Fähigkeiten des aktuellen Spielers
+      const player = G.players[ctx.currentPlayer];
+      if (player) {
+        // Aktive Fähigkeiten immer aus activatedCharacters ableiten (verlässlicher als gespeichertes Array)
+        syncPlayerAbilities(player);
+      }
+      const permanentBonus = player
+        ? player.activeAbilities.filter(a => a.type === 'oneExtraActionPerTurn').length
+        : 0;
+      G.maxActions = 3 + permanentBonus;
+      // Flag für zusätzliche Aktion des nächsten Spielers auswerten
+      if (G.nextPlayerExtraAction) {
+        G.maxActions += 1;
+        G.nextPlayerExtraAction = false;
+      }
+    },
+    onEnd: ({ G, ctx }: { G: GameState; ctx: any }) => {
+      // lastPlayedPearlId am Zugende zurücksetzen
+      G.lastPlayedPearlId = null;
+      // peekedCard vom Spieler zurücksetzen, falls verwendet (da der Stapel sich ändern kann)
+      const player = G.players[ctx.currentPlayer];
+      if (player) {
+        player.peekedCard = null;
+      }
     },
     onMove: ({ G, ctx }: { G: GameState; ctx: any }) => {
-      // After every move, check if hand exceeds limit
       const player = G.players[ctx.currentPlayer];
       if (!player) return;
+
+      // Aktive Fähigkeiten nach jedem Move aus activatedCharacters ableiten,
+      // damit neu aktivierte Karten sofort wirken
+      syncPlayerAbilities(player);
 
       const handLimit = calculateHandLimit(player.handLimitModifier);
       G.currentHandLimit = handLimit;
@@ -347,6 +673,16 @@ export const PortaleVonMolthar = {
 /**
  * Helper Functions
  */
+
+/**
+ * Leitet activeAbilities und handLimitModifier eines Spielers aus seinen activatedCharacters ab.
+ * Verlässt sich NICHT auf das `persistent`-Flag (kann bei alten Spielzuständen fehlen).
+ * Muss in onBegin und onMove aufgerufen werden damit der abgeleitete Zustand immer aktuell ist.
+ */
+function syncPlayerAbilities(player: import('./types').PlayerState): void {
+  player.activeAbilities = deriveActiveAbilities(player.activatedCharacters);
+  player.handLimitModifier = player.activeAbilities.filter(a => a.type === 'handLimitPlusOne').length;
+}
 
 /**
  * Refill a slot array from a deck, reshuffling the discard pile if the deck runs out.
@@ -401,3 +737,7 @@ export { getAllCards } from './cardDatabase';
 
 // Export card loader function (public API)
 export { waitForCardsLoaded } from './browserCardDatabaseLoader';
+
+// Export ability handlers (public API for testing and AI)
+export { applyRedAbility, applyBlueAbility } from './abilityHandlers';
+

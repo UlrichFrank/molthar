@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import type { CharacterCard, PearlCard } from '@portale-von-molthar/shared';
+import type { CharacterCard, PearlCard, CharacterAbility, ActivatedCharacter, PaymentSelection } from '@portale-von-molthar/shared';
 import { validateCostPayment } from '@portale-von-molthar/shared';
 import { getCostSummary, describeCost } from '../lib/cost-helper';
 import { GameDialog, GameDialogTitle, GameDialogActions, CardPicker } from './GameDialog';
@@ -8,48 +8,149 @@ interface CharacterActivationDialogProps {
   availableCharacters: Array<{ card: CharacterCard; slotIndex: number }>;
   hand: PearlCard[];
   diamonds: number;
-  onActivate: (characterSlotIndex: number, usedCardIndices: number[]) => void;
+  activeAbilities?: CharacterAbility[];
+  activatedCharacters?: ActivatedCharacter[];
+  onActivate: (characterSlotIndex: number, selections: PaymentSelection[]) => void;
   onCancel: () => void;
 }
+
+type HandSelection = {
+  handCardIndex: number;
+  /** effective value after ability modifier */
+  value: PearlCard['value'];
+  abilityType?: CharacterAbility['type'];
+  diamondsUsed?: number;
+};
+
+type AbilitySelection = {
+  characterId: string;
+  value: PearlCard['value'];
+};
+
+const PEARL_VALUES: PearlCard['value'][] = [1, 2, 3, 4, 5, 6, 7, 8];
 
 export function CharacterActivationDialog({
   availableCharacters,
   hand,
   diamonds,
+  activeAbilities = [],
+  activatedCharacters = [],
   onActivate,
   onCancel,
 }: CharacterActivationDialogProps) {
-  const [selectedCardIndices, setSelectedCardIndices] = useState<Set<number>>(new Set());
+  const [handSelections, setHandSelections] = useState<Map<number, HandSelection>>(new Map());
+  const [abilitySelections, setAbilitySelections] = useState<AbilitySelection[]>([]);
 
   const selectedCharacter = availableCharacters[0]?.card;
   const selectedCharacterSlot = availableCharacters[0]?.slotIndex ?? null;
 
+  const hasOnesCanBeEights = activeAbilities.some(a => a.type === 'onesCanBeEights');
+  const hasThreesCanBeAny = activeAbilities.some(a => a.type === 'threesCanBeAny');
+  const hasDecreaseWithPearl = activeAbilities.some(a => a.type === 'decreaseWithPearl');
+
+  const PAYMENT_ABILITY_TYPES = new Set([
+    'onesCanBeEights', 'threesCanBeAny', 'decreaseWithPearl',
+    'numberAdditionalCardActions', 'anyAdditionalCardActions',
+  ]);
+
+  // All activated characters that have any payment-relevant ability
+  const paymentAbilityChars = activatedCharacters.filter(c =>
+    c.card.abilities.some(a => PAYMENT_ABILITY_TYPES.has(a.type))
+  );
+  const hasPaymentAbilities = paymentAbilityChars.length > 0;
+
+  const allSelections: PaymentSelection[] = useMemo(() => {
+    const result: PaymentSelection[] = [];
+    for (const sel of handSelections.values()) {
+      result.push({
+        source: 'hand',
+        handCardIndex: sel.handCardIndex,
+        value: sel.value,
+        abilityType: sel.abilityType,
+        diamondsUsed: sel.diamondsUsed,
+      });
+    }
+    for (const sel of abilitySelections) {
+      result.push({ source: 'ability', characterId: sel.characterId, value: sel.value });
+    }
+    return result;
+  }, [handSelections, abilitySelections]);
+
+  const diamondsReserved = useMemo(
+    () => allSelections.reduce((sum, s) => sum + (s.diamondsUsed ?? 0), 0),
+    [allSelections]
+  );
+
   const isValidPayment = useMemo(() => {
     if (!selectedCharacter) return false;
-    const selectedCards = Array.from(selectedCardIndices).map(idx => hand[idx]);
-    return validateCostPayment(selectedCharacter.cost, selectedCards, diamonds);
-  }, [selectedCardIndices, selectedCharacter, hand, diamonds]);
+    const virtualHand: PearlCard[] = allSelections.map((sel, i) => ({
+      id: `virtual-${i}`,
+      value: sel.value,
+      hasSwapSymbol: sel.source === 'hand' ? (hand[sel.handCardIndex ?? 0]?.hasSwapSymbol ?? false) : false,
+    }));
+    return validateCostPayment(selectedCharacter.cost, virtualHand, diamonds - diamondsReserved);
+  }, [allSelections, selectedCharacter, hand, diamonds, diamondsReserved]);
 
-  const toggleCard = (index: number) => {
-    const newSelected = new Set(selectedCardIndices);
-    if (newSelected.has(index)) {
-      newSelected.delete(index);
+  const toggleHandCard = (idx: number) => {
+    const next = new Map(handSelections);
+    if (next.has(idx)) {
+      next.delete(idx);
     } else {
-      newSelected.add(index);
+      const card = hand[idx]!;
+      let initialValue = card.value;
+      let abilityType: CharacterAbility['type'] | undefined;
+      // Auto-apply onesCanBeEights
+      if (hasOnesCanBeEights && card.value === 1) {
+        initialValue = 8;
+        abilityType = 'onesCanBeEights';
+      }
+      next.set(idx, { handCardIndex: idx, value: initialValue, abilityType });
     }
-    setSelectedCardIndices(newSelected);
+    setHandSelections(next);
+  };
+
+  const setHandCardValue = (
+    idx: number,
+    newValue: PearlCard['value'],
+    abilityType?: CharacterAbility['type'],
+    diamondsUsed?: number
+  ) => {
+    const next = new Map(handSelections);
+    const existing = next.get(idx);
+    if (existing) {
+      next.set(idx, { ...existing, value: newValue, abilityType, diamondsUsed });
+    }
+    setHandSelections(next);
+  };
+
+  const resetHandCard = (idx: number) => {
+    const next = new Map(handSelections);
+    next.set(idx, { handCardIndex: idx, value: hand[idx]!.value });
+    setHandSelections(next);
+  };
+
+  const toggleAbilitySelection = (characterId: string, value: PearlCard['value']) => {
+    const existing = abilitySelections.findIndex(s => s.characterId === characterId);
+    if (existing >= 0) {
+      setAbilitySelections(abilitySelections.filter((_, i) => i !== existing));
+    } else {
+      setAbilitySelections([...abilitySelections, { characterId, value }]);
+    }
   };
 
   const handleActivate = () => {
     if (isValidPayment && selectedCharacterSlot !== null) {
-      onActivate(selectedCharacterSlot, Array.from(selectedCardIndices));
+      onActivate(selectedCharacterSlot, allSelections);
     }
   };
+
+  const selectedSet = new Set(handSelections.keys());
 
   return (
     <GameDialog>
       <GameDialogTitle>Activate Character</GameDialogTitle>
 
+      {/* Character to activate */}
       <div className="flex flex-wrap justify-center gap-1.5 bg-white/10 p-1.5 rounded-lg sm:gap-2.5 sm:p-2">
         {availableCharacters.map(({ card, slotIndex }) => (
           <img
@@ -73,18 +174,284 @@ export function CharacterActivationDialog({
             </div>
           )}
 
+          {/* ── Section 1: Hand cards ── */}
           <div>
             <h3 style={{ margin: '1rem 0 0.5rem', fontSize: 'clamp(0.9rem, 4vw, 1.1rem)' }}>
-              Select Cards to Pay ({selectedCardIndices.size} selected)
+              Handkarten ({handSelections.size + abilitySelections.length} ausgewählt)
             </h3>
             <CardPicker
               cards={hand}
-              selected={selectedCardIndices}
-              onToggle={toggleCard}
+              selected={selectedSet}
+              onToggle={toggleHandCard}
               getImageSrc={(card) => `/assets/Perlenkarte${card.value}.png`}
               getAlt={(card) => `Pearl ${card.value}`}
             />
+
+            {/* Per-card ability badges, shown directly beneath each selected hand card */}
+            {Array.from(handSelections.values()).map((sel) => {
+              const card = hand[sel.handCardIndex]!;
+              const canUseOnes = hasOnesCanBeEights && card.value === 1;
+              const canUseThrees = hasThreesCanBeAny && card.value === 3;
+              const canDecrease = hasDecreaseWithPearl && card.value > 1;
+              if (!canUseOnes && !canUseThrees && !canDecrease) return null;
+              const isModified = !!sel.abilityType;
+
+              return (
+                <div
+                  key={sel.handCardIndex}
+                  style={{
+                    marginTop: '0.4rem',
+                    padding: '0.35rem 0.5rem',
+                    background: 'rgba(255,255,255,0.08)',
+                    borderRadius: '0.4rem',
+                    fontSize: '0.82rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  <span style={{ color: '#cbd5e0' }}>Perle {card.value}:</span>
+
+                  {/* onesCanBeEights badge */}
+                  {canUseOnes && (
+                    <button
+                      onClick={() =>
+                        sel.abilityType === 'onesCanBeEights'
+                          ? resetHandCard(sel.handCardIndex)
+                          : setHandCardValue(sel.handCardIndex, 8, 'onesCanBeEights')
+                      }
+                      style={{
+                        padding: '0.1rem 0.4rem',
+                        borderRadius: '0.3rem',
+                        background: sel.abilityType === 'onesCanBeEights' ? '#4a90d9' : 'rgba(74,144,217,0.3)',
+                        color: '#fff',
+                        border: '1px solid #4a90d9',
+                        cursor: 'pointer',
+                        fontSize: '0.8rem',
+                      }}
+                    >
+                      1→8
+                    </button>
+                  )}
+
+                  {/* threesCanBeAny value picker */}
+                  {canUseThrees && (
+                    <>
+                      <span style={{ color: '#a0aec0', fontSize: '0.75rem' }}>→</span>
+                      {PEARL_VALUES.map(v => (
+                        <button
+                          key={v}
+                          onClick={() =>
+                            sel.abilityType === 'threesCanBeAny' && sel.value === v
+                              ? resetHandCard(sel.handCardIndex)
+                              : setHandCardValue(sel.handCardIndex, v, 'threesCanBeAny')
+                          }
+                          style={{
+                            padding: '0.1rem 0.35rem',
+                            borderRadius: '0.25rem',
+                            background:
+                              sel.abilityType === 'threesCanBeAny' && sel.value === v
+                                ? '#68d391'
+                                : 'rgba(104,211,145,0.2)',
+                            color: '#fff',
+                            border: '1px solid #68d391',
+                            cursor: 'pointer',
+                            fontSize: '0.78rem',
+                            minWidth: '1.4rem',
+                          }}
+                        >
+                          {v}
+                        </button>
+                      ))}
+                    </>
+                  )}
+
+                  {/* decreaseWithPearl badge */}
+                  {canDecrease && (
+                    <button
+                      onClick={() => {
+                        if (sel.abilityType === 'decreaseWithPearl') {
+                          resetHandCard(sel.handCardIndex);
+                        } else {
+                          setHandCardValue(
+                            sel.handCardIndex,
+                            Math.max(1, card.value - 1) as PearlCard['value'],
+                            'decreaseWithPearl',
+                            1
+                          );
+                        }
+                      }}
+                      disabled={sel.abilityType !== 'decreaseWithPearl' && diamondsReserved >= diamonds}
+                      style={{
+                        padding: '0.1rem 0.4rem',
+                        borderRadius: '0.3rem',
+                        background:
+                          sel.abilityType === 'decreaseWithPearl'
+                            ? '#f6ad55'
+                            : diamondsReserved >= diamonds
+                              ? 'rgba(160,160,160,0.2)'
+                              : 'rgba(246,173,85,0.3)',
+                        color: sel.abilityType === 'decreaseWithPearl' ? '#1a202c' : '#fff',
+                        border: `1px solid ${diamondsReserved >= diamonds && sel.abilityType !== 'decreaseWithPearl' ? '#666' : '#f6ad55'}`,
+                        cursor:
+                          sel.abilityType !== 'decreaseWithPearl' && diamondsReserved >= diamonds
+                            ? 'not-allowed'
+                            : 'pointer',
+                        fontSize: '0.8rem',
+                        opacity:
+                          sel.abilityType !== 'decreaseWithPearl' && diamondsReserved >= diamonds ? 0.5 : 1,
+                      }}
+                    >
+                      −1 💎
+                    </button>
+                  )}
+
+                  {isModified && (
+                    <span style={{ color: '#90cdf4', fontSize: '0.75rem' }}>→ {sel.value}</span>
+                  )}
+                </div>
+              );
+            })}
           </div>
+
+          {/* ── Section 2: Payment abilities (from activated characters) ── */}
+          {hasPaymentAbilities && (
+            <div style={{ marginTop: '0.75rem' }}>
+              <h3 style={{ margin: '0 0 0.5rem', fontSize: 'clamp(0.9rem, 4vw, 1.1rem)' }}>
+                Fähigkeiten
+              </h3>
+
+              {paymentAbilityChars.map(char => {
+                const abilities = char.card.abilities;
+                const isOnesCanBeEights = abilities.some(a => a.type === 'onesCanBeEights');
+                const isThreesCanBeAny = abilities.some(a => a.type === 'threesCanBeAny');
+                const isDecreaseWithPearl = abilities.some(a => a.type === 'decreaseWithPearl');
+                const isNumberBonus = abilities.some(a => a.type === 'numberAdditionalCardActions');
+                const isAnyBonus = abilities.some(a => a.type === 'anyAdditionalCardActions');
+
+                const isSelected = abilitySelections.some(s => s.characterId === char.id);
+                const selectedEntry = abilitySelections.find(s => s.characterId === char.id);
+
+                const printedPearl = char.card.printedPearls?.[0];
+                const printedValue =
+                  printedPearl && 'value' in printedPearl ? printedPearl.value : undefined;
+
+                let description = '';
+                if (isOnesCanBeEights) description = '1er zählen als 8';
+                else if (isThreesCanBeAny) description = '3er zählen als beliebiger Wert';
+                else if (isDecreaseWithPearl) description = 'Karte −1 (kostet 1 💎)';
+
+                return (
+                  <div
+                    key={char.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.6rem',
+                      padding: '0.4rem 0.5rem',
+                      background: isSelected ? 'rgba(144,205,244,0.12)' : 'rgba(255,255,255,0.06)',
+                      borderRadius: '0.4rem',
+                      marginBottom: '0.4rem',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <img
+                      src={`/assets/${encodeURIComponent(char.card.imageName)}`}
+                      alt={char.card.name}
+                      style={{ height: '56px', width: 'auto', borderRadius: '0.25rem', flexShrink: 0 }}
+                    />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '0.82rem', color: '#e2e8f0', marginBottom: '0.25rem' }}>
+                        {char.card.name}
+                      </div>
+
+                      {/* Hand-card-badge abilities: show as description only (badge appears on selected hand cards) */}
+                      {(isOnesCanBeEights || isThreesCanBeAny || isDecreaseWithPearl) && (
+                        <div style={{ fontSize: '0.76rem', color: '#a0aec0' }}>{description}</div>
+                      )}
+
+                      {/* numberAdditionalCardActions: add-button */}
+                      {isNumberBonus && printedValue !== undefined && (
+                        isSelected ? (
+                          <button
+                            onClick={() => toggleAbilitySelection(char.id, printedValue)}
+                            style={{
+                              padding: '0.15rem 0.5rem',
+                              borderRadius: '0.3rem',
+                              background: 'rgba(252,129,129,0.3)',
+                              color: '#fc8181',
+                              border: '1px solid #fc8181',
+                              cursor: 'pointer',
+                              fontSize: '0.8rem',
+                            }}
+                          >
+                            ✕ Entfernen (+{printedValue})
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => toggleAbilitySelection(char.id, printedValue)}
+                            style={{
+                              padding: '0.15rem 0.5rem',
+                              borderRadius: '0.3rem',
+                              background: 'rgba(144,205,244,0.2)',
+                              color: '#90cdf4',
+                              border: '1px solid #90cdf4',
+                              cursor: 'pointer',
+                              fontSize: '0.8rem',
+                            }}
+                          >
+                            +{printedValue} hinzufügen
+                          </button>
+                        )
+                      )}
+
+                      {/* anyAdditionalCardActions: value picker */}
+                      {isAnyBonus && (
+                        <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                          {isSelected && selectedEntry ? (
+                            <button
+                              onClick={() => toggleAbilitySelection(char.id, selectedEntry.value)}
+                              style={{
+                                padding: '0.15rem 0.5rem',
+                                borderRadius: '0.3rem',
+                                background: 'rgba(252,129,129,0.3)',
+                                color: '#fc8181',
+                                border: '1px solid #fc8181',
+                                cursor: 'pointer',
+                                fontSize: '0.8rem',
+                              }}
+                            >
+                              ✕ +{selectedEntry.value}
+                            </button>
+                          ) : (
+                            PEARL_VALUES.map(v => (
+                              <button
+                                key={v}
+                                onClick={() => toggleAbilitySelection(char.id, v)}
+                                style={{
+                                  padding: '0.1rem 0.35rem',
+                                  borderRadius: '0.25rem',
+                                  background: 'rgba(144,205,244,0.2)',
+                                  color: '#90cdf4',
+                                  border: '1px solid #90cdf4',
+                                  cursor: 'pointer',
+                                  fontSize: '0.78rem',
+                                  minWidth: '1.4rem',
+                                }}
+                              >
+                                +{v}
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </>
       )}
 

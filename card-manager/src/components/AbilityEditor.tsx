@@ -21,7 +21,7 @@ export function AbilityEditor({ ability, onUpdate }: AbilityEditorProps) {
 
   const handleTypeChange = (type: string) => {
     const newAbility: Ability = { type: type as any, timing };
-    if (type === 'providesVirtualPearl' || type === 'numberAddditionalCardActions') {
+    if (type === 'providesVirtualPearl' || type === 'numberAdditionalCardActions') {
       newAbility.value = null;
     }
     onUpdate(newAbility);
@@ -125,8 +125,8 @@ export function AbilityEditor({ ability, onUpdate }: AbilityEditorProps) {
         </div>
       )}
 
-      {/* numberAddditionalCardActions parameters */}
-      {ability.type === 'numberAddditionalCardActions' && (
+      {/* numberAdditionalCardActions parameters */}
+      {ability.type === 'numberAdditionalCardActions' && (
         <div>
           <label className="block text-sm font-medium text-foreground mb-1">
             Kartenwert (1-8)
@@ -140,7 +140,7 @@ export function AbilityEditor({ ability, onUpdate }: AbilityEditorProps) {
               const raw = e.target.value;
               const parsed = raw ? parseInt(raw, 10) : null;
               const value = parsed === null ? null : Math.max(1, Math.min(8, parsed));
-              onUpdate({ type: 'numberAddditionalCardActions', timing, value });
+              onUpdate({ type: 'numberAdditionalCardActions', timing, value });
             }}
             placeholder="Wert 1-8"
           />

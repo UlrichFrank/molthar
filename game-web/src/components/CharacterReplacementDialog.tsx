@@ -37,7 +37,7 @@ export function CharacterReplacementDialog({ newCard, portalCards, onSelect, onC
           {portalCards.map((card, idx) => (
             <button
               key={idx}
-              className="appearance-none bg-transparent border-none outline-none p-0 cursor-pointer hover:-translate-y-0.5 transition-transform"
+              className="game-dialog-card-btn"
               onClick={() => onSelect(idx)}
             >
               <CharacterImage

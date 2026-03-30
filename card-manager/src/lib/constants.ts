@@ -45,15 +45,15 @@ export const ABILITY_INFO: Record<AbilityType, AbilityInfo> = {
     category: 'blue',
     hasParameters: false,
   },
-  anyAddditionalCardActions: {
-    type: 'anyAddditionalCardActions',
+  anyAdditionalCardActions: {
+    type: 'anyAdditionalCardActions',
     label: 'Beliebige zusätzliche Karte',
     description: 'In jedem Zug hast du eine zusätzliche Karte mit beliebigem Wert (1-8) als Handkarte',
     category: 'blue',
     hasParameters: false,
   },
-  numberAddditionalCardActions: {
-    type: 'numberAddditionalCardActions',
+  numberAdditionalCardActions: {
+    type: 'numberAdditionalCardActions',
     label: 'Zusätzliche benannte Karte',
     description: 'In jedem Zug hast du eine zusätzliche Karte mit einem bestimmten Wert (1-8) als Handkarte',
     category: 'blue',

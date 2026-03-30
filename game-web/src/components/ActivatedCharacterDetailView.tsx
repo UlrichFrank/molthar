@@ -25,7 +25,7 @@ export const ActivatedCharacterDetailView: React.FC<ActivatedCharacterDetailView
         <img
           src={`/assets/${encodeURIComponent(card.imageName)}`}
           alt={card.name}
-          className="w-auto max-h-[240px] object-contain block rounded-lg cursor-pointer hover:scale-[1.02] transition-transform duration-200"
+          className="w-auto max-h-[240px] object-contain block rounded-lg cursor-pointer hover:scale-[1.02] transition-transform duration-200 rotate-180"
           onClick={onClose}
         />
 
