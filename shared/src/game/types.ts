@@ -153,6 +153,16 @@ export interface PlayerState {
    * Wird verwendet, um dem Spieler per playerView das Geheimnis zu zeigen.
    */
   peekedCard?: CharacterCard | null;
+  /**
+   * Portalfarbe des Spielers (1=Lila, 2=Hellgrün, 3=Dunkelgrün, 4=Rot, 5=Hellblau).
+   * Bestimmt das Portal-Hintergrundbild (Portal{colorIndex}.jpeg).
+   */
+  colorIndex: number;
+  /**
+   * Temporäres Flag während der colorSelection-Phase.
+   * true = Spieler hat seine Farbwahl bestätigt.
+   */
+  colorConfirmed: boolean;
 }
 
 /**

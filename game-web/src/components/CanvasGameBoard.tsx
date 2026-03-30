@@ -10,7 +10,9 @@ import {
   drawUIButton,
   drawOpponentActionCounter,
   drawRegionEffects,
+  drawOpponentPortals,
 } from '../lib/gameRender';
+import type { OpponentZoneData } from '../lib/gameRender';
 import { preloadAllImages } from '../lib/imageLoaderV2';
 import { ActivatedCharacterDetailView } from './ActivatedCharacterDetailView';
 import { DialogProvider, useDialog } from '../contexts/DialogContext';
@@ -228,13 +230,19 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     const charDeckHover = regions.find(r => r.type === 'deck-character')?.hoverProgress ?? 0;
     const pearlDeckHover = regions.find(r => r.type === 'deck-pearl')?.hoverProgress ?? 0;
 
+    // Build opponents array [left, top-left, top-right, right] from playerOrder
+    const opponents: Array<OpponentZoneData | null> = buildOpponentsArray(G, myPlayerID);
+
     drawBackground(drawCtx);
+    drawOpponentPortals(drawCtx, opponents);
     drawAuslage(drawCtx, characterSlots, pearlSlots,
       { selectedPearl: null, selectedCharacter: null, selectedHandIndices: [] },
       G.characterDeck?.length ?? 0, G.pearlDeck?.length ?? 0,
       charDeckHover, pearlDeckHover);
     drawPlayerPortal(drawCtx, { diamonds: playerDiamonds, portal: playerPortal, hand: playerHand },
-      { selectedPearl: null, selectedCharacter: null, selectedHandIndices: [] });
+      { selectedPearl: null, selectedCharacter: null, selectedHandIndices: [] },
+      me?.colorIndex ?? 1,
+      myPlayerID === G.startingPlayer);
     drawActivatedCharactersGrid(drawCtx, activatedCards_,
       { selectedPearl: null, selectedCharacter: null, selectedHandIndices: [] });
 

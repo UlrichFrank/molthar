@@ -99,6 +99,25 @@ export const PEARL_DECK_Y = AUSLAGE_START_Y + CARD_H + DECK_BELOW_OFFSET_Y;
 export const CHARACTER_DECK_MAX_SIZE = 52; // 54 total character cards - 2 in initial auslage
 export const PEARL_DECK_MAX_SIZE = 56; // 8 values × 7 copies per value
 
+// === Opponent Zone Scaling Constants ===
+// Cards rendered in opponent zones are scaled down to fit the smaller areas
+export const OPP_SLOT_W = Math.round(CARD_W * 0.35);  // ~31px — portal slot cards
+export const OPP_SLOT_H = Math.round(CARD_H * 0.35);  // ~48px
+export const OPP_SLOT_GAP = Math.round(CARD_GAP * 0.35); // ~5px
+export const OPP_ACT_W = Math.round(CARD_W * 0.25);   // ~22px — activated character cards
+export const OPP_ACT_H = Math.round(CARD_H * 0.25);   // ~35px
+export const OPP_ACT_GAP = Math.round(CARD_GAP * 0.25); // ~4px
+export const OPP_HAND_W = Math.round(CARD_W * 0.28);  // ~25px — hand card back stack
+export const OPP_HAND_H = Math.round(CARD_H * 0.28);  // ~39px
+
+/**
+ * Get portal image filename based on colorIndex and starting player status.
+ */
+export function getPortalImageName(colorIndex: number, isStartingPlayer: boolean): string {
+  if (isStartingPlayer) return `Portal-Startspieler${colorIndex}.jpeg`;
+  return `Portal${colorIndex}.jpeg`;
+}
+
 /**
  * Calculate hand card position with fan-out layout
  * @param handCount Total number of cards in hand

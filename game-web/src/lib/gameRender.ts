@@ -59,6 +59,15 @@ import {
   getHandCardPosition,
   getPortalSlotPosition,
   getActivatedCardPosition,
+  OPP_SLOT_W,
+  OPP_SLOT_H,
+  OPP_SLOT_GAP,
+  OPP_ACT_W,
+  OPP_ACT_H,
+  OPP_ACT_GAP,
+  OPP_HAND_W,
+  OPP_HAND_H,
+  getPortalImageName,
 } from './cardLayoutConstants';
 
 export interface DrawConfig {
@@ -213,15 +222,18 @@ export function drawAuslage(
 export function drawPlayerPortal(
   ctx: CanvasRenderingContext2D,
   portal: PlayerPortalData,
-  config: DrawConfig
+  config: DrawConfig,
+  colorIndex: number = 1,
+  isStartingPlayer: boolean = false,
 ) {
   const portalX = MARGIN_H;
   const portalW = BASE_W - 2 * MARGIN_H;
   const portalY = ZONE_TOP_H + ZONE_CENTER_H;
   const portalH = ZONE_PLAYER_H;
 
-  // Draw Kleiderschrank Portal background (if available)
-  drawImageOrFallback(ctx, 'Kleiderschrank Portal.png', portalX, portalY, portalW, portalH);
+  // Draw portal background based on player's chosen color
+  const portalImg = getPortalImageName(colorIndex, isStartingPlayer);
+  drawImageOrFallback(ctx, portalImg, portalX, portalY, portalW, portalH);
 
   ctx.strokeStyle = '#475569';
   ctx.lineWidth = 2;
@@ -468,63 +480,136 @@ export function drawRegionEffects(ctx: CanvasRenderingContext2D, regions: Canvas
 }
 
 /**
- * Draw opponent portals
- * Layout: 
- *   - Spieler 2 (left): Links neben Auslage, mittlere Höhe (90° rotation)
- *   - Spieler 3 (top-left): Oben-links von Auslage (180° rotation)
- *   - Spieler 4 (top-right): Oben-rechts von Auslage (180° rotation)
- *   - Spieler 5 (right): Rechts neben Auslage, mittlere Höhe (270° rotation)
- * 
- * Schriftrolle.png wird für alle Spieler gezeichnet, die nicht mitspielen
- * Bilder werden auf 95% der Zonengröße skaliert ohne zu verzerren
+ * Opponent zone data for rendering one opponent's portal area.
  */
-export function drawOpponentPortals(ctx: CanvasRenderingContext2D, numOpponents: number) {
-  // Define the 4 portal zones (gestrichelt umrahmt areas)
-  // Spieler 2 & 5: auf gleicher Höhe wie Auslage (ZONE_CENTER)
-  // Spieler 3 & 4: oben und unten von Auslage
-  const zoneLeft = { x: 0, y: ZONE_TOP_H, w: MARGIN_H, h: ZONE_CENTER_H };
-  const zoneTopLeft = { x: MARGIN_H, y: 0, w: (BASE_W - 2 * MARGIN_H) / 2, h: ZONE_TOP_H };
-  const zoneTopRight = { x: MARGIN_H + (BASE_W - 2 * MARGIN_H) / 2, y: 0, w: (BASE_W - 2 * MARGIN_H) / 2, h: ZONE_TOP_H };
-  const zoneRight = { x: BASE_W - MARGIN_H, y: ZONE_TOP_H, w: MARGIN_H, h: ZONE_CENTER_H };
+export interface OpponentZoneData {
+  colorIndex: number;
+  isStartingPlayer: boolean;
+  portal: ActivatedCharacter[];
+  activatedCharacters: ActivatedCharacter[];
+  handCount: number;
+}
 
-  // Helper to scale image to 95% of zone size without distortion
-  // Uses 95% of the smaller dimension to ensure it fits
-  const getSizedDimensions = (zone: typeof zoneLeft) => {
+/**
+ * Draw a single opponent zone: portal background, portal cards (face-up),
+ * activated characters (face-up), and hand stack (face-down).
+ * All elements are rendered rotated to match the zone's orientation.
+ * @param zone Zone bounding box {x, y, w, h}
+ * @param data Opponent data (colorIndex, cards, hand count)
+ * @param rotationDeg Rotation in degrees (90, 180, 270)
+ */
+function drawOpponentZone(
+  ctx: CanvasRenderingContext2D,
+  zone: { x: number; y: number; w: number; h: number },
+  data: OpponentZoneData,
+  rotationDeg: number,
+) {
+  const cx = zone.x + zone.w / 2;
+  const cy = zone.y + zone.h / 2;
+  const rot = (rotationDeg * Math.PI) / 180;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(rot);
+  // Now drawing in zone-local coordinates, center = (0,0)
+  // The zone in local coords spans [-w/2, w/2] x [-h/2, h/2]
+  // But due to rotation, "local width" means zone height and vice versa for 90°/270°
+  // For all rotations, we treat local x as "horizontal across portal" and y as "vertical"
+
+  const localW = zone.w;
+  const localH = zone.h;
+
+  // 1. Portal background — fill 90% of zone
+  const portalImg = getPortalImageName(data.colorIndex, data.isStartingPlayer);
+  const bgW = localW * 0.9;
+  const bgH = localH * 0.9;
+  drawImageOrFallback(ctx, portalImg, -bgW / 2, -bgH / 2, bgW, bgH, `P${data.colorIndex}`);
+
+  // 2. Portal slot cards (face-up, top-center of zone)
+  const slotAreaY = -localH / 2 + localH * 0.08;
+  const totalSlotsW = 2 * OPP_SLOT_W + OPP_SLOT_GAP;
+  const slotStartX = -totalSlotsW / 2;
+  for (let i = 0; i < 2; i++) {
+    const slotX = slotStartX + i * (OPP_SLOT_W + OPP_SLOT_GAP);
+    const entry = data.portal[i];
+    if (entry) {
+      drawImageOrFallback(ctx, entry.card.imageName, slotX, slotAreaY, OPP_SLOT_W, OPP_SLOT_H, entry.card.name);
+    }
+  }
+
+  // 3. Activated characters (face-up, below portal slots)
+  const actAreaY = slotAreaY + OPP_SLOT_H + 4;
+  const maxActVisible = Math.min(data.activatedCharacters.length, 6);
+  if (maxActVisible > 0) {
+    const totalActW = maxActVisible * OPP_ACT_W + (maxActVisible - 1) * OPP_ACT_GAP;
+    const actStartX = -totalActW / 2;
+    for (let i = 0; i < maxActVisible; i++) {
+      const card = data.activatedCharacters[i]!;
+      const actX = actStartX + i * (OPP_ACT_W + OPP_ACT_GAP);
+      drawImageOrFallback(ctx, card.card.imageName, actX, actAreaY, OPP_ACT_W, OPP_ACT_H, card.card.name);
+    }
+  }
+
+  // 4. Hand cards — face-down stack with count label (bottom area)
+  if (data.handCount > 0) {
+    const handX = -OPP_HAND_W / 2;
+    const handY = localH / 2 - OPP_HAND_H - localH * 0.06;
+    drawImageOrFallback(ctx, 'Perlenkarte_Rueckseite.png', handX, handY, OPP_HAND_W, OPP_HAND_H, '?');
+    // Count badge
+    ctx.fillStyle = 'rgba(0,0,0,0.65)';
+    ctx.beginPath();
+    ctx.arc(handX + OPP_HAND_W - 5, handY + 5, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `bold ${Math.round(OPP_HAND_H * 0.22)}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(data.handCount), handX + OPP_HAND_W - 5, handY + 5);
+  }
+
+  ctx.restore();
+}
+
+/**
+ * Draw opponent portals
+ * Layout:
+ *   - Zone left (90°):       Spieler rechts vom lokalen Spieler in playerOrder
+ *   - Zone top-left (180°):  Spieler 2 Plätze nach links
+ *   - Zone top-right (180°): Spieler 2 Plätze nach rechts (bei 4+ Spielern)
+ *   - Zone right (270°):     Spieler links vom lokalen Spieler in playerOrder
+ *
+ * opponents: Array mit 4 Einträgen (links, oben-links, oben-rechts, rechts),
+ *            null = kein Spieler → Schriftrolle
+ */
+export function drawOpponentPortals(
+  ctx: CanvasRenderingContext2D,
+  opponents: Array<OpponentZoneData | null>,
+) {
+  const zoneLeft     = { x: 0,                                          y: ZONE_TOP_H, w: MARGIN_H,                    h: ZONE_CENTER_H };
+  const zoneTopLeft  = { x: MARGIN_H,                                   y: 0,          w: (BASE_W - 2 * MARGIN_H) / 2, h: ZONE_TOP_H };
+  const zoneTopRight = { x: MARGIN_H + (BASE_W - 2 * MARGIN_H) / 2,    y: 0,          w: (BASE_W - 2 * MARGIN_H) / 2, h: ZONE_TOP_H };
+  const zoneRight    = { x: BASE_W - MARGIN_H,                          y: ZONE_TOP_H, w: MARGIN_H,                    h: ZONE_CENTER_H };
+
+  const zones = [
+    { zone: zoneLeft,     deg: 90  },
+    { zone: zoneTopLeft,  deg: 180 },
+    { zone: zoneTopRight, deg: 180 },
+    { zone: zoneRight,    deg: 270 },
+  ];
+
+  const drawScrollInZone = (zone: typeof zoneLeft, deg: number) => {
     const maxDim = Math.min(zone.w, zone.h) * 0.95;
-    return { w: maxDim, h: maxDim }; // Square scaling prevents distortion
+    const x = zone.x + zone.w / 2 - maxDim / 2;
+    const y = zone.y + zone.h / 2 - maxDim / 2;
+    drawImageOrFallback(ctx, 'Schriftrolle.png', x, y, maxDim, maxDim, 'SR', deg);
   };
 
-  // Helper to center image in zone with rotation
-  const drawInZone = (zone: typeof zoneLeft, image: string, label: string, rotation: number = 0) => {
-    const { w, h } = getSizedDimensions(zone);
-    const x = zone.x + zone.w / 2 - w / 2;
-    const y = zone.y + zone.h / 2 - h / 2;
-    drawImageOrFallback(ctx, image, x, y, w, h, label, rotation);
-  };
-
-  // Always draw Spieler 2 (left) if in game
-  if (numOpponents >= 1) {
-    drawInZone(zoneLeft, 'Gegner Portal2.png', 'P2', 90);
-  }
-
-  // Always draw Spieler 3 (top-left) if in game
-  if (numOpponents >= 2) {
-    drawInZone(zoneTopLeft, 'Gegner Portal3.png', 'P3', 180);
-  } else {
-    drawInZone(zoneTopLeft, 'Schriftrolle.png', 'SR', 180);
-  }
-
-  // Always draw Spieler 4 (top-right) if in game
-  if (numOpponents >= 3) {
-    drawInZone(zoneTopRight, 'Gegner Portal4.png', 'P4', 180);
-  } else {
-    drawInZone(zoneTopRight, 'Schriftrolle.png', 'SR', 180);
-  }
-
-  // Always draw Spieler 5 (right) if in game
-  if (numOpponents >= 4) {
-    drawInZone(zoneRight, 'Gegner Portal5.png', 'P5', 270);
-  } else {
-    drawInZone(zoneRight, 'Schriftrolle.png', 'SR', 270);
-  }
+  zones.forEach(({ zone, deg }, i) => {
+    const data = opponents[i];
+    if (data) {
+      drawOpponentZone(ctx, zone, data, deg);
+    } else {
+      drawScrollInZone(zone, deg);
+    }
+  });
 }

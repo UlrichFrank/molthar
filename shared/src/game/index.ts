@@ -1,4 +1,4 @@
-import { INVALID_MOVE } from 'boardgame.io/core';
+import { INVALID_MOVE, Stage } from 'boardgame.io/core';
 import type { GameState, PearlCard, CharacterCard, PlayerState, ActivatedCharacter, PaymentSelection } from './types';
 import { calculateHandLimit, getExcessCardCount, validateCostPayment } from './costCalculation';
 import { getAllCards as getAllCardDataFromDatabase } from './cardDatabase';
@@ -31,7 +31,8 @@ export const PortaleVonMolthar = {
     
     // Initialize players
     const players: { [playerId: string]: PlayerState } = {};
-    for (const playerId of playerIds) {
+    for (let i = 0; i < playerIds.length; i++) {
+      const playerId = playerIds[i];
       players[playerId] = {
         id: playerId,
         name: `Player ${parseInt(playerId) + 1}`,
@@ -46,6 +47,8 @@ export const PortaleVonMolthar = {
         handLimitModifier: 0,
         activeAbilities: [],
         peekedCard: null,
+        colorIndex: i + 1, // sequential default: 1, 2, 3, ...
+        colorConfirmed: false,
       };
     }
     
@@ -87,7 +90,7 @@ export const PortaleVonMolthar = {
       requiresHandDiscard: false,
       excessCardCount: 0,
       currentHandLimit: 5,
-      startingPlayer: playerIds[0],
+      startingPlayer: playerIds[Math.floor(Math.random() * playerIds.length)],
       portalEntryCounter: 0,
       nextPlayerExtraAction: false,
       lastPlayedPearlId: null,
@@ -583,6 +586,41 @@ export const PortaleVonMolthar = {
       return;
     },
 
+  },
+
+  /**
+   * Phases: colorSelection (before main game) + default play phase (no named phase)
+   */
+  phases: {
+    colorSelection: {
+      start: true,
+      turn: {
+        activePlayers: { all: Stage.NULL },
+      },
+      moves: {
+        selectColor({ G, ctx }: { G: GameState; ctx: any }, colorIndex: number) {
+          if (colorIndex < 1 || colorIndex > 5) return INVALID_MOVE;
+          const playerId = ctx.currentPlayer;
+          // Check if color is already taken by another player
+          const alreadyTaken = Object.values(G.players).some(
+            p => p.id !== playerId && p.colorIndex === colorIndex
+          );
+          if (alreadyTaken) return INVALID_MOVE;
+          G.players[playerId].colorIndex = colorIndex;
+        },
+        confirmColor({ G, ctx }: { G: GameState; ctx: any }) {
+          const playerId = ctx.currentPlayer;
+          if (!G.players[playerId]) return INVALID_MOVE;
+          G.players[playerId].colorConfirmed = true;
+        },
+      },
+      endIf: ({ G }: { G: GameState }) =>
+        Object.values(G.players).every(p => p.colorConfirmed),
+      onEnd: ({ G }: { G: GameState }) => {
+        // Reset colorConfirmed flags — not needed during actual gameplay
+        Object.values(G.players).forEach(p => { p.colorConfirmed = false; });
+      },
+    },
   },
 
   /**
