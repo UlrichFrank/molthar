@@ -92,7 +92,11 @@ export const PortaleVonMolthar = {
       startingPlayer: playerIds[Math.floor(Math.random() * playerIds.length)],
       portalEntryCounter: 0,
       nextPlayerExtraAction: false,
-      lastPlayedPearlId: null,
+      playedRealPearlIds: [],
+      pendingTakeBackPlayedPearl: false,
+      isReshufflingPearlDeck: false,
+      isReshufflingCharacterDeck: false,
+      pendingStealOpponentHandCard: false,
     };
   },
   
@@ -120,10 +124,10 @@ export const PortaleVonMolthar = {
       
       player.hand.push(card);
       G.actionCount++;
-      refillSlots(G.pearlSlots, G.pearlDeck, G.pearlDiscardPile, 4);
+      refillSlots(G.pearlSlots, G.pearlDeck, G.pearlDiscardPile, 4, () => { G.isReshufflingPearlDeck = true; });
       return;
     },
-    
+
     takeCharacterCard({ G, ctx }: { G: GameState; ctx: any }, slotIndex: number, replacedSlotIndex?: number) {
       const player = G.players[ctx.currentPlayer];
       if (!player) return INVALID_MOVE;
@@ -161,7 +165,7 @@ export const PortaleVonMolthar = {
       }
 
       G.actionCount++;
-      refillSlots(G.characterSlots, G.characterDeck, G.characterDiscardPile, 2);
+      refillSlots(G.characterSlots, G.characterDeck, G.characterDiscardPile, 2, () => { G.isReshufflingCharacterDeck = true; });
       return;
     },
 
@@ -281,6 +285,7 @@ export const PortaleVonMolthar = {
 
       // Consumed Karten auf den Ablagestapel (nur echte Handkarten!)
       consumedCards.forEach(card => G.pearlDiscardPile.push(card));
+      consumedCards.forEach(card => G.playedRealPearlIds.push(card.id));
 
       // Belohnungen der Karte gutschreiben
       player.powerPoints += entry.card.powerPoints;
@@ -320,7 +325,7 @@ export const PortaleVonMolthar = {
       
       // Discard all pearl slots, then refill
       G.pearlDiscardPile.push(...G.pearlSlots.splice(0));
-      refillSlots(G.pearlSlots, G.pearlDeck, G.pearlDiscardPile, 4);
+      refillSlots(G.pearlSlots, G.pearlDeck, G.pearlDiscardPile, 4, () => { G.isReshufflingPearlDeck = true; });
       G.actionCount++;
       return;
     },
@@ -370,16 +375,10 @@ export const PortaleVonMolthar = {
 
       // Draw exactly the same amount of cards
       for (let i = 0; i < currentHandSize; i++) {
-        let card = G.pearlDeck.pop();
-        if (!card && G.pearlDiscardPile.length > 0) {
-          G.pearlDeck.push(...G.pearlDiscardPile.splice(0));
-          shuffleArray(G.pearlDeck);
-          card = G.pearlDeck.pop();
-        }
+        const card = drawCard(G.pearlDeck, G.pearlDiscardPile, () => { G.isReshufflingPearlDeck = true; });
         if (card) {
           player.hand.push(card);
         } else {
-          // Deck and discard pile empty
           break;
         }
       }
@@ -476,6 +475,7 @@ export const PortaleVonMolthar = {
       const diamondCosts = entry.card.cost?.filter(c => c.type === 'diamond').reduce((sum, c) => sum + (c.value || 0), 0) || 0;
       caller.diamonds -= diamondCosts;
       consumed.forEach(c => G.pearlDiscardPile.push(c));
+      consumed.forEach(c => G.playedRealPearlIds.push(c.id));
 
       // Power points and diamonds go to the caller
       caller.powerPoints += entry.card.powerPoints;
@@ -585,6 +585,49 @@ export const PortaleVonMolthar = {
       return;
     },
 
+    acknowledgeReshuffle({ G }: { G: GameState }, deckType: 'pearl' | 'character') {
+      if (deckType === 'pearl') {
+        G.isReshufflingPearlDeck = false;
+      } else if (deckType === 'character') {
+        G.isReshufflingCharacterDeck = false;
+      }
+      return;
+    },
+
+    resolveReturnPearl({ G, ctx }: { G: GameState; ctx: any }, pearlId: string) {
+      if (!G.pendingTakeBackPlayedPearl) return;
+      if (!G.playedRealPearlIds.includes(pearlId)) return;
+      const discardIdx = G.pearlDiscardPile.findIndex(c => c.id === pearlId);
+      if (discardIdx === -1) return;
+      const currentPlayer = G.players[ctx.currentPlayer];
+      if (!currentPlayer) return;
+      const card = G.pearlDiscardPile.splice(discardIdx, 1)[0];
+      if (card) currentPlayer.hand.push(card);
+      G.playedRealPearlIds = G.playedRealPearlIds.filter(id => id !== pearlId);
+      G.pendingTakeBackPlayedPearl = false;
+    },
+
+    dismissReturnPearlDialog({ G }: { G: GameState }) {
+      G.pendingTakeBackPlayedPearl = false;
+    },
+
+    resolveStealOpponentHandCard(
+      { G, ctx }: { G: GameState; ctx: any },
+      targetPlayerId: string,
+      handCardIndex: number,
+    ) {
+      if (!G.pendingStealOpponentHandCard) return;
+      if (targetPlayerId === ctx.currentPlayer) return;
+      const target = G.players[targetPlayerId];
+      if (!target) return;
+      if (handCardIndex < 0 || handCardIndex >= target.hand.length) return;
+      const currentPlayer = G.players[ctx.currentPlayer];
+      if (!currentPlayer) return;
+      const stolen = target.hand.splice(handCardIndex, 1)[0];
+      if (stolen) currentPlayer.hand.push(stolen);
+      G.pendingStealOpponentHandCard = false;
+    },
+
   },
 
   /**
@@ -610,8 +653,8 @@ export const PortaleVonMolthar = {
       }
     },
     onEnd: ({ G, ctx }: { G: GameState; ctx: any }) => {
-      // lastPlayedPearlId am Zugende zurücksetzen
-      G.lastPlayedPearlId = null;
+      // playedRealPearlIds am Zugende zurücksetzen
+      G.playedRealPearlIds = [];
       // peekedCard vom Spieler zurücksetzen, falls verwendet (da der Stapel sich ändern kann)
       const player = G.players[ctx.currentPlayer];
       if (player) {
@@ -687,17 +730,27 @@ function syncPlayerAbilities(player: import('./types').PlayerState): void {
 }
 
 /**
+ * Zieht eine Karte vom Deck. Wenn das Deck leer ist und der Ablagestapel Karten enthält,
+ * wird der Ablagestapel gemischt zum neuen Deck und `onReshuffle` aufgerufen.
+ * Gibt `undefined` zurück wenn beide Stapel leer sind.
+ */
+function drawCard<T>(deck: T[], discardPile: T[], onReshuffle?: () => void): T | undefined {
+  if (deck.length === 0 && discardPile.length > 0) {
+    deck.push(...discardPile.splice(0));
+    shuffleArray(deck);
+    onReshuffle?.();
+  }
+  return deck.pop();
+}
+
+/**
  * Refill a slot array from a deck, reshuffling the discard pile if the deck runs out.
  * Mutates all three arrays in place (compatible with boardgame.io/Immer).
+ * `onReshuffle` wird aufgerufen wenn ein Reshuffle stattfindet.
  */
-function refillSlots<T>(slots: T[], deck: T[], discardPile: T[], maxSlots: number): void {
+function refillSlots<T>(slots: T[], deck: T[], discardPile: T[], maxSlots: number, onReshuffle?: () => void): void {
   while (slots.length < maxSlots) {
-    let card = deck.pop();
-    if (!card && discardPile.length > 0) {
-      deck.push(...discardPile.splice(0));
-      shuffleArray(deck);
-      card = deck.pop();
-    }
+    const card = drawCard(deck, discardPile, onReshuffle);
     if (card) slots.push(card);
     else break;
   }

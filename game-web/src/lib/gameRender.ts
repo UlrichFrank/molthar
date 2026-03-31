@@ -131,7 +131,8 @@ export function drawDeckStack(
   rotation: number = DECK_ROTATION,
   deckType: 'character' | 'pearl' = 'character',
   hoverProgress: number = 0,
-  maxDeckSize?: number
+  maxDeckSize?: number,
+  peekedCard?: CharacterCard | null
 ) {
   if (cardCount <= 0) return;
 
@@ -145,8 +146,14 @@ export function drawDeckStack(
   for (let i = 0; i < visibleCards; i++) {
     const offsetX = i * DECK_CARD_OFFSET;
     const offsetY = i * DECK_CARD_OFFSET;
-    const backImage = deckType === 'character' ? 'Charakterkarte Hinten.png' : 'Perlenkarte Hinten.png';
-    drawImageOrFallback(ctx, backImage, offsetX, offsetY, DECK_CARD_W, DECK_CARD_H, 'Deck');
+    const isTopCard = i === visibleCards - 1;
+    if (isTopCard && peekedCard) {
+      // Draw face-up peeked card
+      drawImageOrFallback(ctx, peekedCard.imageName, offsetX, offsetY, DECK_CARD_W, DECK_CARD_H, peekedCard.name);
+    } else {
+      const backImage = deckType === 'character' ? 'Charakterkarte Hinten.png' : 'Perlenkarte Hinten.png';
+      drawImageOrFallback(ctx, backImage, offsetX, offsetY, DECK_CARD_W, DECK_CARD_H, 'Deck');
+    }
   }
 
   // Glow on the top card (highest index = visually on top)
@@ -161,6 +168,28 @@ export function drawDeckStack(
     ctx.shadowColor = 'transparent';
   }
 
+  // Hint label when card is peeked
+  if (peekedCard) {
+    ctx.restore();
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rotation);
+    const topOffset = (visibleCards - 1) * DECK_CARD_OFFSET;
+    ctx.fillStyle = 'rgba(15,23,42,0.82)';
+    const labelW = 118;
+    const labelH = 18;
+    const labelX = topOffset + DECK_CARD_W + 6;
+    const labelY = topOffset + DECK_CARD_H / 2 - labelH / 2;
+    ctx.beginPath();
+    ctx.roundRect(labelX, labelY, labelW, labelH, 4);
+    ctx.fill();
+    ctx.fillStyle = '#fde68a';
+    ctx.font = 'bold 11px Arial';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('← Klick zum Nehmen', labelX + 6, labelY + labelH / 2);
+  }
+
   ctx.restore();
 }
 
@@ -172,7 +201,8 @@ export function drawAuslage(
   characterDeckCount: number = 0,
   pearlDeckCount: number = 0,
   charDeckHover: number = 0,
-  pearlDeckHover: number = 0
+  pearlDeckHover: number = 0,
+  peekedCharacterCard?: CharacterCard | null
 ) {
   // Auslage in center zone - respects zone boundaries like HTML <div>
   const centerX = MARGIN_H;
@@ -222,7 +252,7 @@ export function drawAuslage(
   }
 
   // Draw character deck below the character cards
-  drawDeckStack(ctx, CHAR_DECK_X, CHAR_DECK_Y, characterDeckCount, DECK_ROTATION, 'character', charDeckHover);
+  drawDeckStack(ctx, CHAR_DECK_X, CHAR_DECK_Y, characterDeckCount, DECK_ROTATION, 'character', charDeckHover, undefined, peekedCharacterCard);
 
   // Draw pearl deck below the pearl cards
   drawDeckStack(ctx, PEARL_DECK_X, PEARL_DECK_Y, pearlDeckCount, DECK_ROTATION, 'pearl', pearlDeckHover);
@@ -323,6 +353,43 @@ export function drawActivatedCharactersGrid(
     
     ctx.restore();
   });
+}
+
+/**
+ * Draw portal swap buttons (⇄) below each occupied portal slot.
+ * One button per region of type 'portal-swap-btn'.
+ */
+export function drawPortalSwapButtons(ctx: CanvasRenderingContext2D, regions: CanvasRegion[]) {
+  const swapRegions = regions.filter(r => r.type === 'portal-swap-btn');
+  for (const region of swapRegions) {
+    const { x, y, w, h, hoverProgress } = region;
+    ctx.save();
+
+    // Background
+    const alpha = 0.75 + hoverProgress * 0.25;
+    ctx.fillStyle = `rgba(99, 102, 241, ${alpha})`;
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, 4);
+    ctx.fill();
+
+    // Border with hover glow
+    ctx.strokeStyle = hoverProgress > 0.01
+      ? `rgba(255, 215, 0, ${0.5 + hoverProgress * 0.5})`
+      : 'rgba(165, 180, 252, 0.8)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, 4);
+    ctx.stroke();
+
+    // ⇄ symbol
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `bold ${Math.round(h * 0.7)}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('⇄', x + w / 2, y + h / 2);
+
+    ctx.restore();
+  }
 }
 
 /**

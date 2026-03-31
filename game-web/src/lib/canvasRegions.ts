@@ -23,6 +23,7 @@ import {
 export type CanvasRegionType =
   | 'auslage-card'
   | 'portal-slot'
+  | 'portal-swap-btn'
   | 'hand-card'
   | 'activated-character'
   | 'deck-character'
@@ -148,6 +149,26 @@ export function buildCanvasRegions(
       x: slotX, y: slotY, w: SLOT_W, h: SLOT_H,
       ...animState(existing, 'portal-slot', i),
     });
+  }
+
+  // --- Portal swap buttons (below each occupied portal slot, only when changeCharacterActions active and actionCount === 0) ---
+  const hasSwapAbility = isActive &&
+    (G.actionCount ?? 0) === 0 &&
+    (me?.activeAbilities ?? []).some(a => a.type === 'changeCharacterActions');
+  if (hasSwapAbility) {
+    const SWAP_BTN_H = 24;
+    const SWAP_BTN_GAP = 4;
+    for (let i = 0; i < 2; i++) {
+      if (me?.portal[i]) {
+        const { slotX, slotY } = getPortalSlotPosition(i);
+        regions.push({
+          type: 'portal-swap-btn', id: i,
+          x: slotX, y: slotY + SLOT_H + SWAP_BTN_GAP,
+          w: SLOT_W, h: SWAP_BTN_H,
+          ...animState(existing, 'portal-swap-btn', i),
+        });
+      }
+    }
   }
 
   // --- Hand cards ---

@@ -51,8 +51,8 @@
 
 - ~~[ ] 8.1 Manuell: Farb-Auswahl-Overlay~~  (entfernt)
 - ~~[ ] 8.2 Manuell: Belegte Farbe~~  (entfernt)
-- [ ] 8.3 Manuell: Eigenes Portal zeigt korrektes `Portal{colorIndex}.jpeg`; Startspieler zeigt `Portal-Startspieler{colorIndex}.jpeg`
-- [ ] 8.4 Manuell: Gegner-Zonen zeigen deren Portal-Bild, Portal-Karten (offen), aktivierte Charaktere (offen), Handkarten (verdeckt)
-- [ ] 8.5 Manuell: Karten in Gegner-Zonen korrekt rotiert (links=90°, oben=180°, rechts=270°)
-- [ ] 8.6 Manuell: Leere Zonen bei 2–3 Spielern zeigen `Schriftrolle.png`
+- [X] 8.3 Manuell: Eigenes Portal zeigt korrektes `Portal{colorIndex}.jpeg`; Startspieler zeigt `Portal-Startspieler{colorIndex}.jpeg`
+- [X] 8.4 Manuell: Gegner-Zonen zeigen deren Portal-Bild, Portal-Karten (offen), aktivierte Charaktere (offen), Handkarten (verdeckt)
+- [X] 8.5 Manuell: Karten in Gegner-Zonen korrekt rotiert (links=90°, oben=180°, rechts=270°)
+- [X] 8.6 Manuell: Leere Zonen bei 2–3 Spielern zeigen `Schriftrolle.png`
 - [x] 8.7 `make test-shared` grün

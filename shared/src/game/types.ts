@@ -193,11 +193,19 @@ export interface GameState {
    */
   nextPlayerExtraAction: boolean;
 
-  /**
-   * ID der zuletzt gespielten Perlenkarte (für `takeBackPlayedPearl`).
-   * Wird auf null zurückgesetzt, wenn die Karte zurückgeholt wurde oder der Zug endet.
-   */
-  lastPlayedPearlId: string | null;
+  /** IDs aller echten Perlenkarten, die im aktuellen Zug gespielt wurden (für `takeBackPlayedPearl`). Wird am Zugende geleert. */
+  playedRealPearlIds: string[];
+
+  /** Ausstehende Kartenauswahl für `takeBackPlayedPearl`-Ability. */
+  pendingTakeBackPlayedPearl: boolean;
+
+  /** Signalisiert dem Frontend, dass der Perlen-Nachziehstapel gerade neu gemischt wurde. */
+  isReshufflingPearlDeck: boolean;
+  /** Signalisiert dem Frontend, dass der Charakter-Nachziehstapel gerade neu gemischt wurde. */
+  isReshufflingCharacterDeck: boolean;
+
+  /** Ausstehende Auswahl einer gegnerischen Handkarte zum Stehlen. */
+  pendingStealOpponentHandCard: boolean;
 
   // Metadaten
   startingPlayer: string;

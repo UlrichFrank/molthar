@@ -56,7 +56,11 @@ function makeMinimalGameState(overrides: Partial<GameState> = {}): GameState {
     startingPlayer: '0',
     portalEntryCounter: 0,
     nextPlayerExtraAction: false,
-    lastPlayedPearlId: null,
+    playedRealPearlIds: [],
+    pendingTakeBackPlayedPearl: false,
+    isReshufflingPearlDeck: false,
+    isReshufflingCharacterDeck: false,
+    pendingStealOpponentHandCard: false,
     ...overrides,
   } as GameState;
 }
@@ -106,9 +110,10 @@ describe('TIER 0 – Typen und State-Initialisierung', () => {
     expect(G.nextPlayerExtraAction).toBe(false);
   });
 
-  it('0.4 – GameState.lastPlayedPearlId startet als null', () => {
+  it('0.4 – GameState.playedRealPearlIds startet als leeres Array', () => {
     const G = makeMinimalGameState();
-    expect(G.lastPlayedPearlId).toBeNull();
+    expect(G.playedRealPearlIds).toEqual([]);
+    expect(G.pendingTakeBackPlayedPearl).toBe(false);
   });
 
   it('0.8 – applyBlueAbility fügt Fähigkeit zu activeAbilities hinzu', () => {
@@ -175,36 +180,34 @@ describe('TIER 1 – Rote Fähigkeiten (applyRedAbility)', () => {
     expect(G.characterDiscardPile).toHaveLength(0);
   });
 
-  // 1.9 / 1.10
-  it('1.9/1.10 – stealOpponentHandCard überträgt Karte von Gegner-Hand auf eigene Hand', () => {
+  // 1.9 / 1.10 — now sets pending flag instead of immediately stealing
+  it('1.9/1.10 – stealOpponentHandCard setzt pendingStealOpponentHandCard wenn Gegner Karten hat', () => {
     const opponent = G.players['1']!;
     opponent.hand.push({ id: 'pearl-5-0', value: 5, hasSwapSymbol: false });
     applyRedAbility(G, makeCtx('0'), makeAbility('stealOpponentHandCard', false));
-    expect(opponent.hand).toHaveLength(0);
-    expect(G.players['0']!.hand).toHaveLength(1);
-    expect(G.players['0']!.hand[0]!.id).toBe('pearl-5-0');
+    expect(G.pendingStealOpponentHandCard).toBe(true);
+    // card still in opponent hand until dialog resolves
+    expect(opponent.hand).toHaveLength(1);
   });
 
   it('stealOpponentHandCard – kein Effekt wenn alle Gegner keine Karten haben', () => {
     applyRedAbility(G, makeCtx('0'), makeAbility('stealOpponentHandCard', false));
+    expect(G.pendingStealOpponentHandCard).toBe(false);
     expect(G.players['0']!.hand).toHaveLength(0);
   });
 
-  // 1.11 / 1.12 / 1.13
-  it('1.11/1.13 – takeBackPlayedPearl holt Perlenkarte vom Ablagestapel zurück', () => {
-    const pearl = { id: 'pearl-3-1', value: 3 as const, hasSwapSymbol: false };
-    G.pearlDiscardPile.push(pearl);
-    G.lastPlayedPearlId = pearl.id;
+  // 1.11 / 1.12 / 1.13 — takeBackPlayedPearl now sets pending flag (dialog-driven)
+  it('1.11 – takeBackPlayedPearl setzt pendingTakeBackPlayedPearl = true', () => {
     applyRedAbility(G, makeCtx('0'), makeAbility('takeBackPlayedPearl', false));
-    expect(G.pearlDiscardPile).toHaveLength(0);
-    expect(G.players['0']!.hand).toHaveLength(1);
-    expect(G.lastPlayedPearlId).toBeNull();
+    expect(G.pendingTakeBackPlayedPearl).toBe(true);
+    // card is NOT immediately moved — dialog resolves via resolveReturnPearl move
   });
 
-  it('1.13 – takeBackPlayedPearl kein Effekt wenn lastPlayedPearlId null', () => {
+  it('1.13 – takeBackPlayedPearl setzt immer Flag, auch ohne gespielte Karten', () => {
     G.pearlDiscardPile.push({ id: 'pearl-3-1', value: 3, hasSwapSymbol: false });
     applyRedAbility(G, makeCtx('0'), makeAbility('takeBackPlayedPearl', false));
-    expect(G.pearlDiscardPile).toHaveLength(1);
+    expect(G.pendingTakeBackPlayedPearl).toBe(true);
+    expect(G.pearlDiscardPile).toHaveLength(1); // untouched until dialog resolved
     expect(G.players['0']!.hand).toHaveLength(0);
   });
 
@@ -217,7 +220,6 @@ describe('TIER 1 – Rote Fähigkeiten (applyRedAbility)', () => {
     });
     opponent.hand.push({ id: 'pearl-2-0', value: 2, hasSwapSymbol: false });
     G.pearlDiscardPile.push({ id: 'pearl-7-0', value: 7, hasSwapSymbol: false });
-    G.lastPlayedPearlId = 'pearl-7-0';
 
     applyRedAbility(G, makeCtx('0'), makeAbility('threeExtraActions', false));
     applyRedAbility(G, makeCtx('0'), makeAbility('nextPlayerOneExtraAction', false));
@@ -228,8 +230,10 @@ describe('TIER 1 – Rote Fähigkeiten (applyRedAbility)', () => {
     expect(G.maxActions).toBe(6);
     expect(G.nextPlayerExtraAction).toBe(true);
     expect(G.characterDiscardPile).toHaveLength(1);
-    // steal + takeBack: Spieler hat 2 Karten (gestohlene + zurückgeholte)
-    expect(G.players['0']!.hand).toHaveLength(2);
+    // both steal and takeBack now set pending flags (dialog-driven)
+    expect(G.pendingStealOpponentHandCard).toBe(true);
+    expect(G.pendingTakeBackPlayedPearl).toBe(true);
+    expect(G.players['0']!.hand).toHaveLength(0); // no immediate card movement
   });
 });
 
@@ -356,15 +360,15 @@ describe('TIER 4 – Blaue Hand-/Portal-Aktionen', () => {
   });
 });
 // ---------------------------------------------------------------------------
-// TIER 1: turn.onEnd-Hook (lastPlayedPearlId zurücksetzen)
+// TIER 1: turn.onEnd-Hook (playedRealPearlIds zurücksetzen)
 // ---------------------------------------------------------------------------
 
 describe('TIER 1 – turn.onEnd-Hook', () => {
-  it('1.3 – onEnd setzt lastPlayedPearlId auf null zurück', () => {
-    const G = makeMinimalGameState({ lastPlayedPearlId: 'pearl-5-0' });
+  it('1.3 – onEnd leert playedRealPearlIds', () => {
+    const G = makeMinimalGameState({ playedRealPearlIds: ['pearl-5-0', 'pearl-3-1'] });
     // Simuliere onEnd:
-    G.lastPlayedPearlId = null;
-    expect(G.lastPlayedPearlId).toBeNull();
+    G.playedRealPearlIds = [];
+    expect(G.playedRealPearlIds).toEqual([]);
   });
 });
 

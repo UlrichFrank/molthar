@@ -5,13 +5,19 @@ export type DialogState =
   | { type: 'none' }
   | { type: 'replacement'; newCharacter: CharacterCard; portalCharacters: CharacterCard[] }
   | { type: 'activation'; character: CharacterCard; portalSlotIndex: number }
-  | { type: 'discard'; hand: PearlCard[]; excessCardCount: number; currentHandLimit: number };
+  | { type: 'discard'; hand: PearlCard[]; excessCardCount: number; currentHandLimit: number }
+  | { type: 'steal-opponent-hand-card'; selectedPlayerId: string | null }
+  | { type: 'swap-portal-character'; portalCard: CharacterCard; portalSlotIndex: number; tableCards: (CharacterCard | undefined)[] }
+  | { type: 'take-back-played-pearl' };
 
 export interface DialogContextType {
   dialog: DialogState;
   openReplacementDialog: (newCharacter: CharacterCard, portalCharacters: CharacterCard[]) => void;
   openActivationDialog: (character: CharacterCard, portalSlotIndex: number) => void;
   openDiscardDialog: (hand: PearlCard[], excessCardCount: number, currentHandLimit: number) => void;
+  openStealOpponentHandCardDialog: () => void;
+  openSwapPortalCharacterDialog: (portalCard: CharacterCard, portalSlotIndex: number, tableCards: (CharacterCard | undefined)[]) => void;
+  openTakeBackPlayedPearlDialog: () => void;
   closeDialog: () => void;
 }
 
@@ -32,6 +38,18 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
     setDialog({ type: 'discard', hand, excessCardCount, currentHandLimit });
   }, []);
 
+  const openStealOpponentHandCardDialog = useCallback(() => {
+    setDialog({ type: 'steal-opponent-hand-card', selectedPlayerId: null });
+  }, []);
+
+  const openSwapPortalCharacterDialog = useCallback((portalCard: CharacterCard, portalSlotIndex: number, tableCards: (CharacterCard | undefined)[]) => {
+    setDialog({ type: 'swap-portal-character', portalCard, portalSlotIndex, tableCards });
+  }, []);
+
+  const openTakeBackPlayedPearlDialog = useCallback(() => {
+    setDialog({ type: 'take-back-played-pearl' });
+  }, []);
+
   const closeDialog = useCallback(() => {
     setDialog({ type: 'none' });
   }, []);
@@ -41,6 +59,9 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
     openReplacementDialog,
     openActivationDialog,
     openDiscardDialog,
+    openStealOpponentHandCardDialog,
+    openSwapPortalCharacterDialog,
+    openTakeBackPlayedPearlDialog,
     closeDialog,
   };
 

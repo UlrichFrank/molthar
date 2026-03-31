@@ -21,9 +21,9 @@
 
 ## 3. Verifikation
 
-- [ ] 3.1 Manuell (2 Spieler): Gegner-Zone links zeigt Portal-Bild, Hand-Stapel unten (= links aus Mitspielersicht), Portal-Slots rechts (= oben aus Mitspielersicht)
+- [X] 3.1 Manuell (2 Spieler): Gegner-Zone links zeigt Portal-Bild, Hand-Stapel unten (= links aus Mitspielersicht), Portal-Slots rechts (= oben aus Mitspielersicht)
 - [ ] 3.2 Manuell (3 Spieler): Beide oberen Gegner-Zonen zeigen korrektes 180°-Layout
 - [ ] 3.3 Manuell (5 Spieler): Alle 4 Zonen, Karten gleich groß
-- [ ] 3.4 Manuell: Handkarten-Stapel zeigt `Perlenkarte Hinten.png` (kein kaputtes Bild)
-- [ ] 3.5 Manuell: Startspieler-Portal-Bild erscheint korrekt in Gegner-Zone
+- [X] 3.4 Manuell: Handkarten-Stapel zeigt `Perlenkarte Hinten.png` (kein kaputtes Bild)
+- [X] 3.5 Manuell: Startspieler-Portal-Bild erscheint korrekt in Gegner-Zone
 
