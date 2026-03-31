@@ -35,6 +35,7 @@ function makeMinimalGameState(overrides: Partial<GameState> = {}): GameState {
     isAI: false,
     handLimitModifier: 0,
     activeAbilities: [],
+    colorIndex: 1,
   });
   return {
     pearlDeck: [],
@@ -745,7 +746,7 @@ describe('TIER 7 – irrlicht (geteilte Aktivierung)', () => {
     const makeP = (id: string): PlayerState => ({
       id, name: `P${id}`, hand: [], portal: [], activatedCharacters: [],
       powerPoints: 0, diamonds: 0, readyUp: false, isAI: false,
-      handLimitModifier: 0, activeAbilities: [],
+      handLimitModifier: 0, activeAbilities: [], colorIndex: 1,
     });
     const G = {
       ...makeMinimalGameState(),
@@ -790,7 +791,7 @@ describe('TIER 7 – irrlicht (geteilte Aktivierung)', () => {
     const makeP = (id: string): PlayerState => ({
       id, name: `P${id}`, hand: [], portal: [], activatedCharacters: [],
       powerPoints: 0, diamonds: 0, readyUp: false, isAI: false,
-      handLimitModifier: 0, activeAbilities: [],
+      handLimitModifier: 0, activeAbilities: [], colorIndex: 1,
     });
     const G = {
       ...makeMinimalGameState(),

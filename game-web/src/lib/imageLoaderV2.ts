@@ -109,6 +109,11 @@ export async function preloadAllImages(): Promise<void> {
     'Portal3.jpeg',
     'Portal4.jpeg',
     'Portal5.jpeg',
+    'Portal-Startspieler1.jpeg',
+    'Portal-Startspieler2.jpeg',
+    'Portal-Startspieler3.jpeg',
+    'Portal-Startspieler4.jpeg',
+    'Portal-Startspieler5.jpeg',
   ];
 
   // Dynamically load character card images from cards database

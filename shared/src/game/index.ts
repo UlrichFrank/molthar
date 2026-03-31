@@ -31,7 +31,8 @@ export const PortaleVonMolthar = {
     
     // Initialize players
     const players: { [playerId: string]: PlayerState } = {};
-    for (const playerId of playerIds) {
+    for (let i = 0; i < playerIds.length; i++) {
+      const playerId = playerIds[i];
       players[playerId] = {
         id: playerId,
         name: `Player ${parseInt(playerId) + 1}`,
@@ -46,6 +47,7 @@ export const PortaleVonMolthar = {
         handLimitModifier: 0,
         activeAbilities: [],
         peekedCard: null,
+        colorIndex: i + 1, // sequential default: 1, 2, 3, ...
       };
     }
     
@@ -87,7 +89,7 @@ export const PortaleVonMolthar = {
       requiresHandDiscard: false,
       excessCardCount: 0,
       currentHandLimit: 5,
-      startingPlayer: playerIds[0],
+      startingPlayer: playerIds[Math.floor(Math.random() * playerIds.length)],
       portalEntryCounter: 0,
       nextPlayerExtraAction: false,
       lastPlayedPearlId: null,

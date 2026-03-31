@@ -63,16 +63,16 @@ export const UI_PANEL_W = 185;
 export const UI_PANEL_H = 55;
 
 // === Activated Characters Grid Positioning (right of portal slots) ===
-// Grid displays 3 rows × 4 columns of activated character cards at 50% size
+// Grid displays 2 rows × 4 columns of activated character cards at 75% size
 // Positioned directly right of the 2nd portal slot with small gap
 export const ACTIVATED_GRID_X = SLOT_AREA_X + 2 * (SLOT_W + SLOT_GAP) + 10; // Right of 2nd portal slot with margin
 export const ACTIVATED_GRID_Y = PORTAL_Y; // Align with portal top
-export const ACTIVATED_CARD_W = Math.round(CARD_W * 0.5); // 44
-export const ACTIVATED_CARD_H = Math.round(CARD_H * 0.5); // 69
-export const ACTIVATED_CARD_GAP = Math.round(CARD_GAP * 0.5); // 7
+export const ACTIVATED_CARD_W = Math.round(CARD_W * 0.75); // 67
+export const ACTIVATED_CARD_H = Math.round(CARD_H * 0.75); // 104
+export const ACTIVATED_CARD_GAP = Math.round(CARD_GAP * 0.75); // 11
 export const ACTIVATED_GRID_COLS = 4;
-export const ACTIVATED_GRID_ROWS = 3;
-export const ACTIVATED_MAX = ACTIVATED_GRID_COLS * ACTIVATED_GRID_ROWS; // 12
+export const ACTIVATED_GRID_ROWS = 2;
+export const ACTIVATED_MAX = ACTIVATED_GRID_COLS * ACTIVATED_GRID_ROWS; // 8
 
 // === Deck Stack Positioning & Dimensions ===
 // Decks are positioned below face-up cards with 90° rotation
@@ -98,6 +98,41 @@ export const PEARL_DECK_Y = AUSLAGE_START_Y + CARD_H + DECK_BELOW_OFFSET_Y;
 // Formula: visibleCards = Math.ceil(currentCount / maxDeckSize * 7)
 export const CHARACTER_DECK_MAX_SIZE = 52; // 54 total character cards - 2 in initial auslage
 export const PEARL_DECK_MAX_SIZE = 56; // 8 values × 7 copies per value
+
+// === Opponent Zone Scaling Constants ===
+// OPP_SCALE: base fit factor × 1.5 (50% larger than minimum-fit, intentionally overflows zone edges).
+// Base: min(ZONE_CENTER_H / PORTAL_W, MARGIN_H / ZONE_PLAYER_H) ≈ 0.387
+export const OPP_SCALE = Math.min(ZONE_CENTER_H / PORTAL_W, MARGIN_H / ZONE_PLAYER_H) * 1.5;
+
+// Scaled virtual zone dimensions (matches the player zone at OPP_SCALE)
+export const OPP_SCALED_W = Math.round(PORTAL_W * OPP_SCALE);
+export const OPP_SCALED_H = Math.round(ZONE_PLAYER_H * OPP_SCALE);
+
+// Card dimensions in opponent zones
+export const OPP_SLOT_W = Math.round(CARD_W * OPP_SCALE);
+export const OPP_SLOT_H = Math.round(CARD_H * OPP_SCALE);
+export const OPP_SLOT_GAP = Math.max(1, Math.round(CARD_GAP * OPP_SCALE));
+export const OPP_ACT_W = Math.round(ACTIVATED_CARD_W * OPP_SCALE);
+export const OPP_ACT_H = Math.round(ACTIVATED_CARD_H * OPP_SCALE);
+export const OPP_ACT_GAP = Math.max(1, Math.round(ACTIVATED_CARD_GAP * OPP_SCALE));
+export const OPP_HAND_W = Math.round(HAND_CARD_W * OPP_SCALE);
+export const OPP_HAND_H = Math.round(HAND_CARD_H * OPP_SCALE);
+
+// Relative offsets from the virtual zone's top-left corner (i.e. position in scaled player space)
+export const OPP_HAND_REL_X = Math.round((HAND_AREA_X - PORTAL_X) * OPP_SCALE);
+export const OPP_HAND_REL_Y = Math.round((HAND_CENTER_Y - PORTAL_Y) * OPP_SCALE); // center-y of hand area
+export const OPP_SLOT_REL_X = Math.round((SLOT_AREA_X - PORTAL_X) * OPP_SCALE);
+export const OPP_SLOT_REL_Y = Math.round((SLOT_AREA_Y - PORTAL_Y) * OPP_SCALE);
+export const OPP_ACT_REL_X = Math.round((ACTIVATED_GRID_X - PORTAL_X) * OPP_SCALE);
+export const OPP_ACT_REL_Y = Math.round((ACTIVATED_GRID_Y - PORTAL_Y) * OPP_SCALE);
+
+/**
+ * Get portal image filename based on colorIndex and starting player status.
+ */
+export function getPortalImageName(colorIndex: number, isStartingPlayer: boolean): string {
+  if (isStartingPlayer) return `Portal-Startspieler${colorIndex}.jpeg`;
+  return `Portal${colorIndex}.jpeg`;
+}
 
 /**
  * Calculate hand card position with fan-out layout

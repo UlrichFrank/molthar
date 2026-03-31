@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import type { GameState } from '@portale-von-molthar/shared';
+import type { GameState, PlayerState } from '@portale-von-molthar/shared';
 import { buildCanvasRegions, hitTestRegions } from '../lib/canvasRegions';
 import type { CanvasRegion } from '../lib/canvasRegions';
 import {
@@ -10,7 +10,9 @@ import {
   drawUIButton,
   drawOpponentActionCounter,
   drawRegionEffects,
+  drawOpponentPortals,
 } from '../lib/gameRender';
+import type { OpponentZoneData } from '../lib/gameRender';
 import { preloadAllImages } from '../lib/imageLoaderV2';
 import { ActivatedCharacterDetailView } from './ActivatedCharacterDetailView';
 import { DialogProvider, useDialog } from '../contexts/DialogContext';
@@ -31,6 +33,34 @@ interface CanvasGameBoardProps {
 
 const BASE_W = 1200;
 const BASE_H = 800;
+
+function buildOpponentsArray(G: GameState, myPlayerID: string): Array<import('../lib/gameRender').OpponentZoneData | null> {
+  const playerOrder = G.playerOrder || Object.keys(G.players || {});
+  const n = playerOrder.length;
+  const myIndex = playerOrder.indexOf(myPlayerID);
+
+  function getOpponentData(offset: number): import('../lib/gameRender').OpponentZoneData | null {
+    const idx = ((myIndex + offset) % n + n) % n;
+    if (idx === myIndex) return null;
+    const playerId = playerOrder[idx];
+    if (!playerId) return null;
+    const player = G.players?.[playerId];
+    if (!player) return null;
+    return {
+      colorIndex: player.colorIndex ?? 1,
+      isStartingPlayer: playerId === G.startingPlayer,
+      portal: player.portal ?? [],
+      activatedCharacters: player.activatedCharacters ?? [],
+      handCount: player.hand?.length ?? 0,
+    };
+  }
+
+  if (n <= 1) return [null, null, null, null];
+  if (n === 2) return [getOpponentData(1), null, null, null];
+  if (n === 3) return [getOpponentData(1), null, null, getOpponentData(-1)];
+  if (n === 4) return [getOpponentData(1), getOpponentData(2), null, getOpponentData(-1)];
+  return [getOpponentData(1), getOpponentData(-2), getOpponentData(2), getOpponentData(-1)];
+}
 
 interface ModelCoords { x: number; y: number }
 
@@ -228,13 +258,19 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     const charDeckHover = regions.find(r => r.type === 'deck-character')?.hoverProgress ?? 0;
     const pearlDeckHover = regions.find(r => r.type === 'deck-pearl')?.hoverProgress ?? 0;
 
+    // Build opponents array [left, top-left, top-right, right] from playerOrder
+    const opponents: Array<OpponentZoneData | null> = buildOpponentsArray(G, myPlayerID);
+
     drawBackground(drawCtx);
+    drawOpponentPortals(drawCtx, opponents);
     drawAuslage(drawCtx, characterSlots, pearlSlots,
       { selectedPearl: null, selectedCharacter: null, selectedHandIndices: [] },
       G.characterDeck?.length ?? 0, G.pearlDeck?.length ?? 0,
       charDeckHover, pearlDeckHover);
     drawPlayerPortal(drawCtx, { diamonds: playerDiamonds, portal: playerPortal, hand: playerHand },
-      { selectedPearl: null, selectedCharacter: null, selectedHandIndices: [] });
+      { selectedPearl: null, selectedCharacter: null, selectedHandIndices: [] },
+      me?.colorIndex ?? 1,
+      myPlayerID === G.startingPlayer);
     drawActivatedCharactersGrid(drawCtx, activatedCards_,
       { selectedPearl: null, selectedCharacter: null, selectedHandIndices: [] });
 
