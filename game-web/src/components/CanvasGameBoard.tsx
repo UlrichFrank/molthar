@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import type { GameState } from '@portale-von-molthar/shared';
+import type { GameState, PlayerState } from '@portale-von-molthar/shared';
 import { buildCanvasRegions, hitTestRegions } from '../lib/canvasRegions';
 import type { CanvasRegion } from '../lib/canvasRegions';
 import {
@@ -33,6 +33,34 @@ interface CanvasGameBoardProps {
 
 const BASE_W = 1200;
 const BASE_H = 800;
+
+function buildOpponentsArray(G: GameState, myPlayerID: string): Array<import('../lib/gameRender').OpponentZoneData | null> {
+  const playerOrder = G.playerOrder || Object.keys(G.players || {});
+  const n = playerOrder.length;
+  const myIndex = playerOrder.indexOf(myPlayerID);
+
+  function getOpponentData(offset: number): import('../lib/gameRender').OpponentZoneData | null {
+    const idx = ((myIndex + offset) % n + n) % n;
+    if (idx === myIndex) return null;
+    const playerId = playerOrder[idx];
+    if (!playerId) return null;
+    const player = G.players?.[playerId];
+    if (!player) return null;
+    return {
+      colorIndex: player.colorIndex ?? 1,
+      isStartingPlayer: playerId === G.startingPlayer,
+      portal: player.portal ?? [],
+      activatedCharacters: player.activatedCharacters ?? [],
+      handCount: player.hand?.length ?? 0,
+    };
+  }
+
+  if (n <= 1) return [null, null, null, null];
+  if (n === 2) return [getOpponentData(1), null, null, null];
+  if (n === 3) return [getOpponentData(1), null, null, getOpponentData(-1)];
+  if (n === 4) return [getOpponentData(1), getOpponentData(2), null, getOpponentData(-1)];
+  return [getOpponentData(1), getOpponentData(-2), getOpponentData(2), getOpponentData(-1)];
+}
 
 interface ModelCoords { x: number; y: number }
 

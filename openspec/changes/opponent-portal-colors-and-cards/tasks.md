@@ -6,13 +6,11 @@
 
 ## 2. Shared: colorSelection-Phase
 
-- [x] 2.1 `phases`-Array im Game-Objekt einführen; bisherige `turn`-Konfiguration zur Haupt-Phase (`name: 'play'`) verschieben
-- [x] 2.2 Neue Phase `colorSelection` als erste Phase (`start: true`) mit `activePlayers: { all: Stage, moveLimit: 2 }` konfigurieren (1× `selectColor` + 1× `confirmColor`)
-- [x] 2.3 Move `selectColor(colorIndex: number)` implementieren: prüft dass `colorIndex` 1–5 und nicht von anderem Spieler belegt; setzt `G.players[ctx.currentPlayer].colorIndex = colorIndex`
-- [x] 2.4 Move `confirmColor()` implementieren: setzt ein Flag `G.players[ctx.currentPlayer].colorConfirmed = true` (oder äquivalent)
-- [x] 2.5 `endIf` der Phase: endet wenn alle Spieler confirmed haben → `Object.values(G.players).every(p => p.colorConfirmed)`
-- [x] 2.6 `onEnd` der Phase: `colorConfirmed`-Flags zurücksetzen (wird nicht im Spielverlauf gebraucht)
-- [x] 2.7 `colorConfirmed: boolean` zu `PlayerState` hinzufügen (temporäres Flag)
+- ~~[x] 2.1 `phases`-Array im Game-Objekt einführen~~  (entfernt — Farben werden automatisch vergeben)
+- ~~[x] 2.2 Neue Phase `colorSelection`~~  (entfernt)
+- ~~[x] 2.3 Move `selectColor`~~  (entfernt)
+- ~~[x] 2.4 Move `confirmColor`~~  (entfernt)
+- ~~[x] 2.5–2.7~~  (entfernt)
 
 ## 3. Shared: Tests
 
@@ -37,29 +35,24 @@
 
 - [x] 5.1 `drawPlayerPortal` bekommt neuen Parameter `colorIndex: number` und `isStartingPlayer: boolean`
 - [x] 5.2 `Kleiderschrank Portal.png` durch `getPortalImageName(colorIndex, isStartingPlayer)` ersetzen
-- [ ] 5.3 Aufruf in `CanvasGameBoard.tsx` anpassen: `colorIndex={me.colorIndex}` und `isStartingPlayer={myPlayerID === G.startingPlayer}` übergeben
+- [x] 5.3 Aufruf in `CanvasGameBoard.tsx` anpassen: `colorIndex={me.colorIndex}` und `isStartingPlayer={myPlayerID === G.startingPlayer}` übergeben
 
 ## 6. Frontend: drawOpponentPortals — vollständiges Rendering
 
-- [ ] 6.1 Signatur von `drawOpponentPortals` erweitern: Opponents-Array `Array<OpponentZoneData | null>` (4 Einträge) übergeben — `OpponentZoneData = { colorIndex, isStartingPlayer, portal, activatedCharacters, handCount }`
-- [ ] 6.2 Für jede besetzte Zone `drawOpponentZone(...)` aufrufen; für leere Zonen `Schriftrolle.png` wie bisher
-- [ ] 6.3 In `CanvasGameBoard.tsx`: Opponents-Array berechnen aus `G.playerOrder`, `G.players`, `myPlayerID` und `G.startingPlayer` — in Zonen-Reihenfolge (links, oben-links, oben-rechts, rechts)
+- [x] 6.1 Signatur von `drawOpponentPortals` erweitern: Opponents-Array `Array<OpponentZoneData | null>` (4 Einträge) übergeben — `OpponentZoneData = { colorIndex, isStartingPlayer, portal, activatedCharacters, handCount }`
+- [x] 6.2 Für jede besetzte Zone `drawOpponentZone(...)` aufrufen; für leere Zonen `Schriftrolle.png` wie bisher
+- [x] 6.3 In `CanvasGameBoard.tsx`: Opponents-Array berechnen aus `G.playerOrder`, `G.players`, `myPlayerID` und `G.startingPlayer` — in Zonen-Reihenfolge (links, oben-links, oben-rechts, rechts)
 
 ## 7. Frontend: colorSelection-UI
 
-- [ ] 7.1 In `CanvasGameBoard.tsx`: `ctx.phase === 'colorSelection'` erkennen
-- [ ] 7.2 Wenn Phase aktiv: Farb-Auswahl-Overlay rendern (React-Overlay über Canvas) mit 5 Farb-Buttons (1=Lila, 2=Hellgrün, 3=Dunkelgrün, 4=Rot, 5=Hellblau)
-- [ ] 7.3 Bereits belegte Farben (aus `G.players`) als deaktiviert darstellen
-- [ ] 7.4 Aktuell gewählte Farbe des Spielers hervorheben
-- [ ] 7.5 "Farbe bestätigen"-Button → ruft `moves.confirmColor()` auf; vorher optional `moves.selectColor(colorIndex)` wenn Farbe geändert
-- [ ] 7.6 Wer bereits `colorConfirmed === true` hat: Overlay zeigt "Warten auf andere Spieler…"
+- ~~[x] 7.1–7.6~~  (entfernt — Farbwahldialog entfernt, Farben werden automatisch vom System vergeben)
 
 ## 8. Verifikation
 
-- [ ] 8.1 Manuell: Farb-Auswahl-Overlay erscheint bei Spielstart, Farbwahl und Bestätigung funktionieren
-- [ ] 8.2 Manuell: Belegte Farbe bei zweitem Spieler deaktiviert
+- ~~[ ] 8.1 Manuell: Farb-Auswahl-Overlay~~  (entfernt)
+- ~~[ ] 8.2 Manuell: Belegte Farbe~~  (entfernt)
 - [ ] 8.3 Manuell: Eigenes Portal zeigt korrektes `Portal{colorIndex}.jpeg`; Startspieler zeigt `Portal-Startspieler{colorIndex}.jpeg`
 - [ ] 8.4 Manuell: Gegner-Zonen zeigen deren Portal-Bild, Portal-Karten (offen), aktivierte Charaktere (offen), Handkarten (verdeckt)
 - [ ] 8.5 Manuell: Karten in Gegner-Zonen korrekt rotiert (links=90°, oben=180°, rechts=270°)
 - [ ] 8.6 Manuell: Leere Zonen bei 2–3 Spielern zeigen `Schriftrolle.png`
-- [ ] 8.7 `make test-shared` grün
+- [x] 8.7 `make test-shared` grün

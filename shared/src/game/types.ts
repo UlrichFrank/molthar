@@ -158,11 +158,6 @@ export interface PlayerState {
    * Bestimmt das Portal-Hintergrundbild (Portal{colorIndex}.jpeg).
    */
   colorIndex: number;
-  /**
-   * Temporäres Flag während der colorSelection-Phase.
-   * true = Spieler hat seine Farbwahl bestätigt.
-   */
-  colorConfirmed: boolean;
 }
 
 /**

@@ -1,4 +1,3 @@
-import React from 'react';
 import type { CharacterCard } from '@portale-von-molthar/shared';
 import { GameDialog, GameDialogTitle } from './GameDialog';
 
