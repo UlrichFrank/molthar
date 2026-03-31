@@ -59,6 +59,8 @@ import {
   getHandCardPosition,
   getPortalSlotPosition,
   getActivatedCardPosition,
+  OPP_SCALED_W,
+  OPP_SCALED_H,
   OPP_SLOT_W,
   OPP_SLOT_H,
   OPP_SLOT_GAP,
@@ -67,6 +69,13 @@ import {
   OPP_ACT_GAP,
   OPP_HAND_W,
   OPP_HAND_H,
+  OPP_HAND_REL_X,
+  OPP_HAND_REL_Y,
+  OPP_SLOT_REL_X,
+  OPP_SLOT_REL_Y,
+  OPP_ACT_REL_X,
+  OPP_ACT_REL_Y,
+  ACTIVATED_GRID_COLS,
   getPortalImageName,
 } from './cardLayoutConstants';
 
@@ -235,10 +244,6 @@ export function drawPlayerPortal(
   const portalImg = getPortalImageName(colorIndex, isStartingPlayer);
   drawImageOrFallback(ctx, portalImg, portalX, portalY, portalW, portalH);
 
-  ctx.strokeStyle = '#475569';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(portalX, portalY, portalW, portalH);
-
   // Diamonds (left side)
   const diamondX = portalX + 20;
   const diamondY = portalY + 20;
@@ -264,19 +269,6 @@ export function drawPlayerPortal(
 
     if (slot) {
       drawImageOrFallback(ctx, slot.card.imageName, x, y, slotW, slotH, slot.card.name);
-    } else {
-      // Empty slot
-      ctx.fillStyle = '#334155';
-      ctx.fillRect(x, y, slotW, slotH);
-      ctx.strokeStyle = '#475569';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(x, y, slotW, slotH);
-
-      ctx.fillStyle = '#cbd5e0';
-      ctx.font = 'bold 10px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(`S${idx + 1}`, x + slotW / 2, y + slotH / 2);
     }
   });
 
@@ -511,60 +503,61 @@ function drawOpponentZone(
   ctx.save();
   ctx.translate(cx, cy);
   ctx.rotate(rot);
-  // Now drawing in zone-local coordinates, center = (0,0)
-  // The zone in local coords spans [-w/2, w/2] x [-h/2, h/2]
-  // But due to rotation, "local width" means zone height and vice versa for 90°/270°
-  // For all rotations, we treat local x as "horizontal across portal" and y as "vertical"
 
-  const localW = zone.w;
-  const localH = zone.h;
+  // Virtual zone: same layout as the player zone, scaled by OPP_SCALE.
+  // Origin = zone center. Top-left of virtual zone = (-hw, -hh).
+  const hw = OPP_SCALED_W / 2;
+  const hh = OPP_SCALED_H / 2;
 
-  // 1. Portal background — fill 90% of zone
+  // 1. Portal background — fills the scaled virtual zone exactly
   const portalImg = getPortalImageName(data.colorIndex, data.isStartingPlayer);
-  const bgW = localW * 0.9;
-  const bgH = localH * 0.9;
-  drawImageOrFallback(ctx, portalImg, -bgW / 2, -bgH / 2, bgW, bgH, `P${data.colorIndex}`);
+  drawImageOrFallback(ctx, portalImg, -hw, -hh, OPP_SCALED_W, OPP_SCALED_H, `P${data.colorIndex}`);
 
-  // 2. Portal slot cards (face-up, top-center of zone)
-  const slotAreaY = -localH / 2 + localH * 0.08;
-  const totalSlotsW = 2 * OPP_SLOT_W + OPP_SLOT_GAP;
-  const slotStartX = -totalSlotsW / 2;
+  // 2. Portal slot cards — same relative position as in the player zone
   for (let i = 0; i < 2; i++) {
-    const slotX = slotStartX + i * (OPP_SLOT_W + OPP_SLOT_GAP);
+    const slotX = -hw + OPP_SLOT_REL_X + i * (OPP_SLOT_W + OPP_SLOT_GAP);
+    const slotY = -hh + OPP_SLOT_REL_Y;
     const entry = data.portal[i];
     if (entry) {
-      drawImageOrFallback(ctx, entry.card.imageName, slotX, slotAreaY, OPP_SLOT_W, OPP_SLOT_H, entry.card.name);
+      drawImageOrFallback(ctx, entry.card.imageName, slotX, slotY, OPP_SLOT_W, OPP_SLOT_H, entry.card.name);
+    } else {
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(slotX, slotY, OPP_SLOT_W, OPP_SLOT_H);
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(slotX, slotY, OPP_SLOT_W, OPP_SLOT_H);
     }
   }
 
-  // 3. Activated characters (face-up, below portal slots)
-  const actAreaY = slotAreaY + OPP_SLOT_H + 4;
-  const maxActVisible = Math.min(data.activatedCharacters.length, 6);
-  if (maxActVisible > 0) {
-    const totalActW = maxActVisible * OPP_ACT_W + (maxActVisible - 1) * OPP_ACT_GAP;
-    const actStartX = -totalActW / 2;
-    for (let i = 0; i < maxActVisible; i++) {
-      const card = data.activatedCharacters[i]!;
-      const actX = actStartX + i * (OPP_ACT_W + OPP_ACT_GAP);
-      drawImageOrFallback(ctx, card.card.imageName, actX, actAreaY, OPP_ACT_W, OPP_ACT_H, card.card.name);
-    }
+  // 3. Activated characters grid — right of portal slots (from opponent's perspective)
+  const maxAct = Math.min(data.activatedCharacters.length, ACTIVATED_MAX);
+  for (let i = 0; i < maxAct; i++) {
+    const col = i % ACTIVATED_GRID_COLS;
+    const row = Math.floor(i / ACTIVATED_GRID_COLS);
+    const actX = -hw + OPP_ACT_REL_X + col * (OPP_ACT_W + OPP_ACT_GAP);
+    const actY = -hh + OPP_ACT_REL_Y + row * (OPP_ACT_H + OPP_ACT_GAP);
+    const card = data.activatedCharacters[i]!;
+    drawImageOrFallback(ctx, card.card.imageName, actX, actY, OPP_ACT_W, OPP_ACT_H, card.card.name);
   }
 
-  // 4. Hand cards — face-down stack with count label (bottom area)
+  // 4. Hand cards — face-down stack, left side (from opponent's perspective)
   if (data.handCount > 0) {
-    const handX = -OPP_HAND_W / 2;
-    const handY = localH / 2 - OPP_HAND_H - localH * 0.06;
-    drawImageOrFallback(ctx, 'Perlenkarte_Rueckseite.png', handX, handY, OPP_HAND_W, OPP_HAND_H, '?');
+    const handX = -hw + OPP_HAND_REL_X;
+    const handY = -hh + OPP_HAND_REL_Y - OPP_HAND_H / 2;
+    drawImageOrFallback(ctx, 'Perlenkarte Hinten.png', handX, handY, OPP_HAND_W, OPP_HAND_H, '?');
     // Count badge
-    ctx.fillStyle = 'rgba(0,0,0,0.65)';
+    const badgeR = Math.max(5, Math.round(OPP_HAND_H * 0.15));
+    const badgeCx = handX + OPP_HAND_W - badgeR;
+    const badgeCy = handY + badgeR;
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
     ctx.beginPath();
-    ctx.arc(handX + OPP_HAND_W - 5, handY + 5, 7, 0, Math.PI * 2);
+    ctx.arc(badgeCx, badgeCy, badgeR, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#ffffff';
-    ctx.font = `bold ${Math.round(OPP_HAND_H * 0.22)}px Arial`;
+    ctx.font = `bold ${Math.round(badgeR * 1.3)}px Arial`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(String(data.handCount), handX + OPP_HAND_W - 5, handY + 5);
+    ctx.fillText(String(data.handCount), badgeCx, badgeCy);
   }
 
   ctx.restore();
