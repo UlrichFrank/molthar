@@ -587,12 +587,6 @@ function drawOpponentZone(
     const entry = data.portal[i];
     if (entry) {
       drawImageOrFallback(ctx, entry.card.imageName, slotX, slotY, OPP_SLOT_W, OPP_SLOT_H, entry.card.name);
-    } else {
-      ctx.fillStyle = '#334155';
-      ctx.fillRect(slotX, slotY, OPP_SLOT_W, OPP_SLOT_H);
-      ctx.strokeStyle = '#475569';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(slotX, slotY, OPP_SLOT_W, OPP_SLOT_H);
     }
   }
 

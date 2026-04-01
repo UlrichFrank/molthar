@@ -71,6 +71,8 @@ export function GameDialogActions({
 interface CardPickerProps<T> {
   cards: T[];
   selected: Set<number>;
+  /** Indices reserved for trade (shown dimmed with 💎 symbol, not selectable as hand cards) */
+  reserved?: Set<number>;
   onToggle: (i: number) => void;
   getImageSrc: (card: T) => string;
   getAlt: (card: T) => string;
@@ -79,6 +81,7 @@ interface CardPickerProps<T> {
 export function CardPicker<T>({
   cards,
   selected,
+  reserved,
   onToggle,
   getImageSrc,
   getAlt,
@@ -93,6 +96,7 @@ export function CardPicker<T>({
         >
           <img src={getImageSrc(card)} alt={getAlt(card)} />
           {selected.has(idx) && <div className="game-dialog-card-selected-overlay" />}
+          {reserved?.has(idx) && <div className="game-dialog-card-reserved-overlay">💎</div>}
         </button>
       ))}
     </div>

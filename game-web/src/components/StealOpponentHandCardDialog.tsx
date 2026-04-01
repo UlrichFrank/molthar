@@ -50,7 +50,7 @@ export function StealOpponentHandCardDialog({ opponents, onSteal }: StealOpponen
                   {Array.from({ length: opponent.hand.length }).map((_, i) => (
                     <img
                       key={i}
-                      src="/assets/Perlenkarte-Rückseite.png"
+                      src="/assets/Perlenkarte Hinten.png"
                       alt="Karte"
                       style={{ width: 28, height: 40, borderRadius: 3, objectFit: 'cover' }}
                     />

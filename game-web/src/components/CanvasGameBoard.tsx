@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import type { GameState, PlayerState } from '@portale-von-molthar/shared';
 import { buildCanvasRegions, hitTestRegions } from '../lib/canvasRegions';
-import type { CanvasRegion } from '../lib/canvasRegions';
+import type { CanvasRegion, NeighborOpponent } from '../lib/canvasRegions';
 import {
   drawBackground,
   drawAuslage,
@@ -23,6 +23,7 @@ import { DiscardCardsDialog } from './DiscardCardsDialog';
 import { StealOpponentHandCardDialog } from './StealOpponentHandCardDialog';
 import { CharacterSwapDialog } from './CharacterSwapDialog';
 import { TakeBackPlayedPearlDialog } from './TakeBackPlayedPearlDialog';
+import { DiscardOpponentCharacterDialog } from './DiscardOpponentCharacterDialog';
 import { PlayerNameDisplay } from './PlayerNameDisplay';
 import { DeckReshuffleAnimation } from './DeckReshuffleAnimation';
 import '../styles/dialogs.css';
@@ -65,6 +66,32 @@ function buildOpponentsArray(G: GameState, myPlayerID: string): Array<import('..
   if (n === 3) return [getOpponentData(1), null, null, getOpponentData(-1)];
   if (n === 4) return [getOpponentData(1), getOpponentData(2), null, getOpponentData(-1)];
   return [getOpponentData(1), getOpponentData(-2), getOpponentData(2), getOpponentData(-1)];
+}
+
+/** Returns the two direct neighbors (left = zoneIndex 0, right = zoneIndex 3) for irrlicht regions. */
+function getNeighborOpponents(G: GameState, myPlayerID: string): NeighborOpponent[] {
+  const playerOrder = G.playerOrder || Object.keys(G.players || {});
+  const n = playerOrder.length;
+  if (n < 2) return [];
+  const myIndex = playerOrder.indexOf(myPlayerID);
+
+  const result: NeighborOpponent[] = [];
+
+  const leftId = playerOrder[((myIndex + 1) % n + n) % n];
+  if (leftId && leftId !== myPlayerID) {
+    const player = G.players?.[leftId];
+    if (player) result.push({ playerId: leftId, portal: player.portal ?? [], zoneIndex: 0 });
+  }
+
+  if (n >= 3) {
+    const rightId = playerOrder[((myIndex - 1) % n + n) % n];
+    if (rightId && rightId !== myPlayerID) {
+      const player = G.players?.[rightId];
+      if (player) result.push({ playerId: rightId, portal: player.portal ?? [], zoneIndex: 3 });
+    }
+  }
+
+  return result;
 }
 
 interface ModelCoords { x: number; y: number }
@@ -168,7 +195,8 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
 
   // Rebuild regions when game state changes (in-place to preserve animation)
   useEffect(() => {
-    regionsRef.current = buildCanvasRegions(G, myPlayerID, isActive, regionsRef.current);
+    const neighbors = getNeighborOpponents(G, myPlayerID);
+    regionsRef.current = buildCanvasRegions(G, myPlayerID, isActive, regionsRef.current, neighbors);
   }, [G, myPlayerID, isActive]);
 
   // ── Canvas size setup (on viewport resize) ──────────────────────────────────
@@ -446,6 +474,16 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
         dialog.openSwapPortalCharacterDialog(portalEntry.card, slotIndex, G.characterSlots ?? []);
         break;
       }
+
+      case 'opponent-portal-card': {
+        const [ownerPlayerId, slotStr] = (region.id as string).split(':');
+        const slotIndex = parseInt(slotStr, 10);
+        const ownerPlayer = G.players?.[ownerPlayerId];
+        const entry = ownerPlayer?.portal[slotIndex];
+        if (!entry) break;
+        dialog.openActivationDialog(entry.card, slotIndex, ownerPlayerId);
+        break;
+      }
     }
   }
 
@@ -467,7 +505,14 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     }
   }, [G.pendingStealOpponentHandCard, myPlayerID, activePlayerID]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Auto-open take-back-played-pearl dialog when flag is set and we are the active player
+  // ── Auto-open discard opponent character dialog when flag is set and we are the active player
+  useEffect(() => {
+    if (G.pendingDiscardOpponentCharacter && myPlayerID === activePlayerID && dialog.dialog.type !== 'discard-opponent-character') {
+      dialog.openDiscardOpponentCharacterDialog();
+    }
+  }, [G.pendingDiscardOpponentCharacter, myPlayerID, activePlayerID]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Auto-open take-back dialog when flag is set and we are the active player
   useEffect(() => {
     if (G.pendingTakeBackPlayedPearl && myPlayerID === activePlayerID && dialog.dialog.type !== 'take-back-played-pearl') {
       dialog.openTakeBackPlayedPearlDialog();
@@ -518,14 +563,14 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           <DeckReshuffleAnimation
             deckType="pearl"
             style={{ right: '6%', top: '48%' }}
-            onDone={() => moves.acknowledgeReshuffle?.('pearl')}
+            onDone={isActive ? () => moves.acknowledgeReshuffle?.('pearl') : () => {}}
           />
         )}
         {G.isReshufflingCharacterDeck && (
           <DeckReshuffleAnimation
             deckType="character"
             style={{ left: '28%', top: '48%' }}
-            onDone={() => moves.acknowledgeReshuffle?.('character')}
+            onDone={isActive ? () => moves.acknowledgeReshuffle?.('character') : () => {}}
           />
         )}
       </div>
@@ -560,7 +605,12 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           activeAbilities={me.activeAbilities}
           activatedCharacters={me.activatedCharacters}
           onActivate={(portalSlotIndex, selections) => {
-            moves.activatePortalCard(portalSlotIndex, selections);
+            const ownerPlayerId = dialog.dialog.type === 'activation' ? dialog.dialog.ownerPlayerId : undefined;
+            if (ownerPlayerId) {
+              moves.activateSharedCharacter(ownerPlayerId, portalSlotIndex, selections);
+            } else {
+              moves.activatePortalCard(portalSlotIndex, selections);
+            }
             dialog.closeDialog();
           }}
           onCancel={() => dialog.closeDialog()}
@@ -588,6 +638,26 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
             .filter((p): p is PlayerState => p !== undefined && p.hand.length > 0)}
           onSteal={(targetPlayerId, handCardIndex) => {
             moves.resolveStealOpponentHandCard(targetPlayerId, handCardIndex);
+            dialog.closeDialog();
+          }}
+        />
+      )}
+
+      {dialog.dialog.type === 'discard-opponent-character' && (
+        <DiscardOpponentCharacterDialog
+          opponents={(() => {
+            const order = G.playerOrder || [];
+            const myIdx = order.indexOf(myPlayerID ?? '');
+            const rotated = myIdx >= 0
+              ? [...order.slice(myIdx + 1), ...order.slice(0, myIdx)]
+              : order;
+            return rotated
+              .filter(id => id !== myPlayerID)
+              .map(id => G.players?.[id])
+              .filter((p): p is PlayerState => p !== undefined && p.portal.length > 0);
+          })()}
+          onDiscard={(targetPlayerId, portalEntryId) => {
+            moves.resolveDiscardOpponentCharacter(targetPlayerId, portalEntryId);
             dialog.closeDialog();
           }}
         />

@@ -102,16 +102,18 @@ export interface CharacterAbility {
  * Definiert eine Zahlungskarte (echt oder virtuell), die vom UI zusammengestellt wird.
  */
 export interface PaymentSelection {
-  source: 'hand' | 'ability';
+  source: 'hand' | 'ability' | 'trade';
   value: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
-  
+
   // Nur relevant, wenn source === 'hand'
   handCardIndex?: number;
-  abilityType?: CharacterAbilityType; 
+  abilityType?: CharacterAbilityType;
   diamondsUsed?: number;
 
   // Nur relevant, wenn source === 'ability'
-  characterId?: string; 
+  // Auch relevant wenn source === 'trade': characterId = Karte mit tradeTwoForDiamond-Ability,
+  // handCardIndex = Index der 2-Perle in der Hand (wird konsumiert, zählt nicht als Kostenperle)
+  characterId?: string;
 }
 
 /**
@@ -206,6 +208,9 @@ export interface GameState {
 
   /** Ausstehende Auswahl einer gegnerischen Handkarte zum Stehlen. */
   pendingStealOpponentHandCard: boolean;
+
+  /** Ausstehende Auswahl einer gegnerischen Portal-Karte zum Entfernen. */
+  pendingDiscardOpponentCharacter: boolean;
 
   // Metadaten
   startingPlayer: string;

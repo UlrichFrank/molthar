@@ -4,20 +4,22 @@ import type { CharacterCard, PearlCard } from '@portale-von-molthar/shared';
 export type DialogState =
   | { type: 'none' }
   | { type: 'replacement'; newCharacter: CharacterCard; portalCharacters: CharacterCard[] }
-  | { type: 'activation'; character: CharacterCard; portalSlotIndex: number }
+  | { type: 'activation'; character: CharacterCard; portalSlotIndex: number; ownerPlayerId?: string }
   | { type: 'discard'; hand: PearlCard[]; excessCardCount: number; currentHandLimit: number }
   | { type: 'steal-opponent-hand-card'; selectedPlayerId: string | null }
   | { type: 'swap-portal-character'; portalCard: CharacterCard; portalSlotIndex: number; tableCards: (CharacterCard | undefined)[] }
-  | { type: 'take-back-played-pearl' };
+  | { type: 'take-back-played-pearl' }
+  | { type: 'discard-opponent-character' };
 
 export interface DialogContextType {
   dialog: DialogState;
   openReplacementDialog: (newCharacter: CharacterCard, portalCharacters: CharacterCard[]) => void;
-  openActivationDialog: (character: CharacterCard, portalSlotIndex: number) => void;
+  openActivationDialog: (character: CharacterCard, portalSlotIndex: number, ownerPlayerId?: string) => void;
   openDiscardDialog: (hand: PearlCard[], excessCardCount: number, currentHandLimit: number) => void;
   openStealOpponentHandCardDialog: () => void;
   openSwapPortalCharacterDialog: (portalCard: CharacterCard, portalSlotIndex: number, tableCards: (CharacterCard | undefined)[]) => void;
   openTakeBackPlayedPearlDialog: () => void;
+  openDiscardOpponentCharacterDialog: () => void;
   closeDialog: () => void;
 }
 
@@ -30,8 +32,8 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
     setDialog({ type: 'replacement', newCharacter, portalCharacters });
   }, []);
 
-  const openActivationDialog = useCallback((character: CharacterCard, portalSlotIndex: number) => {
-    setDialog({ type: 'activation', character, portalSlotIndex });
+  const openActivationDialog = useCallback((character: CharacterCard, portalSlotIndex: number, ownerPlayerId?: string) => {
+    setDialog({ type: 'activation', character, portalSlotIndex, ownerPlayerId });
   }, []);
 
   const openDiscardDialog = useCallback((hand: PearlCard[], excessCardCount: number, currentHandLimit: number) => {
@@ -50,6 +52,10 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
     setDialog({ type: 'take-back-played-pearl' });
   }, []);
 
+  const openDiscardOpponentCharacterDialog = useCallback(() => {
+    setDialog({ type: 'discard-opponent-character' });
+  }, []);
+
   const closeDialog = useCallback(() => {
     setDialog({ type: 'none' });
   }, []);
@@ -62,6 +68,7 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
     openStealOpponentHandCardDialog,
     openSwapPortalCharacterDialog,
     openTakeBackPlayedPearlDialog,
+    openDiscardOpponentCharacterDialog,
     closeDialog,
   };
 

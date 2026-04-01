@@ -40,6 +40,8 @@ export function CharacterActivationDialog({
 }: CharacterActivationDialogProps) {
   const [handSelections, setHandSelections] = useState<Map<number, HandSelection>>(new Map());
   const [abilitySelections, setAbilitySelections] = useState<AbilitySelection[]>([]);
+  const [virtualDiamonds, setVirtualDiamonds] = useState(0);
+  const [tradeSelection, setTradeSelection] = useState<{ characterId: string; handCardIndex: number } | null>(null);
 
   const selectedCharacter = availableCharacters[0]?.card;
   const selectedCharacterSlot = availableCharacters[0]?.slotIndex ?? null;
@@ -51,6 +53,7 @@ export function CharacterActivationDialog({
   const PAYMENT_ABILITY_TYPES = new Set([
     'onesCanBeEights', 'threesCanBeAny', 'decreaseWithPearl',
     'numberAdditionalCardActions', 'anyAdditionalCardActions',
+    'tradeTwoForDiamond',
   ]);
 
   // All activated characters that have any payment-relevant ability
@@ -62,6 +65,8 @@ export function CharacterActivationDialog({
   const allSelections: PaymentSelection[] = useMemo(() => {
     const result: PaymentSelection[] = [];
     for (const sel of handSelections.values()) {
+      // Skip any hand card reserved for trade
+      if (tradeSelection && sel.handCardIndex === tradeSelection.handCardIndex) continue;
       result.push({
         source: 'hand',
         handCardIndex: sel.handCardIndex,
@@ -73,8 +78,11 @@ export function CharacterActivationDialog({
     for (const sel of abilitySelections) {
       result.push({ source: 'ability', characterId: sel.characterId, value: sel.value });
     }
+    if (tradeSelection) {
+      result.push({ source: 'trade', characterId: tradeSelection.characterId, handCardIndex: tradeSelection.handCardIndex, value: 2 });
+    }
     return result;
-  }, [handSelections, abilitySelections]);
+  }, [handSelections, abilitySelections, tradeSelection]);
 
   const diamondsReserved = useMemo(
     () => allSelections.reduce((sum, s) => sum + (s.diamondsUsed ?? 0), 0),
@@ -83,15 +91,20 @@ export function CharacterActivationDialog({
 
   const isValidPayment = useMemo(() => {
     if (!selectedCharacter) return false;
-    const virtualHand: PearlCard[] = allSelections.map((sel, i) => ({
-      id: `virtual-${i}`,
-      value: sel.value,
-      hasSwapSymbol: sel.source === 'hand' ? (hand[sel.handCardIndex ?? 0]?.hasSwapSymbol ?? false) : false,
-    }));
-    return validateCostPayment(selectedCharacter.cost, virtualHand, diamonds - diamondsReserved);
-  }, [allSelections, selectedCharacter, hand, diamonds, diamondsReserved]);
+    // Only 'hand' and 'ability' selections count as virtual hand cards for cost validation
+    const virtualHand: PearlCard[] = allSelections
+      .filter(sel => sel.source !== 'trade')
+      .map((sel, i) => ({
+        id: `virtual-${i}`,
+        value: sel.value,
+        hasSwapSymbol: sel.source === 'hand' ? (hand[sel.handCardIndex ?? 0]?.hasSwapSymbol ?? false) : false,
+      }));
+    return validateCostPayment(selectedCharacter.cost, virtualHand, diamonds + virtualDiamonds - diamondsReserved);
+  }, [allSelections, selectedCharacter, hand, diamonds, virtualDiamonds, diamondsReserved]);
 
   const toggleHandCard = (idx: number) => {
+    // Prevent selecting a card reserved for trade
+    if (tradeSelection && idx === tradeSelection.handCardIndex) return;
     const next = new Map(handSelections);
     if (next.has(idx)) {
       next.delete(idx);
@@ -107,6 +120,24 @@ export function CharacterActivationDialog({
       next.set(idx, { handCardIndex: idx, value: initialValue, abilityType });
     }
     setHandSelections(next);
+  };
+
+  const handleTradeToggle = (characterId: string) => {
+    if (tradeSelection?.characterId === characterId) {
+      // Toggle OFF
+      setTradeSelection(null);
+      setVirtualDiamonds(v => v - 1);
+    } else {
+      // Toggle ON: find first 2-pearl not already in handSelections
+      const freeIdx = hand.findIndex((c, i) => c.value === 2 && !handSelections.has(i));
+      if (freeIdx === -1) return;
+      // Remove that index from hand selections if it was selected
+      const next = new Map(handSelections);
+      next.delete(freeIdx);
+      setHandSelections(next);
+      setTradeSelection({ characterId, handCardIndex: freeIdx });
+      setVirtualDiamonds(v => v + 1);
+    }
   };
 
   const setHandCardValue = (
@@ -145,6 +176,8 @@ export function CharacterActivationDialog({
   };
 
   const selectedSet = new Set(handSelections.keys());
+  const reservedSet = tradeSelection ? new Set([tradeSelection.handCardIndex]) : new Set<number>();
+  const effectiveDiamonds = diamonds + virtualDiamonds;
 
   return (
     <GameDialog>
@@ -182,6 +215,7 @@ export function CharacterActivationDialog({
             <CardPicker
               cards={hand}
               selected={selectedSet}
+              reserved={reservedSet}
               onToggle={toggleHandCard}
               getImageSrc={(card) => `/assets/Perlenkarte${card.value}.png`}
               getAlt={(card) => `Pearl ${card.value}`}
@@ -282,25 +316,25 @@ export function CharacterActivationDialog({
                           );
                         }
                       }}
-                      disabled={sel.abilityType !== 'decreaseWithPearl' && diamondsReserved >= diamonds}
+                      disabled={sel.abilityType !== 'decreaseWithPearl' && diamondsReserved >= effectiveDiamonds}
                       style={{
                         padding: '0.1rem 0.4rem',
                         borderRadius: '0.3rem',
                         background:
                           sel.abilityType === 'decreaseWithPearl'
                             ? '#f6ad55'
-                            : diamondsReserved >= diamonds
+                            : diamondsReserved >= effectiveDiamonds
                               ? 'rgba(160,160,160,0.2)'
                               : 'rgba(246,173,85,0.3)',
                         color: sel.abilityType === 'decreaseWithPearl' ? '#1a202c' : '#fff',
-                        border: `1px solid ${diamondsReserved >= diamonds && sel.abilityType !== 'decreaseWithPearl' ? '#666' : '#f6ad55'}`,
+                        border: `1px solid ${diamondsReserved >= effectiveDiamonds && sel.abilityType !== 'decreaseWithPearl' ? '#666' : '#f6ad55'}`,
                         cursor:
-                          sel.abilityType !== 'decreaseWithPearl' && diamondsReserved >= diamonds
+                          sel.abilityType !== 'decreaseWithPearl' && diamondsReserved >= effectiveDiamonds
                             ? 'not-allowed'
                             : 'pointer',
                         fontSize: '0.8rem',
                         opacity:
-                          sel.abilityType !== 'decreaseWithPearl' && diamondsReserved >= diamonds ? 0.5 : 1,
+                          sel.abilityType !== 'decreaseWithPearl' && diamondsReserved >= effectiveDiamonds ? 0.5 : 1,
                       }}
                     >
                       −1 💎
@@ -329,9 +363,15 @@ export function CharacterActivationDialog({
                 const isDecreaseWithPearl = abilities.some(a => a.type === 'decreaseWithPearl');
                 const isNumberBonus = abilities.some(a => a.type === 'numberAdditionalCardActions');
                 const isAnyBonus = abilities.some(a => a.type === 'anyAdditionalCardActions');
+                const isTradeTwo = abilities.some(a => a.type === 'tradeTwoForDiamond');
 
                 const isSelected = abilitySelections.some(s => s.characterId === char.id);
                 const selectedEntry = abilitySelections.find(s => s.characterId === char.id);
+
+                const isTradeActive = tradeSelection?.characterId === char.id;
+                // Free 2-pearl: exists in hand and not already in handSelections (unless it's the trade one)
+                const hasFreeTwoPearl = hand.some((c, i) => c.value === 2 && !handSelections.has(i));
+                const tradeDisabled = !isTradeActive && !hasFreeTwoPearl;
 
                 const printedPearl = char.card.printedPearls?.[0];
                 const printedValue =
@@ -445,6 +485,29 @@ export function CharacterActivationDialog({
                             ))
                           )}
                         </div>
+                      )}
+                      {/* tradeTwoForDiamond: toggle button */}
+                      {isTradeTwo && (
+                        <button
+                          onClick={() => handleTradeToggle(char.id)}
+                          disabled={tradeDisabled}
+                          style={{
+                            padding: '0.15rem 0.5rem',
+                            borderRadius: '0.3rem',
+                            background: isTradeActive
+                              ? '#f6ad55'
+                              : tradeDisabled
+                                ? 'rgba(160,160,160,0.15)'
+                                : 'rgba(246,173,85,0.25)',
+                            color: isTradeActive ? '#1a202c' : tradeDisabled ? '#718096' : '#f6ad55',
+                            border: `1px solid ${tradeDisabled ? '#4a5568' : '#f6ad55'}`,
+                            cursor: tradeDisabled ? 'not-allowed' : 'pointer',
+                            fontSize: '0.8rem',
+                            opacity: tradeDisabled ? 0.5 : 1,
+                          }}
+                        >
+                          {isTradeActive ? '✕ 2-Perle → 💎' : '2-Perle → 💎'}
+                        </button>
                       )}
                     </div>
                   </div>

@@ -56,16 +56,14 @@ export function applyRedAbility(G: GameState, ctx: { currentPlayer: string }, ab
       break;
 
     case 'discardOpponentCharacter': {
-      // Eine Portal-Karte eines Gegners entfernen (erste verfügbare)
-      // TODO TIER 1: UI-Interaktion für Spielerauswahl ergänzen
-      for (const playerId of G.playerOrder) {
-        if (playerId === ctx.currentPlayer) continue;
+      // Prüfen ob mindestens ein Gegner eine Portal-Karte hat
+      const anyOpponentHasPortalCard = G.playerOrder.some(playerId => {
+        if (playerId === ctx.currentPlayer) return false;
         const opponent = G.players[playerId];
-        if (opponent && opponent.portal.length > 0) {
-          const removed = opponent.portal.splice(0, 1)[0];
-          if (removed) G.characterDiscardPile.push(removed.card);
-          break;
-        }
+        return opponent && opponent.portal.length > 0;
+      });
+      if (anyOpponentHasPortalCard) {
+        G.pendingDiscardOpponentCharacter = true;
       }
       break;
     }
