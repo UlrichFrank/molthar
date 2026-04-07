@@ -693,6 +693,12 @@ export const PortaleVonMolthar = {
       G.pendingDiscardOpponentCharacter = false;
     },
 
+    terminateGame({ ctx, events }: { ctx: any; events: any }) {
+      if (ctx.currentPlayer !== '0') return INVALID_MOVE;
+      events.endGame({ reason: 'terminated' });
+      return;
+    },
+
   },
 
   /**

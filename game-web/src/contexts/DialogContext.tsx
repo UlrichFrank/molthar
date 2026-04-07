@@ -17,6 +17,7 @@ export interface DialogContextType {
   openActivationDialog: (character: CharacterCard, portalSlotIndex: number, ownerPlayerId?: string) => void;
   openDiscardDialog: (hand: PearlCard[], excessCardCount: number, currentHandLimit: number) => void;
   openStealOpponentHandCardDialog: () => void;
+  selectStealOpponent: (playerId: string | null) => void;
   openSwapPortalCharacterDialog: (portalCard: CharacterCard, portalSlotIndex: number, tableCards: (CharacterCard | undefined)[]) => void;
   openTakeBackPlayedPearlDialog: () => void;
   openDiscardOpponentCharacterDialog: () => void;
@@ -44,6 +45,14 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
     setDialog({ type: 'steal-opponent-hand-card', selectedPlayerId: null });
   }, []);
 
+  const selectStealOpponent = useCallback((playerId: string | null) => {
+    setDialog(prev =>
+      prev.type === 'steal-opponent-hand-card'
+        ? { ...prev, selectedPlayerId: playerId }
+        : prev
+    );
+  }, []);
+
   const openSwapPortalCharacterDialog = useCallback((portalCard: CharacterCard, portalSlotIndex: number, tableCards: (CharacterCard | undefined)[]) => {
     setDialog({ type: 'swap-portal-character', portalCard, portalSlotIndex, tableCards });
   }, []);
@@ -66,6 +75,7 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
     openActivationDialog,
     openDiscardDialog,
     openStealOpponentHandCardDialog,
+    selectStealOpponent,
     openSwapPortalCharacterDialog,
     openTakeBackPlayedPearlDialog,
     openDiscardOpponentCharacterDialog,

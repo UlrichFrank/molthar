@@ -1,6 +1,6 @@
-import { useState } from 'react';
 import type { PlayerState } from '@portale-von-molthar/shared';
 import { GameDialog, GameDialogTitle } from './GameDialog';
+import { useDialog } from '../contexts/DialogContext';
 
 interface StealOpponentHandCardDialogProps {
   opponents: PlayerState[];
@@ -8,7 +8,8 @@ interface StealOpponentHandCardDialogProps {
 }
 
 export function StealOpponentHandCardDialog({ opponents, onSteal }: StealOpponentHandCardDialogProps) {
-  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const { dialog, selectStealOpponent } = useDialog();
+  const selectedPlayerId = dialog.type === 'steal-opponent-hand-card' ? dialog.selectedPlayerId : null;
 
   const opponentsWithCards = opponents.filter(p => p.hand.length > 0);
   const selectedOpponent = selectedPlayerId ? opponentsWithCards.find(p => p.id === selectedPlayerId) : null;
@@ -27,7 +28,7 @@ export function StealOpponentHandCardDialog({ opponents, onSteal }: StealOpponen
             {opponentsWithCards.map(opponent => (
               <button
                 key={opponent.id}
-                onClick={() => setSelectedPlayerId(opponent.id)}
+                onClick={() => selectStealOpponent(opponent.id)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -83,7 +84,7 @@ export function StealOpponentHandCardDialog({ opponents, onSteal }: StealOpponen
           </div>
           <div style={{ marginTop: 12 }}>
             <button
-              onClick={() => setSelectedPlayerId(null)}
+              onClick={() => selectStealOpponent(null)}
               style={{
                 padding: '8px 16px',
                 background: 'rgba(30,41,59,0.8)',

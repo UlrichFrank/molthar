@@ -505,7 +505,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     if (G.pendingStealOpponentHandCard && myPlayerID === activePlayerID && dialog.dialog.type !== 'steal-opponent-hand-card') {
       dialog.openStealOpponentHandCardDialog();
     }
-  }, [G.pendingStealOpponentHandCard, myPlayerID, activePlayerID]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [G.pendingStealOpponentHandCard, myPlayerID, activePlayerID, dialog.dialog.type]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Auto-open discard opponent character dialog when flag is set and we are the active player
   useEffect(() => {
@@ -520,6 +520,21 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
       dialog.openTakeBackPlayedPearlDialog();
     }
   }, [G.pendingTakeBackPlayedPearl, myPlayerID, activePlayerID]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Listen for terminateGame event from LobbyScreen (creator only) ───────────
+  useEffect(() => {
+    const handler = () => { moves.terminateGame?.(); };
+    window.addEventListener('pvm:terminateGame', handler);
+    return () => window.removeEventListener('pvm:terminateGame', handler);
+  }, [moves]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Notify LobbyScreen when game is over ─────────────────────────────────────
+  const gameover = (ctx as any).gameover;
+  useEffect(() => {
+    if (gameover !== undefined) {
+      window.dispatchEvent(new CustomEvent('pvm:gameOver'));
+    }
+  }, [gameover]);
 
   // ── Render ────────────────────────────────────────────────────────────────────
   return (
@@ -701,6 +716,26 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
         character={activeCharacter || null}
         onClose={() => setActiveCharacterIndex(null)}
       />
+
+      {/* Gameover overlay */}
+      {gameover !== undefined && (
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'rgba(0,0,0,0.75)',
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          zIndex: 100, borderRadius: 12,
+        }}>
+          <p style={{ color: '#f1f5f9', fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem' }}>
+            {gameover.reason === 'terminated' ? 'Spiel beendet' : 'Spiel vorbei'}
+          </p>
+          <p style={{ color: '#94a3b8', fontSize: '1rem', margin: 0 }}>
+            {gameover.reason === 'terminated'
+              ? 'Das Spiel wurde vom Ersteller beendet.'
+              : `Gewinner: ${gameover.winner ?? 'Unbekannt'}`}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

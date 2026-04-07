@@ -59,4 +59,5 @@ shared/test-report.html
 shared/dist
 game-web/dist
 backend/dist
+backend/data/
 
