@@ -356,11 +356,12 @@ export function drawActivatedCharactersGrid(
 }
 
 /**
- * Draw portal swap buttons (⇄) below each occupied portal slot.
- * One button per region of type 'portal-swap-btn'.
+ * Draw portal swap buttons (⇄) below each occupied portal slot,
+ * and the replace-pearl-slots button below the pearl deck.
+ * Handles regions of type 'portal-swap-btn' and 'ui-replace-pearl-slots'.
  */
 export function drawPortalSwapButtons(ctx: CanvasRenderingContext2D, regions: CanvasRegion[]) {
-  const swapRegions = regions.filter(r => r.type === 'portal-swap-btn');
+  const swapRegions = regions.filter(r => r.type === 'portal-swap-btn' || r.type === 'ui-replace-pearl-slots');
   for (const region of swapRegions) {
     const { x, y, w, h, hoverProgress } = region;
     ctx.save();

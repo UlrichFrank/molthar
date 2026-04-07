@@ -34,6 +34,7 @@ export type CanvasRegionType =
   | 'deck-pearl'
   | 'ui-end-turn'
   | 'ui-discard-cards'
+  | 'ui-replace-pearl-slots'
   | 'opponent-portal-card';
 
 export interface CanvasRegion {
@@ -230,6 +231,20 @@ export function buildCanvasRegions(
       x: PEARL_DECK_X - DECK_CARD_H, y: PEARL_DECK_Y,
       w: DECK_CARD_H, h: DECK_CARD_W,
       ...animState(existing, 'deck-pearl', 'deck-pearl'),
+    });
+  }
+
+  // --- Replace pearl slots button (below pearl deck, active player with remaining actions) ---
+  if (isActive && (G.actionCount ?? 0) < (G.maxActions ?? 3)) {
+    const REPLACE_BTN_H = 24;
+    const REPLACE_BTN_GAP = 4;
+    regions.push({
+      type: 'ui-replace-pearl-slots', id: 'ui-replace-pearl-slots',
+      x: PEARL_DECK_X - DECK_CARD_H, y: PEARL_DECK_Y + DECK_CARD_W + REPLACE_BTN_GAP,
+      w: DECK_CARD_H, h: REPLACE_BTN_H,
+      label: 'Tauschen',
+      enabled: true,
+      ...animState(existing, 'ui-replace-pearl-slots', 'ui-replace-pearl-slots'),
     });
   }
 

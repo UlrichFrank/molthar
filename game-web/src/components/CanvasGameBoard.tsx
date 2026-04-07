@@ -364,7 +364,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     dirtyRef.current = true;
 
     // Dispatch action
-    if (region.type === 'ui-end-turn' || region.type === 'ui-discard-cards') {
+    if (region.type === 'ui-end-turn' || region.type === 'ui-discard-cards' || region.type === 'ui-replace-pearl-slots') {
       handleUIClick(region);
     } else if (isActive) {
       handleCardClick(region);
@@ -387,6 +387,8 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
       if (me && G.excessCardCount > 0) {
         dialog.openDiscardDialog(me.hand, G.excessCardCount, G.currentHandLimit);
       }
+    } else if (region.type === 'ui-replace-pearl-slots') {
+      moves.replacePearlSlots?.();
     }
   }
 
