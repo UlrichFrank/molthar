@@ -56,45 +56,34 @@ export function applyRedAbility(G: GameState, ctx: { currentPlayer: string }, ab
       break;
 
     case 'discardOpponentCharacter': {
-      // Eine Portal-Karte eines Gegners entfernen (erste verfügbare)
-      // TODO TIER 1: UI-Interaktion für Spielerauswahl ergänzen
-      for (const playerId of G.playerOrder) {
-        if (playerId === ctx.currentPlayer) continue;
+      // Prüfen ob mindestens ein Gegner eine Portal-Karte hat
+      const anyOpponentHasPortalCard = G.playerOrder.some(playerId => {
+        if (playerId === ctx.currentPlayer) return false;
         const opponent = G.players[playerId];
-        if (opponent && opponent.portal.length > 0) {
-          const removed = opponent.portal.splice(0, 1)[0];
-          if (removed) G.characterDiscardPile.push(removed.card);
-          break;
-        }
+        return opponent && opponent.portal.length > 0;
+      });
+      if (anyOpponentHasPortalCard) {
+        G.pendingDiscardOpponentCharacter = true;
       }
       break;
     }
 
     case 'stealOpponentHandCard': {
-      // Perlenkarte aus der Hand eines Gegners stehlen (erste verfügbare)
-      // TODO TIER 1: UI-Interaktion für Spielerauswahl ergänzen
-      for (const playerId of G.playerOrder) {
-        if (playerId === ctx.currentPlayer) continue;
+      // Prüfen ob mindestens ein Gegner Handkarten hat
+      const anyOpponentHasCards = G.playerOrder.some(playerId => {
+        if (playerId === ctx.currentPlayer) return false;
         const opponent = G.players[playerId];
-        if (opponent && opponent.hand.length > 0) {
-          const stolenCard = opponent.hand.splice(0, 1)[0];
-          if (stolenCard) currentPlayer.hand.push(stolenCard);
-          break;
-        }
+        return opponent && opponent.hand.length > 0;
+      });
+      if (anyOpponentHasCards) {
+        G.pendingStealOpponentHandCard = true;
       }
       break;
     }
 
     case 'takeBackPlayedPearl': {
-      // Zuletzt gespielte Perlenkarte vom Ablagestapel zurückholen
-      if (G.lastPlayedPearlId) {
-        const idx = G.pearlDiscardPile.findIndex(c => c.id === G.lastPlayedPearlId);
-        if (idx !== -1) {
-          const card = G.pearlDiscardPile.splice(idx, 1)[0];
-          if (card) currentPlayer.hand.push(card);
-        }
-        G.lastPlayedPearlId = null;
-      }
+      // Öffnet den Dialog zur Auswahl einer zurückzuholenden Perlenkarte
+      G.pendingTakeBackPlayedPearl = true;
       break;
     }
 

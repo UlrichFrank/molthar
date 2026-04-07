@@ -180,6 +180,21 @@ export function getPortalSlotPosition(slotIndex: number) {
 }
 
 /**
+ * Returns the four opponent zone bounding boxes and their rotation in degrees.
+ * Order: [left (90°), top-left (180°), top-right (180°), right (270°)]
+ * Matches the layout used in drawOpponentPortals / buildOpponentsArray.
+ */
+export function getOpponentZones(): Array<{ zone: { x: number; y: number; w: number; h: number }; rotationDeg: number }> {
+  const halfCenter = (BASE_W - 2 * MARGIN_H) / 2;
+  return [
+    { zone: { x: 0,                     y: ZONE_TOP_H, w: MARGIN_H,   h: ZONE_CENTER_H }, rotationDeg: 90 },
+    { zone: { x: MARGIN_H,              y: 0,          w: halfCenter, h: ZONE_TOP_H },    rotationDeg: 180 },
+    { zone: { x: MARGIN_H + halfCenter, y: 0,          w: halfCenter, h: ZONE_TOP_H },    rotationDeg: 180 },
+    { zone: { x: BASE_W - MARGIN_H,     y: ZONE_TOP_H, w: MARGIN_H,   h: ZONE_CENTER_H }, rotationDeg: 270 },
+  ];
+}
+
+/**
  * Calculate activated character grid card position
  * @param cardIndex Card index in the grid (0-11, row-major order)
  * @returns {cardX, cardY, w, h} - position and dimensions

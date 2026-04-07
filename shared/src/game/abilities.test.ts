@@ -56,7 +56,12 @@ function makeMinimalGameState(overrides: Partial<GameState> = {}): GameState {
     startingPlayer: '0',
     portalEntryCounter: 0,
     nextPlayerExtraAction: false,
-    lastPlayedPearlId: null,
+    playedRealPearlIds: [],
+    pendingTakeBackPlayedPearl: false,
+    isReshufflingPearlDeck: false,
+    isReshufflingCharacterDeck: false,
+    pendingStealOpponentHandCard: false,
+    pendingDiscardOpponentCharacter: false,
     ...overrides,
   } as GameState;
 }
@@ -106,9 +111,10 @@ describe('TIER 0 – Typen und State-Initialisierung', () => {
     expect(G.nextPlayerExtraAction).toBe(false);
   });
 
-  it('0.4 – GameState.lastPlayedPearlId startet als null', () => {
+  it('0.4 – GameState.playedRealPearlIds startet als leeres Array', () => {
     const G = makeMinimalGameState();
-    expect(G.lastPlayedPearlId).toBeNull();
+    expect(G.playedRealPearlIds).toEqual([]);
+    expect(G.pendingTakeBackPlayedPearl).toBe(false);
   });
 
   it('0.8 – applyBlueAbility fügt Fähigkeit zu activeAbilities hinzu', () => {
@@ -154,7 +160,7 @@ describe('TIER 1 – Rote Fähigkeiten (applyRedAbility)', () => {
   });
 
   // 1.7 / 1.8
-  it('1.7/1.8 – discardOpponentCharacter entfernt eine Karte vom Portal des Gegners', () => {
+  it('4.1 – discardOpponentCharacter setzt pendingDiscardOpponentCharacter wenn Gegner Portal-Karte hat', () => {
     const opponent = G.players['1']!;
     opponent.portal.push({
       id: 'test-entry',
@@ -164,47 +170,48 @@ describe('TIER 1 – Rote Fähigkeiten (applyRedAbility)', () => {
       },
       activated: false,
     });
+    expect(G.pendingDiscardOpponentCharacter).toBe(false);
+    applyRedAbility(G, makeCtx('0'), makeAbility('discardOpponentCharacter', false));
+    expect(G.pendingDiscardOpponentCharacter).toBe(true);
+    // Karte bleibt im Portal bis Dialog gelöst wird
     expect(opponent.portal).toHaveLength(1);
-    applyRedAbility(G, makeCtx('0'), makeAbility('discardOpponentCharacter', false));
-    expect(opponent.portal).toHaveLength(0);
-    expect(G.characterDiscardPile).toHaveLength(1);
-  });
-
-  it('1.8 – discardOpponentCharacter kein Effekt wenn Gegner kein Portal hat', () => {
-    applyRedAbility(G, makeCtx('0'), makeAbility('discardOpponentCharacter', false));
     expect(G.characterDiscardPile).toHaveLength(0);
   });
 
-  // 1.9 / 1.10
-  it('1.9/1.10 – stealOpponentHandCard überträgt Karte von Gegner-Hand auf eigene Hand', () => {
+  it('4.2 – discardOpponentCharacter bleibt false wenn kein Gegner Portal-Karte hat', () => {
+    applyRedAbility(G, makeCtx('0'), makeAbility('discardOpponentCharacter', false));
+    expect(G.pendingDiscardOpponentCharacter).toBe(false);
+    expect(G.characterDiscardPile).toHaveLength(0);
+  });
+
+  // 1.9 / 1.10 — now sets pending flag instead of immediately stealing
+  it('1.9/1.10 – stealOpponentHandCard setzt pendingStealOpponentHandCard wenn Gegner Karten hat', () => {
     const opponent = G.players['1']!;
     opponent.hand.push({ id: 'pearl-5-0', value: 5, hasSwapSymbol: false });
     applyRedAbility(G, makeCtx('0'), makeAbility('stealOpponentHandCard', false));
-    expect(opponent.hand).toHaveLength(0);
-    expect(G.players['0']!.hand).toHaveLength(1);
-    expect(G.players['0']!.hand[0]!.id).toBe('pearl-5-0');
+    expect(G.pendingStealOpponentHandCard).toBe(true);
+    // card still in opponent hand until dialog resolves
+    expect(opponent.hand).toHaveLength(1);
   });
 
   it('stealOpponentHandCard – kein Effekt wenn alle Gegner keine Karten haben', () => {
     applyRedAbility(G, makeCtx('0'), makeAbility('stealOpponentHandCard', false));
+    expect(G.pendingStealOpponentHandCard).toBe(false);
     expect(G.players['0']!.hand).toHaveLength(0);
   });
 
-  // 1.11 / 1.12 / 1.13
-  it('1.11/1.13 – takeBackPlayedPearl holt Perlenkarte vom Ablagestapel zurück', () => {
-    const pearl = { id: 'pearl-3-1', value: 3 as const, hasSwapSymbol: false };
-    G.pearlDiscardPile.push(pearl);
-    G.lastPlayedPearlId = pearl.id;
+  // 1.11 / 1.12 / 1.13 — takeBackPlayedPearl now sets pending flag (dialog-driven)
+  it('1.11 – takeBackPlayedPearl setzt pendingTakeBackPlayedPearl = true', () => {
     applyRedAbility(G, makeCtx('0'), makeAbility('takeBackPlayedPearl', false));
-    expect(G.pearlDiscardPile).toHaveLength(0);
-    expect(G.players['0']!.hand).toHaveLength(1);
-    expect(G.lastPlayedPearlId).toBeNull();
+    expect(G.pendingTakeBackPlayedPearl).toBe(true);
+    // card is NOT immediately moved — dialog resolves via resolveReturnPearl move
   });
 
-  it('1.13 – takeBackPlayedPearl kein Effekt wenn lastPlayedPearlId null', () => {
+  it('1.13 – takeBackPlayedPearl setzt immer Flag, auch ohne gespielte Karten', () => {
     G.pearlDiscardPile.push({ id: 'pearl-3-1', value: 3, hasSwapSymbol: false });
     applyRedAbility(G, makeCtx('0'), makeAbility('takeBackPlayedPearl', false));
-    expect(G.pearlDiscardPile).toHaveLength(1);
+    expect(G.pendingTakeBackPlayedPearl).toBe(true);
+    expect(G.pearlDiscardPile).toHaveLength(1); // untouched until dialog resolved
     expect(G.players['0']!.hand).toHaveLength(0);
   });
 
@@ -217,7 +224,6 @@ describe('TIER 1 – Rote Fähigkeiten (applyRedAbility)', () => {
     });
     opponent.hand.push({ id: 'pearl-2-0', value: 2, hasSwapSymbol: false });
     G.pearlDiscardPile.push({ id: 'pearl-7-0', value: 7, hasSwapSymbol: false });
-    G.lastPlayedPearlId = 'pearl-7-0';
 
     applyRedAbility(G, makeCtx('0'), makeAbility('threeExtraActions', false));
     applyRedAbility(G, makeCtx('0'), makeAbility('nextPlayerOneExtraAction', false));
@@ -227,9 +233,13 @@ describe('TIER 1 – Rote Fähigkeiten (applyRedAbility)', () => {
 
     expect(G.maxActions).toBe(6);
     expect(G.nextPlayerExtraAction).toBe(true);
-    expect(G.characterDiscardPile).toHaveLength(1);
-    // steal + takeBack: Spieler hat 2 Karten (gestohlene + zurückgeholte)
-    expect(G.players['0']!.hand).toHaveLength(2);
+    // discardOpponentCharacter setzt jetzt Flag statt automatisch zu entfernen
+    expect(G.pendingDiscardOpponentCharacter).toBe(true);
+    expect(G.characterDiscardPile).toHaveLength(0);
+    // both steal and takeBack now set pending flags (dialog-driven)
+    expect(G.pendingStealOpponentHandCard).toBe(true);
+    expect(G.pendingTakeBackPlayedPearl).toBe(true);
+    expect(G.players['0']!.hand).toHaveLength(0); // no immediate card movement
   });
 });
 
@@ -356,15 +366,15 @@ describe('TIER 4 – Blaue Hand-/Portal-Aktionen', () => {
   });
 });
 // ---------------------------------------------------------------------------
-// TIER 1: turn.onEnd-Hook (lastPlayedPearlId zurücksetzen)
+// TIER 1: turn.onEnd-Hook (playedRealPearlIds zurücksetzen)
 // ---------------------------------------------------------------------------
 
 describe('TIER 1 – turn.onEnd-Hook', () => {
-  it('1.3 – onEnd setzt lastPlayedPearlId auf null zurück', () => {
-    const G = makeMinimalGameState({ lastPlayedPearlId: 'pearl-5-0' });
+  it('1.3 – onEnd leert playedRealPearlIds', () => {
+    const G = makeMinimalGameState({ playedRealPearlIds: ['pearl-5-0', 'pearl-3-1'] });
     // Simuliere onEnd:
-    G.lastPlayedPearlId = null;
-    expect(G.lastPlayedPearlId).toBeNull();
+    G.playedRealPearlIds = [];
+    expect(G.playedRealPearlIds).toEqual([]);
   });
 });
 
@@ -839,6 +849,199 @@ describe('TIER 7 – irrlicht (geteilte Aktivierung)', () => {
       { G, ctx: makeCtx('0') }, '1', 1, []
     );
     expect(result).toBe('INVALID_MOVE');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// TIER 7b: tradeTwoForDiamond — source: 'trade' in activatePortalCard
+// ---------------------------------------------------------------------------
+
+describe('TIER 7b – tradeTwoForDiamond (source: trade in activatePortalCard)', () => {
+  function makeTradeGame() {
+    const G = makeMinimalGameState();
+    const player = G.players['0']!;
+
+    // Charakter im Portal kostet eine Perle mit Wert 3
+    player.portal.push({
+      id: 'portal-trade-target',
+      activated: false,
+      card: { id: 'trade-target', name: 'TradeTarget', imageName: '', powerPoints: 2, diamonds: 0, cost: [{ type: 'number', value: 3 }], abilities: [] }
+    });
+
+    // Aktivierter Charakter mit tradeTwoForDiamond
+    player.activatedCharacters.push({
+      id: 'act-trader',
+      activated: true,
+      card: { id: 'trader', name: 'Trader', imageName: '', powerPoints: 0, diamonds: 0, cost: [],
+        abilities: [{ id: 'ab-trade', type: 'tradeTwoForDiamond' as const, persistent: true, description: '' }] }
+    });
+
+    player.hand = [
+      { id: 'p-two', value: 2, hasSwapSymbol: false },
+      { id: 'p-three', value: 3, hasSwapSymbol: false },
+    ];
+    player.diamonds = 0;
+
+    return { G, player };
+  }
+
+  it('7b.1 – source:trade konsumiert 2-Perle, Aktivierung valid trotz 0 echter Diamanten', () => {
+    const { G, player } = makeTradeGame();
+    const ctx = makeCtx('0');
+
+    // Karte kostet 3 → Handkarte 3 + Trade (2-Perle → Diamant, aber nicht als Kostenperle)
+    const result = PortaleVonMolthar.moves!.activatePortalCard({ G, ctx }, 0, [
+      { source: 'hand', handCardIndex: 1, value: 3 },
+      { source: 'trade', characterId: 'act-trader', handCardIndex: 0, value: 2 },
+    ] as PaymentSelection[]);
+    expect(result).not.toBe('INVALID_MOVE');
+    // 2-Perle wurde konsumiert
+    expect(player.hand).toHaveLength(0);
+    // Karte aktiviert
+    expect(player.activatedCharacters).toHaveLength(2);
+    // Diamant bleibt (bonusDiamonds - diamondsToSpend = 1 - 0 = 1 übrig, aber wir ziehen nur ab was nötig)
+    expect(player.diamonds).toBeGreaterThanOrEqual(0);
+  });
+
+  it('7b.2 – source:trade mit decreaseWithPearl kombiniert', () => {
+    const G = makeMinimalGameState();
+    const player = G.players['0']!;
+
+    // Charakter kostet eine 4
+    player.portal.push({
+      id: 'portal-combo',
+      activated: false,
+      card: { id: 'combo-target', name: 'C', imageName: '', powerPoints: 1, diamonds: 0, cost: [{ type: 'number', value: 4 }], abilities: [] }
+    });
+
+    player.activatedCharacters.push({
+      id: 'act-trader2',
+      activated: true,
+      card: { id: 'trader2', name: 'T', imageName: '', powerPoints: 0, diamonds: 0, cost: [],
+        abilities: [{ id: 'ab-trade2', type: 'tradeTwoForDiamond' as const, persistent: true, description: '' }] }
+    });
+
+    player.activeAbilities.push({ id: 'dec', type: 'decreaseWithPearl', persistent: true, description: '' });
+
+    // Hand: Perle 5 (decreaseWithPearl: 5→4, kostet 1 Diamant) + Perle 2 (für Trade)
+    player.hand = [
+      { id: 'p5', value: 5, hasSwapSymbol: false },
+      { id: 'p2', value: 2, hasSwapSymbol: false },
+    ];
+    player.diamonds = 0;
+
+    const ctx = makeCtx('0');
+    const result = PortaleVonMolthar.moves!.activatePortalCard({ G, ctx }, 0, [
+      { source: 'hand', handCardIndex: 0, value: 4, abilityType: 'decreaseWithPearl', diamondsUsed: 1 },
+      { source: 'trade', characterId: 'act-trader2', handCardIndex: 1, value: 2 },
+    ] as PaymentSelection[]);
+    expect(result).not.toBe('INVALID_MOVE');
+    expect(player.hand).toHaveLength(0);
+  });
+
+  it('7b.3 – source:trade mit nicht-2-Perle → INVALID_MOVE', () => {
+    const { G } = makeTradeGame();
+    const ctx = makeCtx('0');
+
+    // Index 1 = Perle 3 (kein 2er)
+    const result = PortaleVonMolthar.moves!.activatePortalCard({ G, ctx }, 0, [
+      { source: 'hand', handCardIndex: 1, value: 3 },
+      { source: 'trade', characterId: 'act-trader', handCardIndex: 1, value: 2 },
+    ] as PaymentSelection[]);
+    expect(result).toBe('INVALID_MOVE');
+  });
+
+  it('7b.4 – source:trade ohne Ability → INVALID_MOVE', () => {
+    const G = makeMinimalGameState();
+    const player = G.players['0']!;
+
+    player.portal.push({
+      id: 'portal-notrade',
+      activated: false,
+      card: { id: 'nt', name: 'NT', imageName: '', powerPoints: 1, diamonds: 0, cost: [{ type: 'number', value: 3 }], abilities: [] }
+    });
+    // Charakter OHNE tradeTwoForDiamond
+    player.activatedCharacters.push({
+      id: 'act-no-trade',
+      activated: true,
+      card: { id: 'no-trade', name: 'NT', imageName: '', powerPoints: 0, diamonds: 0, cost: [], abilities: [] }
+    });
+    player.hand = [
+      { id: 'pt2', value: 2, hasSwapSymbol: false },
+      { id: 'pt3', value: 3, hasSwapSymbol: false },
+    ];
+
+    const ctx = makeCtx('0');
+    const result = PortaleVonMolthar.moves!.activatePortalCard({ G, ctx }, 0, [
+      { source: 'hand', handCardIndex: 1, value: 3 },
+      { source: 'trade', characterId: 'act-no-trade', handCardIndex: 0, value: 2 },
+    ] as PaymentSelection[]);
+    expect(result).toBe('INVALID_MOVE');
+  });
+
+  it('7b.5 – 2-Perle doppelt verwendet (trade + hand) → INVALID_MOVE', () => {
+    const { G } = makeTradeGame();
+    const ctx = makeCtx('0');
+
+    // Index 0 = 2-Perle, gleichzeitig als hand und trade → doppelt
+    const result = PortaleVonMolthar.moves!.activatePortalCard({ G, ctx }, 0, [
+      { source: 'hand', handCardIndex: 0, value: 2 },
+      { source: 'trade', characterId: 'act-trader', handCardIndex: 0, value: 2 },
+    ] as PaymentSelection[]);
+    expect(result).toBe('INVALID_MOVE');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// TIER 4: resolveDiscardOpponentCharacter
+// ---------------------------------------------------------------------------
+
+describe('TIER 4 – resolveDiscardOpponentCharacter', () => {
+  function makeDiscardGame() {
+    const G = makeMinimalGameState();
+    G.pendingDiscardOpponentCharacter = true;
+    const opponent = G.players['1']!;
+    opponent.portal.push({
+      id: 'portal-entry-1',
+      activated: false,
+      card: { id: 'char-1', name: 'OpponentChar', imageName: '', powerPoints: 2, diamonds: 0, cost: [], abilities: [] },
+    });
+    return G;
+  }
+
+  it('4.3 – resolveDiscardOpponentCharacter entfernt Karte und löscht Flag', () => {
+    const G = makeDiscardGame();
+    const ctx = makeCtx('0');
+    const result = PortaleVonMolthar.moves!.resolveDiscardOpponentCharacter({ G, ctx }, '1', 'portal-entry-1');
+    expect(result).not.toBe('INVALID_MOVE');
+    expect(G.players['1']!.portal).toHaveLength(0);
+    expect(G.characterDiscardPile).toHaveLength(1);
+    expect(G.characterDiscardPile[0]!.id).toBe('char-1');
+    expect(G.pendingDiscardOpponentCharacter).toBe(false);
+  });
+
+  it('4.4 – resolveDiscardOpponentCharacter ist no-op wenn Flag nicht gesetzt', () => {
+    const G = makeDiscardGame();
+    G.pendingDiscardOpponentCharacter = false;
+    const ctx = makeCtx('0');
+    const result = PortaleVonMolthar.moves!.resolveDiscardOpponentCharacter({ G, ctx }, '1', 'portal-entry-1');
+    expect(result).toBe('INVALID_MOVE');
+    expect(G.players['1']!.portal).toHaveLength(1);
+  });
+
+  it('4.5 – resolveDiscardOpponentCharacter ist no-op bei eigenem targetPlayerId', () => {
+    const G = makeDiscardGame();
+    const ctx = makeCtx('0');
+    const result = PortaleVonMolthar.moves!.resolveDiscardOpponentCharacter({ G, ctx }, '0', 'portal-entry-1');
+    expect(result).toBe('INVALID_MOVE');
+  });
+
+  it('4.6 – resolveDiscardOpponentCharacter ist no-op bei ungültiger portalEntryId', () => {
+    const G = makeDiscardGame();
+    const ctx = makeCtx('0');
+    const result = PortaleVonMolthar.moves!.resolveDiscardOpponentCharacter({ G, ctx }, '1', 'nonexistent-id');
+    expect(result).toBe('INVALID_MOVE');
+    expect(G.players['1']!.portal).toHaveLength(1);
   });
 });
 

@@ -1,13 +1,14 @@
 import React, { useRef, useEffect, useState } from 'react';
 import type { GameState, PlayerState } from '@portale-von-molthar/shared';
 import { buildCanvasRegions, hitTestRegions } from '../lib/canvasRegions';
-import type { CanvasRegion } from '../lib/canvasRegions';
+import type { CanvasRegion, NeighborOpponent } from '../lib/canvasRegions';
 import {
   drawBackground,
   drawAuslage,
   drawPlayerPortal,
   drawActivatedCharactersGrid,
   drawUIButton,
+  drawPortalSwapButtons,
   drawOpponentActionCounter,
   drawRegionEffects,
   drawOpponentPortals,
@@ -19,7 +20,12 @@ import { DialogProvider, useDialog } from '../contexts/DialogContext';
 import { CharacterReplacementDialog } from './CharacterReplacementDialog';
 import { CharacterActivationDialog } from './CharacterActivationDialog';
 import { DiscardCardsDialog } from './DiscardCardsDialog';
+import { StealOpponentHandCardDialog } from './StealOpponentHandCardDialog';
+import { CharacterSwapDialog } from './CharacterSwapDialog';
+import { TakeBackPlayedPearlDialog } from './TakeBackPlayedPearlDialog';
+import { DiscardOpponentCharacterDialog } from './DiscardOpponentCharacterDialog';
 import { PlayerNameDisplay } from './PlayerNameDisplay';
+import { DeckReshuffleAnimation } from './DeckReshuffleAnimation';
 import '../styles/dialogs.css';
 
 interface CanvasGameBoardProps {
@@ -60,6 +66,32 @@ function buildOpponentsArray(G: GameState, myPlayerID: string): Array<import('..
   if (n === 3) return [getOpponentData(1), null, null, getOpponentData(-1)];
   if (n === 4) return [getOpponentData(1), getOpponentData(2), null, getOpponentData(-1)];
   return [getOpponentData(1), getOpponentData(-2), getOpponentData(2), getOpponentData(-1)];
+}
+
+/** Returns the two direct neighbors (left = zoneIndex 0, right = zoneIndex 3) for irrlicht regions. */
+function getNeighborOpponents(G: GameState, myPlayerID: string): NeighborOpponent[] {
+  const playerOrder = G.playerOrder || Object.keys(G.players || {});
+  const n = playerOrder.length;
+  if (n < 2) return [];
+  const myIndex = playerOrder.indexOf(myPlayerID);
+
+  const result: NeighborOpponent[] = [];
+
+  const leftId = playerOrder[((myIndex + 1) % n + n) % n];
+  if (leftId && leftId !== myPlayerID) {
+    const player = G.players?.[leftId];
+    if (player) result.push({ playerId: leftId, portal: player.portal ?? [], zoneIndex: 0 });
+  }
+
+  if (n >= 3) {
+    const rightId = playerOrder[((myIndex - 1) % n + n) % n];
+    if (rightId && rightId !== myPlayerID) {
+      const player = G.players?.[rightId];
+      if (player) result.push({ playerId: rightId, portal: player.portal ?? [], zoneIndex: 3 });
+    }
+  }
+
+  return result;
 }
 
 interface ModelCoords { x: number; y: number }
@@ -163,7 +195,8 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
 
   // Rebuild regions when game state changes (in-place to preserve animation)
   useEffect(() => {
-    regionsRef.current = buildCanvasRegions(G, myPlayerID, isActive, regionsRef.current);
+    const neighbors = getNeighborOpponents(G, myPlayerID);
+    regionsRef.current = buildCanvasRegions(G, myPlayerID, isActive, regionsRef.current, neighbors);
   }, [G, myPlayerID, isActive]);
 
   // ── Canvas size setup (on viewport resize) ──────────────────────────────────
@@ -266,13 +299,14 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     drawAuslage(drawCtx, characterSlots, pearlSlots,
       { selectedPearl: null, selectedCharacter: null, selectedHandIndices: [] },
       G.characterDeck?.length ?? 0, G.pearlDeck?.length ?? 0,
-      charDeckHover, pearlDeckHover);
+      charDeckHover, pearlDeckHover, me?.peekedCard);
     drawPlayerPortal(drawCtx, { diamonds: playerDiamonds, portal: playerPortal, hand: playerHand },
       { selectedPearl: null, selectedCharacter: null, selectedHandIndices: [] },
       me?.colorIndex ?? 1,
       myPlayerID === G.startingPlayer);
     drawActivatedCharactersGrid(drawCtx, activatedCards_,
       { selectedPearl: null, selectedCharacter: null, selectedHandIndices: [] });
+    drawPortalSwapButtons(drawCtx, regions);
 
     // Canvas UI panel
     if (isActive) {
@@ -330,7 +364,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     dirtyRef.current = true;
 
     // Dispatch action
-    if (region.type === 'ui-end-turn' || region.type === 'ui-discard-cards') {
+    if (region.type === 'ui-end-turn' || region.type === 'ui-discard-cards' || region.type === 'ui-replace-pearl-slots') {
       handleUIClick(region);
     } else if (isActive) {
       handleCardClick(region);
@@ -353,6 +387,8 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
       if (me && G.excessCardCount > 0) {
         dialog.openDiscardDialog(me.hand, G.excessCardCount, G.currentHandLimit);
       }
+    } else if (region.type === 'ui-replace-pearl-slots') {
+      moves.replacePearlSlots?.();
     }
   }
 
@@ -402,13 +438,27 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
 
       case 'deck-character': {
         if (G.characterDeck.length === 0) break;
-        if (me && me.portal.length >= 2) {
-          const topCard = G.characterDeck[G.characterDeck.length - 1];
-          if (!topCard) break;
-          const portalCharacters = me.portal.map(entry => entry.card);
-          dialog.openReplacementDialog(topCard, portalCharacters);
+        if (!me) break;
+        const hasPreviewAbility = me.activeAbilities.some(a => a.type === 'previewCharacter');
+        const peekedCard = me.peekedCard ?? null;
+
+        const takeCharCard = () => {
+          const topCard = peekedCard ?? G.characterDeck[G.characterDeck.length - 1];
+          if (!topCard) return;
+          if (me.portal.length >= 2) {
+            const portalCharacters = me.portal.map(entry => entry.card);
+            dialog.openReplacementDialog(topCard, portalCharacters);
+          } else {
+            moves.takeCharacterCard(-1);
+          }
+        };
+
+        if (hasPreviewAbility && G.actionCount === 0 && !peekedCard) {
+          moves.peekCharacterDeck();
+        } else if (hasPreviewAbility && peekedCard) {
+          takeCharCard();
         } else {
-          moves.takeCharacterCard(-1);
+          takeCharCard();
         }
         break;
       }
@@ -416,6 +466,24 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
       case 'deck-pearl': {
         if (G.pearlDeck.length === 0) break;
         moves.takePearlCard(-1);
+        break;
+      }
+
+      case 'portal-swap-btn': {
+        const slotIndex = region.id as number;
+        const portalEntry = me?.portal[slotIndex];
+        if (!portalEntry) break;
+        dialog.openSwapPortalCharacterDialog(portalEntry.card, slotIndex, G.characterSlots ?? []);
+        break;
+      }
+
+      case 'opponent-portal-card': {
+        const [ownerPlayerId, slotStr] = (region.id as string).split(':');
+        const slotIndex = parseInt(slotStr, 10);
+        const ownerPlayer = G.players?.[ownerPlayerId];
+        const entry = ownerPlayer?.portal[slotIndex];
+        if (!entry) break;
+        dialog.openActivationDialog(entry.card, slotIndex, ownerPlayerId);
         break;
       }
     }
@@ -431,6 +499,42 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeCharacterIndex]);
+
+  // ── Auto-open steal dialog when flag is set and we are the active player
+  useEffect(() => {
+    if (G.pendingStealOpponentHandCard && myPlayerID === activePlayerID && dialog.dialog.type !== 'steal-opponent-hand-card') {
+      dialog.openStealOpponentHandCardDialog();
+    }
+  }, [G.pendingStealOpponentHandCard, myPlayerID, activePlayerID, dialog.dialog.type]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Auto-open discard opponent character dialog when flag is set and we are the active player
+  useEffect(() => {
+    if (G.pendingDiscardOpponentCharacter && myPlayerID === activePlayerID && dialog.dialog.type !== 'discard-opponent-character') {
+      dialog.openDiscardOpponentCharacterDialog();
+    }
+  }, [G.pendingDiscardOpponentCharacter, myPlayerID, activePlayerID]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Auto-open take-back dialog when flag is set and we are the active player
+  useEffect(() => {
+    if (G.pendingTakeBackPlayedPearl && myPlayerID === activePlayerID && dialog.dialog.type !== 'take-back-played-pearl') {
+      dialog.openTakeBackPlayedPearlDialog();
+    }
+  }, [G.pendingTakeBackPlayedPearl, myPlayerID, activePlayerID]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Listen for terminateGame event from LobbyScreen (creator only) ───────────
+  useEffect(() => {
+    const handler = () => { moves.terminateGame?.(); };
+    window.addEventListener('pvm:terminateGame', handler);
+    return () => window.removeEventListener('pvm:terminateGame', handler);
+  }, [moves]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Notify LobbyScreen when game is over ─────────────────────────────────────
+  const gameover = (ctx as any).gameover;
+  useEffect(() => {
+    if (gameover !== undefined) {
+      window.dispatchEvent(new CustomEvent('pvm:gameOver'));
+    }
+  }, [gameover]);
 
   // ── Render ────────────────────────────────────────────────────────────────────
   return (
@@ -470,6 +574,22 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
 
         {/* Player Name Display */}
         {me && <PlayerNameDisplay playerName={me.name} />}
+
+        {/* Deck Reshuffle Animations — positioned near the respective deck */}
+        {G.isReshufflingPearlDeck && (
+          <DeckReshuffleAnimation
+            deckType="pearl"
+            style={{ right: '6%', top: '48%' }}
+            onDone={isActive ? () => moves.acknowledgeReshuffle?.('pearl') : () => {}}
+          />
+        )}
+        {G.isReshufflingCharacterDeck && (
+          <DeckReshuffleAnimation
+            deckType="character"
+            style={{ left: '28%', top: '48%' }}
+            onDone={isActive ? () => moves.acknowledgeReshuffle?.('character') : () => {}}
+          />
+        )}
       </div>
 
       {/* Dialog Modals */}
@@ -502,7 +622,12 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           activeAbilities={me.activeAbilities}
           activatedCharacters={me.activatedCharacters}
           onActivate={(portalSlotIndex, selections) => {
-            moves.activatePortalCard(portalSlotIndex, selections);
+            const ownerPlayerId = dialog.dialog.type === 'activation' ? dialog.dialog.ownerPlayerId : undefined;
+            if (ownerPlayerId) {
+              moves.activateSharedCharacter(ownerPlayerId, portalSlotIndex, selections);
+            } else {
+              moves.activatePortalCard(portalSlotIndex, selections);
+            }
             dialog.closeDialog();
           }}
           onCancel={() => dialog.closeDialog()}
@@ -522,11 +647,95 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
         />
       )}
 
+      {dialog.dialog.type === 'steal-opponent-hand-card' && me && (
+        <StealOpponentHandCardDialog
+          opponents={(G.playerOrder || [])
+            .filter(id => id !== myPlayerID)
+            .map(id => G.players?.[id])
+            .filter((p): p is PlayerState => p !== undefined && p.hand.length > 0)}
+          onSteal={(targetPlayerId, handCardIndex) => {
+            moves.resolveStealOpponentHandCard(targetPlayerId, handCardIndex);
+            dialog.closeDialog();
+          }}
+        />
+      )}
+
+      {dialog.dialog.type === 'discard-opponent-character' && (
+        <DiscardOpponentCharacterDialog
+          opponents={(() => {
+            const order = G.playerOrder || [];
+            const myIdx = order.indexOf(myPlayerID ?? '');
+            const rotated = myIdx >= 0
+              ? [...order.slice(myIdx + 1), ...order.slice(0, myIdx)]
+              : order;
+            return rotated
+              .filter(id => id !== myPlayerID)
+              .map(id => G.players?.[id])
+              .filter((p): p is PlayerState => p !== undefined && p.portal.length > 0);
+          })()}
+          onDiscard={(targetPlayerId, portalEntryId) => {
+            moves.resolveDiscardOpponentCharacter(targetPlayerId, portalEntryId);
+            dialog.closeDialog();
+          }}
+        />
+      )}
+
+      {dialog.dialog.type === 'take-back-played-pearl' && (
+        <TakeBackPlayedPearlDialog
+          playedCards={(G.playedRealPearlIds ?? [])
+            .map(id => (G.pearlDiscardPile ?? []).find(c => c.id === id))
+            .filter((c): c is import('@portale-von-molthar/shared').PearlCard => c !== undefined)}
+          onTakeBack={(pearlId) => {
+            moves.resolveReturnPearl(pearlId);
+            dialog.closeDialog();
+          }}
+          onDismiss={() => {
+            moves.dismissReturnPearlDialog();
+            dialog.closeDialog();
+          }}
+        />
+      )}
+
+      {dialog.dialog.type === 'swap-portal-character' && (
+        <CharacterSwapDialog
+          portalCard={dialog.dialog.portalCard}
+          portalSlotIndex={dialog.dialog.portalSlotIndex}
+          tableCards={dialog.dialog.tableCards}
+          onSwap={(tableSlotIndex) => {
+            if (dialog.dialog.type === 'swap-portal-character') {
+              moves.swapPortalCharacter(dialog.dialog.portalSlotIndex, tableSlotIndex);
+            }
+            dialog.closeDialog();
+          }}
+          onCancel={() => dialog.closeDialog()}
+        />
+      )}
+
       {/* Activated Character Detail View Modal */}
       <ActivatedCharacterDetailView
         character={activeCharacter || null}
         onClose={() => setActiveCharacterIndex(null)}
       />
+
+      {/* Gameover overlay */}
+      {gameover !== undefined && (
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'rgba(0,0,0,0.75)',
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          zIndex: 100, borderRadius: 12,
+        }}>
+          <p style={{ color: '#f1f5f9', fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem' }}>
+            {gameover.reason === 'terminated' ? 'Spiel beendet' : 'Spiel vorbei'}
+          </p>
+          <p style={{ color: '#94a3b8', fontSize: '1rem', margin: 0 }}>
+            {gameover.reason === 'terminated'
+              ? 'Das Spiel wurde vom Ersteller beendet.'
+              : `Gewinner: ${gameover.winner ?? 'Unbekannt'}`}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

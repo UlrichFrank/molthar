@@ -92,7 +92,12 @@ export const PortaleVonMolthar = {
       startingPlayer: playerIds[Math.floor(Math.random() * playerIds.length)],
       portalEntryCounter: 0,
       nextPlayerExtraAction: false,
-      lastPlayedPearlId: null,
+      playedRealPearlIds: [],
+      pendingTakeBackPlayedPearl: false,
+      isReshufflingPearlDeck: false,
+      isReshufflingCharacterDeck: false,
+      pendingStealOpponentHandCard: false,
+      pendingDiscardOpponentCharacter: false,
     };
   },
   
@@ -112,18 +117,25 @@ export const PortaleVonMolthar = {
         G.pearlSlots.splice(slotIndex, 1);
       } else if (slotIndex === -1) {
         card = G.pearlDeck.pop();
+        // Proactively reshuffle if deck is now empty and slots are already full
+        // (refillSlots won't call drawCard when slots are at max capacity)
+        if (G.pearlDeck.length === 0 && G.pearlDiscardPile.length > 0) {
+          G.pearlDeck.push(...G.pearlDiscardPile.splice(0));
+          shuffleArray(G.pearlDeck);
+          G.isReshufflingPearlDeck = true;
+        }
       } else {
         return INVALID_MOVE;
       }
 
       if (!card) return INVALID_MOVE;
-      
+
       player.hand.push(card);
       G.actionCount++;
-      refillSlots(G.pearlSlots, G.pearlDeck, G.pearlDiscardPile, 4);
+      refillSlots(G.pearlSlots, G.pearlDeck, G.pearlDiscardPile, 4, () => { G.isReshufflingPearlDeck = true; });
       return;
     },
-    
+
     takeCharacterCard({ G, ctx }: { G: GameState; ctx: any }, slotIndex: number, replacedSlotIndex?: number) {
       const player = G.players[ctx.currentPlayer];
       if (!player) return INVALID_MOVE;
@@ -161,7 +173,7 @@ export const PortaleVonMolthar = {
       }
 
       G.actionCount++;
-      refillSlots(G.characterSlots, G.characterDeck, G.characterDiscardPile, 2);
+      refillSlots(G.characterSlots, G.characterDeck, G.characterDiscardPile, 2, () => { G.isReshufflingCharacterDeck = true; });
       return;
     },
 
@@ -190,13 +202,15 @@ export const PortaleVonMolthar = {
       const virtualHand: PearlCard[] = [];
       const handIndicesToRemove = new Set<number>();
       let diamondsToSpend = 0;
+      let bonusDiamonds = 0;
+      let tradeCount = 0;
 
       for (let i = 0; i < selections.length; i++) {
         const sel = selections[i];
         if (sel.source === 'hand') {
           const handIdx = sel.handCardIndex;
           if (handIdx === undefined || handIdx < 0 || handIdx >= player.hand.length) return INVALID_MOVE;
-          
+
           // Jede Handkarte darf nur einmal genutzt werden
           if (handIndicesToRemove.has(handIdx)) return INVALID_MOVE;
           handIndicesToRemove.add(handIdx);
@@ -218,7 +232,7 @@ export const PortaleVonMolthar = {
               expectedValue = 8;
             } else if (sel.abilityType === 'threesCanBeAny') {
               if (realCard.value !== 3) return INVALID_MOVE;
-              expectedValue = sel.value; 
+              expectedValue = sel.value;
             } else {
               if (sel.value !== expectedValue) return INVALID_MOVE;
             }
@@ -241,17 +255,36 @@ export const PortaleVonMolthar = {
           const isAnyBonus = charCard.card.abilities.some(a => a.type === 'anyAdditionalCardActions');
 
           if (!isNumberBonus && !isAnyBonus) return INVALID_MOVE;
-          
+
           virtualHand.push({
             id: `virtual-bonus-${charCard.id}-${i}`,
             value: sel.value,
             hasSwapSymbol: false
           });
+
+        } else if (sel.source === 'trade') {
+          // Max. 1 Trade-Selection pro Move
+          if (tradeCount >= 1) return INVALID_MOVE;
+          tradeCount++;
+
+          if (!sel.characterId) return INVALID_MOVE;
+          const tradeChar = player.activatedCharacters.find(c => c.id === sel.characterId);
+          if (!tradeChar) return INVALID_MOVE;
+          if (!tradeChar.card.abilities.some(a => a.type === 'tradeTwoForDiamond')) return INVALID_MOVE;
+
+          const handIdx = sel.handCardIndex;
+          if (handIdx === undefined || handIdx < 0 || handIdx >= player.hand.length) return INVALID_MOVE;
+          if (handIndicesToRemove.has(handIdx)) return INVALID_MOVE;
+          if (player.hand[handIdx]!.value !== 2) return INVALID_MOVE;
+
+          handIndicesToRemove.add(handIdx);
+          bonusDiamonds++;
+          // 2-Perle zählt nicht als Kostenperle → nicht zu virtualHand hinzufügen
         }
       }
 
-      if (player.diamonds < diamondsToSpend) return INVALID_MOVE;
-      const remainingDiamondsForValidation = player.diamonds - diamondsToSpend;
+      if (player.diamonds + bonusDiamonds < diamondsToSpend) return INVALID_MOVE;
+      const remainingDiamondsForValidation = player.diamonds - diamondsToSpend + bonusDiamonds;
 
       // Reine Kostenvalidierung mit der konstruierten, virtuellen Hand
       const isValid = validateCostPayment(entry.card.cost, virtualHand, remainingDiamondsForValidation);
@@ -272,8 +305,8 @@ export const PortaleVonMolthar = {
       }
 
       player.hand = unconsumedCards;
-      player.diamonds -= diamondsToSpend;
-      
+      player.diamonds -= Math.max(0, diamondsToSpend - bonusDiamonds);
+
       // CostComponents vom Typ 'diamond' wurden in validateCostPayment bestätigt.
       // Wir müssen diese auch abziehen! (Anzahl an diamonds in Cost components ermitteln)
       const diamondCosts = entry.card.cost?.filter(c => c.type === 'diamond').reduce((sum, c) => sum + (c.value || 0), 0) || 0;
@@ -281,6 +314,7 @@ export const PortaleVonMolthar = {
 
       // Consumed Karten auf den Ablagestapel (nur echte Handkarten!)
       consumedCards.forEach(card => G.pearlDiscardPile.push(card));
+      consumedCards.forEach(card => G.playedRealPearlIds.push(card.id));
 
       // Belohnungen der Karte gutschreiben
       player.powerPoints += entry.card.powerPoints;
@@ -320,7 +354,7 @@ export const PortaleVonMolthar = {
       
       // Discard all pearl slots, then refill
       G.pearlDiscardPile.push(...G.pearlSlots.splice(0));
-      refillSlots(G.pearlSlots, G.pearlDeck, G.pearlDiscardPile, 4);
+      refillSlots(G.pearlSlots, G.pearlDeck, G.pearlDiscardPile, 4, () => { G.isReshufflingPearlDeck = true; });
       G.actionCount++;
       return;
     },
@@ -370,16 +404,10 @@ export const PortaleVonMolthar = {
 
       // Draw exactly the same amount of cards
       for (let i = 0; i < currentHandSize; i++) {
-        let card = G.pearlDeck.pop();
-        if (!card && G.pearlDiscardPile.length > 0) {
-          G.pearlDeck.push(...G.pearlDiscardPile.splice(0));
-          shuffleArray(G.pearlDeck);
-          card = G.pearlDeck.pop();
-        }
+        const card = drawCard(G.pearlDeck, G.pearlDiscardPile, () => { G.isReshufflingPearlDeck = true; });
         if (card) {
           player.hand.push(card);
         } else {
-          // Deck and discard pile empty
           break;
         }
       }
@@ -425,8 +453,11 @@ export const PortaleVonMolthar = {
       const virtualHand: import('./types').PearlCard[] = [];
       const handIndicesToRemove = new Set<number>();
       let diamondsToSpend = 0;
+      let bonusDiamonds = 0;
+      let tradeCount = 0;
 
-      for (const sel of selections) {
+      for (let i = 0; i < selections.length; i++) {
+        const sel = selections[i];
         if (sel.source === 'hand') {
           const handIdx = sel.handCardIndex;
           if (handIdx === undefined || handIdx < 0 || handIdx >= caller.hand.length) return INVALID_MOVE;
@@ -454,11 +485,28 @@ export const PortaleVonMolthar = {
           }
           if (sel.value !== effectiveValue) return INVALID_MOVE;
           virtualHand.push({ id: `virtual-${realCard.id}`, value: sel.value, hasSwapSymbol: realCard.hasSwapSymbol });
+
+        } else if (sel.source === 'trade') {
+          if (tradeCount >= 1) return INVALID_MOVE;
+          tradeCount++;
+
+          if (!sel.characterId) return INVALID_MOVE;
+          const tradeChar = caller.activatedCharacters.find(c => c.id === sel.characterId);
+          if (!tradeChar) return INVALID_MOVE;
+          if (!tradeChar.card.abilities.some(a => a.type === 'tradeTwoForDiamond')) return INVALID_MOVE;
+
+          const handIdx = sel.handCardIndex;
+          if (handIdx === undefined || handIdx < 0 || handIdx >= caller.hand.length) return INVALID_MOVE;
+          if (handIndicesToRemove.has(handIdx)) return INVALID_MOVE;
+          if (caller.hand[handIdx]!.value !== 2) return INVALID_MOVE;
+
+          handIndicesToRemove.add(handIdx);
+          bonusDiamonds++;
         }
       }
 
-      if (caller.diamonds < diamondsToSpend) return INVALID_MOVE;
-      const remainingDiamonds = caller.diamonds - diamondsToSpend;
+      if (caller.diamonds + bonusDiamonds < diamondsToSpend) return INVALID_MOVE;
+      const remainingDiamonds = caller.diamonds - diamondsToSpend + bonusDiamonds;
 
       const isValid = validateCostPayment(entry.card.cost, virtualHand, remainingDiamonds);
       if (!isValid) return INVALID_MOVE;
@@ -471,11 +519,12 @@ export const PortaleVonMolthar = {
         else unconsumed.push(caller.hand[i]!);
       }
       caller.hand = unconsumed;
-      caller.diamonds -= diamondsToSpend;
+      caller.diamonds -= Math.max(0, diamondsToSpend - bonusDiamonds);
 
       const diamondCosts = entry.card.cost?.filter(c => c.type === 'diamond').reduce((sum, c) => sum + (c.value || 0), 0) || 0;
       caller.diamonds -= diamondCosts;
       consumed.forEach(c => G.pearlDiscardPile.push(c));
+      consumed.forEach(c => G.playedRealPearlIds.push(c.id));
 
       // Power points and diamonds go to the caller
       caller.powerPoints += entry.card.powerPoints;
@@ -585,6 +634,71 @@ export const PortaleVonMolthar = {
       return;
     },
 
+    acknowledgeReshuffle({ G }: { G: GameState }, deckType: 'pearl' | 'character') {
+      if (deckType === 'pearl') {
+        G.isReshufflingPearlDeck = false;
+      } else if (deckType === 'character') {
+        G.isReshufflingCharacterDeck = false;
+      }
+      return;
+    },
+
+    resolveReturnPearl({ G, ctx }: { G: GameState; ctx: any }, pearlId: string): typeof INVALID_MOVE | void {
+      if (!G.pendingTakeBackPlayedPearl) return INVALID_MOVE;
+      if (!G.playedRealPearlIds.includes(pearlId)) return INVALID_MOVE;
+      const discardIdx = G.pearlDiscardPile.findIndex(c => c.id === pearlId);
+      if (discardIdx === -1) return INVALID_MOVE;
+      const currentPlayer = G.players[ctx.currentPlayer];
+      if (!currentPlayer) return INVALID_MOVE;
+      const card = G.pearlDiscardPile.splice(discardIdx, 1)[0];
+      if (card) currentPlayer.hand.push(card);
+      G.playedRealPearlIds = G.playedRealPearlIds.filter(id => id !== pearlId);
+      G.pendingTakeBackPlayedPearl = false;
+    },
+
+    dismissReturnPearlDialog({ G }: { G: GameState }) {
+      G.pendingTakeBackPlayedPearl = false;
+    },
+
+    resolveStealOpponentHandCard(
+      { G, ctx }: { G: GameState; ctx: any },
+      targetPlayerId: string,
+      handCardIndex: number,
+    ): typeof INVALID_MOVE | void {
+      if (!G.pendingStealOpponentHandCard) return INVALID_MOVE;
+      if (targetPlayerId === ctx.currentPlayer) return INVALID_MOVE;
+      const target = G.players[targetPlayerId];
+      if (!target) return INVALID_MOVE;
+      if (handCardIndex < 0 || handCardIndex >= target.hand.length) return INVALID_MOVE;
+      const currentPlayer = G.players[ctx.currentPlayer];
+      if (!currentPlayer) return INVALID_MOVE;
+      const stolen = target.hand.splice(handCardIndex, 1)[0];
+      if (stolen) currentPlayer.hand.push(stolen);
+      G.pendingStealOpponentHandCard = false;
+    },
+
+    resolveDiscardOpponentCharacter(
+      { G, ctx }: { G: GameState; ctx: any },
+      targetPlayerId: string,
+      portalEntryId: string,
+    ): typeof INVALID_MOVE | void {
+      if (!G.pendingDiscardOpponentCharacter) return INVALID_MOVE;
+      if (targetPlayerId === ctx.currentPlayer) return INVALID_MOVE;
+      const target = G.players[targetPlayerId];
+      if (!target) return INVALID_MOVE;
+      const entryIndex = target.portal.findIndex(e => e.id === portalEntryId);
+      if (entryIndex === -1) return INVALID_MOVE;
+      const removed = target.portal.splice(entryIndex, 1)[0];
+      if (removed) G.characterDiscardPile.push(removed.card);
+      G.pendingDiscardOpponentCharacter = false;
+    },
+
+    terminateGame({ ctx, events }: { ctx: any; events: any }) {
+      if (ctx.currentPlayer !== '0') return INVALID_MOVE;
+      events.endGame({ reason: 'terminated' });
+      return;
+    },
+
   },
 
   /**
@@ -592,6 +706,8 @@ export const PortaleVonMolthar = {
    */
   turn: {
     onBegin: ({ G, ctx }: { G: GameState; ctx: any }) => {
+      G.isReshufflingPearlDeck = false;
+      G.isReshufflingCharacterDeck = false;
       G.actionCount = 0;
       // Basisaktionen: 3 + dauerhafte oneExtraActionPerTurn-Fähigkeiten des aktuellen Spielers
       const player = G.players[ctx.currentPlayer];
@@ -610,8 +726,8 @@ export const PortaleVonMolthar = {
       }
     },
     onEnd: ({ G, ctx }: { G: GameState; ctx: any }) => {
-      // lastPlayedPearlId am Zugende zurücksetzen
-      G.lastPlayedPearlId = null;
+      // playedRealPearlIds am Zugende zurücksetzen
+      G.playedRealPearlIds = [];
       // peekedCard vom Spieler zurücksetzen, falls verwendet (da der Stapel sich ändern kann)
       const player = G.players[ctx.currentPlayer];
       if (player) {
@@ -687,17 +803,27 @@ function syncPlayerAbilities(player: import('./types').PlayerState): void {
 }
 
 /**
+ * Zieht eine Karte vom Deck. Wenn das Deck leer ist und der Ablagestapel Karten enthält,
+ * wird der Ablagestapel gemischt zum neuen Deck und `onReshuffle` aufgerufen.
+ * Gibt `undefined` zurück wenn beide Stapel leer sind.
+ */
+function drawCard<T>(deck: T[], discardPile: T[], onReshuffle?: () => void): T | undefined {
+  if (deck.length === 0 && discardPile.length > 0) {
+    deck.push(...discardPile.splice(0));
+    shuffleArray(deck);
+    onReshuffle?.();
+  }
+  return deck.pop();
+}
+
+/**
  * Refill a slot array from a deck, reshuffling the discard pile if the deck runs out.
  * Mutates all three arrays in place (compatible with boardgame.io/Immer).
+ * `onReshuffle` wird aufgerufen wenn ein Reshuffle stattfindet.
  */
-function refillSlots<T>(slots: T[], deck: T[], discardPile: T[], maxSlots: number): void {
+function refillSlots<T>(slots: T[], deck: T[], discardPile: T[], maxSlots: number, onReshuffle?: () => void): void {
   while (slots.length < maxSlots) {
-    let card = deck.pop();
-    if (!card && discardPile.length > 0) {
-      deck.push(...discardPile.splice(0));
-      shuffleArray(deck);
-      card = deck.pop();
-    }
+    const card = drawCard(deck, discardPile, onReshuffle);
     if (card) slots.push(card);
     else break;
   }

@@ -102,16 +102,18 @@ export interface CharacterAbility {
  * Definiert eine Zahlungskarte (echt oder virtuell), die vom UI zusammengestellt wird.
  */
 export interface PaymentSelection {
-  source: 'hand' | 'ability';
+  source: 'hand' | 'ability' | 'trade';
   value: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
-  
+
   // Nur relevant, wenn source === 'hand'
   handCardIndex?: number;
-  abilityType?: CharacterAbilityType; 
+  abilityType?: CharacterAbilityType;
   diamondsUsed?: number;
 
   // Nur relevant, wenn source === 'ability'
-  characterId?: string; 
+  // Auch relevant wenn source === 'trade': characterId = Karte mit tradeTwoForDiamond-Ability,
+  // handCardIndex = Index der 2-Perle in der Hand (wird konsumiert, zählt nicht als Kostenperle)
+  characterId?: string;
 }
 
 /**
@@ -193,11 +195,22 @@ export interface GameState {
    */
   nextPlayerExtraAction: boolean;
 
-  /**
-   * ID der zuletzt gespielten Perlenkarte (für `takeBackPlayedPearl`).
-   * Wird auf null zurückgesetzt, wenn die Karte zurückgeholt wurde oder der Zug endet.
-   */
-  lastPlayedPearlId: string | null;
+  /** IDs aller echten Perlenkarten, die im aktuellen Zug gespielt wurden (für `takeBackPlayedPearl`). Wird am Zugende geleert. */
+  playedRealPearlIds: string[];
+
+  /** Ausstehende Kartenauswahl für `takeBackPlayedPearl`-Ability. */
+  pendingTakeBackPlayedPearl: boolean;
+
+  /** Signalisiert dem Frontend, dass der Perlen-Nachziehstapel gerade neu gemischt wurde. */
+  isReshufflingPearlDeck: boolean;
+  /** Signalisiert dem Frontend, dass der Charakter-Nachziehstapel gerade neu gemischt wurde. */
+  isReshufflingCharacterDeck: boolean;
+
+  /** Ausstehende Auswahl einer gegnerischen Handkarte zum Stehlen. */
+  pendingStealOpponentHandCard: boolean;
+
+  /** Ausstehende Auswahl einer gegnerischen Portal-Karte zum Entfernen. */
+  pendingDiscardOpponentCharacter: boolean;
 
   // Metadaten
   startingPlayer: string;

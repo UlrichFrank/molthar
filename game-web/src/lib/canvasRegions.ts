@@ -1,12 +1,13 @@
 /**
  * CanvasRegion — unified descriptor for all interactive canvas elements.
  * Covers: auslage cards, portal slots, hand cards, activated characters,
- *         decks, and canvas UI buttons (End Turn, Discard Cards).
+ *         decks, canvas UI buttons (End Turn, Discard Cards), and
+ *         opponent portal cards (irrlicht shared activation).
  *
  * Single source of truth for both hit-testing and drawing effects.
  */
 
-import type { GameState } from '@portale-von-molthar/shared';
+import type { GameState, ActivatedCharacter } from '@portale-von-molthar/shared';
 import {
   AUSLAGE_START_X, AUSLAGE_START_Y, CARD_W, CARD_H, CARD_GAP,
   SLOT_W, SLOT_H,
@@ -15,20 +16,26 @@ import {
   CHAR_DECK_X, CHAR_DECK_Y, PEARL_DECK_X, PEARL_DECK_Y,
   DECK_CARD_W, DECK_CARD_H,
   UI_PANEL_X, UI_PANEL_Y, UI_PANEL_W, UI_PANEL_H,
+  OPP_SCALED_W, OPP_SCALED_H, OPP_SLOT_W, OPP_SLOT_H, OPP_SLOT_GAP,
+  OPP_SLOT_REL_X, OPP_SLOT_REL_Y,
   getHandCardPosition,
   getPortalSlotPosition,
   getActivatedCardPosition,
+  getOpponentZones,
 } from './cardLayoutConstants';
 
 export type CanvasRegionType =
   | 'auslage-card'
   | 'portal-slot'
+  | 'portal-swap-btn'
   | 'hand-card'
   | 'activated-character'
   | 'deck-character'
   | 'deck-pearl'
   | 'ui-end-turn'
-  | 'ui-discard-cards';
+  | 'ui-discard-cards'
+  | 'ui-replace-pearl-slots'
+  | 'opponent-portal-card';
 
 export interface CanvasRegion {
   type: CanvasRegionType;
@@ -93,20 +100,29 @@ function animState(existing: CanvasRegion[], type: CanvasRegionType, id: number 
   };
 }
 
+export interface NeighborOpponent {
+  playerId: string;
+  portal: ActivatedCharacter[];
+  /** Zone index in getOpponentZones(): 0=left, 3=right */
+  zoneIndex: 0 | 3;
+}
+
 /**
  * Build (or update in-place) the full CanvasRegion list from the current game state.
  * Preserves hoverProgress/flashProgress from existing regions to avoid animation resets.
  *
- * @param G          Current game state
- * @param playerID   Local player's ID
- * @param isActive   Whether the local player is currently active
- * @param existing   Previous regions array (for animation state preservation)
+ * @param G                 Current game state
+ * @param playerID          Local player's ID
+ * @param isActive          Whether the local player is currently active
+ * @param existing          Previous regions array (for animation state preservation)
+ * @param neighborOpponents Direct neighbors (left + right) for irrlicht regions
  */
 export function buildCanvasRegions(
   G: GameState,
   playerID: string,
   isActive: boolean,
-  existing: CanvasRegion[] = []
+  existing: CanvasRegion[] = [],
+  neighborOpponents: NeighborOpponent[] = []
 ): CanvasRegion[] {
   const regions: CanvasRegion[] = [];
   const me = G.players?.[playerID];
@@ -140,14 +156,35 @@ export function buildCanvasRegions(
     }
   }
 
-  // --- Portal slots (always 2) ---
+  // --- Portal slots (only when occupied) ---
   for (let i = 0; i < 2; i++) {
+    if (!me?.portal[i]) continue;
     const { slotX, slotY } = getPortalSlotPosition(i);
     regions.push({
       type: 'portal-slot', id: i,
       x: slotX, y: slotY, w: SLOT_W, h: SLOT_H,
       ...animState(existing, 'portal-slot', i),
     });
+  }
+
+  // --- Portal swap buttons (below each occupied portal slot, only when changeCharacterActions active and actionCount === 0) ---
+  const hasSwapAbility = isActive &&
+    (G.actionCount ?? 0) === 0 &&
+    (me?.activeAbilities ?? []).some(a => a.type === 'changeCharacterActions');
+  if (hasSwapAbility) {
+    const SWAP_BTN_H = 24;
+    const SWAP_BTN_GAP = 4;
+    for (let i = 0; i < 2; i++) {
+      if (me?.portal[i]) {
+        const { slotX, slotY } = getPortalSlotPosition(i);
+        regions.push({
+          type: 'portal-swap-btn', id: i,
+          x: slotX, y: slotY + SLOT_H + SWAP_BTN_GAP,
+          w: SLOT_W, h: SWAP_BTN_H,
+          ...animState(existing, 'portal-swap-btn', i),
+        });
+      }
+    }
   }
 
   // --- Hand cards ---
@@ -197,6 +234,20 @@ export function buildCanvasRegions(
     });
   }
 
+  // --- Replace pearl slots button (below pearl deck, active player with remaining actions) ---
+  if (isActive && (G.actionCount ?? 0) < (G.maxActions ?? 3)) {
+    const REPLACE_BTN_H = 24;
+    const REPLACE_BTN_GAP = 4;
+    regions.push({
+      type: 'ui-replace-pearl-slots', id: 'ui-replace-pearl-slots',
+      x: PEARL_DECK_X - DECK_CARD_H, y: PEARL_DECK_Y + DECK_CARD_W + REPLACE_BTN_GAP,
+      w: DECK_CARD_H, h: REPLACE_BTN_H,
+      label: 'Tauschen',
+      enabled: true,
+      ...animState(existing, 'ui-replace-pearl-slots', 'ui-replace-pearl-slots'),
+    });
+  }
+
   // --- UI buttons (active player only) ---
   if (isActive) {
     const maxActions = G.maxActions ?? 3;
@@ -221,6 +272,49 @@ export function buildCanvasRegions(
         enabled: endTurnEnabled,
         ...animState(existing, 'ui-end-turn', 'ui-end-turn'),
       });
+    }
+  }
+
+  // --- Opponent portal cards (irrlicht shared activation) ---
+  // Only shown when the local player is active and has remaining actions.
+  if (isActive && (G.actionCount ?? 0) < (G.maxActions ?? 3) && neighborOpponents.length > 0) {
+    const zones = getOpponentZones();
+    const hw = OPP_SCALED_W / 2;
+    const hh = OPP_SCALED_H / 2;
+
+    for (const neighbor of neighborOpponents) {
+      const { zone, rotationDeg } = zones[neighbor.zoneIndex];
+      const rot = (rotationDeg * Math.PI) / 180;
+      const cx = zone.x + zone.w / 2;
+      const cy = zone.y + zone.h / 2;
+
+      for (let i = 0; i < neighbor.portal.length; i++) {
+        const entry = neighbor.portal[i];
+        if (!entry) continue;
+        const isIrrlicht = entry.card.abilities.some(a => a.type === 'irrlicht') || entry.card.sharedActivation;
+        if (!isIrrlicht) continue;
+
+        // Slot position in local (rotated) coordinate system, relative to zone center
+        const localX = -hw + OPP_SLOT_REL_X + i * (OPP_SLOT_W + OPP_SLOT_GAP);
+        const localY = -hh + OPP_SLOT_REL_Y;
+        const slotCX = localX + OPP_SLOT_W / 2;
+        const slotCY = localY + OPP_SLOT_H / 2;
+
+        // Rotate into world coordinates
+        const worldX = cx + slotCX * Math.cos(rot) - slotCY * Math.sin(rot);
+        const worldY = cy + slotCX * Math.sin(rot) + slotCY * Math.cos(rot);
+
+        const regionId = `${neighbor.playerId}:${i}`;
+        regions.push({
+          type: 'opponent-portal-card',
+          id: regionId,
+          x: worldX, y: worldY,
+          w: OPP_SLOT_W, h: OPP_SLOT_H,
+          angle: rot,
+          centered: true,
+          ...animState(existing, 'opponent-portal-card', regionId),
+        });
+      }
     }
   }
 
