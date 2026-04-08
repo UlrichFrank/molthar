@@ -693,9 +693,22 @@ export const PortaleVonMolthar = {
       G.pendingDiscardOpponentCharacter = false;
     },
 
-    terminateGame({ ctx, events }: { ctx: any; events: any }) {
+    terminateGame({ G, ctx, events }: { G: GameState; ctx: any; events: any }) {
       if (ctx.currentPlayer !== '0') return INVALID_MOVE;
-      events.endGame({ reason: 'terminated' });
+      const ranking = [...G.playerOrder]
+        .sort((a, b) => {
+          const pA = G.players[a]!;
+          const pB = G.players[b]!;
+          if (pB.powerPoints !== pA.powerPoints) return pB.powerPoints - pA.powerPoints;
+          return pB.diamonds - pA.diamonds;
+        })
+        .map(pId => ({
+          playerId: pId,
+          name: G.players[pId]!.name,
+          powerPoints: G.players[pId]!.powerPoints,
+          diamonds: G.players[pId]!.diamonds,
+        }));
+      events.endGame({ reason: 'terminated', ranking });
       return;
     },
 
@@ -738,6 +751,12 @@ export const PortaleVonMolthar = {
       const player = G.players[ctx.currentPlayer];
       if (!player) return;
 
+      // Clear peekedCard once the first action is taken (actionCount > 0),
+      // so the character deck top card is hidden again after the peek phase.
+      if (G.actionCount > 0 && player.peekedCard !== null) {
+        player.peekedCard = null;
+      }
+
       // Aktive Fähigkeiten nach jedem Move aus activatedCharacters ableiten,
       // damit neu aktivierte Karten sofort wirken
       syncPlayerAbilities(player);
@@ -772,14 +791,20 @@ export const PortaleVonMolthar = {
     
     // Simple check: if current player is back to starting player after full round, game is over
     if (ctx.currentPlayer === G.finalRoundStartingPlayer && ctx.turn > G.playerOrder.length) {
-      const winners: { [playerID: string]: boolean } = {};
-      let maxPoints = Math.max(...G.playerOrder.map(pId => G.players[pId].powerPoints));
-      G.playerOrder.forEach(pId => {
-        if (G.players[pId].powerPoints === maxPoints) {
-          winners[pId] = true;
-        }
-      });
-      return { winner: winners };
+      const ranking = [...G.playerOrder]
+        .sort((a, b) => {
+          const pA = G.players[a]!;
+          const pB = G.players[b]!;
+          if (pB.powerPoints !== pA.powerPoints) return pB.powerPoints - pA.powerPoints;
+          return pB.diamonds - pA.diamonds;
+        })
+        .map(pId => ({
+          playerId: pId,
+          name: G.players[pId]!.name,
+          powerPoints: G.players[pId]!.powerPoints,
+          diamonds: G.players[pId]!.diamonds,
+        }));
+      return { ranking };
     }
     
     return undefined;

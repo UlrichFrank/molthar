@@ -194,19 +194,21 @@ export function LobbyScreen() {
           playerID={playerID}
           credentials={credentials}
         />
-        <button className="leave-game-btn" onClick={handleLeaveGame}>
-          Leave Game
-        </button>
-        {/* Task 7.1: "Spiel beenden" button only for creator (playerID "0") */}
-        {playerID === '0' && (
-          <button
-            className="leave-game-btn"
-            style={{ background: 'rgba(127,29,29,0.85)', borderColor: '#dc2626', marginLeft: 8 }}
-            onClick={handleTerminateGame}
-          >
-            Spiel beenden
+        <div style={{ position: 'fixed', top: '1rem', right: '1rem', display: 'flex', gap: '0.5rem', zIndex: 1000 }}>
+          <button className="leave-game-btn" style={{ position: 'static' }} onClick={handleLeaveGame}>
+            Leave Game
           </button>
-        )}
+          {/* Task 7.1: "Spiel beenden" button only for creator (playerID "0") */}
+          {playerID === '0' && (
+            <button
+              className="leave-game-btn"
+              style={{ position: 'static', background: 'rgba(127,29,29,0.85)', borderColor: '#dc2626' }}
+              onClick={handleTerminateGame}
+            >
+              Spiel beenden
+            </button>
+          )}
+        </div>
       </div>
     );
   }

@@ -20,7 +20,8 @@ describe('terminateGame move', () => {
 
     expect(result).not.toBe(INVALID_MOVE);
     expect(endGameCalls).toHaveLength(1);
-    expect(endGameCalls[0]).toEqual({ reason: 'terminated' });
+    expect(endGameCalls[0].reason).toBe('terminated');
+    expect(Array.isArray(endGameCalls[0].ranking)).toBe(true);
   });
 
   it('non-creator (playerID "1") cannot terminate the game', () => {
