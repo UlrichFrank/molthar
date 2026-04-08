@@ -185,6 +185,7 @@ export interface GameState {
   maxActions: number; // Maximale Aktionen dieses Zuges (3 + Boni)
   finalRound: boolean; // true wenn die letzte Runde begonnen hat
   finalRoundStartingPlayer: string | null; // Spieler der die letzte Runde ausgelöst hat
+  finalRoundTriggerTurn: number | null; // ctx.turn in dem finalRound ausgelöst wurde
   requiresHandDiscard: boolean; // true wenn aktueller Spieler Karten abwerfen muss
   excessCardCount: number; // Anzahl abzuwerfender Karten
   currentHandLimit: number; // Aktuelles Handlimit für UI-Anzeige
