@@ -57,7 +57,7 @@ export function EndgameResultsDialog({ ranking, myPlayerId, reason }: EndgameRes
         display: 'flex', flexDirection: 'column', gap: '1.25rem',
       }}>
         <h2 style={{ margin: 0, color: '#f1f5f9', fontSize: '1.4rem', textAlign: 'center' }}>
-          {terminated ? 'Spiel beendet' : 'Spielende'}
+          Spiel beendet
         </h2>
 
         {terminated && (

@@ -27,6 +27,7 @@ import { DiscardOpponentCharacterDialog } from './DiscardOpponentCharacterDialog
 import { PlayerNameDisplay } from './PlayerNameDisplay';
 import { DeckReshuffleAnimation } from './DeckReshuffleAnimation';
 import { EndgameResultsDialog } from './EndgameResultsDialog';
+import { PlayerDisconnectDialog } from './PlayerDisconnectDialog';
 import '../styles/dialogs.css';
 
 interface CanvasGameBoardProps {
@@ -36,6 +37,7 @@ interface CanvasGameBoardProps {
   events?: Record<string, (...args: unknown[]) => void>;
   playerID: string | null;
   isActive: boolean;
+  matchData?: Array<{ id: number; name?: string }>;
 }
 
 const BASE_W = 1200;
@@ -129,7 +131,13 @@ export function CanvasGameBoard(props: CanvasGameBoardProps) {
 }
 
 function CanvasGameBoardContent(props: CanvasGameBoardProps) {
-  const { G, ctx, moves, events, playerID, isActive } = props;
+  const { G, ctx, moves, events, playerID, isActive, matchData } = props;
+
+  // Resolve real player name from boardgame.io match metadata (set in lobby via updatePlayer)
+  function resolvePlayerName(pid: string, fallback: string): string {
+    const id = parseInt(pid, 10);
+    return matchData?.find(p => p.id === id)?.name || fallback;
+  }
   const dialog = useDialog();
   const { ref, w: viewportW, h: viewportH } = useContainerSize<HTMLDivElement>();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -155,6 +163,20 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   const aspect = BASE_W / BASE_H;
   const cssW = Math.min(viewportW, viewportH * aspect);
   const cssH = cssW / aspect;
+
+  // ── Disconnect detection (debounced 2s to avoid load-flicker) ──────────────
+  const [disconnectedPlayerName, setDisconnectedPlayerName] = useState<string | null>(null);
+  useEffect(() => {
+    const myId = parseInt(myPlayerID, 10);
+    const offlineEntry = matchData?.find(p => p.id !== myId && p.isConnected === false);
+    if (!offlineEntry) {
+      setDisconnectedPlayerName(null);
+      return;
+    }
+    const name = offlineEntry.name || `Spieler ${offlineEntry.id + 1}`;
+    const timer = setTimeout(() => setDisconnectedPlayerName(name), 2000);
+    return () => clearTimeout(timer);
+  }, [matchData, myPlayerID]);
 
   // ── Detail view state (stays in React) ─────────────────────────────────────
   const [activeCharacterIndex, setActiveCharacterIndex] = useState<number | null>(null);
@@ -583,7 +605,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
         />
 
         {/* Player Name Display */}
-        {me && <PlayerNameDisplay playerName={me.name} />}
+        {me && <PlayerNameDisplay playerName={resolvePlayerName(myPlayerID, me.name)} />}
 
         {/* Threshold-Indikator (2.1) + Final-Round-Banner (2.2) */}
         {G.finalRound && gameover === undefined && (() => {
@@ -765,10 +787,18 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
       {/* Endgame Results Dialog */}
       {gameover !== undefined && gameover.ranking && (
         <EndgameResultsDialog
-          ranking={gameover.ranking}
+          ranking={gameover.ranking.map(entry => ({
+            ...entry,
+            name: resolvePlayerName(entry.playerId, entry.name),
+          }))}
           myPlayerId={myPlayerID}
           reason={gameover.reason}
         />
+      )}
+
+      {/* Disconnect Dialog */}
+      {disconnectedPlayerName !== null && (
+        <PlayerDisconnectDialog playerName={disconnectedPlayerName} />
       )}
     </div>
   );

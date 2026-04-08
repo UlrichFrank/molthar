@@ -86,6 +86,7 @@ export const PortaleVonMolthar = {
       maxActions: 3,
       finalRound: false,
       finalRoundStartingPlayer: null,
+      finalRoundTriggerTurn: null,
       requiresHandDiscard: false,
       excessCardCount: 0,
       currentHandLimit: 5,
@@ -343,6 +344,7 @@ export const PortaleVonMolthar = {
       if (player.powerPoints >= 12 && !G.finalRound) {
         G.finalRound = true;
         G.finalRoundStartingPlayer = ctx.currentPlayer;
+        G.finalRoundTriggerTurn = ctx.turn;
       }
       return;
     },
@@ -541,6 +543,7 @@ export const PortaleVonMolthar = {
       if (caller.powerPoints >= 12 && !G.finalRound) {
         G.finalRound = true;
         G.finalRoundStartingPlayer = ctx.currentPlayer;
+        G.finalRoundTriggerTurn = ctx.turn;
       }
       return;
     },
@@ -779,18 +782,25 @@ export const PortaleVonMolthar = {
    * End If Condition: Check for game end
    */
   endIf: ({ G, ctx }: { G: GameState; ctx: any }) => {
-    if (!G.finalRound) {
+    if (!G.finalRound || G.finalRoundTriggerTurn === null) {
       return undefined;
     }
-    
-    // Count how many players have taken a turn since final round started
+
     const startingPlayerIdx = G.playerOrder.indexOf(G.finalRoundStartingPlayer || '');
     if (startingPlayerIdx === -1) {
       return undefined;
     }
-    
-    // Simple check: if current player is back to starting player after full round, game is over
-    if (ctx.currentPlayer === G.finalRoundStartingPlayer && ctx.turn > G.playerOrder.length) {
+
+    const N = G.playerOrder.length;
+    const triggerTurn = G.finalRoundTriggerTurn;
+    // Turns needed after trigger:
+    //   remaining current round: N - 1 - startingPlayerIdx
+    //   full final round:        N
+    const turnsNeeded = (N - 1 - startingPlayerIdx) + N;
+
+    // Game ends when enough turns have passed (endIf fires between turns,
+    // so ctx.turn is already the next turn's number when checked here)
+    if (ctx.turn > triggerTurn + turnsNeeded) {
       const ranking = [...G.playerOrder]
         .sort((a, b) => {
           const pA = G.players[a]!;
