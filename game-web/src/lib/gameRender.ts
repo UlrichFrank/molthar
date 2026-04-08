@@ -286,9 +286,8 @@ export function drawPlayerPortal(
   }
 
   // Portal slots (center)
-  // Center vertically at 65% of the player zone and shift 3% to the right
-  const slotAreaX = portalX + portalW / 3 + portalW * 0.02;
-  const slotAreaY = portalY + portalH * 0.35;
+  const slotAreaX = SLOT_AREA_X;
+  const slotAreaY = SLOT_AREA_Y;
   const slotW = CARD_W;
   const slotH = CARD_H;
   const slotGap = CARD_GAP;

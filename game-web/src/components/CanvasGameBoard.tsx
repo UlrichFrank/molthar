@@ -26,6 +26,7 @@ import { TakeBackPlayedPearlDialog } from './TakeBackPlayedPearlDialog';
 import { DiscardOpponentCharacterDialog } from './DiscardOpponentCharacterDialog';
 import { PlayerNameDisplay } from './PlayerNameDisplay';
 import { DeckReshuffleAnimation } from './DeckReshuffleAnimation';
+import { EndgameResultsDialog } from './EndgameResultsDialog';
 import '../styles/dialogs.css';
 
 interface CanvasGameBoardProps {
@@ -160,6 +161,11 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   const activatedCharacters = me?.activatedCharacters ?? [];
   const activeCharacter = activeCharacterIndex !== null && activeCharacterIndex < activatedCharacters.length
     ? activatedCharacters[activeCharacterIndex]
+    : null;
+
+  const [activeOpponentCharacter, setActiveOpponentCharacter] = useState<{ playerId: string; index: number } | null>(null);
+  const activeOpponentCharacterData = activeOpponentCharacter
+    ? (G.players?.[activeOpponentCharacter.playerId]?.activatedCharacters?.[activeOpponentCharacter.index] ?? null)
     : null;
 
   // ── Refs for rAF loop (avoids stale closures) ───────────────────────────────
@@ -366,6 +372,14 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     // Dispatch action
     if (region.type === 'ui-end-turn' || region.type === 'ui-discard-cards' || region.type === 'ui-replace-pearl-slots') {
       handleUIClick(region);
+    } else if (region.type === 'activated-character') {
+      // Always allow viewing activated characters
+      const index = region.id as number;
+      setActiveCharacterIndex(index);
+    } else if (region.type === 'opponent-activated-character') {
+      // Always allow viewing opponent activated characters
+      const [playerId, idxStr] = (region.id as string).split(':');
+      setActiveOpponentCharacter({ playerId, index: parseInt(idxStr, 10) });
     } else if (isActive) {
       handleCardClick(region);
     }
@@ -492,13 +506,14 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   // ── Escape key for detail modal ───────────────────────────────────────────────
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && activeCharacterIndex !== null) {
-        setActiveCharacterIndex(null);
+      if (e.key === 'Escape') {
+        if (activeCharacterIndex !== null) setActiveCharacterIndex(null);
+        if (activeOpponentCharacter !== null) setActiveOpponentCharacter(null);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeCharacterIndex]);
+  }, [activeCharacterIndex, activeOpponentCharacter]);
 
   // ── Auto-open steal dialog when flag is set and we are the active player
   useEffect(() => {
@@ -528,13 +543,8 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     return () => window.removeEventListener('pvm:terminateGame', handler);
   }, [moves]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Notify LobbyScreen when game is over ─────────────────────────────────────
-  const gameover = (ctx as any).gameover;
-  useEffect(() => {
-    if (gameover !== undefined) {
-      window.dispatchEvent(new CustomEvent('pvm:gameOver'));
-    }
-  }, [gameover]);
+  // ── Gameover state — dialog handles the pvm:gameOver dispatch via countdown ───
+  const gameover = (ctx as any).gameover as { ranking: Array<{ playerId: string; name: string; powerPoints: number; diamonds: number }>; reason?: string } | undefined;
 
   // ── Render ────────────────────────────────────────────────────────────────────
   return (
@@ -574,6 +584,37 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
 
         {/* Player Name Display */}
         {me && <PlayerNameDisplay playerName={me.name} />}
+
+        {/* Threshold-Indikator (2.1) + Final-Round-Banner (2.2) */}
+        {G.finalRound && gameover === undefined && (() => {
+          const leaders = Object.values(G.players ?? {})
+            .filter(p => p && p.powerPoints >= 12)
+            .map(p => p!.name);
+          return (
+            <div style={{
+              position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+              pointerEvents: 'none', zIndex: 10,
+            }}>
+              <div style={{
+                background: 'rgba(120,53,15,0.92)', border: '1px solid #d97706',
+                borderRadius: 8, padding: '3px 12px',
+                color: '#fde68a', fontSize: '0.75rem', fontWeight: 700,
+                whiteSpace: 'nowrap',
+              }}>
+                ⚔ {leaders.join(', ')} {leaders.length === 1 ? 'hat' : 'haben'} 12+ Punkte
+              </div>
+              <div style={{
+                background: 'rgba(30,58,138,0.92)', border: '1px solid #3b82f6',
+                borderRadius: 8, padding: '3px 12px',
+                color: '#bfdbfe', fontSize: '0.75rem', fontWeight: 700,
+                whiteSpace: 'nowrap',
+              }}>
+                🏁 Letzte Runde!
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Deck Reshuffle Animations — positioned near the respective deck */}
         {G.isReshufflingPearlDeck && (
@@ -716,25 +757,18 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
         character={activeCharacter || null}
         onClose={() => setActiveCharacterIndex(null)}
       />
+      <ActivatedCharacterDetailView
+        character={activeOpponentCharacterData}
+        onClose={() => setActiveOpponentCharacter(null)}
+      />
 
-      {/* Gameover overlay */}
-      {gameover !== undefined && (
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'rgba(0,0,0,0.75)',
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
-          zIndex: 100, borderRadius: 12,
-        }}>
-          <p style={{ color: '#f1f5f9', fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem' }}>
-            {gameover.reason === 'terminated' ? 'Spiel beendet' : 'Spiel vorbei'}
-          </p>
-          <p style={{ color: '#94a3b8', fontSize: '1rem', margin: 0 }}>
-            {gameover.reason === 'terminated'
-              ? 'Das Spiel wurde vom Ersteller beendet.'
-              : `Gewinner: ${gameover.winner ?? 'Unbekannt'}`}
-          </p>
-        </div>
+      {/* Endgame Results Dialog */}
+      {gameover !== undefined && gameover.ranking && (
+        <EndgameResultsDialog
+          ranking={gameover.ranking}
+          myPlayerId={myPlayerID}
+          reason={gameover.reason}
+        />
       )}
     </div>
   );

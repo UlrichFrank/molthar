@@ -18,6 +18,8 @@ import {
   UI_PANEL_X, UI_PANEL_Y, UI_PANEL_W, UI_PANEL_H,
   OPP_SCALED_W, OPP_SCALED_H, OPP_SLOT_W, OPP_SLOT_H, OPP_SLOT_GAP,
   OPP_SLOT_REL_X, OPP_SLOT_REL_Y,
+  OPP_ACT_REL_X, OPP_ACT_REL_Y, OPP_ACT_W, OPP_ACT_H, OPP_ACT_GAP,
+  ACTIVATED_GRID_COLS,
   getHandCardPosition,
   getPortalSlotPosition,
   getActivatedCardPosition,
@@ -35,7 +37,8 @@ export type CanvasRegionType =
   | 'ui-end-turn'
   | 'ui-discard-cards'
   | 'ui-replace-pearl-slots'
-  | 'opponent-portal-card';
+  | 'opponent-portal-card'
+  | 'opponent-activated-character';
 
 export interface CanvasRegion {
   type: CanvasRegionType;
@@ -313,6 +316,77 @@ export function buildCanvasRegions(
           angle: rot,
           centered: true,
           ...animState(existing, 'opponent-portal-card', regionId),
+        });
+      }
+    }
+  }
+
+  // --- Opponent activated characters (all opponents, all zones) ---
+  {
+    const playerOrder = G.playerOrder || Object.keys(G.players || {});
+    const n = playerOrder.length;
+    const myIndex = playerOrder.indexOf(playerID);
+
+    function getOppAt(offset: number): { playerId: string; activatedCharacters: ActivatedCharacter[] } | null {
+      const idx = ((myIndex + offset) % n + n) % n;
+      if (idx === myIndex) return null;
+      const pid = playerOrder[idx];
+      if (!pid) return null;
+      const player = G.players?.[pid];
+      if (!player) return null;
+      return { playerId: pid, activatedCharacters: player.activatedCharacters ?? [] };
+    }
+
+    const opponentByZone: Array<{ playerId: string; activatedCharacters: ActivatedCharacter[] } | null> = [null, null, null, null];
+    if (n === 2) {
+      opponentByZone[0] = getOppAt(1);
+    } else if (n === 3) {
+      opponentByZone[0] = getOppAt(1);
+      opponentByZone[3] = getOppAt(-1);
+    } else if (n === 4) {
+      opponentByZone[0] = getOppAt(1);
+      opponentByZone[1] = getOppAt(2);
+      opponentByZone[3] = getOppAt(-1);
+    } else if (n >= 5) {
+      opponentByZone[0] = getOppAt(1);
+      opponentByZone[1] = getOppAt(-2);
+      opponentByZone[2] = getOppAt(2);
+      opponentByZone[3] = getOppAt(-1);
+    }
+
+    const zones = getOpponentZones();
+    const hw = OPP_SCALED_W / 2;
+    const hh = OPP_SCALED_H / 2;
+
+    for (let zoneIndex = 0; zoneIndex < 4; zoneIndex++) {
+      const opp = opponentByZone[zoneIndex];
+      if (!opp || opp.activatedCharacters.length === 0) continue;
+      const { zone, rotationDeg } = zones[zoneIndex];
+      const rot = (rotationDeg * Math.PI) / 180;
+      const cx = zone.x + zone.w / 2;
+      const cy = zone.y + zone.h / 2;
+
+      const maxAct = Math.min(opp.activatedCharacters.length, ACTIVATED_MAX);
+      for (let i = 0; i < maxAct; i++) {
+        const col = i % ACTIVATED_GRID_COLS;
+        const row = Math.floor(i / ACTIVATED_GRID_COLS);
+        const localX = -hw + OPP_ACT_REL_X + col * (OPP_ACT_W + OPP_ACT_GAP);
+        const localY = -hh + OPP_ACT_REL_Y + row * (OPP_ACT_H + OPP_ACT_GAP);
+        const slotCX = localX + OPP_ACT_W / 2;
+        const slotCY = localY + OPP_ACT_H / 2;
+
+        const worldX = cx + slotCX * Math.cos(rot) - slotCY * Math.sin(rot);
+        const worldY = cy + slotCX * Math.sin(rot) + slotCY * Math.cos(rot);
+
+        const regionId = `${opp.playerId}:${i}`;
+        regions.push({
+          type: 'opponent-activated-character',
+          id: regionId,
+          x: worldX, y: worldY,
+          w: OPP_ACT_W, h: OPP_ACT_H,
+          angle: rot,
+          centered: true,
+          ...animState(existing, 'opponent-activated-character', regionId),
         });
       }
     }
