@@ -44,6 +44,12 @@ const server = Server({
     'http://127.0.0.1:80',
     // Allow localhost in development
     Origins.LOCALHOST_IN_DEVELOPMENT,
+    // Additional origins from environment variable (comma-separated)
+    // e.g. EXTRA_ORIGINS=http://192.168.1.100,http://mein-nas.local
+    ...( process.env.EXTRA_ORIGINS
+      ? process.env.EXTRA_ORIGINS.split(',').map(o => o.trim()).filter(Boolean)
+      : []
+    ),
   ],
 });
 

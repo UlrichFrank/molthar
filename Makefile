@@ -6,6 +6,12 @@ BACKEND_IMAGE  ?= portale-backend
 FRONTEND_IMAGE ?= portale-frontend
 # URL the browser uses to reach the backend (baked into the frontend bundle)
 SERVER_URL     ?= http://localhost:3001
+# GitHub Container Registry
+REGISTRY       ?= ghcr.io/ulrichfrank
+REGISTRY_BACKEND  ?= $(REGISTRY)/molthar-backend
+REGISTRY_FRONTEND ?= $(REGISTRY)/molthar-frontend
+# Set PLATFORMS=linux/amd64,linux/arm64 to build multi-platform images locally
+PLATFORMS      ?=
 
 # Colors for output
 BLUE := \033[0;34m
@@ -35,7 +41,8 @@ help:
 	@echo "  make docker-run                Start containers via docker compose"
 	@echo "  make docker-stop               Stop containers"
 	@echo "  make docker-logs               Follow container logs"
-	@echo "  SERVER_URL=http://host:3001 make docker-build-frontend  (custom backend URL)"
+	@echo "  make docker-push               Tag + push images to ghcr.io (needs docker login)"
+	@echo "  make docker-run-prod           Run production images from ghcr.io"
 	@echo ""
 	@echo "$(GREEN)Testing:$(NC)"
 	@echo "  make test           Run all tests (shared + game-web)"
@@ -156,18 +163,23 @@ test-report:
 # ── Docker ────────────────────────────────────────────────────────────────────
 
 # Build backend Docker image
+# For multi-platform: PLATFORMS=linux/amd64,linux/arm64 make docker-build-backend
 docker-build-backend:
 	@echo "$(BLUE)Building backend image ($(BACKEND_IMAGE):$(DOCKER_TAG))...$(NC)"
-	docker build -t $(BACKEND_IMAGE):$(DOCKER_TAG) -f Dockerfile .
+	$(if $(PLATFORMS), \
+		docker buildx build --platform $(PLATFORMS) -t $(BACKEND_IMAGE):$(DOCKER_TAG) -f Dockerfile --load ., \
+		docker build -t $(BACKEND_IMAGE):$(DOCKER_TAG) -f Dockerfile . \
+	)
 	@echo "$(GREEN)✓ Backend image built$(NC)"
 
 # Build frontend Docker image
-# Pass SERVER_URL to set the backend URL baked into the bundle, e.g.:
-#   SERVER_URL=http://my-server:3001 make docker-build-frontend
+# For multi-platform: PLATFORMS=linux/amd64,linux/arm64 make docker-build-frontend
 docker-build-frontend:
-	@echo "$(BLUE)Building frontend image ($(FRONTEND_IMAGE):$(DOCKER_TAG), SERVER_URL=$(SERVER_URL))...$(NC)"
-	docker build -t $(FRONTEND_IMAGE):$(DOCKER_TAG) -f Dockerfile.frontend \
-		--build-arg VITE_SERVER_URL=$(SERVER_URL) .
+	@echo "$(BLUE)Building frontend image ($(FRONTEND_IMAGE):$(DOCKER_TAG))...$(NC)"
+	$(if $(PLATFORMS), \
+		docker buildx build --platform $(PLATFORMS) -t $(FRONTEND_IMAGE):$(DOCKER_TAG) -f Dockerfile.frontend --load ., \
+		docker build -t $(FRONTEND_IMAGE):$(DOCKER_TAG) -f Dockerfile.frontend . \
+	)
 	@echo "$(GREEN)✓ Frontend image built$(NC)"
 
 # Build both images
@@ -190,3 +202,19 @@ docker-stop:
 # Follow logs from all containers
 docker-logs:
 	docker compose logs -f
+
+# Tag local images and push to GitHub Container Registry
+# Requires: docker login ghcr.io -u <github-username> --password <PAT>
+docker-push: docker-build
+	@echo "$(BLUE)Pushing images to $(REGISTRY)...$(NC)"
+	docker tag $(BACKEND_IMAGE):$(DOCKER_TAG)  $(REGISTRY_BACKEND):$(DOCKER_TAG)
+	docker tag $(FRONTEND_IMAGE):$(DOCKER_TAG) $(REGISTRY_FRONTEND):$(DOCKER_TAG)
+	docker push $(REGISTRY_BACKEND):$(DOCKER_TAG)
+	docker push $(REGISTRY_FRONTEND):$(DOCKER_TAG)
+	@echo "$(GREEN)✓ Images pushed to ghcr.io$(NC)"
+
+# Run production images from ghcr.io (for Synology / server deployment)
+docker-run-prod:
+	@echo "$(BLUE)Starting production containers from ghcr.io...$(NC)"
+	EXTRA_ORIGINS=$(EXTRA_ORIGINS) docker compose -f docker-compose.prod.yml up -d
+	@echo "$(GREEN)✓ Containers started$(NC)"

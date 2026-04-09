@@ -1,0 +1,20 @@
+services:
+  backend:
+    image: ghcr.io/ulrichfrank/molthar-backend:latest
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+    environment:
+      # Comma-separated list of frontend origins allowed to connect
+      # Add your Synology's IP or hostname here
+      - EXTRA_ORIGINS=${EXTRA_ORIGINS:-}
+
+  frontend:
+    image: ghcr.io/ulrichfrank/molthar-frontend:latest
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
