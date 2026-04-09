@@ -1,0 +1,22 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        # Must be the URL the browser (not Docker) uses to reach the backend.
+        # Override with: SERVER_URL=http://my-server:3001 make docker-run
+        VITE_SERVER_URL: ${SERVER_URL:-http://localhost:3001}
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped

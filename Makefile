@@ -1,4 +1,11 @@
-.PHONY: help install dev build start stop clean test test-report
+.PHONY: help install dev build start stop clean test test-report \
+        docker-build docker-build-backend docker-build-frontend docker-run docker-stop docker-logs
+
+DOCKER_TAG     ?= latest
+BACKEND_IMAGE  ?= portale-backend
+FRONTEND_IMAGE ?= portale-frontend
+# URL the browser uses to reach the backend (baked into the frontend bundle)
+SERVER_URL     ?= http://localhost:3001
 
 # Colors for output
 BLUE := \033[0;34m
@@ -20,6 +27,15 @@ help:
 	@echo "$(GREEN)Building:$(NC)"
 	@echo "  make build          Build backend only"
 	@echo "  make build-all      Build backend and shared packages"
+	@echo ""
+	@echo "$(GREEN)Docker:$(NC)"
+	@echo "  make docker-build              Build backend + frontend images"
+	@echo "  make docker-build-backend      Build backend image only"
+	@echo "  make docker-build-frontend     Build frontend image only"
+	@echo "  make docker-run                Start containers via docker compose"
+	@echo "  make docker-stop               Stop containers"
+	@echo "  make docker-logs               Follow container logs"
+	@echo "  SERVER_URL=http://host:3001 make docker-build-frontend  (custom backend URL)"
 	@echo ""
 	@echo "$(GREEN)Testing:$(NC)"
 	@echo "  make test           Run all tests (shared + game-web)"
@@ -136,3 +152,41 @@ test-report:
 	@cd shared && npm run build >/dev/null 2>&1 || echo "Building shared package first..."
 	@cd shared && node scripts/generate-test-report.js
 	@echo "$(GREEN)✓ Report saved to shared/test-report.html$(NC)"
+
+# ── Docker ────────────────────────────────────────────────────────────────────
+
+# Build backend Docker image
+docker-build-backend:
+	@echo "$(BLUE)Building backend image ($(BACKEND_IMAGE):$(DOCKER_TAG))...$(NC)"
+	docker build -t $(BACKEND_IMAGE):$(DOCKER_TAG) -f Dockerfile .
+	@echo "$(GREEN)✓ Backend image built$(NC)"
+
+# Build frontend Docker image
+# Pass SERVER_URL to set the backend URL baked into the bundle, e.g.:
+#   SERVER_URL=http://my-server:3001 make docker-build-frontend
+docker-build-frontend:
+	@echo "$(BLUE)Building frontend image ($(FRONTEND_IMAGE):$(DOCKER_TAG), SERVER_URL=$(SERVER_URL))...$(NC)"
+	docker build -t $(FRONTEND_IMAGE):$(DOCKER_TAG) -f Dockerfile.frontend \
+		--build-arg VITE_SERVER_URL=$(SERVER_URL) .
+	@echo "$(GREEN)✓ Frontend image built$(NC)"
+
+# Build both images
+docker-build: docker-build-backend docker-build-frontend
+
+# Start containers via docker compose (backend :3001, frontend :80)
+docker-run:
+	@echo "$(BLUE)Starting containers...$(NC)"
+	@echo "$(GREEN)Backend:  http://localhost:3001$(NC)"
+	@echo "$(GREEN)Frontend: http://localhost:80$(NC)"
+	SERVER_URL=$(SERVER_URL) docker compose up -d
+	@echo "$(GREEN)✓ Containers started (make docker-logs to follow logs)$(NC)"
+
+# Stop and remove containers
+docker-stop:
+	@echo "$(BLUE)Stopping containers...$(NC)"
+	docker compose down
+	@echo "$(GREEN)✓ Containers stopped$(NC)"
+
+# Follow logs from all containers
+docker-logs:
+	docker compose logs -f
