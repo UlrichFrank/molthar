@@ -21,8 +21,13 @@ COPY card-manager/package.json ./card-manager/
 RUN pnpm install --frozen-lockfile
 
 # Copy source
+# backend/tsconfig.json is needed because shared/tsconfig.json extends it
+COPY backend/tsconfig.json ./backend/
 COPY shared/   ./shared/
 COPY game-web/ ./game-web/
+# game-web/public/assets is a symlink to ../../assets — copy the real directory
+# so it resolves correctly inside the container
+COPY assets/   ./assets/
 
 # Build shared (types needed by frontend), then frontend
 RUN pnpm --filter @portale-von-molthar/shared run build

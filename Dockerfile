@@ -1,5 +1,7 @@
-# ── Stage 1: Build ────────────────────────────────────────────────────────────
-FROM node:20-alpine AS builder
+# Single-stage build — avoids pnpm symlink issues when copying node_modules
+# between stages. The image is larger (includes devDeps/build tools) but
+# node module resolution works correctly at runtime.
+FROM node:20-alpine
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
@@ -14,39 +16,21 @@ COPY backend/package.json      ./backend/
 COPY game-web/package.json     ./game-web/
 COPY card-manager/package.json ./card-manager/
 
-# Install all dependencies (needed to resolve workspace links)
+# Install all dependencies
 RUN pnpm install --frozen-lockfile
 
 # Copy source
-COPY shared/   ./shared/
-COPY backend/  ./backend/
+COPY shared/  ./shared/
+COPY backend/ ./backend/
 
 # Build shared, then backend
 RUN pnpm --filter @portale-von-molthar/shared run build
 RUN pnpm --filter portale-von-molthar-backend run build
 
-# ── Stage 2: Production runtime ───────────────────────────────────────────────
-FROM node:20-alpine AS runner
-
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-WORKDIR /app
-
-COPY pnpm-workspace.yaml pnpm-lock.yaml ./
-COPY shared/package.json       ./shared/
-COPY backend/package.json      ./backend/
-COPY game-web/package.json     ./game-web/
-COPY card-manager/package.json ./card-manager/
-
-# Install only production dependencies
-RUN pnpm install --frozen-lockfile --prod
-
-# Copy built artifacts from builder stage
-COPY --from=builder /app/shared/dist  ./shared/dist
-COPY --from=builder /app/backend/dist ./backend/dist
-
 EXPOSE 3001
 
 ENV NODE_ENV=production
+# Listen on all interfaces inside the container (default 127.0.0.1 is unreachable from outside)
+ENV HOST=0.0.0.0
 
 CMD ["node", "backend/dist/server-bgio.js"]

@@ -33,10 +33,15 @@ const server = Server({
   db: new AutoCleanupFlatFile({ dir: './data' }),
 
   origins: [
-    // Allow frontend to connect (multiple variations for IPv4 and IPv6)
+    // Allow frontend to connect (dev server)
     'http://localhost:5173',
     'http://127.0.0.1:5173',
     'http://[::1]:5173',
+    // Allow frontend served via Docker/nginx on port 80
+    'http://localhost',
+    'http://localhost:80',
+    'http://127.0.0.1',
+    'http://127.0.0.1:80',
     // Allow localhost in development
     Origins.LOCALHOST_IN_DEVELOPMENT,
   ],
