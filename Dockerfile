@@ -22,6 +22,8 @@ RUN pnpm install --frozen-lockfile
 # Copy source
 COPY shared/  ./shared/
 COPY backend/ ./backend/
+# cards.json is needed by cardDatabaseLoader.js at runtime to populate G.characterSlots
+COPY assets/cards.json ./assets/cards.json
 
 # Build shared, then backend
 RUN pnpm --filter @portale-von-molthar/shared run build
