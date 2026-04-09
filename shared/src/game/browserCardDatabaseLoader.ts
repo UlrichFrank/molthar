@@ -6,6 +6,8 @@
  * Only runs in browser environments (not in Node.js backend)
  */
 
+import { __setRawCards } from './cardDatabase';
+
 let cardsLoadedPromise: Promise<void> | null = null;
 
 export function waitForCardsLoaded(): Promise<void> {
@@ -17,8 +19,6 @@ export function waitForCardsLoaded(): Promise<void> {
 
 async function loadCardsInBrowserImpl(): Promise<void> {
   try {
-    const { __setRawCards } = await import('./cardDatabase');
-
     // In development (Vite), assets are served from /assets
     // In production, they're also at /assets
     const response = await fetch('/assets/cards.json');

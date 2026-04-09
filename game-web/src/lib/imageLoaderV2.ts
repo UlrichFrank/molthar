@@ -2,8 +2,8 @@
  * Image Loader V2 - Using Vite's import.meta.glob
  * Dynamically imports all images to ensure correct paths
  */
-
 import { getAllCards, waitForCardsLoaded } from '@portale-von-molthar/shared';
+
 
 const imageCache = new Map<string, HTMLImageElement>();
 
@@ -116,23 +116,18 @@ export async function preloadAllImages(): Promise<void> {
     'Portal-Startspieler5.jpeg',
   ];
 
-  // Dynamically load character card images from cards database
+  // Dynamically load character card images from cards.json
   const characterCardImages = new Set<string>();
   characterCardImages.add('Charakterkarte Hinten.png'); // Back of card
 
   try {
-    // Wait for cards to be loaded from cards.json
     await waitForCardsLoaded();
-
     const allCards = getAllCards();
     allCards.forEach(card => {
-      if (card.imageName) {
-        characterCardImages.add(card.imageName);
-      }
+      if (card.imageName) { characterCardImages.add(card.imageName); }
     });
   } catch (err) {
     console.warn('Failed to load character cards from database:', err);
-    // Fallback to hardcoded list if database fails
     for (let i = 1; i <= 60; i++) {
       characterCardImages.add(`Charakterkarte${i}.png`);
     }

@@ -47,5 +47,7 @@ RUN printf 'server {\n\
 }\n' > /etc/nginx/conf.d/default.conf
 
 COPY --from=builder /app/game-web/dist /usr/share/nginx/html
+# Ensure cards.json is always served (symlink may not be resolved during Vite build)
+COPY --from=builder /app/assets/cards.json /usr/share/nginx/html/assets/cards.json
 
 EXPOSE 80
