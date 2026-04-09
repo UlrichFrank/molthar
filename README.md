@@ -62,6 +62,14 @@ make docker-logs         # Logs verfolgen
 
 Frontend: **http://localhost** · Backend: **http://localhost:3001**
 
+Sind die Standardports belegt, können sie überschrieben werden. Da `VITE_SERVER_URL` beim Build eingebrannt wird, müssen beide Images neu gebaut werden:
+
+```bash
+# Backend auf 3002, Frontend auf 8080
+BACKEND_PORT=3002 FRONTEND_PORT=8080 make docker-build
+BACKEND_PORT=3002 FRONTEND_PORT=8080 make docker-run
+```
+
 ### Images aus der GitHub Container Registry
 
 Fertig gebaute Images (AMD64 + ARM64) sind auf ghcr.io verfügbar:
@@ -109,18 +117,17 @@ services:
   portale-backend:
     image: ghcr.io/ulrichfrank/molthar-backend:latest
     ports:
-      - "3001:3001"
-    restart: unless-stopped
-    volumes:
-      - portale_data:/app/data
+      - "3001:3001"     # Hostport anpassen falls belegt; PORT-Env muss dann ebenfalls gesetzt werden
     environment:
+      - PORT=3001       # Muss mit dem Hostport übereinstimmen
       # Comma-separated zusätzliche CORS-Origins (optional)
       - EXTRA_ORIGINS=http://192.168.1.100,http://mein-server.local
+    restart: unless-stopped
 
   portale-frontend:
     image: ghcr.io/ulrichfrank/molthar-frontend:latest
     ports:
-      - "3000:80"       # Port anpassen falls 80 belegt ist
+      - "3000:80"       # Hostport anpassen falls 80 belegt ist
     depends_on:
       - portale-backend
     restart: unless-stopped

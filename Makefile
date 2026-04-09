@@ -4,8 +4,11 @@
 DOCKER_TAG     ?= latest
 BACKEND_IMAGE  ?= portale-backend
 FRONTEND_IMAGE ?= portale-frontend
+# Ports (override if defaults are occupied: BACKEND_PORT=3002 make docker-run)
+BACKEND_PORT   ?= 3001
+FRONTEND_PORT  ?= 80
 # URL the browser uses to reach the backend (baked into the frontend bundle)
-SERVER_URL     ?= http://localhost:3001
+SERVER_URL     ?= http://localhost:$(BACKEND_PORT)
 # GitHub Container Registry
 REGISTRY       ?= ghcr.io/ulrichfrank
 REGISTRY_BACKEND  ?= $(REGISTRY)/molthar-backend
@@ -185,12 +188,12 @@ docker-build-frontend:
 # Build both images
 docker-build: docker-build-backend docker-build-frontend
 
-# Start containers via docker compose (backend :3001, frontend :80)
+# Start containers via docker compose
 docker-run:
 	@echo "$(BLUE)Starting containers...$(NC)"
-	@echo "$(GREEN)Backend:  http://localhost:3001$(NC)"
-	@echo "$(GREEN)Frontend: http://localhost:80$(NC)"
-	SERVER_URL=$(SERVER_URL) docker compose up -d
+	@echo "$(GREEN)Backend:  http://localhost:$(BACKEND_PORT)$(NC)"
+	@echo "$(GREEN)Frontend: http://localhost:$(FRONTEND_PORT)$(NC)"
+	BACKEND_PORT=$(BACKEND_PORT) FRONTEND_PORT=$(FRONTEND_PORT) SERVER_URL=$(SERVER_URL) docker compose up -d
 	@echo "$(GREEN)✓ Containers started (make docker-logs to follow logs)$(NC)"
 
 # Stop and remove containers
