@@ -1,25 +1,34 @@
-name: Release — Build & Push Docker Images
+name: Release — Create & Push Docker Images
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'
 
 env:
   REGISTRY: ghcr.io
   BACKEND_IMAGE: ghcr.io/ulrichfrank/molthar-backend
   FRONTEND_IMAGE: ghcr.io/ulrichfrank/molthar-frontend
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 jobs:
-  build-and-push:
+  release:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          generate_release_notes: true
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -34,10 +43,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Extract version from release tag
-        id: meta
-        run: echo "version=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
-
       - name: Build and push backend image
         uses: docker/build-push-action@v5
         with:
@@ -47,7 +52,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: |
             ${{ env.BACKEND_IMAGE }}:latest
-            ${{ env.BACKEND_IMAGE }}:${{ steps.meta.outputs.version }}
+            ${{ env.BACKEND_IMAGE }}:${{ github.ref_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -60,6 +65,6 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: |
             ${{ env.FRONTEND_IMAGE }}:latest
-            ${{ env.FRONTEND_IMAGE }}:${{ steps.meta.outputs.version }}
+            ${{ env.FRONTEND_IMAGE }}:${{ github.ref_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
