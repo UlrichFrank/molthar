@@ -5,8 +5,10 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 
-# Backend URL the browser connects to (baked into the bundle at build time)
-ARG VITE_SERVER_URL=http://localhost:3001
+# Backend URL the browser connects to (baked into the bundle at build time).
+# If not set, the frontend falls back to window.location.hostname:3001 at runtime,
+# which works for any host (local dev, Raspberry Pi, NAS, etc.)
+ARG VITE_SERVER_URL
 ENV VITE_SERVER_URL=$VITE_SERVER_URL
 
 # Copy workspace definition and lockfile first (layer cache)
