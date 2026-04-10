@@ -9,7 +9,7 @@ import { CanvasGameBoard } from '../components/CanvasGameBoard';
 // Otherwise derive from the current hostname so the same image works on any host
 // (dev: localhost:3001, Synology: 192.168.x.x:3001, etc.)
 export const SERVER_URL = import.meta.env.VITE_SERVER_URL
-  ?? `${window.location.protocol}//${window.location.hostname}:3001`;
+  || `${window.location.protocol}//${window.location.hostname}:3001`;
 
 export const lobbyClient = new LobbyClient({ server: SERVER_URL });
 
