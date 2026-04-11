@@ -278,9 +278,8 @@ export function buildCanvasRegions(
     }
   }
 
-  // --- Opponent portal cards (irrlicht shared activation) ---
-  // Only shown when the local player is active and has remaining actions.
-  if (isActive && (G.actionCount ?? 0) < (G.maxActions ?? 3) && neighborOpponents.length > 0) {
+  // --- Opponent portal cards (always visible for all neighbors) ---
+  if (neighborOpponents.length > 0) {
     const zones = getOpponentZones();
     const hw = OPP_SCALED_W / 2;
     const hh = OPP_SCALED_H / 2;
@@ -294,8 +293,6 @@ export function buildCanvasRegions(
       for (let i = 0; i < neighbor.portal.length; i++) {
         const entry = neighbor.portal[i];
         if (!entry) continue;
-        const isIrrlicht = entry.card.abilities.some(a => a.type === 'irrlicht') || entry.card.sharedActivation;
-        if (!isIrrlicht) continue;
 
         // Slot position in local (rotated) coordinate system, relative to zone center
         const localX = -hw + OPP_SLOT_REL_X + i * (OPP_SLOT_W + OPP_SLOT_GAP);

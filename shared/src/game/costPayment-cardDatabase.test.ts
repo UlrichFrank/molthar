@@ -14,6 +14,7 @@ function createPearlCard(value: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8, hasSwapSymbol = f
     id: `pearl-${value}-${Math.random()}`,
     value,
     hasSwapSymbol,
+    hasRefreshSymbol: false,
   };
 }
 

@@ -3,7 +3,7 @@ import type { CharacterCard, PearlCard } from '@portale-von-molthar/shared';
 
 export type DialogState =
   | { type: 'none' }
-  | { type: 'replacement'; newCharacter: CharacterCard; portalCharacters: CharacterCard[] }
+  | { type: 'replacement'; newCharacter: CharacterCard; portalCharacters: CharacterCard[]; canDiscard: boolean }
   | { type: 'activation'; character: CharacterCard; portalSlotIndex: number; ownerPlayerId?: string }
   | { type: 'discard'; hand: PearlCard[]; excessCardCount: number; currentHandLimit: number }
   | { type: 'steal-opponent-hand-card'; selectedPlayerId: string | null }
@@ -13,7 +13,7 @@ export type DialogState =
 
 export interface DialogContextType {
   dialog: DialogState;
-  openReplacementDialog: (newCharacter: CharacterCard, portalCharacters: CharacterCard[]) => void;
+  openReplacementDialog: (newCharacter: CharacterCard, portalCharacters: CharacterCard[], canDiscard?: boolean) => void;
   openActivationDialog: (character: CharacterCard, portalSlotIndex: number, ownerPlayerId?: string) => void;
   openDiscardDialog: (hand: PearlCard[], excessCardCount: number, currentHandLimit: number) => void;
   openStealOpponentHandCardDialog: () => void;
@@ -29,8 +29,8 @@ const DialogContext = createContext<DialogContextType | undefined>(undefined);
 export function DialogProvider({ children }: { children: React.ReactNode }) {
   const [dialog, setDialog] = useState<DialogState>({ type: 'none' });
 
-  const openReplacementDialog = useCallback((newCharacter: CharacterCard, portalCharacters: CharacterCard[]) => {
-    setDialog({ type: 'replacement', newCharacter, portalCharacters });
+  const openReplacementDialog = useCallback((newCharacter: CharacterCard, portalCharacters: CharacterCard[], canDiscard = true) => {
+    setDialog({ type: 'replacement', newCharacter, portalCharacters, canDiscard });
   }, []);
 
   const openActivationDialog = useCallback((character: CharacterCard, portalSlotIndex: number, ownerPlayerId?: string) => {

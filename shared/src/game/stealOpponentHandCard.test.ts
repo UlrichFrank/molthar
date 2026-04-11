@@ -9,7 +9,7 @@ function makeGameState(numPlayers = 2): GameState {
 }
 
 function makePearlCard(id: string): PearlCard {
-  return { id, value: 3, hasSwapSymbol: false };
+  return { id, value: 3, hasSwapSymbol: false, hasRefreshSymbol: false };
 }
 
 const moves = (PortaleVonMolthar as any).moves;

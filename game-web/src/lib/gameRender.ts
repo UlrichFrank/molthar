@@ -242,7 +242,8 @@ export function drawAuslage(
     if (!card) {
       drawEmptySlot(ctx, x, startY, `Pearl ${pearlIdx + 1}`);
     } else {
-      drawImageOrFallback(ctx, `Perlenkarte${card.value}.png`, x, startY, CARD_W, CARD_H, String(card.value));
+      const pearlImg = card.hasRefreshSymbol ? `Perlenkarte${card.value}-neu.png` : `Perlenkarte${card.value}.png`;
+      drawImageOrFallback(ctx, pearlImg, x, startY, CARD_W, CARD_H, String(card.value));
       if (config.selectedPearl === pearlIdx) {
         ctx.strokeStyle = '#FFD700';
         ctx.lineWidth = 3;
@@ -312,7 +313,8 @@ export function drawPlayerPortal(
     ctx.translate(cx, cy);
     ctx.rotate(angle);
 
-    drawImageOrFallback(ctx, `Perlenkarte${card.value}.png`, -HAND_CARD_W / 2, -HAND_CARD_H / 2, HAND_CARD_W, HAND_CARD_H, String(card.value));
+    const pearlImg = card.hasRefreshSymbol ? `Perlenkarte${card.value}-neu.png` : `Perlenkarte${card.value}.png`;
+    drawImageOrFallback(ctx, pearlImg, -HAND_CARD_W / 2, -HAND_CARD_H / 2, HAND_CARD_W, HAND_CARD_H, String(card.value));
 
     // Selection border
     if (config.selectedHandIndices.includes(idx)) {

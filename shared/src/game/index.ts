@@ -97,6 +97,7 @@ export const PortaleVonMolthar = {
       pendingTakeBackPlayedPearl: false,
       isReshufflingPearlDeck: false,
       isReshufflingCharacterDeck: false,
+      isPearlRefreshTriggered: false,
       pendingStealOpponentHandCard: false,
       pendingDiscardOpponentCharacter: false,
     };
@@ -133,7 +134,9 @@ export const PortaleVonMolthar = {
 
       player.hand.push(card);
       G.actionCount++;
+      const slotIdsBefore = G.pearlSlots.map(c => c.id);
       refillSlots(G.pearlSlots, G.pearlDeck, G.pearlDiscardPile, 4, () => { G.isReshufflingPearlDeck = true; });
+      applyPearlRefreshIfNeeded(G, slotIdsBefore);
       return;
     },
 
@@ -173,6 +176,28 @@ export const PortaleVonMolthar = {
         return INVALID_MOVE;
       }
 
+      G.actionCount++;
+      refillSlots(G.characterSlots, G.characterDeck, G.characterDiscardPile, 2, () => { G.isReshufflingCharacterDeck = true; });
+      return;
+    },
+
+    discardPickedCharacterCard({ G, ctx }: { G: GameState; ctx: any }, slotIndex: number) {
+      const player = G.players[ctx.currentPlayer];
+      if (!player) return INVALID_MOVE;
+      if (G.actionCount >= G.maxActions) return INVALID_MOVE;
+
+      let card: CharacterCard | undefined;
+      if (slotIndex >= 0 && slotIndex < G.characterSlots.length) {
+        card = G.characterSlots[slotIndex];
+        G.characterSlots.splice(slotIndex, 1);
+      } else if (slotIndex === -1) {
+        card = G.characterDeck.pop();
+      } else {
+        return INVALID_MOVE;
+      }
+      if (!card) return INVALID_MOVE;
+
+      G.characterDiscardPile.push(card);
       G.actionCount++;
       refillSlots(G.characterSlots, G.characterDeck, G.characterDiscardPile, 2, () => { G.isReshufflingCharacterDeck = true; });
       return;
@@ -244,7 +269,8 @@ export const PortaleVonMolthar = {
           virtualHand.push({
             id: `virtual-${realCard.id}`,
             value: sel.value,
-            hasSwapSymbol: realCard.hasSwapSymbol
+            hasSwapSymbol: realCard.hasSwapSymbol,
+            hasRefreshSymbol: realCard.hasRefreshSymbol,
           });
 
         } else if (sel.source === 'ability') {
@@ -260,7 +286,8 @@ export const PortaleVonMolthar = {
           virtualHand.push({
             id: `virtual-bonus-${charCard.id}-${i}`,
             value: sel.value,
-            hasSwapSymbol: false
+            hasSwapSymbol: false,
+            hasRefreshSymbol: false,
           });
 
         } else if (sel.source === 'trade') {
@@ -354,9 +381,10 @@ export const PortaleVonMolthar = {
       if (!player) return INVALID_MOVE;
       if (G.actionCount >= G.maxActions) return INVALID_MOVE;
       
-      // Discard all pearl slots, then refill
+      // Discard all pearl slots, then refill (alle Karten danach sind neu)
       G.pearlDiscardPile.push(...G.pearlSlots.splice(0));
       refillSlots(G.pearlSlots, G.pearlDeck, G.pearlDiscardPile, 4, () => { G.isReshufflingPearlDeck = true; });
+      applyPearlRefreshIfNeeded(G, []);
       G.actionCount++;
       return;
     },
@@ -486,7 +514,7 @@ export const PortaleVonMolthar = {
             }
           }
           if (sel.value !== effectiveValue) return INVALID_MOVE;
-          virtualHand.push({ id: `virtual-${realCard.id}`, value: sel.value, hasSwapSymbol: realCard.hasSwapSymbol });
+          virtualHand.push({ id: `virtual-${realCard.id}`, value: sel.value, hasSwapSymbol: realCard.hasSwapSymbol, hasRefreshSymbol: realCard.hasRefreshSymbol });
 
         } else if (sel.source === 'trade') {
           if (tradeCount >= 1) return INVALID_MOVE;
@@ -744,6 +772,7 @@ export const PortaleVonMolthar = {
     onEnd: ({ G, ctx }: { G: GameState; ctx: any }) => {
       // playedRealPearlIds am Zugende zurücksetzen
       G.playedRealPearlIds = [];
+      G.isPearlRefreshTriggered = false;
       // peekedCard vom Spieler zurücksetzen, falls verwendet (da der Stapel sich ändern kann)
       const player = G.players[ctx.currentPlayer];
       if (player) {
@@ -864,6 +893,28 @@ function refillSlots<T>(slots: T[], deck: T[], discardPile: T[], maxSlots: numbe
   }
 }
 
+/**
+ * Prüft ob eine der neu aufgedeckten Perlenkarten das Refresh-Symbol trägt.
+ * Falls ja: alle Charakterkarten aus der Auslage auf den Ablagestapel legen und genau 2 neue ziehen.
+ * `slotIdsBefore` enthält die IDs der Karten, die VOR dem Auffüllen in pearlSlots lagen.
+ */
+function applyPearlRefreshIfNeeded(G: GameState, slotIdsBefore: string[]): void {
+  const newCards = G.pearlSlots.filter(card => !slotIdsBefore.includes(card.id));
+  if (!newCards.some(card => card.hasRefreshSymbol)) return;
+
+  G.characterDiscardPile.push(...G.characterSlots.splice(0));
+  for (let i = 0; i < 2; i++) {
+    if (G.characterDeck.length === 0 && G.characterDiscardPile.length > 0) {
+      G.characterDeck.push(...G.characterDiscardPile.splice(0));
+      shuffleArray(G.characterDeck);
+      G.isReshufflingCharacterDeck = true;
+    }
+    const card = G.characterDeck.pop();
+    if (card) G.characterSlots.push(card);
+  }
+  G.isPearlRefreshTriggered = true;
+}
+
 export function createPearlDeck(): PearlCard[] {
   const deck: PearlCard[] = [];
   
@@ -874,6 +925,7 @@ export function createPearlDeck(): PearlCard[] {
         id: `pearl-${value}-${i}`,
         value: value as (1 | 2 | 3 | 4 | 5 | 6 | 7 | 8),
         hasSwapSymbol: i === 0, // First copy has swap symbol
+        hasRefreshSymbol: i === 0 && (value === 3 || value === 4 || value === 5), // Werte 3, 4, 5 haben das Refresh-Symbol
       });
     }
   }

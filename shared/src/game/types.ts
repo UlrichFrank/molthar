@@ -9,6 +9,8 @@ export interface PearlCard {
   id: string;
   value: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
   hasSwapSymbol: boolean;
+  /** Wenn true: beim Aufdecken dieser Karte werden die beiden Charakterkarten der Auslage entfernt und 2 neue nachgezogen. */
+  hasRefreshSymbol: boolean;
 }
 
 /**
@@ -206,6 +208,9 @@ export interface GameState {
   isReshufflingPearlDeck: boolean;
   /** Signalisiert dem Frontend, dass der Charakter-Nachziehstapel gerade neu gemischt wurde. */
   isReshufflingCharacterDeck: boolean;
+
+  /** Signalisiert dem Frontend, dass ein Perlenkarten-Refresh ausgelöst wurde (Charakterauslage erneuert). Wird am Zugende zurückgesetzt. */
+  isPearlRefreshTriggered: boolean;
 
   /** Ausstehende Auswahl einer gegnerischen Handkarte zum Stehlen. */
   pendingStealOpponentHandCard: boolean;

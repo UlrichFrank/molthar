@@ -60,6 +60,25 @@ Das System SHALL den Canvas-Cursor auf `pointer` setzen wenn der Mouse-Pointer �
 
 ---
 
+### Requirement: Klick auf Charakterkarte öffnet Dialog statt direkten Move
+Das System SHALL bei einem Klick auf eine Auslage-Charakterkarte oder den Charakterstapel keinen Move direkt auslösen, sondern stattdessen den Vorschau- bzw. Austauschdialog öffnen. Der Move wird erst nach Nutzerbestätigung im Dialog ausgeführt.
+
+#### Scenario: Klick auf Auslage-Karte öffnet Vorschau-Dialog
+- **WHEN** ein Klick-Event auf eine `CanvasRegion` vom Typ `characterDisplay` registriert wird
+- **THEN** wird NICHT sofort `takeCharacterCard` aufgerufen
+- **AND** stattdessen öffnet sich der Vorschau- oder Austauschdialog (je nach Portal-Status)
+
+#### Scenario: Klick auf Charakterstapel öffnet Vorschau-Dialog
+- **WHEN** ein Klick-Event auf eine `CanvasRegion` vom Typ `characterDeck` registriert wird
+- **THEN** wird NICHT sofort `takeCharacterCard` aufgerufen
+- **AND** stattdessen öffnet sich der Vorschau- oder Austauschdialog (je nach Portal-Status)
+
+#### Scenario: Move wird nach Dialog-Bestätigung ausgeführt
+- **WHEN** der Spieler im Vorschau-Dialog bestätigt
+- **THEN** wird `takeCharacterCard` mit der entsprechenden Karten-ID aufgerufen
+
+---
+
 ### Requirement: Entfernung des DOM-Overlays und totem Code
 Das System SHALL keine HTML-Button-Elemente für Karten- oder UI-Interaktion mehr verwenden. `CardButtonOverlay`, `CardButton` und `ActionCounterDisplay` werden entfernt. `hitTestButtons()` und `BTN_*`-Konstanten werden als toter Code gelöscht.
 

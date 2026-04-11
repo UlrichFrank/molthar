@@ -5,11 +5,13 @@ import { GameDialog, GameDialogTitle } from './GameDialog';
 interface ActivatedCharacterDetailViewProps {
   character: ActivatedCharacter | null;
   onClose: () => void;
+  rotated?: boolean;
 }
 
 export const ActivatedCharacterDetailView: React.FC<ActivatedCharacterDetailViewProps> = ({
   character,
   onClose,
+  rotated = true,
 }) => {
   if (!character) return null;
 
@@ -25,7 +27,7 @@ export const ActivatedCharacterDetailView: React.FC<ActivatedCharacterDetailView
         <img
           src={`/assets/${encodeURIComponent(card.imageName)}`}
           alt={card.name}
-          className="w-auto max-h-[240px] object-contain block rounded-lg cursor-pointer hover:scale-[1.02] transition-transform duration-200 rotate-180"
+          className={`w-auto max-h-[240px] object-contain block rounded-lg cursor-pointer hover:scale-[1.02] transition-transform duration-200${rotated ? ' rotate-180' : ''}`}
           onClick={onClose}
         />
 

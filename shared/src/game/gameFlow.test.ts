@@ -7,6 +7,7 @@ describe('Hand Limit Logic - Integration Scenarios', () => {
     id: id || `card-${value}`,
     value: value as any,
     hasSwapSymbol: false,
+    hasRefreshSymbol: false,
   });
 
   describe('Character Activation with handLimitPlusOne', () => {

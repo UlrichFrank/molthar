@@ -187,7 +187,7 @@ describe('TIER 1 – Rote Fähigkeiten (applyRedAbility)', () => {
   // 1.9 / 1.10 — now sets pending flag instead of immediately stealing
   it('1.9/1.10 – stealOpponentHandCard setzt pendingStealOpponentHandCard wenn Gegner Karten hat', () => {
     const opponent = G.players['1']!;
-    opponent.hand.push({ id: 'pearl-5-0', value: 5, hasSwapSymbol: false });
+    opponent.hand.push({ id: 'pearl-5-0', value: 5, hasSwapSymbol: false, hasRefreshSymbol: false });
     applyRedAbility(G, makeCtx('0'), makeAbility('stealOpponentHandCard', false));
     expect(G.pendingStealOpponentHandCard).toBe(true);
     // card still in opponent hand until dialog resolves
@@ -208,7 +208,7 @@ describe('TIER 1 – Rote Fähigkeiten (applyRedAbility)', () => {
   });
 
   it('1.13 – takeBackPlayedPearl setzt immer Flag, auch ohne gespielte Karten', () => {
-    G.pearlDiscardPile.push({ id: 'pearl-3-1', value: 3, hasSwapSymbol: false });
+    G.pearlDiscardPile.push({ id: 'pearl-3-1', value: 3, hasSwapSymbol: false, hasRefreshSymbol: false });
     applyRedAbility(G, makeCtx('0'), makeAbility('takeBackPlayedPearl', false));
     expect(G.pendingTakeBackPlayedPearl).toBe(true);
     expect(G.pearlDiscardPile).toHaveLength(1); // untouched until dialog resolved
@@ -222,8 +222,8 @@ describe('TIER 1 – Rote Fähigkeiten (applyRedAbility)', () => {
       id: 'p', card: { id: 'c', name: 'X', imageName: 'x', cost: [], powerPoints: 0, diamonds: 0, abilities: [] },
       activated: false,
     });
-    opponent.hand.push({ id: 'pearl-2-0', value: 2, hasSwapSymbol: false });
-    G.pearlDiscardPile.push({ id: 'pearl-7-0', value: 7, hasSwapSymbol: false });
+    opponent.hand.push({ id: 'pearl-2-0', value: 2, hasSwapSymbol: false, hasRefreshSymbol: false });
+    G.pearlDiscardPile.push({ id: 'pearl-7-0', value: 7, hasSwapSymbol: false, hasRefreshSymbol: false });
 
     applyRedAbility(G, makeCtx('0'), makeAbility('threeExtraActions', false));
     applyRedAbility(G, makeCtx('0'), makeAbility('nextPlayerOneExtraAction', false));
@@ -321,15 +321,15 @@ describe('TIER 4 – Blaue Hand-/Portal-Aktionen', () => {
 
     // Spieler hat 3 Karten in der Hand
     player.hand = [
-      { id: 'h1', value: 1, hasSwapSymbol: false },
-      { id: 'h2', value: 2, hasSwapSymbol: false },
-      { id: 'h3', value: 3, hasSwapSymbol: false },
+      { id: 'h1', value: 1, hasSwapSymbol: false, hasRefreshSymbol: false },
+      { id: 'h2', value: 2, hasSwapSymbol: false, hasRefreshSymbol: false },
+      { id: 'h3', value: 3, hasSwapSymbol: false, hasRefreshSymbol: false },
     ];
     // Deck vorbereiten (ausgehend von oben für vitest, array.pop nimmt das letzte Element)
     G.pearlDeck = [
-      { id: 'd1', value: 4, hasSwapSymbol: false },
-      { id: 'd2', value: 5, hasSwapSymbol: false },
-      { id: 'd3', value: 6, hasSwapSymbol: false },
+      { id: 'd1', value: 4, hasSwapSymbol: false, hasRefreshSymbol: false },
+      { id: 'd2', value: 5, hasSwapSymbol: false, hasRefreshSymbol: false },
+      { id: 'd3', value: 6, hasSwapSymbol: false, hasRefreshSymbol: false },
     ];
     G.pearlDiscardPile = [];
 
@@ -446,8 +446,8 @@ describe('TIER 2 – Integration: Charakter mit Wildcard-Fähigkeit aktivieren',
     });
 
     // Spieler hat 2 Einser auf der Hand
-    player.hand.push({ id: 'pearl-1-1', value: 1, hasSwapSymbol: false });
-    player.hand.push({ id: 'pearl-1-2', value: 1, hasSwapSymbol: false });
+    player.hand.push({ id: 'pearl-1-1', value: 1, hasSwapSymbol: false, hasRefreshSymbol: false });
+    player.hand.push({ id: 'pearl-1-2', value: 1, hasSwapSymbol: false, hasRefreshSymbol: false });
 
     const ctx = makeCtx('0');
 
@@ -484,7 +484,7 @@ describe('TIER 2 – Integration: Charakter mit Wildcard-Fähigkeit aktivieren',
         abilities: []
       }
     });
-    player.hand.push({ id: 'pearl-3-0', value: 3, hasSwapSymbol: false });
+    player.hand.push({ id: 'pearl-3-0', value: 3, hasSwapSymbol: false, hasRefreshSymbol: false });
     applyBlueAbility(player, makeAbility('threesCanBeAny', true));
 
     const ctx = makeCtx('0');
@@ -509,8 +509,8 @@ describe('TIER 2 – Integration: Charakter mit Wildcard-Fähigkeit aktivieren',
       id: 'entry-3', activated: false,
       card: { id: 'card-3', name: 'C', imageName: '', powerPoints: 0, diamonds: 0, cost: [{ type: 'sumAnyTuple', sum: 16 }], abilities: [] }
     });
-    player.hand.push({ id: 'pearl-1-1', value: 1, hasSwapSymbol: false });
-    player.hand.push({ id: 'pearl-1-2', value: 1, hasSwapSymbol: false });
+    player.hand.push({ id: 'pearl-1-1', value: 1, hasSwapSymbol: false, hasRefreshSymbol: false });
+    player.hand.push({ id: 'pearl-1-2', value: 1, hasSwapSymbol: false, hasRefreshSymbol: false });
     const ctx = makeCtx('0');
 
     // Kein Ability → INVALID_MOVE (Betrugsversuch)
@@ -528,7 +528,7 @@ describe('TIER 2 – Integration: Charakter mit Wildcard-Fähigkeit aktivieren',
       id: 'entry-4', activated: false,
       card: { id: 'card-4', name: 'C', imageName: '', powerPoints: 0, diamonds: 0, cost: [{ type: 'number', value: 7 }], abilities: [] }
     });
-    player.hand.push({ id: 'pearl-5-0', value: 5, hasSwapSymbol: false });
+    player.hand.push({ id: 'pearl-5-0', value: 5, hasSwapSymbol: false, hasRefreshSymbol: false });
     applyBlueAbility(player, makeAbility('threesCanBeAny', true));
     const ctx = makeCtx('0');
 
@@ -547,7 +547,7 @@ describe('TIER 2 – Integration: Charakter mit Wildcard-Fähigkeit aktivieren',
       id: 'entry-5', activated: false,
       card: { id: 'card-5', name: 'C', imageName: '', powerPoints: 0, diamonds: 0, cost: [{ type: 'number', value: 4 }], abilities: [] }
     });
-    player.hand.push({ id: 'pearl-5-0', value: 5, hasSwapSymbol: false });
+    player.hand.push({ id: 'pearl-5-0', value: 5, hasSwapSymbol: false, hasRefreshSymbol: false });
     applyBlueAbility(player, makeAbility('decreaseWithPearl', true));
     const ctx = makeCtx('0');
 
@@ -565,7 +565,7 @@ describe('TIER 2 – Integration: Charakter mit Wildcard-Fähigkeit aktivieren',
       id: 'entry-6', activated: false,
       card: { id: 'card-6', name: 'C', imageName: '', powerPoints: 0, diamonds: 0, cost: [{ type: 'nTuple', n: 2 }], abilities: [] }
     });
-    player.hand.push({ id: 'pearl-5-0', value: 5, hasSwapSymbol: false });
+    player.hand.push({ id: 'pearl-5-0', value: 5, hasSwapSymbol: false, hasRefreshSymbol: false });
     const ctx = makeCtx('0');
 
     // Dieselbe Karte zweimal → INVALID_MOVE
@@ -620,9 +620,9 @@ describe('TIER 5 – Blaue Information & Ressourcen', () => {
     const player = G.players['0']!;
 
     player.hand = [
-      { id: 'p1', value: 1, hasSwapSymbol: false },
-      { id: 'p2', value: 2, hasSwapSymbol: false },
-      { id: 'p3', value: 3, hasSwapSymbol: false },
+      { id: 'p1', value: 1, hasSwapSymbol: false, hasRefreshSymbol: false },
+      { id: 'p2', value: 2, hasSwapSymbol: false, hasRefreshSymbol: false },
+      { id: 'p3', value: 3, hasSwapSymbol: false, hasRefreshSymbol: false },
     ];
     player.diamonds = 0;
 
@@ -681,7 +681,7 @@ describe('TIER 6 – Aufgedruckte Perlenwerte (source: ability)', () => {
     // Charakter im Portal kostet Summe 9
     player.portal.push(makePortalEntry('target', [{ type: 'sumAnyTuple', sum: 9 }], 'numberAdditionalCardActions'));
     // Spieler hat nur eine 4 in der Hand
-    player.hand.push({ id: 'h1', value: 4, hasSwapSymbol: false });
+    player.hand.push({ id: 'h1', value: 4, hasSwapSymbol: false, hasRefreshSymbol: false });
     // Spieler hat aktivierten Charakter mit aufgedruckter 5
     player.activatedCharacters.push(makeActivatedChar('bonus-char', 'numberAdditionalCardActions') as any);
 
@@ -877,8 +877,8 @@ describe('TIER 7b – tradeTwoForDiamond (source: trade in activatePortalCard)',
     });
 
     player.hand = [
-      { id: 'p-two', value: 2, hasSwapSymbol: false },
-      { id: 'p-three', value: 3, hasSwapSymbol: false },
+      { id: 'p-two', value: 2, hasSwapSymbol: false, hasRefreshSymbol: false },
+      { id: 'p-three', value: 3, hasSwapSymbol: false, hasRefreshSymbol: false },
     ];
     player.diamonds = 0;
 
@@ -925,8 +925,8 @@ describe('TIER 7b – tradeTwoForDiamond (source: trade in activatePortalCard)',
 
     // Hand: Perle 5 (decreaseWithPearl: 5→4, kostet 1 Diamant) + Perle 2 (für Trade)
     player.hand = [
-      { id: 'p5', value: 5, hasSwapSymbol: false },
-      { id: 'p2', value: 2, hasSwapSymbol: false },
+      { id: 'p5', value: 5, hasSwapSymbol: false, hasRefreshSymbol: false },
+      { id: 'p2', value: 2, hasSwapSymbol: false, hasRefreshSymbol: false },
     ];
     player.diamonds = 0;
 
@@ -967,8 +967,8 @@ describe('TIER 7b – tradeTwoForDiamond (source: trade in activatePortalCard)',
       card: { id: 'no-trade', name: 'NT', imageName: '', powerPoints: 0, diamonds: 0, cost: [], abilities: [] }
     });
     player.hand = [
-      { id: 'pt2', value: 2, hasSwapSymbol: false },
-      { id: 'pt3', value: 3, hasSwapSymbol: false },
+      { id: 'pt2', value: 2, hasSwapSymbol: false, hasRefreshSymbol: false },
+      { id: 'pt3', value: 3, hasSwapSymbol: false, hasRefreshSymbol: false },
     ];
 
     const ctx = makeCtx('0');

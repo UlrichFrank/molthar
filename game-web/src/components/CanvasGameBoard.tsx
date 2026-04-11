@@ -18,6 +18,7 @@ import { preloadAllImages } from '../lib/imageLoaderV2';
 import { ActivatedCharacterDetailView } from './ActivatedCharacterDetailView';
 import { DialogProvider, useDialog } from '../contexts/DialogContext';
 import { CharacterReplacementDialog } from './CharacterReplacementDialog';
+import { CharacterTakePreviewDialog } from './CharacterTakePreviewDialog';
 import { CharacterActivationDialog } from './CharacterActivationDialog';
 import { DiscardCardsDialog } from './DiscardCardsDialog';
 import { StealOpponentHandCardDialog } from './StealOpponentHandCardDialog';
@@ -186,8 +187,16 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     : null;
 
   const [activeOpponentCharacter, setActiveOpponentCharacter] = useState<{ playerId: string; index: number } | null>(null);
+  const [activeOpponentPortalCard, setActiveOpponentPortalCard] = useState<{ playerId: string; slotIndex: number } | null>(null);
+
+  // ── Preview dialogs for taking character cards ──────────────────────────────
+  const [pendingTakeCardFromDisplay, setPendingTakeCardFromDisplay] = useState<{ card: import('@portale-von-molthar/shared').CharacterCard; slotIndex: number } | null>(null);
+  const [pendingTakeCardFromDeck, setPendingTakeCardFromDeck] = useState<{ card: import('@portale-von-molthar/shared').CharacterCard; faceDown: boolean } | null>(null);
   const activeOpponentCharacterData = activeOpponentCharacter
     ? (G.players?.[activeOpponentCharacter.playerId]?.activatedCharacters?.[activeOpponentCharacter.index] ?? null)
+    : null;
+  const activeOpponentPortalCardData = activeOpponentPortalCard
+    ? (G.players?.[activeOpponentPortalCard.playerId]?.portal[activeOpponentPortalCard.slotIndex] ?? null)
     : null;
 
   // ── Refs for rAF loop (avoids stale closures) ───────────────────────────────
@@ -406,6 +415,20 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
       // Always allow viewing opponent activated characters
       const [playerId, idxStr] = (region.id as string).split(':');
       setActiveOpponentCharacter({ playerId, index: parseInt(idxStr, 10) });
+    } else if (region.type === 'opponent-portal-card') {
+      // Always allow viewing; irrlicht-capable cards open activation dialog during own turn
+      const [ownerPlayerId, slotStr] = (region.id as string).split(':');
+      const slotIndex = parseInt(slotStr, 10);
+      const ownerPlayer = G.players?.[ownerPlayerId];
+      const entry = ownerPlayer?.portal[slotIndex];
+      if (entry) {
+        const isIrrlicht = entry.card.abilities.some(a => a.type === 'irrlicht') || entry.card.sharedActivation;
+        if (isActive && isIrrlicht && (G.actionCount ?? 0) < (G.maxActions ?? 3)) {
+          dialog.openActivationDialog(entry.card, slotIndex, ownerPlayerId);
+        } else {
+          setActiveOpponentPortalCard({ playerId: ownerPlayerId, slotIndex });
+        }
+      }
     } else if (isActive) {
       handleCardClick(region);
     }
@@ -449,9 +472,9 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           if (!newCharacter) break;
           if (me && me.portal.length >= 2) {
             const portalCharacters = me.portal.map(entry => entry.card);
-            dialog.openReplacementDialog(newCharacter, portalCharacters);
+            dialog.openReplacementDialog(newCharacter, portalCharacters, true);
           } else {
-            moves.takeCharacterCard(id);
+            setPendingTakeCardFromDisplay({ card: newCharacter, slotIndex: id });
           }
         } else {
           const pearlIdx = id - 2;
@@ -489,7 +512,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
             const portalCharacters = me.portal.map(entry => entry.card);
             dialog.openReplacementDialog(topCard, portalCharacters);
           } else {
-            moves.takeCharacterCard(-1);
+            setPendingTakeCardFromDeck({ card: topCard, faceDown: !hasPreviewAbility });
           }
         };
 
@@ -517,15 +540,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
         break;
       }
 
-      case 'opponent-portal-card': {
-        const [ownerPlayerId, slotStr] = (region.id as string).split(':');
-        const slotIndex = parseInt(slotStr, 10);
-        const ownerPlayer = G.players?.[ownerPlayerId];
-        const entry = ownerPlayer?.portal[slotIndex];
-        if (!entry) break;
-        dialog.openActivationDialog(entry.card, slotIndex, ownerPlayerId);
-        break;
-      }
     }
   }
 
@@ -535,11 +549,12 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
       if (e.key === 'Escape') {
         if (activeCharacterIndex !== null) setActiveCharacterIndex(null);
         if (activeOpponentCharacter !== null) setActiveOpponentCharacter(null);
+        if (activeOpponentPortalCard !== null) setActiveOpponentPortalCard(null);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeCharacterIndex, activeOpponentCharacter]);
+  }, [activeCharacterIndex, activeOpponentCharacter, activeOpponentPortalCard]);
 
   // ── Auto-open steal dialog when flag is set and we are the active player
   useEffect(() => {
@@ -657,13 +672,60 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
             onDone={isActive ? () => moves.acknowledgeReshuffle?.('character') : () => {}}
           />
         )}
+        {G.isPearlRefreshTriggered && (
+          <div
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '44%',
+              transform: 'translateX(-50%)',
+              background: 'rgba(30, 20, 60, 0.92)',
+              color: '#e0d0ff',
+              border: '2px solid #9966cc',
+              borderRadius: '10px',
+              padding: '10px 20px',
+              fontWeight: 'bold',
+              fontSize: '0.95rem',
+              pointerEvents: 'none',
+              zIndex: 50,
+              textAlign: 'center',
+            }}
+          >
+            🔄 Charakterauslage erneuert – 2 neue Karten nachgezogen
+          </div>
+        )}
       </div>
+
+      {/* Preview dialogs for taking character cards */}
+      {pendingTakeCardFromDisplay && (
+        <CharacterTakePreviewDialog
+          card={pendingTakeCardFromDisplay.card}
+          faceDown={false}
+          onConfirm={() => {
+            moves.takeCharacterCard(pendingTakeCardFromDisplay.slotIndex);
+            setPendingTakeCardFromDisplay(null);
+          }}
+          onCancel={() => setPendingTakeCardFromDisplay(null)}
+        />
+      )}
+      {pendingTakeCardFromDeck && (
+        <CharacterTakePreviewDialog
+          card={pendingTakeCardFromDeck.card}
+          faceDown={pendingTakeCardFromDeck.faceDown}
+          onConfirm={() => {
+            moves.takeCharacterCard(-1);
+            setPendingTakeCardFromDeck(null);
+          }}
+          onCancel={() => setPendingTakeCardFromDeck(null)}
+        />
+      )}
 
       {/* Dialog Modals */}
       {dialog.dialog.type === 'replacement' && (
         <CharacterReplacementDialog
           newCard={dialog.dialog.newCharacter}
           portalCards={dialog.dialog.portalCharacters}
+          canDiscard={dialog.dialog.canDiscard}
           onSelect={(replacedSlotIndex) => {
             if (dialog.dialog.type === 'replacement') {
               const characterIndex = (G.characterSlots || []).findIndex(
@@ -674,7 +736,15 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
             }
             dialog.closeDialog();
           }}
-          onCancel={() => dialog.closeDialog()}
+          onDiscard={() => {
+            if (dialog.dialog.type === 'replacement') {
+              const characterIndex = (G.characterSlots || []).findIndex(
+                card => card?.id === dialog.dialog.newCharacter.id
+              );
+              moves.discardPickedCharacterCard(characterIndex);
+            }
+            dialog.closeDialog();
+          }}
         />
       )}
 
@@ -786,6 +856,11 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
       <ActivatedCharacterDetailView
         character={activeOpponentCharacterData}
         onClose={() => setActiveOpponentCharacter(null)}
+      />
+      <ActivatedCharacterDetailView
+        character={activeOpponentPortalCardData}
+        onClose={() => setActiveOpponentPortalCard(null)}
+        rotated={false}
       />
 
       {/* Endgame Results Dialog */}

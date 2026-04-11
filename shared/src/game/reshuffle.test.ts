@@ -8,7 +8,7 @@ function makeGameState(numPlayers = 2): GameState {
 }
 
 function makePearlCard(id: string): PearlCard {
-  return { id, value: 1, hasSwapSymbol: false };
+  return { id, value: 1, hasSwapSymbol: false, hasRefreshSymbol: false };
 }
 
 function makeCharacterCard(id: string): CharacterCard {

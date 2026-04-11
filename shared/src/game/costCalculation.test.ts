@@ -17,6 +17,7 @@ function createCard(value: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8): PearlCard {
     id: `card-${Math.random()}`,
     value,
     hasSwapSymbol: false,
+    hasRefreshSymbol: false,
   };
 }
 

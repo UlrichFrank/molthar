@@ -31,6 +31,7 @@ describe('Hand Limit Utilities', () => {
       id: `card-${value}`,
       value: value as any,
       hasSwapSymbol: false,
+      hasRefreshSymbol: false,
     });
 
     it('should return 0 when hand is under limit', () => {
