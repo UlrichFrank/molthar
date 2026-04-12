@@ -1,33 +1,11 @@
-# Player Status Badge Specification
-
-**Last Updated:** 2026-04-12
-**Source of Truth:** `/game-web/src/` implementation (Code is authoritative)
-
-## Overview
-
-The **player-status-badge** capability provides a compact status badge displayed for each player (local and opponents) in the game board. It shows key player metrics at a glance and opens a detail dialog on click.
-
-## Requirements
-
-### Requirement: Status-Badge je Spieler anzeigen
-Das System SHALL für den lokalen Spieler und alle aktiven Mitspieler (d.h. alle Spieler in `G.playerOrder`, unabhängig von Online-Status) ein kompaktes Status-Badge anzeigen. Nicht-teilnehmende Spieler (nicht in `G.playerOrder`) SHALL kein Badge erhalten.
-
-#### Scenario: Badge für eigenen Spieler
-- **WHEN** eine Spielpartie läuft und der lokale Spieler in `G.playerOrder` ist
-- **THEN** wird ein Badge unterhalb des `PlayerNameDisplay` angezeigt mit: Kraftpunkten, Diamanten-Anzahl und Symbolen für aktive Fähigkeiten
-
-#### Scenario: Badge für Gegner
-- **WHEN** eine Spielpartie läuft und ein Mitspieler in `G.playerOrder` ist
-- **THEN** wird ein Badge in der jeweiligen Gegner-Zone des Canvas angezeigt mit: Kraftpunkten, Diamanten-Anzahl und Symbolen für aktive Fähigkeiten
-
-#### Scenario: Kein Badge für nicht-teilnehmende Spieler
-- **WHEN** ein Spieler nicht in `G.playerOrder` ist (z.B. ausgeschiedener oder nicht verbundener Spieler)
-- **THEN** wird für diesen Spieler kein Status-Badge angezeigt
+## MODIFIED Requirements
 
 ### Requirement: Badge-Inhalt
 Das Badge SHALL folgende Informationen kompakt anzeigen:
-- Kraftpunkte (`powerPoints`) mit einem Stern- oder Punkt-Symbol
+- Spielername (wenn `playerName`-Prop gesetzt, als erste kompakte Zeile; max-width mit ellipsis)
+- Kraftpunkte (`powerPoints`) mit einem Stern-Symbol
 - Diamanten (`diamonds`) mit einem Diamant-Symbol (💎)
+- Aktionszähler `X/Y` mit Farbcodierung (wenn `actionCount` und `maxActions`-Props gesetzt)
 - Aktive blaue Fähigkeiten als Icons/Symbole (max. 5, Rest als `+N`)
 
 #### Scenario: Badge ohne Fähigkeiten
@@ -38,9 +16,30 @@ Das Badge SHALL folgende Informationen kompakt anzeigen:
 - **WHEN** ein Spieler mehr als 5 aktive Fähigkeiten hat
 - **THEN** werden die ersten 5 Fähigkeits-Symbole angezeigt, gefolgt von `+N` für die restlichen N Fähigkeiten
 
-### Requirement: Badge ist anklickbar
-Das Badge SHALL als interaktives Element erkennbar sein (Cursor-Änderung) und einen Klick registrieren.
+#### Scenario: Badge mit Spielername
+- **WHEN** die `playerName`-Prop gesetzt ist
+- **THEN** wird der Name als erste Zeile im Badge angezeigt, bei Überlänge mit Ellipsis abgeschnitten
 
-#### Scenario: Klick öffnet Detail-Dialog
-- **WHEN** der Benutzer auf ein Status-Badge klickt
-- **THEN** öffnet sich der `PlayerStatusDialog` für den jeweiligen Spieler
+#### Scenario: Badge ohne Spielername
+- **WHEN** die `playerName`-Prop nicht gesetzt ist
+- **THEN** wird kein Name im Badge angezeigt
+
+#### Scenario: Gegner-Badge mit Spielername
+- **WHEN** ein Gegner-Badge gerendert wird
+- **THEN** wird der aufgelöste Spielername als erste Zeile im Badge angezeigt (gleiche Darstellung wie eigenes Badge)
+
+#### Scenario: Aktionszähler — viele Aktionen übrig
+- **WHEN** `actionCount` und `maxActions` gesetzt sind und `maxActions - actionCount > 1`
+- **THEN** wird `X/Y` in grün (`#22c55e`) angezeigt
+
+#### Scenario: Aktionszähler — letzte Aktion
+- **WHEN** `maxActions - actionCount === 1`
+- **THEN** wird `X/Y` in gelb (`#facc15`, dunkler Text) angezeigt
+
+#### Scenario: Aktionszähler — Aktionen erschöpft
+- **WHEN** `actionCount >= maxActions`
+- **THEN** wird `X/Y` in rot (`#ef4444`) angezeigt
+
+#### Scenario: Badge ohne Aktionszähler
+- **WHEN** `actionCount` oder `maxActions`-Prop nicht gesetzt ist
+- **THEN** wird kein Aktionszähler angezeigt (Gegner-Badges)
