@@ -217,7 +217,7 @@ export function CharacterActivationDialog({
               selected={selectedSet}
               reserved={reservedSet}
               onToggle={toggleHandCard}
-              getImageSrc={(card) => `/assets/Perlenkarte${card.value}.png`}
+              getImageSrc={(card) => `/assets/Perlenkarte${card.value}${[3,4,5].includes(card.value) ? '-neu' : ''}.png`}
               getAlt={(card) => `Pearl ${card.value}`}
             />
 
