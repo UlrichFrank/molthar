@@ -34,7 +34,6 @@ export type CanvasRegionType =
   | 'activated-character'
   | 'deck-character'
   | 'deck-pearl'
-  | 'ui-end-turn'
   | 'ui-discard-cards'
   | 'ui-replace-pearl-slots'
   | 'opponent-portal-card'
@@ -257,7 +256,7 @@ export function buildCanvasRegions(
     const actionCount = G.actionCount ?? 0;
 
     if (G.requiresHandDiscard && actionCount >= maxActions) {
-      // Show "Discard Cards" button (replaces End Turn)
+      // Show "Discard Cards" button
       regions.push({
         type: 'ui-discard-cards', id: 'ui-discard-cards',
         x: UI_PANEL_X, y: UI_PANEL_Y, w: UI_PANEL_W, h: UI_PANEL_H,
@@ -265,17 +264,8 @@ export function buildCanvasRegions(
         enabled: true,
         ...animState(existing, 'ui-discard-cards', 'ui-discard-cards'),
       });
-    } else {
-      // Show action counter / End Turn button
-      const endTurnEnabled = actionCount >= maxActions;
-      regions.push({
-        type: 'ui-end-turn', id: 'ui-end-turn',
-        x: UI_PANEL_X, y: UI_PANEL_Y, w: UI_PANEL_W, h: UI_PANEL_H,
-        label: endTurnEnabled ? 'End Turn' : `${actionCount} / ${maxActions}`,
-        enabled: endTurnEnabled,
-        ...animState(existing, 'ui-end-turn', 'ui-end-turn'),
-      });
     }
+    // ui-end-turn removed — end-turn is handled by HTML EndTurnButton overlay
   }
 
   // --- Opponent portal cards (always visible for all neighbors) ---

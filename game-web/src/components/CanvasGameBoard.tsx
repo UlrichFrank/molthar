@@ -9,7 +9,6 @@ import {
   drawActivatedCharactersGrid,
   drawUIButton,
   drawPortalSwapButtons,
-  drawOpponentActionCounter,
   drawRegionEffects,
   drawOpponentPortals,
 } from '../lib/gameRender';
@@ -25,7 +24,8 @@ import { StealOpponentHandCardDialog } from './StealOpponentHandCardDialog';
 import { CharacterSwapDialog } from './CharacterSwapDialog';
 import { TakeBackPlayedPearlDialog } from './TakeBackPlayedPearlDialog';
 import { DiscardOpponentCharacterDialog } from './DiscardOpponentCharacterDialog';
-import { PlayerNameDisplay } from './PlayerNameDisplay';
+import { PlayerStatusBadge } from './PlayerStatusBadge';
+import { EndTurnButton } from './EndTurnButton';
 import { DeckReshuffleAnimation } from './DeckReshuffleAnimation';
 import { EndgameResultsDialog } from './EndgameResultsDialog';
 import { PlayerDisconnectDialog } from './PlayerDisconnectDialog';
@@ -70,6 +70,25 @@ function buildOpponentsArray(G: GameState, myPlayerID: string): Array<import('..
   if (n === 3) return [getOpponentData(1), null, null, getOpponentData(-1)];
   if (n === 4) return [getOpponentData(1), getOpponentData(2), null, getOpponentData(-1)];
   return [getOpponentData(1), getOpponentData(-2), getOpponentData(2), getOpponentData(-1)];
+}
+
+/** Returns player IDs for the four opponent zones [left, top-left, top-right, right], or null for empty slots. */
+function buildOpponentsPlayerIDs(G: GameState, myPlayerID: string): Array<string | null> {
+  const playerOrder = G.playerOrder || Object.keys(G.players || {});
+  const n = playerOrder.length;
+  const myIndex = playerOrder.indexOf(myPlayerID);
+
+  function getOpponentId(offset: number): string | null {
+    const idx = ((myIndex + offset) % n + n) % n;
+    if (idx === myIndex) return null;
+    return playerOrder[idx] ?? null;
+  }
+
+  if (n <= 1) return [null, null, null, null];
+  if (n === 2) return [getOpponentId(1), null, null, null];
+  if (n === 3) return [getOpponentId(1), null, null, getOpponentId(-1)];
+  if (n === 4) return [getOpponentId(1), getOpponentId(2), null, getOpponentId(-1)];
+  return [getOpponentId(1), getOpponentId(-2), getOpponentId(2), getOpponentId(-1)];
 }
 
 /** Returns the two direct neighbors (left = zoneIndex 0, right = zoneIndex 3) for irrlicht regions. */
@@ -210,7 +229,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   const myPlayerIDRef = useRef(myPlayerID);
   const activePlayerIDRef = useRef(activePlayerID);
   const activePlayerRef = useRef(activePlayer);
-  const activePlayerNameRef = useRef<string>('');
   const imagesLoadedRef = useRef(false);
   const rafIdRef = useRef(0);
   /** Set to true whenever a redraw is needed; cleared after drawing. */
@@ -230,11 +248,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   useEffect(() => { myPlayerIDRef.current = myPlayerID; }, [myPlayerID]);
   useEffect(() => { activePlayerIDRef.current = activePlayerID; }, [activePlayerID]);
   useEffect(() => { activePlayerRef.current = activePlayer; }, [activePlayer]);
-  useEffect(() => {
-    const fallback = activePlayer?.name || `Player ${activePlayerIndex + 1}`;
-    activePlayerNameRef.current = resolvePlayerName(activePlayerID, fallback);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activePlayerID, activePlayerIndex, activePlayer, matchData]);
 
   // Rebuild regions when game state changes (in-place to preserve animation)
   useEffect(() => {
@@ -351,13 +364,10 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
       { selectedPearl: null, selectedCharacter: null, selectedHandIndices: [] });
     drawPortalSwapButtons(drawCtx, regions);
 
-    // Canvas UI panel
+    // Canvas UI panel — only discard button remains; end-turn handled by HTML overlay
     if (isActive) {
-      const uiRegion = regions.find(r => r.type === 'ui-end-turn' || r.type === 'ui-discard-cards');
-      if (uiRegion) drawUIButton(drawCtx, uiRegion);
-    } else {
-      const name = activePlayerNameRef.current || activePlayer?.name || `Player ${activePlayerID}`;
-      drawOpponentActionCounter(drawCtx, G, name);
+      const discardRegion = regions.find(r => r.type === 'ui-discard-cards');
+      if (discardRegion) drawUIButton(drawCtx, discardRegion);
     }
 
     // Hover glow + click flash (second pass)
@@ -405,7 +415,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     dirtyRef.current = true;
 
     // Dispatch action
-    if (region.type === 'ui-end-turn' || region.type === 'ui-discard-cards' || region.type === 'ui-replace-pearl-slots') {
+    if (region.type === 'ui-discard-cards' || region.type === 'ui-replace-pearl-slots') {
       handleUIClick(region);
     } else if (region.type === 'activated-character') {
       // Always allow viewing activated characters
@@ -444,9 +454,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
 
   // ── UI button clicks ──────────────────────────────────────────────────────────
   function handleUIClick(region: CanvasRegion) {
-    if (region.type === 'ui-end-turn') {
-      moves.endTurn?.();
-    } else if (region.type === 'ui-discard-cards') {
+    if (region.type === 'ui-discard-cards') {
       if (me && G.excessCardCount > 0) {
         dialog.openDiscardDialog(me.hand, G.excessCardCount, G.currentHandLimit);
       }
@@ -623,8 +631,57 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           }}
         />
 
-        {/* Player Name Display */}
-        {me && <PlayerNameDisplay playerName={resolvePlayerName(myPlayerID, me.name)} />}
+        {/* Own player status badge — centered on portal top edge */}
+        {me && (
+          <div style={{
+            position: 'absolute', top: '64.5%', left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 100,
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+          }}>
+            <PlayerStatusBadge
+              playerState={me}
+              playerName={resolvePlayerName(myPlayerID, me.name)}
+              actionCount={isActive ? actionCount : undefined}
+              maxActions={isActive ? maxActions : undefined}
+              isActiveTurn={isActive}
+            />
+            <EndTurnButton
+              isActive={isActive}
+              actionCount={actionCount}
+              maxActions={maxActions}
+              onEndTurn={() => moves.endTurn?.()}
+            />
+          </div>
+        )}
+
+        {/* Opponent status badges */}
+        {(() => {
+          const opponentIds = buildOpponentsPlayerIDs(G, myPlayerID);
+          // Zone positions as % of canvas container [left, top-left, top-right, right]
+          const zoneStyles: Array<React.CSSProperties> = [
+            { position: 'absolute', top: '26%', left: 6, zIndex: 100 },
+            { position: 'absolute', top: 6, left: '17%', zIndex: 100 },
+            { position: 'absolute', top: 6, left: '50%', zIndex: 100 },
+            { position: 'absolute', top: '26%', right: 6, zIndex: 100 },
+          ];
+          return opponentIds.map((playerId, zoneIdx) => {
+            if (!playerId) return null;
+            const playerState = G.players?.[playerId];
+            if (!playerState) return null;
+            return (
+              <div key={playerId} style={zoneStyles[zoneIdx]}>
+                <PlayerStatusBadge
+                  playerState={playerState}
+                  playerName={resolvePlayerName(playerId, playerState.name)}
+                  isActiveTurn={playerId === activePlayerID}
+                  actionCount={playerId === activePlayerID ? actionCount : undefined}
+                  maxActions={playerId === activePlayerID ? maxActions : undefined}
+                />
+              </div>
+            );
+          });
+        })()}
 
         {/* Threshold-Indikator (2.1) + Final-Round-Banner (2.2) */}
         {G.finalRound && gameover === undefined && (() => {
