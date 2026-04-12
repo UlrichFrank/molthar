@@ -4,14 +4,14 @@ import { GameDialog, GameDialogTitle, GameDialogActions } from './GameDialog';
 interface CharacterTakePreviewDialogProps {
   card: CharacterCard;
   faceDown?: boolean;
-  onConfirm: () => void;
+  onConfirm?: () => void;
   onCancel: () => void;
 }
 
 export function CharacterTakePreviewDialog({ card, faceDown = false, onConfirm, onCancel }: CharacterTakePreviewDialogProps) {
   return (
     <GameDialog>
-      <GameDialogTitle>Charakterkarte nehmen?</GameDialogTitle>
+      <GameDialogTitle>{onConfirm ? 'Charakterkarte nehmen?' : 'Charakterkarte'}</GameDialogTitle>
 
       <div className="flex flex-col items-center gap-4 mb-6">
         {faceDown ? (
@@ -29,12 +29,20 @@ export function CharacterTakePreviewDialog({ card, faceDown = false, onConfirm, 
         )}
       </div>
 
-      <GameDialogActions
-        confirmLabel="Nehmen"
-        cancelLabel="Abbrechen"
-        onConfirm={onConfirm}
-        onCancel={onCancel}
-      />
+      {onConfirm ? (
+        <GameDialogActions
+          confirmLabel="Nehmen"
+          cancelLabel="Abbrechen"
+          onConfirm={onConfirm}
+          onCancel={onCancel}
+        />
+      ) : (
+        <div className="game-dialog-actions" style={{ justifyContent: 'center' }}>
+          <button className="game-dialog-btn-cancel" style={{ flex: 'none', padding: '0.6rem 2rem' }} onClick={onCancel}>
+            Schließen
+          </button>
+        </div>
+      )}
     </GameDialog>
   );
 }
