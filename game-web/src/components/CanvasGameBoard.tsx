@@ -211,6 +211,12 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   // ── Preview dialogs for taking character cards ──────────────────────────────
   const [pendingTakeCardFromDisplay, setPendingTakeCardFromDisplay] = useState<{ card: import('@portale-von-molthar/shared').CharacterCard; slotIndex: number } | null>(null);
   const [pendingTakeCardFromDeck, setPendingTakeCardFromDeck] = useState<{ card: import('@portale-von-molthar/shared').CharacterCard; faceDown: boolean } | null>(null);
+
+  // ── changeHandActions ───────────────────────────────────────────────────────
+  const [rehandDone, setRehandDone] = useState(false);
+  useEffect(() => { setRehandDone(false); }, [ctx.turn]);
+  const hasChangeHandAbility = me?.activeAbilities.some(a => a.type === 'changeHandActions') ?? false;
+
   const activeOpponentCharacterData = activeOpponentCharacter
     ? (G.players?.[activeOpponentCharacter.playerId]?.activatedCharacters?.[activeOpponentCharacter.index] ?? null)
     : null;
@@ -646,6 +652,36 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
               maxActions={isActive ? maxActions : undefined}
               isActiveTurn={isActive}
             />
+            {isActive && actionCount >= maxActions && hasChangeHandAbility && !rehandDone && (
+              <button
+                onClick={() => { moves.rehandCards?.(); setRehandDone(true); }}
+                style={{
+                  background: 'rgba(99, 102, 241, 0.9)',
+                  border: '2px solid #6366f1',
+                  borderRadius: 8,
+                  padding: '6px 18px',
+                  color: '#ffffff',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+                  whiteSpace: 'nowrap',
+                  pointerEvents: 'auto',
+                  transition: 'background 0.15s, border-color 0.15s',
+                  marginTop: 4,
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(79, 70, 229, 0.95)';
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = '#4f46e5';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(99, 102, 241, 0.9)';
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = '#6366f1';
+                }}
+              >
+                Hand neu ziehen
+              </button>
+            )}
             <EndTurnButton
               isActive={isActive}
               actionCount={actionCount}
