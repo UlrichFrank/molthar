@@ -7,6 +7,8 @@ interface CharacterReplacementDialogProps {
   onSelect: (replacedSlotIndex: number) => void;
   onDiscard: () => void;
   canDiscard?: boolean;
+  canCancel?: boolean;
+  onCancel?: () => void;
 }
 
 function CharacterImage({ card, className }: { card: CharacterCard; className?: string }) {
@@ -19,7 +21,7 @@ function CharacterImage({ card, className }: { card: CharacterCard; className?: 
   );
 }
 
-export function CharacterReplacementDialog({ newCard, portalCards, onSelect, onDiscard, canDiscard = true }: CharacterReplacementDialogProps) {
+export function CharacterReplacementDialog({ newCard, portalCards, onSelect, onDiscard, canDiscard = true, canCancel = false, onCancel }: CharacterReplacementDialogProps) {
   return (
     <GameDialog>
       <GameDialogTitle>Replace Portal Card</GameDialogTitle>
@@ -58,6 +60,15 @@ export function CharacterReplacementDialog({ newCard, portalCards, onSelect, onD
         >
           Verwerfen
         </button>
+        {canCancel && (
+          <button
+            className="game-dialog-btn-cancel"
+            style={{ flex: 'none', padding: '0.6rem 2rem' }}
+            onClick={onCancel}
+          >
+            Abbrechen
+          </button>
+        )}
       </div>
     </GameDialog>
   );

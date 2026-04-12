@@ -480,7 +480,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           if (!newCharacter) break;
           if (me && me.portal.length >= 2) {
             const portalCharacters = me.portal.map(entry => entry.card);
-            dialog.openReplacementDialog(newCharacter, portalCharacters, true);
+            dialog.openReplacementDialog(newCharacter, portalCharacters, true, true);
           } else {
             setPendingTakeCardFromDisplay({ card: newCharacter, slotIndex: id });
           }
@@ -783,6 +783,8 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           newCard={dialog.dialog.newCharacter}
           portalCards={dialog.dialog.portalCharacters}
           canDiscard={dialog.dialog.canDiscard}
+          canCancel={dialog.dialog.canCancel}
+          onCancel={dialog.closeDialog}
           onSelect={(replacedSlotIndex) => {
             if (dialog.dialog.type === 'replacement') {
               const characterIndex = (G.characterSlots || []).findIndex(

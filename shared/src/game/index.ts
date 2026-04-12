@@ -121,6 +121,12 @@ export const PortaleVonMolthar = {
       G.actionCount++;
       const slotIdsBefore = G.pearlSlots.map(c => c.id);
       refillSlots(G.pearlSlots, G.pearlDeck, G.pearlDiscardPile, 4, () => { G.isReshufflingPearlDeck = true; });
+      // Proactiver Reshuffle: letzte Deck-Karte gezogen, Auslage voll → sofort neu mischen
+      if (G.pearlDeck.length === 0 && G.pearlDiscardPile.length > 0 && G.pearlSlots.length >= 4) {
+        G.pearlDeck.push(...G.pearlDiscardPile.splice(0));
+        shuffleArray(G.pearlDeck);
+        G.isReshufflingPearlDeck = true;
+      }
       applyPearlRefreshIfNeeded(G, slotIdsBefore);
       return;
     },
@@ -136,7 +142,7 @@ export const PortaleVonMolthar = {
         card = G.characterSlots[slotIndex];
         G.characterSlots.splice(slotIndex, 1);
       } else if (slotIndex === -1) {
-        card = G.characterDeck.pop();
+        card = drawCard(G.characterDeck, G.characterDiscardPile, () => { G.isReshufflingCharacterDeck = true; });
       } else {
         return INVALID_MOVE;
       }
@@ -176,7 +182,7 @@ export const PortaleVonMolthar = {
         card = G.characterSlots[slotIndex];
         G.characterSlots.splice(slotIndex, 1);
       } else if (slotIndex === -1) {
-        card = G.characterDeck.pop();
+        card = drawCard(G.characterDeck, G.characterDiscardPile, () => { G.isReshufflingCharacterDeck = true; });
       } else {
         return INVALID_MOVE;
       }

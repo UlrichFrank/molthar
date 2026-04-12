@@ -64,6 +64,39 @@ describe('reshuffle-empty-decks — pearl deck', () => {
     moves.acknowledgeReshuffle({ G, ctx }, 'pearl');
     expect(G.isReshufflingPearlDeck).toBe(false);
   });
+
+  it('3.3 takePearlCard — letzte Deck-Karte gezogen, Auslage voll → proaktiver Reshuffle, Deck neu befüllt', () => {
+    const G = makeGameState(2);
+    // Deck has 1 card, display already full (4 slots), discard has cards
+    G.pearlDeck = [makePearlCard('p_last')];
+    G.pearlSlots = [makePearlCard('s1'), makePearlCard('s2'), makePearlCard('s3'), makePearlCard('s4')];
+    G.pearlDiscardPile = [makePearlCard('d1'), makePearlCard('d2'), makePearlCard('d3')];
+    G.players['0']!.hand = [];
+    G.actionCount = 0;
+    const ctx = { currentPlayer: '0', activePlayers: {} };
+    moves.takePearlCard({ G, ctx, events: {} }, -1);
+    // Deck should be refilled from discard pile
+    expect(G.pearlDeck.length).toBeGreaterThan(0);
+    expect(G.pearlDiscardPile.length).toBe(0);
+    expect(G.isReshufflingPearlDeck).toBe(true);
+  });
+
+  it('3.4 takePearlCard — letzte Deck-Karte gezogen, Auslage nicht voll → kein Doppel-Reshuffle', () => {
+    const G = makeGameState(2);
+    // Deck has 1 card, display has 3 slots (not full), discard has cards
+    G.pearlDeck = [makePearlCard('p_last')];
+    G.pearlSlots = [makePearlCard('s1'), makePearlCard('s2'), makePearlCard('s3')];
+    G.pearlDiscardPile = [makePearlCard('d1'), makePearlCard('d2')];
+    G.players['0']!.hand = [];
+    G.actionCount = 0;
+    const ctx = { currentPlayer: '0', activePlayers: {} };
+    moves.takePearlCard({ G, ctx, events: {} }, -1);
+    // refillSlots handles the reshuffle (slots < 4), proactive check does NOT run additionally
+    // After refillSlots: deck has cards remaining from reshuffled discard → proactive check (deck.length===0) is false
+    expect(G.isReshufflingPearlDeck).toBe(true); // set by refillSlots
+    // Discard pile should be empty (consumed by refillSlots reshuffle)
+    expect(G.pearlDiscardPile.length).toBe(0);
+  });
 });
 
 describe('reshuffle-empty-decks — character deck', () => {
@@ -85,6 +118,36 @@ describe('reshuffle-empty-decks — character deck', () => {
     G.actionCount = 0;
     moves.takeCharacterCard({ G, ctx, events: {} }, -1);
     // After taking c0, refillSlots runs: deck empty, discard has c1 → reshuffle
+    expect(G.isReshufflingCharacterDeck).toBe(true);
+  });
+
+  it('3.1 takeCharacterCard — leerem Deck, befülltem Ablagestapel → drawCard reshuffles, Karte gezogen', () => {
+    const G = makeGameState(2);
+    // Deck is empty, discard has 2 cards
+    G.characterDeck = [];
+    G.characterSlots = [];
+    G.characterDiscardPile = [makeCharacterCard('d1'), makeCharacterCard('d2')];
+    G.players['0']!.portal = [];
+    G.actionCount = 0;
+    const ctx = { currentPlayer: '0', activePlayers: {} };
+    const result = moves.takeCharacterCard({ G, ctx, events: {} }, -1);
+    expect(result).not.toBe('INVALID_MOVE');
+    expect(G.players['0']!.portal.length).toBe(1);
+    expect(G.isReshufflingCharacterDeck).toBe(true);
+  });
+
+  it('3.2 discardPickedCharacterCard — leerem Deck, befülltem Ablagestapel → drawCard reshuffles, Karte verworfen', () => {
+    const G = makeGameState(2);
+    G.characterDeck = [];
+    G.characterSlots = [];
+    G.characterDiscardPile = [makeCharacterCard('d1'), makeCharacterCard('d2')];
+    G.players['0']!.portal = [];
+    G.actionCount = 0;
+    const initialDiscardCount = G.characterDiscardPile.length;
+    const ctx = { currentPlayer: '0', activePlayers: {} };
+    const result = moves.discardPickedCharacterCard({ G, ctx, events: {} }, -1);
+    expect(result).not.toBe('INVALID_MOVE');
+    // drawCard reshuffled the discard before drawing
     expect(G.isReshufflingCharacterDeck).toBe(true);
   });
 
