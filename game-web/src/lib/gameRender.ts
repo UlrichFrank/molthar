@@ -289,9 +289,9 @@ export function drawPlayerPortal(
   // Portal slots (center)
   const slotAreaX = SLOT_AREA_X;
   const slotAreaY = SLOT_AREA_Y;
-  const slotW = CARD_W;
-  const slotH = CARD_H;
-  const slotGap = CARD_GAP;
+  const slotW = SLOT_W;
+  const slotH = SLOT_H;
+  const slotGap = SLOT_GAP;
 
   portal.portal.forEach((slot, idx) => {
     const x = slotAreaX + idx * (slotW + slotGap);

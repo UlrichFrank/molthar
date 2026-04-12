@@ -39,20 +39,20 @@ export const PORTAL_W = BASE_W - 2 * MARGIN_H;
 export const PORTAL_Y = ZONE_TOP_H + ZONE_CENTER_H;
 
 // === Portal Slot Positioning (2 character slots max, center area) ===
-// Vertically centered at 35% of player zone (measured from portalY); horizontally shifted 3% to the right
+// Portal slot cards are 50% larger than auslage cards; vertically centered in player zone
+export const SLOT_W = Math.round(CARD_W * 1.0); // 134
+export const SLOT_H = Math.round(CARD_H * 1.0); // 207
+export const SLOT_GAP = Math.round(CARD_GAP * 1.0); // 23
 export const SLOT_AREA_X = PORTAL_X + PORTAL_W / 3 + PORTAL_W * 0.03;
-export const SLOT_AREA_Y = PORTAL_Y + ZONE_PLAYER_H * 0.35;
-export const SLOT_W = CARD_W;
-export const SLOT_H = CARD_H;
-export const SLOT_GAP = CARD_GAP;
+export const SLOT_AREA_Y = PORTAL_Y + Math.floor((ZONE_PLAYER_H - SLOT_H) / 2); // vertically centered
 
 // === Hand Cards Positioning (fanned layout in left third) ===
-// Hand cards are 90% size of regular cards
+// Hand cards are 90% size of portal slot cards
 export const HAND_AREA_X = PORTAL_X + 10; // Small inset from left edge
 export const HAND_AREA_W = Math.max(120, Math.floor(PORTAL_W / 3)); // Left third of player area
 export const HAND_CENTER_Y = PORTAL_Y + ZONE_PLAYER_H * 0.5; // Vertically centered
-export const HAND_CARD_W = Math.round(CARD_W * 0.9); // 80
-export const HAND_CARD_H = Math.round(CARD_H * 0.9); // 124
+export const HAND_CARD_W = Math.round(SLOT_W * 1.0); // 121
+export const HAND_CARD_H = Math.round(SLOT_H * 1.0); // 186
 export const HAND_MAX = 9; // Maximum hand cards to display
 
 // === Canvas UI Panel (action counter + end-turn / discard button) ===
@@ -101,31 +101,31 @@ export const PEARL_DECK_MAX_SIZE = 56; // 8 values × 7 copies per value
 
 // === Portal Image Dimensions (aspect ratio 1325:1030 relative to character card height) ===
 // The portal image file is 1325 px tall, character card image is 1030 px tall.
-// Scale proportionally so the rendered portal image matches the rendered card height.
-export const PORTAL_IMG_H = Math.round(CARD_H * 1325 / 1030);
+// Scale proportionally so the rendered portal image matches the rendered slot card height.
+export const PORTAL_IMG_H = Math.round(SLOT_H * 1325 / 1030);
 // Vertically center the portal image around the slot card center
-export const PORTAL_IMG_Y = Math.round(SLOT_AREA_Y + CARD_H / 2 - PORTAL_IMG_H / 2);
+export const PORTAL_IMG_Y = Math.round(SLOT_AREA_Y + SLOT_H / 2 - PORTAL_IMG_H / 2);
 
 // === Opponent Zone Scaling Constants ===
 // OPP_SCALE: base fit factor × 1.5 (50% larger than minimum-fit, intentionally overflows zone edges).
 // Base: min(ZONE_CENTER_H / PORTAL_W, MARGIN_H / ZONE_PLAYER_H) ≈ 0.387
-export const OPP_SCALE = Math.min(ZONE_CENTER_H / PORTAL_W, MARGIN_H / ZONE_PLAYER_H) * 1.5;
+export const OPP_SCALE = Math.min(ZONE_CENTER_H / PORTAL_W, MARGIN_H / ZONE_PLAYER_H) * 2.0;
 
 // Scaled virtual zone dimensions (matches the player zone at OPP_SCALE)
 export const OPP_SCALED_W = Math.round(PORTAL_W * OPP_SCALE);
 export const OPP_SCALED_H = Math.round(ZONE_PLAYER_H * OPP_SCALE);
 
-// Card dimensions in opponent zones
-export const OPP_SLOT_W = Math.round(CARD_W * OPP_SCALE);
-export const OPP_SLOT_H = Math.round(CARD_H * OPP_SCALE);
-export const OPP_SLOT_GAP = Math.max(1, Math.round(CARD_GAP * OPP_SCALE));
+// Card dimensions in opponent zones (scale from portal card sizes)
+export const OPP_SLOT_W = Math.round(SLOT_W * OPP_SCALE);
+export const OPP_SLOT_H = Math.round(SLOT_H * OPP_SCALE);
+export const OPP_SLOT_GAP = Math.max(1, Math.round(SLOT_GAP * OPP_SCALE));
 // Portal image height for opponent zones (same ratio as player portal, scaled)
 export const OPP_PORTAL_IMG_H = Math.round(PORTAL_IMG_H * OPP_SCALE);
 export const OPP_ACT_W = Math.round(ACTIVATED_CARD_W * OPP_SCALE);
 export const OPP_ACT_H = Math.round(ACTIVATED_CARD_H * OPP_SCALE);
 export const OPP_ACT_GAP = Math.max(1, Math.round(ACTIVATED_CARD_GAP * OPP_SCALE));
 export const OPP_HAND_W = Math.round(HAND_CARD_W * OPP_SCALE);
-export const OPP_HAND_H = Math.round(HAND_CARD_H * OPP_SCALE);
+export const OPP_HAND_H = Math.round(HAND_CARD_H * OPP_SCALE); // scales with portal card size
 
 // Relative offsets from the virtual zone's top-left corner (i.e. position in scaled player space)
 export const OPP_HAND_REL_X = Math.round((HAND_AREA_X - PORTAL_X) * OPP_SCALE);
