@@ -820,10 +820,11 @@ export const PortaleVonMolthar = {
 
     const N = G.playerOrder.length;
     const triggerTurn = G.finalRoundTriggerTurn;
-    // Turns needed after trigger:
+    // Turns needed after trigger: exactly N
     //   remaining current round: N - 1 - startingPlayerIdx
-    //   full final round:        N
-    const turnsNeeded = (N - 1 - startingPlayerIdx) + N;
+    //   full final round up to and including starting player: startingPlayerIdx + 1
+    //   total: (N - 1 - startingPlayerIdx) + (startingPlayerIdx + 1) = N
+    const turnsNeeded = N;
 
     // Game ends when enough turns have passed (endIf fires between turns,
     // so ctx.turn is already the next turn's number when checked here)

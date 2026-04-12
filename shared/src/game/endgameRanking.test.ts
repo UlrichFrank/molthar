@@ -32,17 +32,18 @@ describe('endIf — timing', () => {
     expect(endIf({ G, ctx: makeCtx('0', 99) })).toBeUndefined();
   });
 
-  it('N=2, Spieler 0 triggert bei Runde T — endet nach T+3 Runden', () => {
-    // [0,1], idx=0 → turnsNeeded = (2-1-0)+2 = 3 → end when turn > T+3
+  it('N=2, Spieler 0 triggert bei Runde T — endet nach T+2 Runden', () => {
+    // [0,1], idx=0 → turnsNeeded = N = 2 → end when turn > T+2
+    //   verbleibend: (2-1-0)=1, finale Runde bis inkl. idx=0: (0+1)=1 → 1+1=2
     const G = makeGameState(2);
     const T = 5;
     setupFinalRound(G, '0', T);
     G.players['0'].powerPoints = 12;
 
-    // Noch nicht fertig: Turn T+3 exakt (= triggerTurn + turnsNeeded)
-    expect(endIf({ G, ctx: makeCtx('0', T + 3) })).toBeUndefined();
-    // Fertig: Turn T+4 (erste Runde nach finaler Runde)
-    expect(endIf({ G, ctx: makeCtx('0', T + 4) })).toBeDefined();
+    // Noch nicht fertig: Turn T+2 exakt (= triggerTurn + turnsNeeded)
+    expect(endIf({ G, ctx: makeCtx('0', T + 2) })).toBeUndefined();
+    // Fertig: Turn T+3 (erste Runde nach finaler Runde)
+    expect(endIf({ G, ctx: makeCtx('0', T + 3) })).toBeDefined();
   });
 
   it('N=2, Spieler 1 triggert bei Runde T — endet nach T+2 Runden', () => {
@@ -56,15 +57,16 @@ describe('endIf — timing', () => {
     expect(endIf({ G, ctx: makeCtx('0', T + 3) })).toBeDefined();
   });
 
-  it('N=4, Spieler 2 triggert bei Runde T — endet nach T+5 Runden', () => {
-    // [0,1,2,3], idx=2 → turnsNeeded = (4-1-2)+4 = 5 → end when turn > T+5
+  it('N=4, Spieler 2 triggert bei Runde T — endet nach T+4 Runden', () => {
+    // [0,1,2,3], idx=2 → turnsNeeded = N = 4 → end when turn > T+4
+    //   verbleibend: (4-1-2)=1, finale Runde bis inkl. idx=2: (2+1)=3 → 1+3=4
     const G = makeGameState(4);
     const T = 10;
     setupFinalRound(G, '2', T);
     G.players['2'].powerPoints = 13;
 
-    expect(endIf({ G, ctx: makeCtx('0', T + 5) })).toBeUndefined();
-    expect(endIf({ G, ctx: makeCtx('0', T + 6) })).toBeDefined();
+    expect(endIf({ G, ctx: makeCtx('0', T + 4) })).toBeUndefined();
+    expect(endIf({ G, ctx: makeCtx('0', T + 5) })).toBeDefined();
   });
 
   it('endet nicht vorzeitig während des Trigger-Zuges selbst', () => {
@@ -131,7 +133,7 @@ describe('endIf — ranking mit Tiebreaker', () => {
     G.players['2'].powerPoints = 12;
     G.players['3'].powerPoints = 8;
 
-    // N=4, idx=0 → turnsNeeded=(4-1-0)+4=7 → end when turn > 1+7=8
+    // N=4, idx=0 → turnsNeeded=N=4 → end when turn > 1+4=5; turn=9 qualifies
     const result = endIf({ G, ctx: makeCtx('0', 9) });
     expect(result).toBeDefined();
     expect(result.ranking).toHaveLength(4);
