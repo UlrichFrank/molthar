@@ -205,6 +205,8 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     ? activatedCharacters[activeCharacterIndex]
     : null;
 
+  const [activeOwnPortalSlot, setActiveOwnPortalSlot] = useState<number | null>(null);
+  const [previewAuslageCard, setPreviewAuslageCard] = useState<import('@portale-von-molthar/shared').CharacterCard | null>(null);
   const [activeOpponentCharacter, setActiveOpponentCharacter] = useState<{ playerId: string; index: number } | null>(null);
   const [activeOpponentPortalCard, setActiveOpponentPortalCard] = useState<{ playerId: string; slotIndex: number } | null>(null);
 
@@ -445,6 +447,29 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           setActiveOpponentPortalCard({ playerId: ownerPlayerId, slotIndex });
         }
       }
+    } else if (region.type === 'portal-slot') {
+      // Always allow viewing own portal cards; activate if eligible
+      const slotIndex = region.id as number;
+      if (me && me.portal[slotIndex]) {
+        if (isActive && actionCount < maxActions) {
+          const entry = me.portal[slotIndex];
+          dialog.openActivationDialog(entry.card, slotIndex);
+        } else {
+          setActiveOwnPortalSlot(slotIndex);
+        }
+      }
+    } else if (region.type === 'auslage-card' && (region.id as number) < 2) {
+      // Always allow previewing character auslage cards; take action only if eligible
+      const id = region.id as number;
+      const card = characterSlots[id];
+      if (card) {
+        if (isActive && actionCount < maxActions) {
+          // Fall through to handleCardClick for full action handling
+          handleCardClick(region);
+        } else {
+          setPreviewAuslageCard(card);
+        }
+      }
     } else if (isActive) {
       handleCardClick(region);
     }
@@ -494,15 +519,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
           const pearlIdx = id - 2;
           if (!pearlSlots[pearlIdx]) break;
           moves.takePearlCard(pearlIdx);
-        }
-        break;
-      }
-
-      case 'portal-slot': {
-        const slotIndex = region.id as number;
-        if (me && me.portal[slotIndex]) {
-          const entry = me.portal[slotIndex];
-          dialog.openActivationDialog(entry.card, slotIndex);
         }
         break;
       }
@@ -562,13 +578,15 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         if (activeCharacterIndex !== null) setActiveCharacterIndex(null);
+        if (activeOwnPortalSlot !== null) setActiveOwnPortalSlot(null);
         if (activeOpponentCharacter !== null) setActiveOpponentCharacter(null);
         if (activeOpponentPortalCard !== null) setActiveOpponentPortalCard(null);
+        if (previewAuslageCard !== null) setPreviewAuslageCard(null);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeCharacterIndex, activeOpponentCharacter, activeOpponentPortalCard]);
+  }, [activeCharacterIndex, activeOwnPortalSlot, activeOpponentCharacter, activeOpponentPortalCard, previewAuslageCard]);
 
   // ── Auto-open steal dialog when flag is set and we are the active player
   useEffect(() => {
@@ -949,6 +967,11 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
         onClose={() => setActiveCharacterIndex(null)}
       />
       <ActivatedCharacterDetailView
+        character={activeOwnPortalSlot !== null ? (me?.portal[activeOwnPortalSlot] ?? null) : null}
+        onClose={() => setActiveOwnPortalSlot(null)}
+        rotated={false}
+      />
+      <ActivatedCharacterDetailView
         character={activeOpponentCharacterData}
         onClose={() => setActiveOpponentCharacter(null)}
       />
@@ -957,6 +980,12 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
         onClose={() => setActiveOpponentPortalCard(null)}
         rotated={false}
       />
+      {previewAuslageCard && (
+        <CharacterTakePreviewDialog
+          card={previewAuslageCard}
+          onCancel={() => setPreviewAuslageCard(null)}
+        />
+      )}
 
       {/* Endgame Results Dialog */}
       {gameover !== undefined && gameover.ranking && (
