@@ -15,7 +15,7 @@ interface PlayerStatusBadgeProps {
 function getActionColor(actionCount: number, maxActions: number): { color: string; textColor?: string } {
   const remaining = maxActions - actionCount;
   if (remaining > 1) return { color: '#22c55e' };
-  if (remaining === 1) return { color: '#facc15', textColor: '#000' };
+  if (remaining === 1) return { color: '#facc15' };
   return { color: '#ef4444' };
 }
 

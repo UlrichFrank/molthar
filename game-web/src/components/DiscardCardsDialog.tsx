@@ -63,7 +63,7 @@ export function DiscardCardsDialog({
           cards={hand}
           selected={selectedCardIndices}
           onToggle={toggleCard}
-          getImageSrc={(card) => `/assets/Perlenkarte${card.value}.png`}
+          getImageSrc={(card) => `/assets/Perlenkarte${card.value}${[3,4,5].includes(card.value) ? '-neu' : ''}.png`}
           getAlt={(card) => `Pearl ${card.value}`}
         />
       </div>
