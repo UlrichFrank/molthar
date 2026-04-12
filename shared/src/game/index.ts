@@ -51,14 +51,6 @@ export const PortaleVonMolthar = {
       };
     }
     
-    // Deal initial pearl cards to players (3 cards each)
-    for (const playerId of playerIds) {
-      for (let i = 0; i < 3; i++) {
-        const card = pearlDeck.pop();
-        if (card) players[playerId].hand.push(card);
-      }
-    }
-    
     // Refill character slots
     const characterSlots: CharacterCard[] = [];
     for (let i = 0; i < 2; i++) {
@@ -742,6 +734,13 @@ export const PortaleVonMolthar = {
    * Turn Configuration: Reset action count at start of each turn
    */
   turn: {
+    order: {
+      first: ({ G, ctx }: any) => {
+        const idx = ctx.playOrder.indexOf(G.startingPlayer);
+        return idx >= 0 ? idx : 0;
+      },
+      next: ({ G, ctx }: any) => (ctx.playOrderPos + 1) % ctx.playOrder.length,
+    },
     onBegin: ({ G, ctx }: { G: GameState; ctx: any }) => {
       G.isReshufflingPearlDeck = false;
       G.isReshufflingCharacterDeck = false;
