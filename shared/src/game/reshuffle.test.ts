@@ -143,7 +143,6 @@ describe('reshuffle-empty-decks — character deck', () => {
     G.characterDiscardPile = [makeCharacterCard('d1'), makeCharacterCard('d2')];
     G.players['0']!.portal = [];
     G.actionCount = 0;
-    const initialDiscardCount = G.characterDiscardPile.length;
     const ctx = { currentPlayer: '0', activePlayers: {} };
     const result = moves.discardPickedCharacterCard({ G, ctx, events: {} }, -1);
     expect(result).not.toBe('INVALID_MOVE');
