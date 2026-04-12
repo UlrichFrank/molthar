@@ -600,7 +600,12 @@ function drawOpponentZone(
     const actX = -hw + OPP_ACT_REL_X + col * (OPP_ACT_W + OPP_ACT_GAP);
     const actY = -hh + OPP_ACT_REL_Y + row * (OPP_ACT_H + OPP_ACT_GAP);
     const card = data.activatedCharacters[i]!;
+    ctx.save();
+    ctx.translate(actX + OPP_ACT_W / 2, actY + OPP_ACT_H / 2);
+    ctx.rotate(Math.PI);
+    ctx.translate(-(actX + OPP_ACT_W / 2), -(actY + OPP_ACT_H / 2));
     drawImageOrFallback(ctx, card.card.imageName, actX, actY, OPP_ACT_W, OPP_ACT_H, card.card.name);
+    ctx.restore();
   }
 
   // 4. Hand cards — face-down stack, left side (from opponent's perspective)

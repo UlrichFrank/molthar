@@ -371,7 +371,7 @@ export function buildCanvasRegions(
           id: regionId,
           x: worldX, y: worldY,
           w: OPP_ACT_W, h: OPP_ACT_H,
-          angle: rot,
+          angle: rot + Math.PI,
           centered: true,
           ...animState(existing, 'opponent-activated-character', regionId),
         });
