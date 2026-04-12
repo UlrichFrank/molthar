@@ -59,6 +59,8 @@ import {
   getHandCardPosition,
   getPortalSlotPosition,
   getActivatedCardPosition,
+  PORTAL_IMG_H,
+  PORTAL_IMG_Y,
   OPP_SCALED_W,
   OPP_SCALED_H,
   OPP_SLOT_W,
@@ -75,6 +77,8 @@ import {
   OPP_SLOT_REL_Y,
   OPP_ACT_REL_X,
   OPP_ACT_REL_Y,
+  OPP_PORTAL_IMG_H,
+  OPP_PORTAL_IMG_REL_Y,
   ACTIVATED_GRID_COLS,
   getPortalImageName,
 } from './cardLayoutConstants';
@@ -242,7 +246,7 @@ export function drawAuslage(
     if (!card) {
       drawEmptySlot(ctx, x, startY, `Pearl ${pearlIdx + 1}`);
     } else {
-      const pearlImg = [3,4,5].includes(card.value) ? `Perlenkarte${card.value}-neu.png` : `Perlenkarte${card.value}.png`;
+      const pearlImg = card.hasRefreshSymbol ? `Perlenkarte${card.value}-neu.png` : `Perlenkarte${card.value}.png`;
       drawImageOrFallback(ctx, pearlImg, x, startY, CARD_W, CARD_H, String(card.value));
       if (config.selectedPearl === pearlIdx) {
         ctx.strokeStyle = '#FFD700';
@@ -266,18 +270,14 @@ export function drawPlayerPortal(
   colorIndex: number = 1,
   isStartingPlayer: boolean = false,
 ) {
-  const portalX = MARGIN_H;
-  const portalW = BASE_W - 2 * MARGIN_H;
-  const portalY = ZONE_TOP_H + ZONE_CENTER_H;
-  const portalH = ZONE_PLAYER_H;
-
   // Draw portal background based on player's chosen color
+  // Height proportional to character card (ratio 1325:1030), vertically centered around slots
   const portalImg = getPortalImageName(colorIndex, isStartingPlayer);
-  drawImageOrFallback(ctx, portalImg, portalX, portalY, portalW, portalH);
+  drawImageOrFallback(ctx, portalImg, PORTAL_X, PORTAL_IMG_Y, PORTAL_W, PORTAL_IMG_H);
 
   // Diamonds (left side)
-  const diamondX = portalX + 20;
-  const diamondY = portalY + 20;
+  const diamondX = PORTAL_X + 20;
+  const diamondY = PORTAL_Y + 20;
   ctx.fillStyle = '#7dd3fc';
   ctx.font = '24px Arial';
   ctx.textAlign = 'left';
@@ -313,7 +313,7 @@ export function drawPlayerPortal(
     ctx.translate(cx, cy);
     ctx.rotate(angle);
 
-    const pearlImg = [3,4,5].includes(card.value) ? `Perlenkarte${card.value}-neu.png` : `Perlenkarte${card.value}.png`;
+    const pearlImg = card.hasRefreshSymbol ? `Perlenkarte${card.value}-neu.png` : `Perlenkarte${card.value}.png`;
     drawImageOrFallback(ctx, pearlImg, -HAND_CARD_W / 2, -HAND_CARD_H / 2, HAND_CARD_W, HAND_CARD_H, String(card.value));
 
     // Selection border
@@ -578,9 +578,9 @@ function drawOpponentZone(
   const hw = OPP_SCALED_W / 2;
   const hh = OPP_SCALED_H / 2;
 
-  // 1. Portal background — fills the scaled virtual zone exactly
+  // 1. Portal background — correct aspect ratio (1325:1030), vertically centered around slots
   const portalImg = getPortalImageName(data.colorIndex, data.isStartingPlayer);
-  drawImageOrFallback(ctx, portalImg, -hw, -hh, OPP_SCALED_W, OPP_SCALED_H, `P${data.colorIndex}`);
+  drawImageOrFallback(ctx, portalImg, -hw, -hh + OPP_PORTAL_IMG_REL_Y, OPP_SCALED_W, OPP_PORTAL_IMG_H, `P${data.colorIndex}`);
 
   // 2. Portal slot cards — same relative position as in the player zone
   for (let i = 0; i < 2; i++) {

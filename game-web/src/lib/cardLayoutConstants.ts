@@ -99,6 +99,13 @@ export const PEARL_DECK_Y = AUSLAGE_START_Y + CARD_H + DECK_BELOW_OFFSET_Y;
 export const CHARACTER_DECK_MAX_SIZE = 52; // 54 total character cards - 2 in initial auslage
 export const PEARL_DECK_MAX_SIZE = 56; // 8 values × 7 copies per value
 
+// === Portal Image Dimensions (aspect ratio 1325:1030 relative to character card height) ===
+// The portal image file is 1325 px tall, character card image is 1030 px tall.
+// Scale proportionally so the rendered portal image matches the rendered card height.
+export const PORTAL_IMG_H = Math.round(CARD_H * 1325 / 1030);
+// Vertically center the portal image around the slot card center
+export const PORTAL_IMG_Y = Math.round(SLOT_AREA_Y + CARD_H / 2 - PORTAL_IMG_H / 2);
+
 // === Opponent Zone Scaling Constants ===
 // OPP_SCALE: base fit factor × 1.5 (50% larger than minimum-fit, intentionally overflows zone edges).
 // Base: min(ZONE_CENTER_H / PORTAL_W, MARGIN_H / ZONE_PLAYER_H) ≈ 0.387
@@ -112,6 +119,8 @@ export const OPP_SCALED_H = Math.round(ZONE_PLAYER_H * OPP_SCALE);
 export const OPP_SLOT_W = Math.round(CARD_W * OPP_SCALE);
 export const OPP_SLOT_H = Math.round(CARD_H * OPP_SCALE);
 export const OPP_SLOT_GAP = Math.max(1, Math.round(CARD_GAP * OPP_SCALE));
+// Portal image height for opponent zones (same ratio as player portal, scaled)
+export const OPP_PORTAL_IMG_H = Math.round(PORTAL_IMG_H * OPP_SCALE);
 export const OPP_ACT_W = Math.round(ACTIVATED_CARD_W * OPP_SCALE);
 export const OPP_ACT_H = Math.round(ACTIVATED_CARD_H * OPP_SCALE);
 export const OPP_ACT_GAP = Math.max(1, Math.round(ACTIVATED_CARD_GAP * OPP_SCALE));
@@ -123,6 +132,8 @@ export const OPP_HAND_REL_X = Math.round((HAND_AREA_X - PORTAL_X) * OPP_SCALE);
 export const OPP_HAND_REL_Y = Math.round((HAND_CENTER_Y - PORTAL_Y) * OPP_SCALE); // center-y of hand area
 export const OPP_SLOT_REL_X = Math.round((SLOT_AREA_X - PORTAL_X) * OPP_SCALE);
 export const OPP_SLOT_REL_Y = Math.round((SLOT_AREA_Y - PORTAL_Y) * OPP_SCALE);
+// Y offset from virtual zone top-left (-hh): centers portal image around slot card center
+export const OPP_PORTAL_IMG_REL_Y = Math.round(OPP_SLOT_REL_Y + OPP_SLOT_H / 2 - OPP_PORTAL_IMG_H / 2);
 export const OPP_ACT_REL_X = Math.round((ACTIVATED_GRID_X - PORTAL_X) * OPP_SCALE);
 export const OPP_ACT_REL_Y = Math.round((ACTIVATED_GRID_Y - PORTAL_Y) * OPP_SCALE);
 

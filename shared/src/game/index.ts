@@ -118,14 +118,7 @@ export const PortaleVonMolthar = {
         card = G.pearlSlots[slotIndex];
         G.pearlSlots.splice(slotIndex, 1);
       } else if (slotIndex === -1) {
-        card = G.pearlDeck.pop();
-        // Proactively reshuffle if deck is now empty and slots are already full
-        // (refillSlots won't call drawCard when slots are at max capacity)
-        if (G.pearlDeck.length === 0 && G.pearlDiscardPile.length > 0) {
-          G.pearlDeck.push(...G.pearlDiscardPile.splice(0));
-          shuffleArray(G.pearlDeck);
-          G.isReshufflingPearlDeck = true;
-        }
+        card = drawCard(G.pearlDeck, G.pearlDiscardPile, () => { G.isReshufflingPearlDeck = true; });
       } else {
         return INVALID_MOVE;
       }

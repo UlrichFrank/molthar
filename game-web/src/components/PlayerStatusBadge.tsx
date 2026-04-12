@@ -51,7 +51,6 @@ export function PlayerStatusBadge({ playerState, playerName, actionCount, maxAct
           boxShadow: isActiveTurn ? '0 0 8px 2px rgba(250,204,21,0.45), 0 2px 8px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.3)',
           pointerEvents: 'auto',
           transition: 'background 0.15s, border-color 0.15s',
-          maxWidth: 220,
         }}
         onMouseEnter={e => {
           (e.currentTarget as HTMLButtonElement).style.background = 'rgba(30, 41, 59, 0.95)';
@@ -66,12 +65,8 @@ export function PlayerStatusBadge({ playerState, playerName, actionCount, maxAct
           <span style={{
             fontSize: '0.7rem',
             color: '#cbd5e1',
-            maxWidth: 200,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
             display: 'block',
-            width: '100%',
             textAlign: 'center',
           }}>
             {playerName}
