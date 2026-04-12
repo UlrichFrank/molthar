@@ -110,14 +110,7 @@ export function CharacterActivationDialog({
       next.delete(idx);
     } else {
       const card = hand[idx]!;
-      let initialValue = card.value;
-      let abilityType: CharacterAbility['type'] | undefined;
-      // Auto-apply onesCanBeEights
-      if (hasOnesCanBeEights && card.value === 1) {
-        initialValue = 8;
-        abilityType = 'onesCanBeEights';
-      }
-      next.set(idx, { handCardIndex: idx, value: initialValue, abilityType });
+      next.set(idx, { handCardIndex: idx, value: card.value });
     }
     setHandSelections(next);
   };
