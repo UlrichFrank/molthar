@@ -739,7 +739,7 @@ export const PortaleVonMolthar = {
         const idx = ctx.playOrder.indexOf(G.startingPlayer);
         return idx >= 0 ? idx : 0;
       },
-      next: ({ G, ctx }: any) => (ctx.playOrderPos + 1) % ctx.playOrder.length,
+      next: ({ ctx }: any) => (ctx.playOrderPos + 1) % ctx.playOrder.length,
     },
     onBegin: ({ G, ctx }: { G: GameState; ctx: any }) => {
       G.isReshufflingPearlDeck = false;
