@@ -9,7 +9,6 @@ import {
   drawActivatedCharactersGrid,
   drawUIButton,
   drawPortalSwapButtons,
-  drawOpponentActionCounter,
   drawRegionEffects,
   drawOpponentPortals,
 } from '../lib/gameRender';
@@ -230,7 +229,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   const myPlayerIDRef = useRef(myPlayerID);
   const activePlayerIDRef = useRef(activePlayerID);
   const activePlayerRef = useRef(activePlayer);
-  const activePlayerNameRef = useRef<string>('');
   const imagesLoadedRef = useRef(false);
   const rafIdRef = useRef(0);
   /** Set to true whenever a redraw is needed; cleared after drawing. */
@@ -250,11 +248,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   useEffect(() => { myPlayerIDRef.current = myPlayerID; }, [myPlayerID]);
   useEffect(() => { activePlayerIDRef.current = activePlayerID; }, [activePlayerID]);
   useEffect(() => { activePlayerRef.current = activePlayer; }, [activePlayer]);
-  useEffect(() => {
-    const fallback = activePlayer?.name || `Player ${activePlayerIndex + 1}`;
-    activePlayerNameRef.current = resolvePlayerName(activePlayerID, fallback);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activePlayerID, activePlayerIndex, activePlayer, matchData]);
 
   // Rebuild regions when game state changes (in-place to preserve animation)
   useEffect(() => {
@@ -375,9 +368,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     if (isActive) {
       const discardRegion = regions.find(r => r.type === 'ui-discard-cards');
       if (discardRegion) drawUIButton(drawCtx, discardRegion);
-    } else {
-      const name = activePlayerNameRef.current || activePlayer?.name || `Player ${activePlayerID}`;
-      drawOpponentActionCounter(drawCtx, G, name);
     }
 
     // Hover glow + click flash (second pass)
@@ -654,6 +644,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
               playerName={resolvePlayerName(myPlayerID, me.name)}
               actionCount={isActive ? actionCount : undefined}
               maxActions={isActive ? maxActions : undefined}
+              isActiveTurn={isActive}
             />
             <EndTurnButton
               isActive={isActive}
@@ -683,6 +674,9 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
                 <PlayerStatusBadge
                   playerState={playerState}
                   playerName={resolvePlayerName(playerId, playerState.name)}
+                  isActiveTurn={playerId === activePlayerID}
+                  actionCount={playerId === activePlayerID ? actionCount : undefined}
+                  maxActions={playerId === activePlayerID ? maxActions : undefined}
                 />
               </div>
             );

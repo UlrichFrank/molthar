@@ -40,3 +40,16 @@
 
 - [x] 8.1 Inline-`minWidth`- und `padding`-Override in `PlayerStatusDialog.tsx` entfernen; Dialog nutzt natürliche `.game-dialog`-CSS-Breite (`max-width: min(600px, 95vw)`, `padding: 2rem`)
 - [x] 8.2 `PlayerStatusDialog`-Test: Dialog hat keine einengenden Inline-Width-Styles
+
+## 9. Aktiver-Spieler-Indikator im Badge
+
+- [x] 9.1 Prop `isActiveTurn?: boolean` zu `PlayerStatusBadge` hinzufügen; bei `true`: Badge-Border hervorheben (z.B. `border-color: #facc15`, `box-shadow` mit gelbem Glow)
+- [x] 9.2 In `CanvasGameBoard.tsx`: eigenes Badge erhält `isActiveTurn={isActive}`; aktiver Gegner (`playerId === activePlayerID`) erhält `isActiveTurn={true}`
+- [x] 9.3 `PlayerStatusBadge`-Test: `isActiveTurn=true` führt zu hervorgehobenem Border (`data-testid` oder CSS-Check)
+
+## 10. drawOpponentActionCounter ins Badge überführen
+
+- [x] 10.1 In `CanvasGameBoard.tsx`: aktiver Gegner erhält `actionCount={G.actionCount}` und `maxActions={activeMaxActions}` — identisch wie eigenes Badge während eigenem Zug
+- [x] 10.2 `drawOpponentActionCounter`-Aufruf aus `renderFrame` entfernen (der `else`-Branch der `isActive`-Prüfung)
+- [x] 10.3 `drawOpponentActionCounter`-Import aus `CanvasGameBoard.tsx` entfernen (falls nicht anderweitig genutzt)
+- [x] 10.4 `PlayerStatusBadge`-Test: Gegner-Badge mit `isActiveTurn=true`, `actionCount`/`maxActions` zeigt Aktionszähler analog zum eigenen Badge

@@ -9,6 +9,7 @@ interface PlayerStatusBadgeProps {
   playerName?: string;
   actionCount?: number;
   maxActions?: number;
+  isActiveTurn?: boolean;
 }
 
 function getActionColor(actionCount: number, maxActions: number): { color: string; textColor?: string } {
@@ -18,7 +19,7 @@ function getActionColor(actionCount: number, maxActions: number): { color: strin
   return { color: '#ef4444' };
 }
 
-export function PlayerStatusBadge({ playerState, playerName, actionCount, maxActions }: PlayerStatusBadgeProps) {
+export function PlayerStatusBadge({ playerState, playerName, actionCount, maxActions, isActiveTurn }: PlayerStatusBadgeProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const blueAbilities = playerState.activeAbilities.filter(a => a.persistent);
@@ -31,6 +32,8 @@ export function PlayerStatusBadge({ playerState, playerName, actionCount, maxAct
   return (
     <>
       <button
+        data-testid="player-status-badge"
+        data-active-turn={isActiveTurn ? 'true' : undefined}
         onClick={() => setIsOpen(true)}
         style={{
           display: 'flex',
@@ -38,14 +41,14 @@ export function PlayerStatusBadge({ playerState, playerName, actionCount, maxAct
           alignItems: 'center',
           gap: 3,
           background: 'rgba(15, 23, 42, 0.88)',
-          border: '1px solid rgba(148, 163, 184, 0.35)',
+          border: isActiveTurn ? '1px solid #facc15' : '1px solid rgba(148, 163, 184, 0.35)',
           borderRadius: 6,
           padding: '4px 8px',
           color: '#e2e8f0',
           fontSize: '0.75rem',
           fontWeight: 600,
           cursor: 'pointer',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+          boxShadow: isActiveTurn ? '0 0 8px 2px rgba(250,204,21,0.45), 0 2px 8px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.3)',
           pointerEvents: 'auto',
           transition: 'background 0.15s, border-color 0.15s',
           maxWidth: 220,

@@ -103,4 +103,32 @@ describe('PlayerStatusBadge', () => {
     const counter = screen.getByTestId('action-counter');
     expect(counter.getAttribute('data-action-color')).toBe('#ef4444');
   });
+
+  // isActiveTurn prop
+  it('highlights badge border when isActiveTurn is true', () => {
+    render(<PlayerStatusBadge playerState={makePlayerState()} isActiveTurn={true} />);
+    const badge = screen.getByTestId('player-status-badge');
+    expect(badge.getAttribute('data-active-turn')).toBe('true');
+  });
+
+  it('does not set data-active-turn when isActiveTurn is false', () => {
+    render(<PlayerStatusBadge playerState={makePlayerState()} isActiveTurn={false} />);
+    const badge = screen.getByTestId('player-status-badge');
+    expect(badge.getAttribute('data-active-turn')).toBeNull();
+  });
+
+  it('shows action counter in opponent badge with isActiveTurn=true', () => {
+    render(
+      <PlayerStatusBadge
+        playerState={makePlayerState()}
+        playerName="Gegner"
+        isActiveTurn={true}
+        actionCount={2}
+        maxActions={3}
+      />
+    );
+    expect(screen.getByText('2/3')).toBeDefined();
+    const badge = screen.getByTestId('player-status-badge');
+    expect(badge.getAttribute('data-active-turn')).toBe('true');
+  });
 });
