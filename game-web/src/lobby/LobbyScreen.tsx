@@ -6,10 +6,16 @@ import { WaitingRoom } from './WaitingRoom';
 import { MatchList } from './MatchList';
 import { CreateMatch } from './CreateMatch';
 import { saveSession, loadSession, clearSession } from './session';
+import { useTranslation } from '../i18n/useTranslation';
+import type { Locale } from '../i18n/translations';
 
 type LobbyView = 'lobby' | 'waiting' | 'in-game';
 
+const LOCALES: Locale[] = ['de', 'en-GB', 'fr'];
+const LOCALE_LABELS: Record<Locale, string> = { de: 'DE', 'en-GB': 'EN', fr: 'FR' };
+
 export function LobbyScreen() {
+  const { t, language, setLanguage } = useTranslation();
   const [view, setView] = useState<LobbyView>('lobby');
   const [playerName, setPlayerName] = useState('');
   const [matchID, setMatchID] = useState('');
@@ -74,7 +80,7 @@ export function LobbyScreen() {
   }, [loadMatches, sessionChecked]);
 
   const joinMatch = async (id: string, playerId: string, expectedTotal: number = 2) => {
-    if (!playerName.trim()) { setError('Bitte Namen eingeben'); return; }
+    if (!playerName.trim()) { setError(t('lobby.errorNameRequired')); return; }
     setError(null);
     try {
       const { playerCredentials } = await lobbyClient.joinMatch(
@@ -82,7 +88,7 @@ export function LobbyScreen() {
         id,
         {
           playerID: playerId,
-          playerName: playerName || `Player ${parseInt(playerId) + 1}`,
+          playerName: playerName || `Spieler ${parseInt(playerId) + 1}`,
         }
       );
       setCredentials(playerCredentials);
@@ -93,12 +99,12 @@ export function LobbyScreen() {
       saveSession({ matchID: id, playerID: playerId, credentials: playerCredentials, playerName });
       setView('waiting');
     } catch {
-      setError('Beitreten fehlgeschlagen. Ist der Platz noch frei?');
+      setError(t('lobby.errorJoinFailed'));
     }
   };
 
   const createMatch = async () => {
-    if (!playerName.trim()) { setError('Bitte Namen eingeben'); return; }
+    if (!playerName.trim()) { setError(t('lobby.errorNameRequired')); return; }
     setError(null);
     try {
       const { matchID: newMatchID } = await lobbyClient.createMatch(
@@ -107,13 +113,13 @@ export function LobbyScreen() {
       );
       await joinMatch(newMatchID, '0', numPlayers);
     } catch {
-      setError('Spiel konnte nicht erstellt werden. Läuft der Server auf Port 3001?');
+      setError(t('lobby.errorCreateFailed'));
     }
   };
 
   const handleJoinMatch = (match: Match) => {
     const freeSlot = match.players.find(p => p.name === undefined);
-    if (!freeSlot) { setError('Kein freier Platz in diesem Spiel'); return; }
+    if (!freeSlot) { setError(t('lobby.errorNoSlot')); return; }
     joinMatch(match.matchID, String(freeSlot.id), match.players.length);
   };
 
@@ -160,7 +166,7 @@ export function LobbyScreen() {
 
   // Task 7.3-7.4: Terminate game (creator only)
   const handleTerminateGame = () => {
-    if (!window.confirm('Spiel wirklich beenden? Das Spiel wird für alle Spieler beendet.')) return;
+    if (!window.confirm(t('lobby.endGameConfirm'))) return;
     window.dispatchEvent(new CustomEvent('pvm:terminateGame'));
   };
 
@@ -172,7 +178,7 @@ export function LobbyScreen() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!sessionChecked) {
-    return <div className="lobby-container"><p style={{ color: '#94a3b8' }}>Verbindung wird geprüft…</p></div>;
+    return <div className="lobby-container"><p style={{ color: '#94a3b8' }}>{t('app.checkingConnection')}</p></div>;
   }
 
   if (view === 'waiting') {
@@ -196,7 +202,7 @@ export function LobbyScreen() {
         />
         <div style={{ position: 'fixed', top: '1rem', right: '1rem', display: 'flex', gap: '0.5rem', zIndex: 1000 }}>
           <button className="leave-game-btn" style={{ position: 'static' }} onClick={handleLeaveGame}>
-            Leave Game
+            {t('lobby.leaveGame')}
           </button>
           {/* Task 7.1: "Spiel beenden" button only for creator (playerID "0") */}
           {playerID === '0' && (
@@ -205,7 +211,7 @@ export function LobbyScreen() {
               style={{ position: 'static', background: 'rgba(127,29,29,0.85)', borderColor: '#dc2626' }}
               onClick={handleTerminateGame}
             >
-              Spiel beenden
+              {t('lobby.endGame')}
             </button>
           )}
         </div>
@@ -215,15 +221,37 @@ export function LobbyScreen() {
 
   return (
     <div className="lobby-container">
-      <h1>Portale von Molthar</h1>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <h1 style={{ margin: 0 }}>Portale von Molthar</h1>
+        <div style={{ display: 'flex', gap: '0.25rem' }}>
+          {LOCALES.map(locale => (
+            <button
+              key={locale}
+              onClick={() => setLanguage(locale)}
+              style={{
+                padding: '0.25rem 0.6rem',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                background: language === locale ? 'rgba(99,102,241,0.9)' : 'rgba(30,41,59,0.7)',
+                border: `1px solid ${language === locale ? '#6366f1' : '#475569'}`,
+                borderRadius: 6,
+                color: language === locale ? '#fff' : '#94a3b8',
+                cursor: 'pointer',
+              }}
+            >
+              {LOCALE_LABELS[locale]}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {error && <div className="lobby-error">⚠️ {error}</div>}
 
       <div className="lobby-section">
-        <h2>Dein Name</h2>
+        <h2>{t('lobby.yourName')}</h2>
         <input
           type="text"
-          placeholder="Name eingeben"
+          placeholder={t('lobby.namePlaceholder')}
           value={playerName}
           onChange={(e) => setPlayerName(e.target.value)}
         />
@@ -232,18 +260,18 @@ export function LobbyScreen() {
       {/* Task 6.1: Rejoin section when a session is saved */}
       {savedSession && (
         <div className="lobby-section">
-          <h2>Meine laufenden Spiele</h2>
+          <h2>{t('lobby.runningGames')}</h2>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
             <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>
               Spiel <code style={{ color: '#e2e8f0' }}>{savedSession.matchID}</code>
               {' '}als {savedSession.playerName}
             </span>
-            <button onClick={handleRejoin}>Wiedereinsteigen</button>
+            <button onClick={handleRejoin}>{t('lobby.rejoin')}</button>
             <button
               style={{ background: 'rgba(71,85,105,0.5)', borderColor: '#475569' }}
               onClick={() => { clearSession(); setSavedSession(null); }}
             >
-              Verwerfen
+              {t('lobby.discard')}
             </button>
           </div>
         </div>

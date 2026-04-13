@@ -1,4 +1,5 @@
 import type { Match } from './useLobbyClient';
+import { useTranslation } from '../i18n/useTranslation';
 
 interface MatchListProps {
   matches: Match[];
@@ -9,21 +10,22 @@ interface MatchListProps {
 }
 
 export function MatchList({ matches, loadingMatches, playerNameSet, onRefresh, onJoin }: MatchListProps) {
+  const { t } = useTranslation();
   return (
     <div className="lobby-section">
       <h2>
-        Offene Spiele
+        {t('matches.title')}
         <button
           className="refresh-btn"
           onClick={onRefresh}
           disabled={loadingMatches}
-          title="Aktualisieren"
+          title={t('matches.title')}
         >
           {loadingMatches ? '⏳' : '🔄'}
         </button>
       </h2>
       {matches.length === 0 ? (
-        <p className="no-matches">Keine offenen Spiele vorhanden.</p>
+        <p className="no-matches">{t('matches.noMatches')}</p>
       ) : (
         <ul className="match-list">
           {matches.map((match) => {
@@ -34,7 +36,7 @@ export function MatchList({ matches, loadingMatches, playerNameSet, onRefresh, o
                 <span className="match-id">{match.matchID.slice(0, 8)}…</span>
                 <span className="match-players">👥 {joined}/{total}</span>
                 <button onClick={() => onJoin(match)} disabled={!playerNameSet}>
-                  Beitreten
+                  {t('matches.join')}
                 </button>
               </li>
             );

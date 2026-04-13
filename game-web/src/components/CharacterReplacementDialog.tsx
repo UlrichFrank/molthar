@@ -1,5 +1,6 @@
 import type { CharacterCard } from '@portale-von-molthar/shared';
 import { GameDialog, GameDialogTitle } from './GameDialog';
+import { useTranslation } from '../i18n/useTranslation';
 
 interface CharacterReplacementDialogProps {
   newCard: CharacterCard;
@@ -22,10 +23,11 @@ function CharacterImage({ card, className }: { card: CharacterCard; className?: 
 }
 
 export function CharacterReplacementDialog({ newCard, portalCards, onSelect, onDiscard, canDiscard = true, canCancel = false, onCancel }: CharacterReplacementDialogProps) {
+  const { t } = useTranslation();
   return (
     <GameDialog>
-      <GameDialogTitle>Replace Portal Card</GameDialogTitle>
-      <p style={{ margin: '0 0 1.5rem', textAlign: 'center' }}>Both portal slots are full. Choose which card to replace:</p>
+      <GameDialogTitle>{t('replacement.title')}</GameDialogTitle>
+      <p style={{ margin: '0 0 1.5rem', textAlign: 'center' }}>{t('replacement.description')}</p>
 
       <div className="flex flex-col items-center gap-4 mb-6">
         <CharacterImage
@@ -58,7 +60,7 @@ export function CharacterReplacementDialog({ newCard, portalCards, onSelect, onD
           onClick={canDiscard ? onDiscard : undefined}
           disabled={!canDiscard}
         >
-          Verwerfen
+          {t('replacement.discard')}
         </button>
         {canCancel && (
           <button
@@ -66,7 +68,7 @@ export function CharacterReplacementDialog({ newCard, portalCards, onSelect, onD
             style={{ flex: 'none', padding: '0.6rem 2rem' }}
             onClick={onCancel}
           >
-            Abbrechen
+            {t('common.cancel')}
           </button>
         )}
       </div>

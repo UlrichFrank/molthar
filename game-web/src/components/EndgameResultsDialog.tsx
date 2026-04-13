@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '../i18n/useTranslation';
 
 interface RankingEntry {
   playerId: string;
@@ -17,6 +18,7 @@ const RANK_LABELS = ['🥇', '🥈', '🥉'];
 const COUNTDOWN_SECONDS = 30;
 
 export function EndgameResultsDialog({ ranking, myPlayerId, reason }: EndgameResultsDialogProps) {
+  const { t } = useTranslation();
   const terminated = reason === 'terminated';
   const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS);
 
@@ -57,21 +59,21 @@ export function EndgameResultsDialog({ ranking, myPlayerId, reason }: EndgameRes
         display: 'flex', flexDirection: 'column', gap: '1.25rem',
       }}>
         <h2 style={{ margin: 0, color: '#f1f5f9', fontSize: '1.4rem', textAlign: 'center' }}>
-          Spiel beendet
+          {t('endgame.title')}
         </h2>
 
         {terminated && (
           <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.875rem', textAlign: 'center' }}>
-            Das Spiel wurde vom Ersteller beendet.
+            {t('endgame.terminated')}
           </p>
         )}
 
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid #1e3a5f' }}>
-              <th style={thStyle}>Rang</th>
-              <th style={{ ...thStyle, textAlign: 'left' }}>Spieler</th>
-              <th style={thStyle}>Punkte</th>
+              <th style={thStyle}>{t('endgame.rank')}</th>
+              <th style={{ ...thStyle, textAlign: 'left' }}>{t('endgame.player')}</th>
+              <th style={thStyle}>{t('endgame.points')}</th>
               <th style={thStyle}>💎</th>
             </tr>
           </thead>
@@ -89,7 +91,7 @@ export function EndgameResultsDialog({ ranking, myPlayerId, reason }: EndgameRes
                   </td>
                   <td style={{ ...tdStyle, color: isWinner ? '#fde68a' : '#e2e8f0', fontWeight: isWinner ? 700 : 400 }}>
                     {p.name}
-                    {isMe && <span style={{ marginLeft: 6, fontSize: '0.75rem', color: '#94a3b8' }}>(Du)</span>}
+                    {isMe && <span style={{ marginLeft: 6, fontSize: '0.75rem', color: '#94a3b8' }}>{t('endgame.me')}</span>}
                     {isWinner && !terminated && <span style={{ marginLeft: 6, fontSize: '0.75rem', color: '#fbbf24' }}>★</span>}
                   </td>
                   <td style={{ ...tdStyle, textAlign: 'center', color: '#f1f5f9', fontWeight: 600 }}>
@@ -114,10 +116,10 @@ export function EndgameResultsDialog({ ranking, myPlayerId, reason }: EndgameRes
               fontWeight: 600, cursor: 'pointer',
             }}
           >
-            Zurück zur Lobby
+            {t('endgame.backToLobby')}
           </button>
           <span style={{ color: '#64748b', fontSize: '0.8rem' }}>
-            Automatisch in {countdown}s
+            {t('endgame.autoLeave', { countdown })}
           </span>
         </div>
       </div>

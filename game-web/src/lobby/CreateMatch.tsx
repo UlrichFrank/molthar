@@ -1,3 +1,5 @@
+import { useTranslation } from '../i18n/useTranslation';
+
 interface CreateMatchProps {
   numPlayers: number;
   playerNameSet: boolean;
@@ -6,19 +8,19 @@ interface CreateMatchProps {
 }
 
 export function CreateMatch({ numPlayers, playerNameSet, onNumPlayersChange, onCreate }: CreateMatchProps) {
+  const { t } = useTranslation();
   return (
     <div className="lobby-section">
-      <h2>Neues Spiel erstellen</h2>
+      <h2>{t('create.title')}</h2>
       <div className="form-group">
-        <label>Spieleranzahl:</label>
+        <label>{t('create.playerCount')}</label>
         <select value={numPlayers} onChange={(e) => onNumPlayersChange(parseInt(e.target.value))}>
-          <option value={2}>2 Spieler</option>
-          <option value={3}>3 Spieler</option>
-          <option value={4}>4 Spieler</option>
-          <option value={5}>5 Spieler</option>
+          {[2, 3, 4, 5].map(n => (
+            <option key={n} value={n}>{t('create.nPlayers', { n })}</option>
+          ))}
         </select>
       </div>
-      <button onClick={onCreate} disabled={!playerNameSet}>Spiel erstellen</button>
+      <button onClick={onCreate} disabled={!playerNameSet}>{t('create.create')}</button>
     </div>
   );
 }

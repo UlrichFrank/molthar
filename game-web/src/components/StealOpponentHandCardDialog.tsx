@@ -1,6 +1,7 @@
 import type { PlayerState } from '@portale-von-molthar/shared';
 import { GameDialog, GameDialogTitle } from './GameDialog';
 import { useDialog } from '../contexts/DialogContext';
+import { useTranslation } from '../i18n/useTranslation';
 
 interface StealOpponentHandCardDialogProps {
   opponents: PlayerState[];
@@ -8,6 +9,7 @@ interface StealOpponentHandCardDialogProps {
 }
 
 export function StealOpponentHandCardDialog({ opponents, onSteal }: StealOpponentHandCardDialogProps) {
+  const { t } = useTranslation();
   const { dialog, selectStealOpponent } = useDialog();
   const selectedPlayerId = dialog.type === 'steal-opponent-hand-card' ? dialog.selectedPlayerId : null;
 
@@ -16,13 +18,13 @@ export function StealOpponentHandCardDialog({ opponents, onSteal }: StealOpponen
 
   return (
     <GameDialog>
-      <GameDialogTitle>Perlenkarte stehlen</GameDialogTitle>
+      <GameDialogTitle>{t('steal.title')}</GameDialogTitle>
 
       {selectedOpponent === null || selectedOpponent === undefined ? (
         // Stufe 1: Gegner auswählen
         <div>
           <p style={{ margin: '0 0 1rem', color: '#cbd5e1', fontSize: 'clamp(0.9rem, 3vw, 1rem)' }}>
-            Wähle einen Gegner:
+            {t('steal.chooseOpponent')}
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {opponentsWithCards.map(opponent => (
@@ -57,7 +59,7 @@ export function StealOpponentHandCardDialog({ opponents, onSteal }: StealOpponen
                     />
                   ))}
                 </div>
-                <span>{opponent.name} ({opponent.hand.length} Karte{opponent.hand.length !== 1 ? 'n' : ''})</span>
+                <span>{opponent.name} ({opponent.hand.length} {opponent.hand.length !== 1 ? t('steal.cards') : t('steal.card')})</span>
               </button>
             ))}
           </div>
@@ -66,7 +68,7 @@ export function StealOpponentHandCardDialog({ opponents, onSteal }: StealOpponen
         // Stufe 2: Karte des gewählten Gegners auswählen
         <div>
           <p style={{ margin: '0 0 1rem', color: '#cbd5e1', fontSize: 'clamp(0.9rem, 3vw, 1rem)' }}>
-            Wähle eine Karte von <strong>{selectedOpponent.name}</strong>:
+            {t('steal.chooseCardFrom', { name: selectedOpponent.name })}
           </p>
           <div className="game-dialog-card-grid">
             {selectedOpponent.hand.map((card, idx) => (
@@ -95,7 +97,7 @@ export function StealOpponentHandCardDialog({ opponents, onSteal }: StealOpponen
                 fontSize: '0.9rem',
               }}
             >
-              ← Zurück
+              {t('steal.back')}
             </button>
           </div>
         </div>

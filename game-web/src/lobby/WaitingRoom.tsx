@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { lobbyClient } from './useLobbyClient';
 import { PortaleVonMolthar } from '@portale-von-molthar/shared';
+import { useTranslation } from '../i18n/useTranslation';
 
 interface WaitingRoomProps {
   matchID: string;
@@ -10,6 +11,7 @@ interface WaitingRoomProps {
 }
 
 export function WaitingRoom({ matchID, totalPlayers, onAllJoined, onCancel }: WaitingRoomProps) {
+  const { t } = useTranslation();
   useEffect(() => {
     const checkPlayers = async () => {
       try {
@@ -32,10 +34,10 @@ export function WaitingRoom({ matchID, totalPlayers, onAllJoined, onCancel }: Wa
 
   return (
     <div className="lobby-container">
-      <h1>Warte auf alle Spieler...</h1>
-      <p>Das Spiel startet automatisch, wenn alle {totalPlayers} Spieler beigetreten sind.</p>
+      <h1>{t('waiting.title')}</h1>
+      <p>{t('waiting.description', { count: totalPlayers })}</p>
       <div className="waiting-spinner">⏳</div>
-      <button onClick={onCancel}>Abbrechen</button>
+      <button onClick={onCancel}>{t('waiting.cancel')}</button>
     </div>
   );
 }

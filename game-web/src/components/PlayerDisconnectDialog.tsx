@@ -1,10 +1,12 @@
 import React from 'react';
+import { useTranslation } from '../i18n/useTranslation';
 
 interface PlayerDisconnectDialogProps {
   playerName: string;
 }
 
 export function PlayerDisconnectDialog({ playerName }: PlayerDisconnectDialogProps) {
+  const { t } = useTranslation();
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 300,
@@ -22,10 +24,10 @@ export function PlayerDisconnectDialog({ playerName }: PlayerDisconnectDialogPro
           ⏳
         </div>
         <div style={{ color: '#f1f5f9', fontSize: '1.1rem', fontWeight: 600 }}>
-          Warte auf {playerName}...
+          {t('disconnect.waiting', { name: playerName })}
         </div>
         <div style={{ color: '#64748b', fontSize: '0.85rem' }}>
-          Verbindung unterbrochen
+          {t('disconnect.connectionLost')}
         </div>
       </div>
       <style>{`

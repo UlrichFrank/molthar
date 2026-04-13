@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from '../i18n/useTranslation';
 
 interface GameDialogProps {
   children: React.ReactNode;
@@ -48,10 +49,12 @@ interface GameDialogActionsProps {
 export function GameDialogActions({
   confirmLabel,
   confirmDisabled = false,
-  cancelLabel = 'Cancel',
+  cancelLabel,
   onConfirm,
   onCancel,
 }: GameDialogActionsProps) {
+  const { t } = useTranslation();
+  const resolvedCancelLabel = cancelLabel ?? t('common.cancel');
   return (
     <div className="game-dialog-actions">
       <button
@@ -62,7 +65,7 @@ export function GameDialogActions({
         {confirmLabel}
       </button>
       <button className="game-dialog-btn-cancel" onClick={onCancel}>
-        {cancelLabel}
+        {resolvedCancelLabel}
       </button>
     </div>
   );

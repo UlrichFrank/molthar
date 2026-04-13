@@ -1,5 +1,6 @@
 import type { CharacterCard } from '@portale-von-molthar/shared';
 import { GameDialog, GameDialogTitle, GameDialogActions } from './GameDialog';
+import { useTranslation } from '../i18n/useTranslation';
 
 interface CharacterTakePreviewDialogProps {
   card: CharacterCard;
@@ -9,9 +10,10 @@ interface CharacterTakePreviewDialogProps {
 }
 
 export function CharacterTakePreviewDialog({ card, faceDown = false, onConfirm, onCancel }: CharacterTakePreviewDialogProps) {
+  const { t } = useTranslation();
   return (
     <GameDialog>
-      <GameDialogTitle>{onConfirm ? 'Charakterkarte nehmen?' : 'Charakterkarte'}</GameDialogTitle>
+      <GameDialogTitle>{onConfirm ? t('character.takeTitle') : t('character.viewTitle')}</GameDialogTitle>
 
       <div className="flex flex-col items-center gap-4 mb-6">
         {faceDown ? (
@@ -31,15 +33,15 @@ export function CharacterTakePreviewDialog({ card, faceDown = false, onConfirm, 
 
       {onConfirm ? (
         <GameDialogActions
-          confirmLabel="Nehmen"
-          cancelLabel="Abbrechen"
+          confirmLabel={t('character.take')}
+          cancelLabel={t('common.cancel')}
           onConfirm={onConfirm}
           onCancel={onCancel}
         />
       ) : (
         <div className="game-dialog-actions" style={{ justifyContent: 'center' }}>
           <button className="game-dialog-btn-cancel" style={{ flex: 'none', padding: '0.6rem 2rem' }} onClick={onCancel}>
-            Schließen
+            {t('character.close')}
           </button>
         </div>
       )}
