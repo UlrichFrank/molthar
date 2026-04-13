@@ -38,8 +38,8 @@ Beim Klick auf eine aktivierbare Irrlicht-Karte SHALL der `CharacterActivationDi
 - **WHEN** der Spieler auf "Cancel" klickt
 - **THEN** wird kein Move aufgerufen und der Dialog geschlossen
 
-### Requirement: Erfolgreich aktivierte Irrlicht-Karte verschwindet aus dem Gegner-Portal
-Nach einer erfolgreichen `activateSharedCharacter`-Aktivierung aktualisiert sich der Game-State: Die Karte verbleibt im Portal des Besitzers als aktiviert (`activated: true`) oder wird entfernt und zu den `activatedCharacters` des Aktivierers hinzugefügt.
+### Requirement: Erfolgreich aktivierte Irrlicht-Karte SHALL nicht mehr klickbar sein
+Nach einer erfolgreichen `activateSharedCharacter`-Aktivierung SHALL sich der Game-State aktualisieren: Die Karte verbleibt im Portal des Besitzers als aktiviert (`activated: true`) und MUST nicht mehr als anklickbare Region registriert werden.
 
 #### Scenario: Karte nach Aktivierung nicht mehr anklickbar
 - **WHEN** eine Irrlicht-Karte durch `activateSharedCharacter` aktiviert wurde
