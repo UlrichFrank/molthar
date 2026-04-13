@@ -48,7 +48,6 @@ const BASE_H = 800;
 function buildOpponentsArray(
   G: GameState,
   myPlayerID: string,
-  resolveName: (playerId: string, fallback: string) => string,
 ): Array<import('../lib/gameRender').OpponentZoneData | null> {
   const playerOrder = G.playerOrder || Object.keys(G.players || {});
   const n = playerOrder.length;
@@ -67,7 +66,6 @@ function buildOpponentsArray(
       portal: player.portal ?? [],
       activatedCharacters: player.activatedCharacters ?? [],
       handCount: player.hand?.length ?? 0,
-      name: resolveName(playerId, player.name),
     };
   }
 
@@ -379,7 +377,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     const pearlDeckHover = regions.find(r => r.type === 'deck-pearl')?.hoverProgress ?? 0;
 
     // Build opponents array [left, top-left, top-right, right] from playerOrder
-    const opponents: Array<OpponentZoneData | null> = buildOpponentsArray(G, myPlayerID, resolvePlayerName);
+    const opponents: Array<OpponentZoneData | null> = buildOpponentsArray(G, myPlayerID);
 
     drawBackground(drawCtx);
     drawOpponentPortals(drawCtx, opponents);
