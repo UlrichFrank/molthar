@@ -14,9 +14,10 @@ Bereits implementierte read-only Views:
 - `portal-slot` und `auslage-card` (Charakter) immer klickbar
 - Wenn aktiv + Aktionen vorhanden → bisheriges Verhalten unverändert
 - Wenn inaktiv oder Aktionen ausgeschöpft → read-only Ansicht
+- `opponent-portal-card`-Regionen für ALLE vier Gegnerzonen (nicht nur direkte Nachbarn)
 
 **Non-Goals:**
-- Aktivierte Karten (own/opponent) und gegnerische Portalkarten — bereits ok, kein Eingriff
+- Aktivierte Karten (own/opponent) — bereits ok, kein Eingriff
 - Perlkarten in der Auslage — kein Vorschau-Bedarf
 - Mobile-/Touch-spezifisches Verhalten
 
@@ -36,7 +37,14 @@ State: neues `activeOwnPortalCard: number | null` (slotIndex), analog zu `active
 
 Die Regionen existieren bereits immer. Die Logik „aktiv + Aktionen → Aktion, sonst → Vorschau" gehört in den Click-Handler, nicht in die Region-Erzeugung. Dadurch bleibt `canvasRegions.ts` unverändert.
 
+**Decision: `opponent-portal-card` für alle Zonen via separater `allOpponents`-Parameter**
+
+`buildCanvasRegions` erhält zusätzlich zu `neighborOpponents` (für irrlicht-`enabled`-Logik) einen `allOpponentPortals`-Parameter mit Portal-Daten aller vier Zonen. Die Regionen werden für alle belegten Slots erzeugt. Im Click-Handler prüft der bestehende Irrlicht-Guard (`isNeighbor && isIrrlicht && isActive && actionsRemaining`), ob Aktivierung möglich ist; andernfalls öffnet sich immer die read-only Ansicht.
+
+Alternativ: `neighborOpponents` zu `allOpponentPortals: Array<{playerId, portal, zoneIndex} | null>` erweitern (4 Einträge statt 2) — einfacher zu übergeben, `enabled` für irrlicht-Aktivierung wird nur für zoneIndex 0 und 3 gesetzt.
+
 ## Risks / Trade-offs
 
 - **`portal-slot` außerhalb von `handleCardClick`**: `portal-slot` wird aus dem `isActive`-Block herausgezogen und direkt im Haupt-Dispatch behandelt — analog zu `opponent-portal-card`. Der `handleCardClick`-Zweig für `portal-slot` bleibt für den aktiven Fall bestehen.
 - **`auslage-card` außerhalb von `handleCardClick`**: Nur der Charakter-Slot (id < 2). Perlkarten (id ≥ 2) bleiben in `handleCardClick` (kein read-only Vorschau-Bedarf).
+- **`allOpponentPortals` statt nur `neighborOpponents`**: `buildOpponentsArray` (bereits vorhanden) liefert alle 4 Zonen; daraus lassen sich sowohl Portal- als auch Irrlicht-Regionen ableiten. `neighborOpponents` könnte entfallen oder als abgeleitete Subset-Sicht bleiben.

@@ -17,3 +17,8 @@
 - [x] 3.2 Click-Handler: `auslage-card` (id < 2) — vor dem bestehenden `if (isActive && actionCount < maxActions)`-Zweig prüfen: wenn diese Bedingung NICHT gilt → `setPreviewAuslageCard(characterSlots[id])`; andernfalls bisheriges Verhalten
 - [x] 3.3 `CharacterTakePreviewDialog` ohne `onConfirm` rendern wenn `previewAuslageCard !== null`: `card={previewAuslageCard}`, `onCancel={() => setPreviewAuslageCard(null)}`
 - [x] 3.4 ESC-Key-Handler: `previewAuslageCard` ebenfalls auf `null` setzen
+
+## 4. canvasRegions / CanvasGameBoard — Portalkarten aller Gegner klickbar (Bugfix)
+
+- [x] 4.1 `buildCanvasRegions` so anpassen, dass `opponent-portal-card`-Regionen für ALLE vier Gegnerzonen erzeugt werden — nicht nur für direkte Nachbarn. Datenquelle: `buildOpponentsArray(G, myPlayerID, ...)` (bereits vorhanden) liefert alle vier Einträge; daraus Portal-Regionen für alle belegten Slots erstellen.
+- [x] 4.2 `CanvasGameBoard.tsx`: `buildCanvasRegions`-Aufruf anpassen — alle Opponent-Portal-Daten übergeben (nicht nur `neighborOpponents`). Irrlicht-Aktivierungslogik im Click-Handler bleibt auf direkte Nachbarn (zoneIndex 0 und 3) beschränkt.

@@ -267,8 +267,15 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
 
   // Rebuild regions when game state changes (in-place to preserve animation)
   useEffect(() => {
-    const neighbors = getNeighborOpponents(G, myPlayerID);
-    regionsRef.current = buildCanvasRegions(G, myPlayerID, isActive, regionsRef.current, neighbors);
+    const playerIds = buildOpponentsPlayerIDs(G, myPlayerID);
+    const allOpponentPortals: NeighborOpponent[] = [];
+    playerIds.forEach((pid, zoneIndex) => {
+      if (!pid) return;
+      const player = G.players?.[pid];
+      if (!player) return;
+      allOpponentPortals.push({ playerId: pid, portal: player.portal ?? [], zoneIndex: zoneIndex as 0 | 1 | 2 | 3 });
+    });
+    regionsRef.current = buildCanvasRegions(G, myPlayerID, isActive, regionsRef.current, allOpponentPortals);
   }, [G, myPlayerID, isActive]);
 
   // ── Canvas size setup (on viewport resize) ──────────────────────────────────
@@ -442,14 +449,15 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
       const [playerId, idxStr] = (region.id as string).split(':');
       setActiveOpponentCharacter({ playerId, index: parseInt(idxStr, 10) });
     } else if (region.type === 'opponent-portal-card') {
-      // Always allow viewing; irrlicht-capable cards open activation dialog during own turn
+      // Always allow viewing; irrlicht-capable cards open activation dialog for direct neighbors during own turn
       const [ownerPlayerId, slotStr] = (region.id as string).split(':');
       const slotIndex = parseInt(slotStr, 10);
       const ownerPlayer = G.players?.[ownerPlayerId];
       const entry = ownerPlayer?.portal[slotIndex];
       if (entry) {
+        const isNeighbor = getNeighborOpponents(G, myPlayerID).some(n => n.playerId === ownerPlayerId);
         const isIrrlicht = entry.card.abilities.some(a => a.type === 'irrlicht') || entry.card.sharedActivation;
-        if (isActive && isIrrlicht && (G.actionCount ?? 0) < (G.maxActions ?? 3)) {
+        if (isActive && isNeighbor && isIrrlicht && (G.actionCount ?? 0) < (G.maxActions ?? 3)) {
           dialog.openActivationDialog(entry.card, slotIndex, ownerPlayerId);
         } else {
           setActiveOpponentPortalCard({ playerId: ownerPlayerId, slotIndex });
