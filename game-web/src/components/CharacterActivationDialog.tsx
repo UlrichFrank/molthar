@@ -3,6 +3,7 @@ import type { CharacterCard, PearlCard, CharacterAbility, ActivatedCharacter, Pa
 import { validateCostPayment } from '@portale-von-molthar/shared';
 import { getCostSummary, describeCost } from '../lib/cost-helper';
 import { GameDialog, GameDialogTitle, GameDialogActions, CardPicker } from './GameDialog';
+import { useTranslation } from '../i18n/useTranslation';
 
 interface CharacterActivationDialogProps {
   availableCharacters: Array<{ card: CharacterCard; slotIndex: number }>;
@@ -38,6 +39,7 @@ export function CharacterActivationDialog({
   onActivate,
   onCancel,
 }: CharacterActivationDialogProps) {
+  const { t } = useTranslation();
   const [handSelections, setHandSelections] = useState<Map<number, HandSelection>>(new Map());
   const [abilitySelections, setAbilitySelections] = useState<AbilitySelection[]>([]);
   const [virtualDiamonds, setVirtualDiamonds] = useState(0);
@@ -174,7 +176,7 @@ export function CharacterActivationDialog({
 
   return (
     <GameDialog>
-      <GameDialogTitle>Activate Character</GameDialogTitle>
+      <GameDialogTitle>{t('activation.title')}</GameDialogTitle>
 
       {/* Character to activate */}
       <div className="flex flex-wrap justify-center gap-1.5 bg-white/10 p-1.5 rounded-lg sm:gap-2.5 sm:p-2">
@@ -203,7 +205,7 @@ export function CharacterActivationDialog({
           {/* ── Section 1: Hand cards ── */}
           <div>
             <h3 style={{ margin: '1rem 0 0.5rem', fontSize: 'clamp(0.9rem, 4vw, 1.1rem)' }}>
-              Handkarten ({handSelections.size + abilitySelections.length} ausgewählt)
+              {t('activation.handCards', { count: handSelections.size + abilitySelections.length })}
             </h3>
             <CardPicker
               cards={hand}
@@ -238,7 +240,7 @@ export function CharacterActivationDialog({
                     flexWrap: 'wrap',
                   }}
                 >
-                  <span style={{ color: '#cbd5e0' }}>Perle {card.value}:</span>
+                  <span style={{ color: '#cbd5e0' }}>{t('activation.pearlLabel', { value: card.value })}</span>
 
                   {/* onesCanBeEights badge */}
                   {canUseOnes && (
@@ -258,7 +260,7 @@ export function CharacterActivationDialog({
                         fontSize: '0.8rem',
                       }}
                     >
-                      1→8
+                      {t('activation.abilityOnesAsEights')}
                     </button>
                   )}
 
@@ -346,7 +348,7 @@ export function CharacterActivationDialog({
           {hasPaymentAbilities && (
             <div style={{ marginTop: '0.75rem' }}>
               <h3 style={{ margin: '0 0 0.5rem', fontSize: 'clamp(0.9rem, 4vw, 1.1rem)' }}>
-                Fähigkeiten
+                {t('activation.abilities')}
               </h3>
 
               {paymentAbilityChars.map(char => {
@@ -371,9 +373,9 @@ export function CharacterActivationDialog({
                   printedPearl && 'value' in printedPearl ? printedPearl.value : undefined;
 
                 let description = '';
-                if (isOnesCanBeEights) description = '1er zählen als 8';
-                else if (isThreesCanBeAny) description = '3er zählen als beliebiger Wert';
-                else if (isDecreaseWithPearl) description = 'Karte −1 (kostet 1 💎)';
+                if (isOnesCanBeEights) description = t('activation.abilityOnesAsEights');
+                else if (isThreesCanBeAny) description = t('activation.abilityThreesAsAny');
+                else if (isDecreaseWithPearl) description = t('activation.abilityDecreaseCard');
 
                 return (
                   <div
@@ -419,7 +421,7 @@ export function CharacterActivationDialog({
                               fontSize: '0.8rem',
                             }}
                           >
-                            ✕ Entfernen (+{printedValue})
+                            {t('activation.removeValue', { value: printedValue })}
                           </button>
                         ) : (
                           <button
@@ -434,7 +436,7 @@ export function CharacterActivationDialog({
                               fontSize: '0.8rem',
                             }}
                           >
-                            +{printedValue} hinzufügen
+                            {t('activation.addValue', { value: printedValue })}
                           </button>
                         )
                       )}
@@ -455,7 +457,7 @@ export function CharacterActivationDialog({
                                 fontSize: '0.8rem',
                               }}
                             >
-                              ✕ +{selectedEntry.value}
+                              {t('activation.removeValue', { value: selectedEntry.value })}
                             </button>
                           ) : (
                             PEARL_VALUES.map(v => (
@@ -499,7 +501,7 @@ export function CharacterActivationDialog({
                             opacity: tradeDisabled ? 0.5 : 1,
                           }}
                         >
-                          {isTradeActive ? '✕ 2-Perle → 💎' : '2-Perle → 💎'}
+                          {isTradeActive ? t('activation.tradeTwoPearlActive') : t('activation.tradeTwoPearl')}
                         </button>
                       )}
                     </div>
@@ -512,7 +514,7 @@ export function CharacterActivationDialog({
       )}
 
       <GameDialogActions
-        confirmLabel={isValidPayment ? 'Activate' : 'Invalid Payment'}
+        confirmLabel={isValidPayment ? t('activation.activate') : t('activation.invalidPayment')}
         confirmDisabled={!isValidPayment}
         onConfirm={handleActivate}
         onCancel={onCancel}

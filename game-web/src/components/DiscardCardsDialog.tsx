@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import type { PearlCard } from '@portale-von-molthar/shared';
 import { GameDialog, GameDialogTitle, GameDialogActions, CardPicker } from './GameDialog';
+import { useTranslation } from '../i18n/useTranslation';
 
 interface DiscardCardsDialogProps {
   hand: PearlCard[];
@@ -17,6 +18,7 @@ export function DiscardCardsDialog({
   onDiscard,
   onCancel,
 }: DiscardCardsDialogProps) {
+  const { t } = useTranslation();
   const [selectedCardIndices, setSelectedCardIndices] = useState<Set<number>>(new Set());
 
   const isValidSelection = useMemo(() => {
@@ -41,23 +43,23 @@ export function DiscardCardsDialog({
 
   return (
     <GameDialog>
-      <GameDialogTitle>Discard Pearl Cards</GameDialogTitle>
+      <GameDialogTitle>{t('discard.title')}</GameDialogTitle>
 
       <div className="game-dialog-info">
-        <p className="game-dialog-info-text">
-          Hand size: <strong>{hand.length}</strong> cards
-        </p>
-        <p className="game-dialog-info-text">
-          Hand limit: <strong>{currentHandLimit}</strong> cards
-        </p>
+        <p className="game-dialog-info-text">{t('discard.handSize', { count: hand.length })}</p>
+        <p className="game-dialog-info-text">{t('discard.handLimit', { count: currentHandLimit })}</p>
         <p className="game-dialog-info-text game-dialog-info-text--warning">
-          You must discard <strong>{excessCardCount}</strong> card{excessCardCount !== 1 ? 's' : ''}
+          {excessCardCount === 1
+            ? t('discard.mustDiscardOne', { count: excessCardCount })
+            : t('discard.mustDiscardMany', { count: excessCardCount })}
         </p>
       </div>
 
       <div>
         <h3 style={{ margin: '0.5rem 0', fontSize: 'clamp(1rem, 4vw, 1.2rem)' }}>
-          Select {excessCardCount} card{excessCardCount !== 1 ? 's' : ''} to discard
+          {excessCardCount === 1
+            ? t('discard.selectOne', { count: excessCardCount })
+            : t('discard.selectMany', { count: excessCardCount })}
         </h3>
         <CardPicker
           cards={hand}
@@ -69,7 +71,7 @@ export function DiscardCardsDialog({
       </div>
 
       <GameDialogActions
-        confirmLabel={isValidSelection ? 'Confirm Discard' : 'Invalid Selection'}
+        confirmLabel={isValidSelection ? t('discard.confirm') : t('discard.invalidSelection')}
         confirmDisabled={!isValidSelection}
         onConfirm={handleDiscard}
         onCancel={onCancel}

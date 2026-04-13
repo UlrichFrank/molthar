@@ -30,6 +30,7 @@ import { DeckReshuffleAnimation } from './DeckReshuffleAnimation';
 import { EndgameResultsDialog } from './EndgameResultsDialog';
 import { PlayerDisconnectDialog } from './PlayerDisconnectDialog';
 import '../styles/dialogs.css';
+import { useTranslation } from '../i18n/useTranslation';
 
 interface CanvasGameBoardProps {
   G: GameState;
@@ -157,6 +158,8 @@ export function CanvasGameBoard(props: CanvasGameBoardProps) {
 
 function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   const { G, ctx, moves, events, playerID, isActive, matchData } = props;
+
+  const { t } = useTranslation();
 
   // Resolve real player name from boardgame.io match metadata (set in lobby via updatePlayer)
   function resolvePlayerName(pid: string, fallback: string): string {
@@ -702,7 +705,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
                   (e.currentTarget as HTMLButtonElement).style.borderColor = '#6366f1';
                 }}
               >
-                Hand neu ziehen
+                {t('game.rehandCards')}
               </button>
             )}
             <EndTurnButton
@@ -759,7 +762,9 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
                 color: '#fde68a', fontSize: '0.75rem', fontWeight: 700,
                 whiteSpace: 'nowrap',
               }}>
-                ⚔ {leaders.join(', ')} {leaders.length === 1 ? 'hat' : 'haben'} 12+ Punkte
+                {leaders.length === 1
+                ? t('game.leaderHasPoints', { leaders: leaders[0] ?? '' })
+                : t('game.leadersHavePoints', { leaders: leaders.join(', ') })}
               </div>
               <div style={{
                 background: 'rgba(30,58,138,0.92)', border: '1px solid #3b82f6',
@@ -767,7 +772,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
                 color: '#bfdbfe', fontSize: '0.75rem', fontWeight: 700,
                 whiteSpace: 'nowrap',
               }}>
-                🏁 Letzte Runde!
+                {t('game.finalRound')}
               </div>
             </div>
           );
@@ -807,7 +812,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
               textAlign: 'center',
             }}
           >
-            🔄 Charakterauslage erneuert – 2 neue Karten nachgezogen
+            {t('game.pearlRefresh')}
           </div>
         )}
       </div>

@@ -1,5 +1,6 @@
 import type { PlayerState } from '@portale-von-molthar/shared';
 import { GameDialog, GameDialogTitle } from './GameDialog';
+import { useTranslation } from '../i18n/useTranslation';
 
 interface DiscardOpponentCharacterDialogProps {
   /** Opponents in turn order starting from next player, filtered to those with portal cards */
@@ -8,13 +9,14 @@ interface DiscardOpponentCharacterDialogProps {
 }
 
 export function DiscardOpponentCharacterDialog({ opponents, onDiscard }: DiscardOpponentCharacterDialogProps) {
+  const { t } = useTranslation();
   const opponentsWithCards = opponents.filter(p => p.portal.length > 0);
 
   return (
     <GameDialog>
-      <GameDialogTitle>Gegner-Karte entfernen</GameDialogTitle>
+      <GameDialogTitle>{t('discardOpponent.title')}</GameDialogTitle>
       <p style={{ margin: '0 0 1rem', color: '#cbd5e1', fontSize: 'clamp(0.9rem, 3vw, 1rem)' }}>
-        Wähle eine Portal-Karte eines Gegners zum Entfernen:
+        {t('discardOpponent.description')}
       </p>
 
       {opponentsWithCards.map(opponent => (
