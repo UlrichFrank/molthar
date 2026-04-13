@@ -119,12 +119,18 @@ export interface NeighborOpponent {
  * @param existing            Previous regions array (for animation state preservation)
  * @param allOpponentPortals  All opponents (all four zones) for portal-card regions
  */
+export interface CanvasLabels {
+  swap: string;
+  discardCards: string;
+}
+
 export function buildCanvasRegions(
   G: GameState,
   playerID: string,
   isActive: boolean,
   existing: CanvasRegion[] = [],
-  allOpponentPortals: NeighborOpponent[] = []
+  allOpponentPortals: NeighborOpponent[] = [],
+  labels?: CanvasLabels
 ): CanvasRegion[] {
   const regions: CanvasRegion[] = [];
   const me = G.players?.[playerID];
@@ -244,7 +250,7 @@ export function buildCanvasRegions(
       type: 'ui-replace-pearl-slots', id: 'ui-replace-pearl-slots',
       x: PEARL_DECK_X - DECK_CARD_H, y: PEARL_DECK_Y + DECK_CARD_W + REPLACE_BTN_GAP,
       w: DECK_CARD_H, h: REPLACE_BTN_H,
-      label: 'Tauschen',
+      label: labels?.swap ?? 'Tauschen',
       enabled: true,
       ...animState(existing, 'ui-replace-pearl-slots', 'ui-replace-pearl-slots'),
     });
@@ -260,7 +266,7 @@ export function buildCanvasRegions(
       regions.push({
         type: 'ui-discard-cards', id: 'ui-discard-cards',
         x: UI_PANEL_X, y: UI_PANEL_Y, w: UI_PANEL_W, h: UI_PANEL_H,
-        label: 'Discard Cards',
+        label: labels?.discardCards ?? 'Discard Cards',
         enabled: true,
         ...animState(existing, 'ui-discard-cards', 'ui-discard-cards'),
       });

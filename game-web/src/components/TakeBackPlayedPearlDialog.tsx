@@ -1,5 +1,6 @@
 import type { PearlCard } from '@portale-von-molthar/shared';
 import { GameDialog, GameDialogTitle } from './GameDialog';
+import { useTranslation } from '../i18n/useTranslation';
 
 interface TakeBackPlayedPearlDialogProps {
   /** Cards from pearlDiscardPile that match playedRealPearlIds (filtered by caller) */
@@ -9,11 +10,12 @@ interface TakeBackPlayedPearlDialogProps {
 }
 
 export function TakeBackPlayedPearlDialog({ playedCards, onTakeBack, onDismiss }: TakeBackPlayedPearlDialogProps) {
+  const { t } = useTranslation();
   const isEmpty = playedCards.length === 0;
 
   return (
     <GameDialog>
-      <GameDialogTitle>Perlenkarte zurückholen</GameDialogTitle>
+      <GameDialogTitle>{t('takeBackPearl.title')}</GameDialogTitle>
 
       {isEmpty ? (
         <button
@@ -30,12 +32,12 @@ export function TakeBackPlayedPearlDialog({ playedCards, onTakeBack, onDismiss }
             textAlign: 'center',
           }}
         >
-          Nur virtuelle Perlenkarten wurden gespielt.
+          {t('takeBackPearl.noVirtualCards')}
         </button>
       ) : (
         <div>
           <p style={{ margin: '0 0 1rem', textAlign: 'center', color: '#cbd5e1', fontSize: 'clamp(0.9rem, 3vw, 1rem)' }}>
-            Wähle eine Karte zum Zurückholen:
+            {t('takeBackPearl.chooseCard')}
           </p>
           <div className="game-dialog-card-grid">
             {playedCards.map(card => (
@@ -46,7 +48,7 @@ export function TakeBackPlayedPearlDialog({ playedCards, onTakeBack, onDismiss }
               >
                 <img
                   src={`/assets/Perlenkarte${card.value}.png`}
-                  alt={`Perle ${card.value}`}
+                  alt={t('takeBackPearl.pearlAlt', { value: card.value })}
                 />
               </button>
             ))}

@@ -1,33 +1,40 @@
 import type { CharacterAbilityType } from '@portale-von-molthar/shared';
+import type { TranslationKey } from '../i18n/translations';
 
 export interface AbilityDisplayInfo {
   symbol: string;
-  name: string;
-  description?: string;
+  nameKey: TranslationKey;
+  descriptionKey: TranslationKey;
 }
 
 const ABILITY_MAP: Partial<Record<CharacterAbilityType, AbilityDisplayInfo>> = {
   // Red (instant) abilities
-  threeExtraActions:          { symbol: '⚡⚡⚡', name: '+3 Aktionen', description: 'Sofort: +3 Aktionen in diesem Zug' },
-  nextPlayerOneExtraAction:   { symbol: '⚡+', name: '+1 Aktion für nächsten Spieler', description: 'Der nächste Spieler erhält +1 Aktion in seinem Zug' },
-  discardOpponentCharacter:   { symbol: '🗑P', name: 'Portalkarte entfernen', description: 'Sofort: Entferne eine Portalkarte eines Gegners' },
-  stealOpponentHandCard:      { symbol: '🤚', name: 'Handkarte stehlen', description: 'Sofort: Nimm eine Handkarte eines Gegners' },
-  takeBackPlayedPearl:        { symbol: '↩️', name: 'Perlenkarte zurücknehmen', description: 'Sofort: Nimm deine zuletzt gespielte Perlenkarte zurück auf die Hand' },
+  threeExtraActions:          { symbol: '⚡⚡⚡', nameKey: 'ability.threeExtraActions.name',          descriptionKey: 'ability.threeExtraActions.description' },
+  nextPlayerOneExtraAction:   { symbol: '⚡+',   nameKey: 'ability.nextPlayerOneExtraAction.name',   descriptionKey: 'ability.nextPlayerOneExtraAction.description' },
+  discardOpponentCharacter:   { symbol: '🗑P',   nameKey: 'ability.discardOpponentCharacter.name',   descriptionKey: 'ability.discardOpponentCharacter.description' },
+  stealOpponentHandCard:      { symbol: '🤚',    nameKey: 'ability.stealOpponentHandCard.name',      descriptionKey: 'ability.stealOpponentHandCard.description' },
+  takeBackPlayedPearl:        { symbol: '↩️',    nameKey: 'ability.takeBackPlayedPearl.name',        descriptionKey: 'ability.takeBackPlayedPearl.description' },
   // Blue (persistent) abilities
-  handLimitPlusOne:           { symbol: '✋', name: '+1 Handlimit', description: 'Dauerhaft: Dein Handlimit erhöht sich um 1' },
-  oneExtraActionPerTurn:      { symbol: '⚡', name: '+1 Aktion/Runde', description: 'Dauerhaft: Du erhältst jede Runde +1 Aktion' },
-  onesCanBeEights:            { symbol: '1→8', name: '1er zählen als 8', description: 'Dauerhaft: 1er-Perlenkarten zählen bei Kosten als 8' },
-  threesCanBeAny:             { symbol: '3→?', name: '3er zählen als beliebig', description: 'Dauerhaft: 3er-Perlenkarten zählen bei Kosten als beliebiger Wert' },
-  decreaseWithPearl:          { symbol: '💎↓', name: 'Diamant senkt Perlenwert', description: 'Dauerhaft: Gib 1 Diamant aus um den Wert einer Perlenkarte um 1 zu senken' },
-  changeCharacterActions:     { symbol: '🔄P', name: 'Portal tauschen (vor 1. Aktion)', description: 'Dauerhaft: Tausche vor deiner 1. Aktion eine Portalkarte aus' },
-  changeHandActions:          { symbol: '🔄H', name: 'Hand neu aufnehmen (nach letzter Aktion)', description: 'Dauerhaft: Nimm nach deiner letzten Aktion deine Hand neu auf' },
-  previewCharacter:           { symbol: '👁', name: 'Karte vom Stapel ansehen', description: 'Dauerhaft: Sieh vor deiner 1. Aktion die oberste Karte des Charakterstapels an' },
-  tradeTwoForDiamond:         { symbol: '2→💎', name: '2-Perle gegen Diamant tauschen', description: 'Dauerhaft: Tausche bei der Aktivierung eine 2er-Perle gegen 1 Diamant' },
-  numberAdditionalCardActions: { symbol: '🔢', name: 'Karte mit aufgedrucktem Perlenwert', description: 'Dauerhaft: Diese Karte hat einen aufgedruckten Perlenwert der bei Kosten mitgezählt wird' },
-  anyAdditionalCardActions:   { symbol: '🃏', name: 'Karte mit beliebigem Perlenwert', description: 'Dauerhaft: Diese Karte hat einen aufgedruckten Wildcard-Perlenwert' },
-  irrlicht:                   { symbol: '👥', name: 'Irrlicht – Nachbarn können mitaktivieren', description: 'Dauerhaft: Direkte Nachbarn können diese Karte mitaktivieren' },
+  handLimitPlusOne:           { symbol: '✋',    nameKey: 'ability.handLimitPlusOne.name',           descriptionKey: 'ability.handLimitPlusOne.description' },
+  oneExtraActionPerTurn:      { symbol: '⚡',    nameKey: 'ability.oneExtraActionPerTurn.name',      descriptionKey: 'ability.oneExtraActionPerTurn.description' },
+  onesCanBeEights:            { symbol: '1→8',   nameKey: 'ability.onesCanBeEights.name',            descriptionKey: 'ability.onesCanBeEights.description' },
+  threesCanBeAny:             { symbol: '3→?',   nameKey: 'ability.threesCanBeAny.name',             descriptionKey: 'ability.threesCanBeAny.description' },
+  decreaseWithPearl:          { symbol: '💎↓',   nameKey: 'ability.decreaseWithPearl.name',          descriptionKey: 'ability.decreaseWithPearl.description' },
+  changeCharacterActions:     { symbol: '🔄P',   nameKey: 'ability.changeCharacterActions.name',     descriptionKey: 'ability.changeCharacterActions.description' },
+  changeHandActions:          { symbol: '🔄H',   nameKey: 'ability.changeHandActions.name',          descriptionKey: 'ability.changeHandActions.description' },
+  previewCharacter:           { symbol: '👁',    nameKey: 'ability.previewCharacter.name',           descriptionKey: 'ability.previewCharacter.description' },
+  tradeTwoForDiamond:         { symbol: '2→💎',  nameKey: 'ability.tradeTwoForDiamond.name',         descriptionKey: 'ability.tradeTwoForDiamond.description' },
+  numberAdditionalCardActions: { symbol: '🔢',   nameKey: 'ability.numberAdditionalCardActions.name', descriptionKey: 'ability.numberAdditionalCardActions.description' },
+  anyAdditionalCardActions:   { symbol: '🃏',    nameKey: 'ability.anyAdditionalCardActions.name',   descriptionKey: 'ability.anyAdditionalCardActions.description' },
+  irrlicht:                   { symbol: '👥',    nameKey: 'ability.irrlicht.name',                   descriptionKey: 'ability.irrlicht.description' },
+};
+
+const FALLBACK: AbilityDisplayInfo = {
+  symbol: '★',
+  nameKey: 'ability.threeExtraActions.name', // fallback key — will show a valid string
+  descriptionKey: 'ability.threeExtraActions.description',
 };
 
 export function getAbilityDisplay(type: CharacterAbilityType): AbilityDisplayInfo {
-  return ABILITY_MAP[type] ?? { symbol: '★', name: type, description: '' };
+  return ABILITY_MAP[type] ?? { ...FALLBACK, symbol: '★' };
 }

@@ -88,7 +88,7 @@ export function LobbyScreen() {
         id,
         {
           playerID: playerId,
-          playerName: playerName || `Spieler ${parseInt(playerId) + 1}`,
+          playerName: playerName || t('lobby.fallbackPlayerName', { n: parseInt(playerId) + 1 }),
         }
       );
       setCredentials(playerCredentials);
@@ -222,7 +222,7 @@ export function LobbyScreen() {
   return (
     <div className="lobby-container">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
-        <h1 style={{ margin: 0 }}>Portale von Molthar</h1>
+        <h1 style={{ margin: 0 }}>{t('app.title')}</h1>
         <div style={{ display: 'flex', gap: '0.25rem' }}>
           {LOCALES.map(locale => (
             <button
@@ -263,8 +263,7 @@ export function LobbyScreen() {
           <h2>{t('lobby.runningGames')}</h2>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
             <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>
-              Spiel <code style={{ color: '#e2e8f0' }}>{savedSession.matchID}</code>
-              {' '}als {savedSession.playerName}
+              {t('lobby.sessionInfo', { matchID: savedSession.matchID, playerName: savedSession.playerName })}
             </span>
             <button onClick={handleRejoin}>{t('lobby.rejoin')}</button>
             <button

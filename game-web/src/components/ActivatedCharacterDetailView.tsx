@@ -49,7 +49,8 @@ export const ActivatedCharacterDetailView: React.FC<ActivatedCharacterDetailView
           <div className="flex flex-col gap-2 w-full">
             <h3 style={{ margin: 0, fontSize: '0.85rem', color: '#16c784', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', textAlign: 'center' }}>{t('detail.abilities')}</h3>
             {redAbilities.map(ability => {
-              const desc = getAbilityDisplay(ability.type).description;
+              const display = getAbilityDisplay(ability.type);
+              const desc = t(display.descriptionKey);
               return (
                 <div key={ability.id} className="p-3 rounded border-l-4 bg-[rgba(220,100,100,0.1)] border-[#DC6464]">
                   <span style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.3rem', textTransform: 'uppercase', color: '#DC6464' }}>{t('detail.redInstant')}</span>
@@ -58,7 +59,8 @@ export const ActivatedCharacterDetailView: React.FC<ActivatedCharacterDetailView
               );
             })}
             {blueAbilities.map(ability => {
-              const desc = getAbilityDisplay(ability.type).description;
+              const display = getAbilityDisplay(ability.type);
+              const desc = t(display.descriptionKey);
               return (
                 <div key={ability.id} className="p-3 rounded border-l-4 bg-[rgba(100,150,220,0.1)] border-[#6496DC]">
                   <span style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.3rem', textTransform: 'uppercase', color: '#6496DC' }}>{t('detail.bluePersistent')}</span>

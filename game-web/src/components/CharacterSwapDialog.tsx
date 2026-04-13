@@ -1,5 +1,6 @@
 import type { CharacterCard } from '@portale-von-molthar/shared';
 import { GameDialog, GameDialogTitle } from './GameDialog';
+import { useTranslation } from '../i18n/useTranslation';
 
 interface CharacterSwapDialogProps {
   portalCard: CharacterCard;
@@ -20,15 +21,16 @@ function CharacterImage({ card, className }: { card: CharacterCard; className?: 
 }
 
 export function CharacterSwapDialog({ portalCard, tableCards, onSwap, onCancel }: CharacterSwapDialogProps) {
+  const { t } = useTranslation();
   const validTableCards = tableCards
     .map((card, idx) => ({ card, idx }))
     .filter((entry): entry is { card: CharacterCard; idx: number } => entry.card !== undefined);
 
   return (
     <GameDialog>
-      <GameDialogTitle>Portal-Karte tauschen</GameDialogTitle>
+      <GameDialogTitle>{t('swap.title')}</GameDialogTitle>
       <p style={{ margin: '0 0 1.5rem', textAlign: 'center' }}>
-        Wähle eine Auslage-Karte zum Tauschen:
+        {t('swap.description')}
       </p>
 
       <div className="flex flex-col items-center gap-4 mb-6">
@@ -61,7 +63,7 @@ export function CharacterSwapDialog({ portalCard, tableCards, onSwap, onCancel }
           style={{ flex: 'none', padding: '0.6rem 2rem' }}
           onClick={onCancel}
         >
-          Abbrechen
+          {t('swap.cancel')}
         </button>
       </div>
     </GameDialog>

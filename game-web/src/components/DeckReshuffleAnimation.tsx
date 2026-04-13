@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useTranslation } from '../i18n/useTranslation';
 
 interface DeckReshuffleAnimationProps {
   deckType: 'pearl' | 'character';
@@ -9,17 +10,13 @@ interface DeckReshuffleAnimationProps {
 
 const DURATION_MS = 1500;
 
-const LABELS: Record<'pearl' | 'character', string> = {
-  pearl: 'Perlenstapel\nwird gemischt…',
-  character: 'Charakterstapel\nwird gemischt…',
-};
-
 const COLORS: Record<'pearl' | 'character', string> = {
   pearl: '#7dd3fc',
   character: '#c4b5fd',
 };
 
 export function DeckReshuffleAnimation({ deckType, style, onDone }: DeckReshuffleAnimationProps) {
+  const { t } = useTranslation();
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
 
@@ -29,7 +26,7 @@ export function DeckReshuffleAnimation({ deckType, style, onDone }: DeckReshuffl
   }, [deckType]);
 
   const color = COLORS[deckType];
-  const label = LABELS[deckType];
+  const label = deckType === 'pearl' ? t('deck.reshufflingPearl') : t('deck.reshufflingCharacter');
 
   return (
     <div
