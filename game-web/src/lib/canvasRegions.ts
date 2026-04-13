@@ -105,26 +105,26 @@ function animState(existing: CanvasRegion[], type: CanvasRegionType, id: number 
 export interface NeighborOpponent {
   playerId: string;
   portal: ActivatedCharacter[];
-  /** Zone index in getOpponentZones(): 0=left, 3=right */
-  zoneIndex: 0 | 3;
+  /** Zone index in getOpponentZones(): 0=left, 1=top-left, 2=top-right, 3=right */
+  zoneIndex: 0 | 1 | 2 | 3;
 }
 
 /**
  * Build (or update in-place) the full CanvasRegion list from the current game state.
  * Preserves hoverProgress/flashProgress from existing regions to avoid animation resets.
  *
- * @param G                 Current game state
- * @param playerID          Local player's ID
- * @param isActive          Whether the local player is currently active
- * @param existing          Previous regions array (for animation state preservation)
- * @param neighborOpponents Direct neighbors (left + right) for irrlicht regions
+ * @param G                   Current game state
+ * @param playerID            Local player's ID
+ * @param isActive            Whether the local player is currently active
+ * @param existing            Previous regions array (for animation state preservation)
+ * @param allOpponentPortals  All opponents (all four zones) for portal-card regions
  */
 export function buildCanvasRegions(
   G: GameState,
   playerID: string,
   isActive: boolean,
   existing: CanvasRegion[] = [],
-  neighborOpponents: NeighborOpponent[] = []
+  allOpponentPortals: NeighborOpponent[] = []
 ): CanvasRegion[] {
   const regions: CanvasRegion[] = [];
   const me = G.players?.[playerID];
@@ -268,13 +268,13 @@ export function buildCanvasRegions(
     // ui-end-turn removed — end-turn is handled by HTML EndTurnButton overlay
   }
 
-  // --- Opponent portal cards (always visible for all neighbors) ---
-  if (neighborOpponents.length > 0) {
+  // --- Opponent portal cards (always visible for all opponent zones) ---
+  if (allOpponentPortals.length > 0) {
     const zones = getOpponentZones();
     const hw = OPP_SCALED_W / 2;
     const hh = OPP_SCALED_H / 2;
 
-    for (const neighbor of neighborOpponents) {
+    for (const neighbor of allOpponentPortals) {
       const { zone, rotationDeg } = zones[neighbor.zoneIndex];
       const rot = (rotationDeg * Math.PI) / 180;
       const cx = zone.x + zone.w / 2;

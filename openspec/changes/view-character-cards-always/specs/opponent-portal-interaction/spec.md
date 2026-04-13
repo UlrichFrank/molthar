@@ -21,3 +21,16 @@ Das System SHALL beim Klick auf eine eigene Portalkarte (`portal-slot`) immer ei
 #### Scenario: Schließen der Detailansicht für eigene Portalkarte
 - **WHEN** die `ActivatedCharacterDetailView` einer eigenen Portalkarte offen ist und der Spieler Escape drückt oder den Close-Button anklickt
 - **THEN** schließt sich die Detailansicht
+
+### Requirement: Portalkarten ALLER Gegner sind immer als Detailansicht anklickbar
+Das System SHALL für alle vier Gegnerzonen (links, oben-links, oben-rechts, rechts) anklickbare `opponent-portal-card`-Regionen erzeugen — nicht nur für direkte Nachbarn. Klick auf eine gegnerische Portalkarte öffnet immer eine read-only `ActivatedCharacterDetailView`, außer die Karte ist irrlicht-fähig und gehört einem direkten Nachbarn: dann gelten die Irrlicht-Aktivierungsregeln.
+
+#### Scenario: Klick auf Portalkarte eines nicht-benachbarten Gegners — Detailansicht öffnet sich
+- **WHEN** der Spieler auf die Portalkarte eines Gegners in Zone oben-links oder oben-rechts klickt (Spieler 3 oder 4 in einem 4-Spieler-Spiel)
+- **THEN** öffnet sich die `ActivatedCharacterDetailView` mit den Daten dieser Portalkarte (read-only)
+
+#### Scenario: Klick auf Portalkarte eines direkten Nachbarn — bisheriges Verhalten
+- **WHEN** der Spieler auf die Portalkarte eines direkten Nachbarn (Zone links oder rechts) klickt
+- **AND** die Karte ist irrlicht-fähig und `isActive` und Aktionen verbleibend
+- **THEN** öffnet sich der Aktivierungsdialog (Irrlicht-Aktivierung, bisheriges Verhalten)
+- **OTHERWISE** öffnet sich die `ActivatedCharacterDetailView` (read-only)
