@@ -1,78 +1,146 @@
-  Das Kernproblem: Socket.IO auf Vercel
+# Hosting-Analyse: Portale von Molthar
 
-  DEINE ARCHITEKTUR
-  ═══════════════════════════════════════════════════
+## Das Kernproblem: boardgame.io braucht einen persistenten Server
 
-    game-web (Vite/React)         backend (boardgame.io)
-    ┌──────────────────┐          ┌──────────────────┐
-    │                  │          │                  │
-    │  boardgame.io    │◄────────►│  boardgame.io    │
-    │  client          │  Socket  │  server          │
-    │                  │   .IO    │  (Express)       │
-    └──────────────────┘  WS/TCP  └──────────────────┘
-                           ↑
-                      PERSISTENTE
-                      VERBINDUNG
-                      (bleibt offen
-                      für ganze
-                      Spielsession)
+```
+  game-web (Vite/React)         backend (boardgame.io)
+  ┌──────────────────┐          ┌──────────────────┐
+  │                  │          │                  │
+  │  boardgame.io    │◄────────►│  boardgame.io    │
+  │  client          │  Socket  │  server          │
+  │                  │   .IO    │  (Express)       │
+  └──────────────────┘  WS/TCP  └──────────────────┘
+                         ↑
+                    PERSISTENTE VERBINDUNG
+                    (bleibt offen für
+                     gesamte Spielsession)
+```
 
-  VERCEL FUNCTIONS
-  ═══════════════════════════════════════════════════
+boardgame.io braucht Socket.IO — eine persistente TCP-Verbindung für die gesamte Spielsession.
+Der Server ist die **Spielautorität**: er validiert Moves (INVALID_MOVE), mutiert den State und
+broadcastet ihn an alle Clients. Clients senden nur Intents; der Server entscheidet.
 
-    Request → Function startet → Response → Function stirbt
+Die Spiellogik in `shared/src/game/index.ts` ist vollständig vom Server getrennt — sie
+wird aber serverseitig ausgeführt und kann nicht einfach in den Client verlagert werden.
 
-    Kein State. Keine offene Verbindung. Kein Socket.IO.
+---
 
-  Vercel Functions sind stateless und Request/Response-basiert. boardgame.io braucht Socket.IO — eine persistente TCP-Verbindung, die für die gesamte Spielsession offen bleibt. Das ist technisch
-   inkompatibel.
+## Was auf Vercel funktioniert, was nicht
 
-  ---
-  Was auf Vercel funktioniert, was nicht
+```
+  game-web  ✅  Vite-Build → statisches Bundle → Vercel CDN
+  shared    ✅  Kein Deploy nötig (wird in game-web eingebaut)
+  backend   ❌  Socket.IO braucht long-running Process
+```
 
-    game-web  ✅  Vite-Build → statisches Bundle → Vercel CDN
-    shared    ✅  Kein Deploy nötig (wird in game-web eingebaut)
-    backend   ❌  Socket.IO braucht long-running Process
+Vercel Functions sind stateless und Request/Response-basiert. Socket.IO ist
+technisch inkompatibel.
 
-  shared ist eine interne Library — die wird beim Build von game-web und backend eingebunden, nicht separat deployed.
+---
 
-  ---
-  Die realistischen Optionen
+## Option A — Split-Deploy (empfohlen für schnellen Start)
 
-  Option A: Split-Deploy (empfohlen)
+```
+  Vercel (gratis)        Railway / Render / Fly.io
+  ┌──────────────┐       ┌─────────────────────────┐
+  │  game-web    │◄─────►│  backend                │
+  │  Vite CDN    │  WS   │  long-running Node.js   │
+  │  auto-deploy │       │  FlatFile persistence   │
+  │  per branch  │       │  ~$5-7/Monat            │
+  └──────────────┘       └─────────────────────────┘
+```
 
-    Vercel          Railway / Render / Fly.io
-    ┌────────┐      ┌─────────────────────┐
-    │game-web│◄────►│      backend        │
-    │ (CDN)  │ WS   │ (long-running Node) │
-    └────────┘      └─────────────────────┘
+**Was zu tun ist:**
 
-    Vercel: gratis für Frontend
-    Railway/Render: ~$5-7/Monat für kleinen Node-Server
+1. `game-web/vercel.json` anlegen:
+   ```json
+   { "buildCommand": "pnpm build", "outputDirectory": "dist" }
+   ```
+2. In Vercel: Env var `VITE_SERVER_URL=https://dein-backend.railway.app` setzen
+3. Backend auf Railway/Render deployen — `Dockerfile` existiert bereits,
+   `PORT` und `EXTRA_ORIGINS` env vars werden bereits gelesen
 
-  Vorteil: Vercel für Frontend ist exzellent (CDN, Preview-Deployments, einfaches CI). Backend läuft stabil als persistenter Prozess.
+**Vorteile:** Vercel-DX (Preview per PR, CDN), kein Code-Umbau  
+**Nachteile:** zwei Plattformen, $5-7/Monat für Backend
 
-  Option B: Alles auf Railway/Render/Fly.io
+---
 
-    Eine Plattform
-    ┌─────────────────────────────────┐
-    │  backend  (Express + Socket.IO) │
-    │  game-web (static files served  │
-    │            by Express)          │
-    └─────────────────────────────────┘
-  Einfacher zu managen, aber kein CDN für das Frontend.
+## Option B — Alles auf Railway/Render/Fly.io
 
-  Option C: Alles auf Vercel (mit Architektur-Umbau)
+```
+  Eine Plattform
+  ┌─────────────────────────────────┐
+  │  backend  (Express + Socket.IO) │
+  │  game-web (static via Express)  │
+  └─────────────────────────────────┘
+```
 
-  boardgame.io auf einen anderen Transport umschreiben (z.B. Ably, Pusher, Partykit). Erheblicher Aufwand, lohnt sich wahrscheinlich nicht.
+**Was zu tun ist:** Docker Compose bereits vorhanden (`docker-compose.prod.yml`),
+Container-Images bereits in GitHub Container Registry.
 
-  ---
-  Was würdest du bevorzugen?
+**Vorteile:** einfacher zu managen, eine Rechnung  
+**Nachteile:** kein CDN für Frontend, kein Preview-Deploy per Branch
 
-  Einige Fragen, die die Entscheidung prägen:
+---
 
-  1. Ist das für Production oder Hobby/Demo? Bei einem kleinen Spielprojekt ist Railway mit $5/Monat völlig ausreichend.
-  2. Wie wichtig sind Vercel-Features (Preview-Deployments per PR, automatische CDN-Invalidierung)? Die gibt es für das Frontend bei Option A.
-  3. Hast du schon eine Präferenz für die Backend-Plattform? Railway und Fly.io sind beide gut, haben aber unterschiedliche Tradeoffs.
+## Option C — Cloudflare Workers + Durable Objects (kein selbst verwalteter Server)
 
-  Meine spontane Empfehlung wäre Option A: Vercel für game-web, Railway für backend — das nutzt Vercels Stärken (Frontend-DX, CDN) ohne die Architektur anzufassen.
+```
+  Vercel CDN              Cloudflare Workers
+  ┌──────────────┐        ┌─────────────────────────────┐
+  │  game-web    │◄──────►│  backend                    │
+  │  (static)    │   WS   │  Durable Object:            │
+  └──────────────┘        │  persistenter Socket-State  │
+                          │  boardgame.io Server-Code   │
+                          └─────────────────────────────┘
+
+  FREE TIER: 1M requests/Tag, 1GB storage, $0/Monat
+```
+
+boardgame.io hat eine Community-Integration für Cloudflare Durable Objects.
+Durable Objects können persistente WebSocket-Verbindungen halten — genau das,
+was Socket.IO braucht.
+
+**Was zu tun ist:** `server-bgio.ts` durch ein Cloudflare Workers Setup ersetzen.
+`shared/`-Spiellogik bleibt unverändert.
+
+**Aufwand:** mittel (neue Deployment-Infrastruktur, kein Logik-Umbau)  
+**Vorteile:** gratis, kein Server zu verwalten, global edge deployment  
+**Nachteile:** Cloudflare-Lock-in, Community-Integration (kein offizieller Support)
+
+---
+
+## Option D — Kompletter Umbau (pure frontend)
+
+boardgame.io durch Firebase Realtime DB / Liveblocks / Ably ersetzen.
+State-Sync und Lobby-Logik komplett neu schreiben.
+
+**Aufwand:** sehr hoch — nicht empfohlen.
+
+---
+
+## Entscheidungsmatrix
+
+```
+                      Aufwand    Kosten/Mo   Server-Mgmt   Zuverlässigkeit
+                      ─────────  ──────────  ────────────  ───────────────
+A: Vercel + Railway   minimal    ~$5-7       Railway mgmt  ★★★★★
+B: Alles Railway      minimal    ~$5-7       Railway mgmt  ★★★★★
+C: CF Workers         mittel     $0          keins         ★★★★★
+D: Firebase-Umbau     sehr hoch  $0*         keins         ★★★★
+Fly.io free tier      minimal    $0†         Fly.io mgmt   ★★★
+
+† schläft nach Inaktivität ein (~2s Delay beim ersten Request)
+* Firebase-Kosten bei höherem Traffic
+```
+
+---
+
+## Empfehlung
+
+- **Schnell starten, minimal Aufwand:** Option A (Vercel + Railway) — kein Code-Umbau,
+  sofort lauffähig mit dem bestehenden Dockerfile
+- **Gratis und kein Server-Management:** Option C (Cloudflare Workers) — mittlerer
+  Umbau, aber danach wartungsfrei und kostenlos
+- **Einfachste Gesamtlösung:** Option B (alles Railway) — eine Plattform,
+  Docker Compose vorhanden, kein Vercel nötig
