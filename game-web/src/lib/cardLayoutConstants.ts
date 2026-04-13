@@ -43,7 +43,7 @@ export const PORTAL_Y = ZONE_TOP_H + ZONE_CENTER_H;
 export const SLOT_W = Math.round(CARD_W * 1.0); // 134
 export const SLOT_H = Math.round(CARD_H * 1.0); // 207
 export const SLOT_GAP = Math.round(CARD_GAP * 1.0); // 23
-export const SLOT_AREA_X = PORTAL_X + PORTAL_W / 3 + PORTAL_W * 0.03;
+export const SLOT_AREA_X = PORTAL_X + Math.round((PORTAL_W - (2 * SLOT_W + SLOT_GAP)) / 2);
 export const SLOT_AREA_Y = PORTAL_Y + Math.floor((ZONE_PLAYER_H - SLOT_H) / 2); // vertically centered
 
 // === Hand Cards Positioning (fanned layout in left third) ===
