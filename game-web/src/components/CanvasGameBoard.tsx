@@ -44,7 +44,11 @@ interface CanvasGameBoardProps {
 const BASE_W = 1200;
 const BASE_H = 800;
 
-function buildOpponentsArray(G: GameState, myPlayerID: string): Array<import('../lib/gameRender').OpponentZoneData | null> {
+function buildOpponentsArray(
+  G: GameState,
+  myPlayerID: string,
+  resolveName: (playerId: string, fallback: string) => string,
+): Array<import('../lib/gameRender').OpponentZoneData | null> {
   const playerOrder = G.playerOrder || Object.keys(G.players || {});
   const n = playerOrder.length;
   const myIndex = playerOrder.indexOf(myPlayerID);
@@ -62,6 +66,7 @@ function buildOpponentsArray(G: GameState, myPlayerID: string): Array<import('..
       portal: player.portal ?? [],
       activatedCharacters: player.activatedCharacters ?? [],
       handCount: player.hand?.length ?? 0,
+      name: resolveName(playerId, player.name),
     };
   }
 
@@ -356,7 +361,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     const pearlDeckHover = regions.find(r => r.type === 'deck-pearl')?.hoverProgress ?? 0;
 
     // Build opponents array [left, top-left, top-right, right] from playerOrder
-    const opponents: Array<OpponentZoneData | null> = buildOpponentsArray(G, myPlayerID);
+    const opponents: Array<OpponentZoneData | null> = buildOpponentsArray(G, myPlayerID, resolvePlayerName);
 
     drawBackground(drawCtx);
     drawOpponentPortals(drawCtx, opponents);

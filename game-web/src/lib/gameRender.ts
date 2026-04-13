@@ -549,6 +549,7 @@ export interface OpponentZoneData {
   portal: ActivatedCharacter[];
   activatedCharacters: ActivatedCharacter[];
   handCount: number;
+  name: string;
 }
 
 /**
@@ -627,6 +628,25 @@ function drawOpponentZone(
     ctx.textBaseline = 'middle';
     ctx.fillText(String(data.handCount), badgeCx, badgeCy);
   }
+
+  // 5. Player name label — bottom-center of virtual zone
+  const nameFontSize = Math.max(9, Math.round(OPP_SCALED_H * 0.09));
+  ctx.font = `bold ${nameFontSize}px Arial`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  const nameMaxW = OPP_SCALED_W * 0.85;
+  const nameY = hh - 4;
+  const nameMetrics = ctx.measureText(data.name);
+  const nameLabelW = Math.min(nameMetrics.width, nameMaxW) + nameFontSize * 0.6;
+  const nameLabelH = nameFontSize + 4;
+  const nameLabelX = -nameLabelW / 2;
+  const nameLabelY = nameY - nameFontSize - 2;
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.beginPath();
+  ctx.roundRect(nameLabelX, nameLabelY, nameLabelW, nameLabelH, 3);
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(data.name, 0, nameY - 4, nameMaxW);
 
   ctx.restore();
 }

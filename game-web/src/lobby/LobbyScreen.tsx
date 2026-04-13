@@ -236,7 +236,7 @@ export function LobbyScreen() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
             <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>
               Spiel <code style={{ color: '#e2e8f0' }}>{savedSession.matchID}</code>
-              {' '}als Spieler {parseInt(savedSession.playerID) + 1}
+              {' '}als {savedSession.playerName}
             </span>
             <button onClick={handleRejoin}>Wiedereinsteigen</button>
             <button
