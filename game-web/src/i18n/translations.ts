@@ -4,6 +4,7 @@ export const DEFAULT_LOCALE: Locale = 'de';
 
 export type TranslationKey =
   // App
+  | 'app.title'
   | 'app.checkingConnection'
   // Lobby
   | 'lobby.yourName'
@@ -101,9 +102,72 @@ export type TranslationKey =
   | 'steal.cards'
   // Common
   | 'common.cancel'
+  // Character swap dialog
+  | 'swap.title'
+  | 'swap.description'
+  | 'swap.cancel'
+  // Take back played pearl dialog
+  | 'takeBackPearl.title'
+  | 'takeBackPearl.noVirtualCards'
+  | 'takeBackPearl.chooseCard'
+  | 'takeBackPearl.pearlAlt'
+  // End turn button
+  | 'game.endTurn'
+  // Player status dialog
+  | 'player.points'
+  | 'player.diamonds'
+  | 'player.activeAbilities'
+  | 'player.noAbilities'
+  // Deck reshuffle animation
+  | 'deck.reshufflingPearl'
+  | 'deck.reshufflingCharacter'
+  // Canvas labels
+  | 'canvas.swap'
+  | 'canvas.discardCards'
+  | 'canvas.clickToTake'
+  // Lobby session info
+  | 'lobby.sessionInfo'
+  | 'lobby.fallbackPlayerName'
+  // Ability names
+  | 'ability.threeExtraActions.name'
+  | 'ability.nextPlayerOneExtraAction.name'
+  | 'ability.discardOpponentCharacter.name'
+  | 'ability.stealOpponentHandCard.name'
+  | 'ability.takeBackPlayedPearl.name'
+  | 'ability.handLimitPlusOne.name'
+  | 'ability.oneExtraActionPerTurn.name'
+  | 'ability.onesCanBeEights.name'
+  | 'ability.threesCanBeAny.name'
+  | 'ability.decreaseWithPearl.name'
+  | 'ability.changeCharacterActions.name'
+  | 'ability.changeHandActions.name'
+  | 'ability.previewCharacter.name'
+  | 'ability.tradeTwoForDiamond.name'
+  | 'ability.numberAdditionalCardActions.name'
+  | 'ability.anyAdditionalCardActions.name'
+  | 'ability.irrlicht.name'
+  // Ability descriptions
+  | 'ability.threeExtraActions.description'
+  | 'ability.nextPlayerOneExtraAction.description'
+  | 'ability.discardOpponentCharacter.description'
+  | 'ability.stealOpponentHandCard.description'
+  | 'ability.takeBackPlayedPearl.description'
+  | 'ability.handLimitPlusOne.description'
+  | 'ability.oneExtraActionPerTurn.description'
+  | 'ability.onesCanBeEights.description'
+  | 'ability.threesCanBeAny.description'
+  | 'ability.decreaseWithPearl.description'
+  | 'ability.changeCharacterActions.description'
+  | 'ability.changeHandActions.description'
+  | 'ability.previewCharacter.description'
+  | 'ability.tradeTwoForDiamond.description'
+  | 'ability.numberAdditionalCardActions.description'
+  | 'ability.anyAdditionalCardActions.description'
+  | 'ability.irrlicht.description'
   ;
 
 const de: Record<TranslationKey, string> = {
+  'app.title':                   'Die Portale von Molthar',
   'app.checkingConnection':      'Verbindung wird geprüft…',
   'lobby.yourName':              'Dein Name',
   'lobby.namePlaceholder':       'Name eingeben',
@@ -186,9 +250,63 @@ const de: Record<TranslationKey, string> = {
   'steal.card':                  'Karte',
   'steal.cards':                 'Karten',
   'common.cancel':               'Abbrechen',
+  'swap.title':                  'Portal-Karte tauschen',
+  'swap.description':            'Wähle eine Auslage-Karte zum Tauschen:',
+  'swap.cancel':                 'Abbrechen',
+  'takeBackPearl.title':         'Perlenkarte zurückholen',
+  'takeBackPearl.noVirtualCards': 'Nur virtuelle Perlenkarten wurden gespielt.',
+  'takeBackPearl.chooseCard':    'Wähle eine Karte zum Zurückholen:',
+  'takeBackPearl.pearlAlt':      'Perle {value}',
+  'game.endTurn':                'Zug beenden',
+  'player.points':               'Punkte',
+  'player.diamonds':             'Diamanten',
+  'player.activeAbilities':      'Aktive Fähigkeiten',
+  'player.noAbilities':          'Keine aktiven Fähigkeiten',
+  'deck.reshufflingPearl':       'Perlenstapel\nwird gemischt…',
+  'deck.reshufflingCharacter':   'Charakterstapel\nwird gemischt…',
+  'canvas.swap':                 'Tauschen',
+  'canvas.discardCards':         'Karten abwerfen',
+  'canvas.clickToTake':          '← Klick zum Nehmen',
+  'lobby.sessionInfo':           'Spiel {matchID} als {playerName}',
+  'lobby.fallbackPlayerName':    'Spieler {n}',
+  'ability.threeExtraActions.name':              '+3 Aktionen',
+  'ability.nextPlayerOneExtraAction.name':       '+1 Aktion für nächsten Spieler',
+  'ability.discardOpponentCharacter.name':       'Portalkarte entfernen',
+  'ability.stealOpponentHandCard.name':          'Handkarte stehlen',
+  'ability.takeBackPlayedPearl.name':            'Perlenkarte zurücknehmen',
+  'ability.handLimitPlusOne.name':               '+1 Handlimit',
+  'ability.oneExtraActionPerTurn.name':          '+1 Aktion/Runde',
+  'ability.onesCanBeEights.name':                '1er zählen als 8',
+  'ability.threesCanBeAny.name':                 '3er zählen als beliebig',
+  'ability.decreaseWithPearl.name':              'Diamant senkt Perlenwert',
+  'ability.changeCharacterActions.name':         'Portal tauschen (vor 1. Aktion)',
+  'ability.changeHandActions.name':              'Hand neu aufnehmen (nach letzter Aktion)',
+  'ability.previewCharacter.name':               'Karte vom Stapel ansehen',
+  'ability.tradeTwoForDiamond.name':             '2-Perle gegen Diamant tauschen',
+  'ability.numberAdditionalCardActions.name':    'Karte mit aufgedrucktem Perlenwert',
+  'ability.anyAdditionalCardActions.name':       'Karte mit beliebigem Perlenwert',
+  'ability.irrlicht.name':                       'Irrlicht – Nachbarn können mitaktivieren',
+  'ability.threeExtraActions.description':           'Sofort: +3 Aktionen in diesem Zug',
+  'ability.nextPlayerOneExtraAction.description':    'Der nächste Spieler erhält +1 Aktion in seinem Zug',
+  'ability.discardOpponentCharacter.description':    'Sofort: Entferne eine Portalkarte eines Gegners',
+  'ability.stealOpponentHandCard.description':       'Sofort: Nimm eine Handkarte eines Gegners',
+  'ability.takeBackPlayedPearl.description':         'Sofort: Nimm deine zuletzt gespielte Perlenkarte zurück auf die Hand',
+  'ability.handLimitPlusOne.description':            'Dauerhaft: Dein Handlimit erhöht sich um 1',
+  'ability.oneExtraActionPerTurn.description':       'Dauerhaft: Du erhältst jede Runde +1 Aktion',
+  'ability.onesCanBeEights.description':             'Dauerhaft: 1er-Perlenkarten zählen bei Kosten als 8',
+  'ability.threesCanBeAny.description':              'Dauerhaft: 3er-Perlenkarten zählen bei Kosten als beliebiger Wert',
+  'ability.decreaseWithPearl.description':           'Dauerhaft: Gib 1 Diamant aus um den Wert einer Perlenkarte um 1 zu senken',
+  'ability.changeCharacterActions.description':      'Dauerhaft: Tausche vor deiner 1. Aktion eine Portalkarte aus',
+  'ability.changeHandActions.description':           'Dauerhaft: Nimm nach deiner letzten Aktion deine Hand neu auf',
+  'ability.previewCharacter.description':            'Dauerhaft: Sieh vor deiner 1. Aktion die oberste Karte des Charakterstapels an',
+  'ability.tradeTwoForDiamond.description':          'Dauerhaft: Tausche bei der Aktivierung eine 2er-Perle gegen 1 Diamant',
+  'ability.numberAdditionalCardActions.description': 'Dauerhaft: Diese Karte hat einen aufgedruckten Perlenwert der bei Kosten mitgezählt wird',
+  'ability.anyAdditionalCardActions.description':    'Dauerhaft: Diese Karte hat einen aufgedruckten Wildcard-Perlenwert',
+  'ability.irrlicht.description':                    'Dauerhaft: Direkte Nachbarn können diese Karte mitaktivieren',
 };
 
 const enGB: Record<TranslationKey, string> = {
+  'app.title':                   'Portal of Heroes',
   'app.checkingConnection':      'Checking connection…',
   'lobby.yourName':              'Your Name',
   'lobby.namePlaceholder':       'Enter name',
@@ -271,9 +389,63 @@ const enGB: Record<TranslationKey, string> = {
   'steal.card':                  'card',
   'steal.cards':                 'cards',
   'common.cancel':               'Cancel',
+  'swap.title':                  'Swap Portal Card',
+  'swap.description':            'Choose a display card to swap with:',
+  'swap.cancel':                 'Cancel',
+  'takeBackPearl.title':         'Retrieve Pearl Card',
+  'takeBackPearl.noVirtualCards': 'Only virtual pearl cards were played.',
+  'takeBackPearl.chooseCard':    'Choose a card to retrieve:',
+  'takeBackPearl.pearlAlt':      'Pearl {value}',
+  'game.endTurn':                'End Turn',
+  'player.points':               'Points',
+  'player.diamonds':             'Diamonds',
+  'player.activeAbilities':      'Active Abilities',
+  'player.noAbilities':          'No active abilities',
+  'deck.reshufflingPearl':       'Pearl deck\nbeing shuffled…',
+  'deck.reshufflingCharacter':   'Character deck\nbeing shuffled…',
+  'canvas.swap':                 'Swap',
+  'canvas.discardCards':         'Discard Cards',
+  'canvas.clickToTake':          '← Click to take',
+  'lobby.sessionInfo':           'Game {matchID} as {playerName}',
+  'lobby.fallbackPlayerName':    'Player {n}',
+  'ability.threeExtraActions.name':              '+3 Actions',
+  'ability.nextPlayerOneExtraAction.name':       '+1 Action for next player',
+  'ability.discardOpponentCharacter.name':       'Remove portal card',
+  'ability.stealOpponentHandCard.name':          'Steal hand card',
+  'ability.takeBackPlayedPearl.name':            'Retrieve pearl card',
+  'ability.handLimitPlusOne.name':               '+1 Hand limit',
+  'ability.oneExtraActionPerTurn.name':          '+1 Action/Round',
+  'ability.onesCanBeEights.name':                '1s count as 8',
+  'ability.threesCanBeAny.name':                 '3s count as any',
+  'ability.decreaseWithPearl.name':              'Diamond lowers pearl value',
+  'ability.changeCharacterActions.name':         'Swap portal (before 1st action)',
+  'ability.changeHandActions.name':              'Redraw hand (after last action)',
+  'ability.previewCharacter.name':               'Preview top deck card',
+  'ability.tradeTwoForDiamond.name':             'Trade 2-pearl for diamond',
+  'ability.numberAdditionalCardActions.name':    'Card with printed pearl value',
+  'ability.anyAdditionalCardActions.name':       'Card with wildcard pearl value',
+  'ability.irrlicht.name':                       'Will-o-wisp – neighbours can co-activate',
+  'ability.threeExtraActions.description':           'Instant: +3 actions this turn',
+  'ability.nextPlayerOneExtraAction.description':    'The next player gets +1 action on their turn',
+  'ability.discardOpponentCharacter.description':    'Instant: Remove a portal card from an opponent',
+  'ability.stealOpponentHandCard.description':       'Instant: Take a hand card from an opponent',
+  'ability.takeBackPlayedPearl.description':         'Instant: Return your last played pearl card to your hand',
+  'ability.handLimitPlusOne.description':            'Persistent: Your hand limit increases by 1',
+  'ability.oneExtraActionPerTurn.description':       'Persistent: You get +1 action each round',
+  'ability.onesCanBeEights.description':             'Persistent: 1-pearl cards count as 8 for costs',
+  'ability.threesCanBeAny.description':              'Persistent: 3-pearl cards count as any value for costs',
+  'ability.decreaseWithPearl.description':           'Persistent: Spend 1 diamond to reduce a pearl card value by 1',
+  'ability.changeCharacterActions.description':      'Persistent: Swap a portal card before your 1st action',
+  'ability.changeHandActions.description':           'Persistent: Redraw your hand after your last action',
+  'ability.previewCharacter.description':            'Persistent: Before your 1st action, peek at the top card of the character deck',
+  'ability.tradeTwoForDiamond.description':          'Persistent: Trade a 2-pearl for 1 diamond during activation',
+  'ability.numberAdditionalCardActions.description': 'Persistent: This card has a printed pearl value that counts toward costs',
+  'ability.anyAdditionalCardActions.description':    'Persistent: This card has a printed wildcard pearl value',
+  'ability.irrlicht.description':                    'Persistent: Direct neighbours can co-activate this card',
 };
 
 const fr: Record<TranslationKey, string> = {
+  'app.title':                   'Le Portail des Héros',
   'app.checkingConnection':      'Vérification de la connexion…',
   'lobby.yourName':              'Votre nom',
   'lobby.namePlaceholder':       'Entrer un nom',
@@ -356,6 +528,59 @@ const fr: Record<TranslationKey, string> = {
   'steal.card':                  'carte',
   'steal.cards':                 'cartes',
   'common.cancel':               'Annuler',
+  'swap.title':                  'Échanger une carte portail',
+  'swap.description':            'Choisissez une carte de l\'affichage à échanger :',
+  'swap.cancel':                 'Annuler',
+  'takeBackPearl.title':         'Récupérer une carte perle',
+  'takeBackPearl.noVirtualCards': 'Seules des cartes perle virtuelles ont été jouées.',
+  'takeBackPearl.chooseCard':    'Choisissez une carte à récupérer :',
+  'takeBackPearl.pearlAlt':      'Perle {value}',
+  'game.endTurn':                'Terminer le tour',
+  'player.points':               'Points',
+  'player.diamonds':             'Diamants',
+  'player.activeAbilities':      'Capacités actives',
+  'player.noAbilities':          'Aucune capacité active',
+  'deck.reshufflingPearl':       'Pioche perle\nen cours de mélange…',
+  'deck.reshufflingCharacter':   'Pioche personnage\nen cours de mélange…',
+  'canvas.swap':                 'Échanger',
+  'canvas.discardCards':         'Défausser',
+  'canvas.clickToTake':          '← Cliquer pour prendre',
+  'lobby.sessionInfo':           'Partie {matchID} en tant que {playerName}',
+  'lobby.fallbackPlayerName':    'Joueur {n}',
+  'ability.threeExtraActions.name':              '+3 actions',
+  'ability.nextPlayerOneExtraAction.name':       '+1 action pour le prochain joueur',
+  'ability.discardOpponentCharacter.name':       'Retirer une carte portail',
+  'ability.stealOpponentHandCard.name':          'Voler une carte en main',
+  'ability.takeBackPlayedPearl.name':            'Récupérer une carte perle',
+  'ability.handLimitPlusOne.name':               '+1 limite de main',
+  'ability.oneExtraActionPerTurn.name':          '+1 action/tour',
+  'ability.onesCanBeEights.name':                'Les 1 comptent comme 8',
+  'ability.threesCanBeAny.name':                 'Les 3 comptent comme n\'importe quelle valeur',
+  'ability.decreaseWithPearl.name':              'Diamant réduit la valeur perle',
+  'ability.changeCharacterActions.name':         'Échanger portail (avant 1re action)',
+  'ability.changeHandActions.name':              'Repiocher la main (après dernière action)',
+  'ability.previewCharacter.name':               'Voir la carte du dessus',
+  'ability.tradeTwoForDiamond.name':             'Échanger une perle-2 contre un diamant',
+  'ability.numberAdditionalCardActions.name':    'Carte avec valeur perle imprimée',
+  'ability.anyAdditionalCardActions.name':       'Carte avec valeur perle générique',
+  'ability.irrlicht.name':                       'Feu follet – les voisins peuvent co-activer',
+  'ability.threeExtraActions.description':           'Immédiat : +3 actions ce tour',
+  'ability.nextPlayerOneExtraAction.description':    'Le prochain joueur obtient +1 action pendant son tour',
+  'ability.discardOpponentCharacter.description':    'Immédiat : Retirez une carte portail d\'un adversaire',
+  'ability.stealOpponentHandCard.description':       'Immédiat : Prenez une carte en main d\'un adversaire',
+  'ability.takeBackPlayedPearl.description':         'Immédiat : Reprenez votre dernière carte perle jouée en main',
+  'ability.handLimitPlusOne.description':            'Permanent : Votre limite de main augmente de 1',
+  'ability.oneExtraActionPerTurn.description':       'Permanent : Vous obtenez +1 action chaque tour',
+  'ability.onesCanBeEights.description':             'Permanent : Les cartes perle-1 comptent comme 8 pour les coûts',
+  'ability.threesCanBeAny.description':              'Permanent : Les cartes perle-3 comptent comme n\'importe quelle valeur pour les coûts',
+  'ability.decreaseWithPearl.description':           'Permanent : Dépensez 1 diamant pour réduire la valeur d\'une carte perle de 1',
+  'ability.changeCharacterActions.description':      'Permanent : Échangez une carte portail avant votre 1re action',
+  'ability.changeHandActions.description':           'Permanent : Repiochez votre main après votre dernière action',
+  'ability.previewCharacter.description':            'Permanent : Avant votre 1re action, regardez la carte du dessus de la pioche personnage',
+  'ability.tradeTwoForDiamond.description':          'Permanent : Échangez une perle-2 contre 1 diamant lors de l\'activation',
+  'ability.numberAdditionalCardActions.description': 'Permanent : Cette carte a une valeur perle imprimée qui compte pour les coûts',
+  'ability.anyAdditionalCardActions.description':    'Permanent : Cette carte a une valeur perle générique imprimée',
+  'ability.irrlicht.description':                    'Permanent : Les voisins directs peuvent co-activer cette carte',
 };
 
 export const translations: Record<Locale, Record<TranslationKey, string>> = { de, 'en-GB': enGB, fr };

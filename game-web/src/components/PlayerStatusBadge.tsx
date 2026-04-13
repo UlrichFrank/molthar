@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import type { PlayerState } from '@portale-von-molthar/shared';
 import { getAbilityDisplay } from '../lib/abilityDisplayMap';
 import { PlayerStatusDialog } from './PlayerStatusDialog';
+import { useTranslation } from '../i18n/useTranslation';
 
 interface PlayerStatusBadgeProps {
   playerState: PlayerState;
@@ -20,6 +21,7 @@ function getActionColor(actionCount: number, maxActions: number): { color: strin
 }
 
 export function PlayerStatusBadge({ playerState, playerName, actionCount, maxActions, isActiveTurn }: PlayerStatusBadgeProps) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
   const blueAbilities = playerState.activeAbilities.filter(a => a.persistent);
@@ -96,7 +98,7 @@ export function PlayerStatusBadge({ playerState, playerName, actionCount, maxAct
               <span style={{ color: 'rgba(148,163,184,0.5)' }}>|</span>
               <span style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                 {visibleAbilities.map((ability, i) => (
-                  <span key={i} title={getAbilityDisplay(ability.type).name} style={{ fontSize: '0.7rem' }}>
+                  <span key={i} title={t(getAbilityDisplay(ability.type).nameKey)} style={{ fontSize: '0.7rem' }}>
                     {getAbilityDisplay(ability.type).symbol}
                   </span>
                 ))}

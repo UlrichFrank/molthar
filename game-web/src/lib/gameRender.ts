@@ -136,7 +136,8 @@ export function drawDeckStack(
   deckType: 'character' | 'pearl' = 'character',
   hoverProgress: number = 0,
   maxDeckSize?: number,
-  peekedCard?: CharacterCard | null
+  peekedCard?: CharacterCard | null,
+  clickHintLabel?: string
 ) {
   if (cardCount <= 0) return;
 
@@ -191,7 +192,7 @@ export function drawDeckStack(
     ctx.font = 'bold 11px Arial';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText('← Klick zum Nehmen', labelX + 6, labelY + labelH / 2);
+    ctx.fillText(clickHintLabel ?? '← Klick zum Nehmen', labelX + 6, labelY + labelH / 2);
   }
 
   ctx.restore();
@@ -206,7 +207,8 @@ export function drawAuslage(
   pearlDeckCount: number = 0,
   charDeckHover: number = 0,
   pearlDeckHover: number = 0,
-  peekedCharacterCard?: CharacterCard | null
+  peekedCharacterCard?: CharacterCard | null,
+  clickHintLabel?: string
 ) {
   // Auslage in center zone - respects zone boundaries like HTML <div>
   const centerX = MARGIN_H;
@@ -257,7 +259,7 @@ export function drawAuslage(
   }
 
   // Draw character deck below the character cards
-  drawDeckStack(ctx, CHAR_DECK_X, CHAR_DECK_Y, characterDeckCount, DECK_ROTATION, 'character', charDeckHover, undefined, peekedCharacterCard);
+  drawDeckStack(ctx, CHAR_DECK_X, CHAR_DECK_Y, characterDeckCount, DECK_ROTATION, 'character', charDeckHover, undefined, peekedCharacterCard, clickHintLabel);
 
   // Draw pearl deck below the pearl cards
   drawDeckStack(ctx, PEARL_DECK_X, PEARL_DECK_Y, pearlDeckCount, DECK_ROTATION, 'pearl', pearlDeckHover);

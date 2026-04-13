@@ -1,3 +1,5 @@
+import { useTranslation } from '../i18n/useTranslation';
+
 interface EndTurnButtonProps {
   isActive: boolean;
   actionCount: number;
@@ -6,6 +8,7 @@ interface EndTurnButtonProps {
 }
 
 export function EndTurnButton({ isActive, actionCount, maxActions, onEndTurn }: EndTurnButtonProps) {
+  const { t } = useTranslation();
   if (!isActive || actionCount < maxActions) return null;
 
   return (
@@ -35,7 +38,7 @@ export function EndTurnButton({ isActive, actionCount, maxActions, onEndTurn }: 
         (e.currentTarget as HTMLButtonElement).style.borderColor = '#ef4444';
       }}
     >
-      Zug beenden
+      {t('game.endTurn')}
     </button>
   );
 }

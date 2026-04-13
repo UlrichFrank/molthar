@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import type { GameState, PlayerState } from '@portale-von-molthar/shared';
 import { buildCanvasRegions, hitTestRegions } from '../lib/canvasRegions';
-import type { CanvasRegion, NeighborOpponent } from '../lib/canvasRegions';
+import type { CanvasRegion, NeighborOpponent, CanvasLabels } from '../lib/canvasRegions';
 import {
   drawBackground,
   drawAuslage,
@@ -235,6 +235,8 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     : null;
 
   // ── Refs for rAF loop (avoids stale closures) ───────────────────────────────
+  const canvasLabelsRef = useRef<CanvasLabels>({ swap: '', discardCards: '' });
+  const clickHintLabelRef = useRef<string>('');
   const regionsRef = useRef<CanvasRegion[]>([]);
   const hoverKeyRef = useRef<string | null>(null); // "${type}:${id}"
   const cssWRef = useRef(cssW);
@@ -264,6 +266,12 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   useEffect(() => { myPlayerIDRef.current = myPlayerID; }, [myPlayerID]);
   useEffect(() => { activePlayerIDRef.current = activePlayerID; }, [activePlayerID]);
   useEffect(() => { activePlayerRef.current = activePlayer; }, [activePlayer]);
+  // Keep canvas label refs in sync with current language
+  canvasLabelsRef.current = {
+    swap: t('canvas.swap'),
+    discardCards: t('canvas.discardCards'),
+  };
+  clickHintLabelRef.current = t('canvas.clickToTake');
 
   // Rebuild regions when game state changes (in-place to preserve animation)
   useEffect(() => {
@@ -275,7 +283,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
       if (!player) return;
       allOpponentPortals.push({ playerId: pid, portal: player.portal ?? [], zoneIndex: zoneIndex as 0 | 1 | 2 | 3 });
     });
-    regionsRef.current = buildCanvasRegions(G, myPlayerID, isActive, regionsRef.current, allOpponentPortals);
+    regionsRef.current = buildCanvasRegions(G, myPlayerID, isActive, regionsRef.current, allOpponentPortals, canvasLabelsRef.current);
   }, [G, myPlayerID, isActive]);
 
   // ── Canvas size setup (on viewport resize) ──────────────────────────────────
@@ -378,7 +386,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     drawAuslage(drawCtx, characterSlots, pearlSlots,
       { selectedPearl: null, selectedCharacter: null, selectedHandIndices: [] },
       G.characterDeck?.length ?? 0, G.pearlDeck?.length ?? 0,
-      charDeckHover, pearlDeckHover, me?.peekedCard);
+      charDeckHover, pearlDeckHover, me?.peekedCard, clickHintLabelRef.current);
     drawPlayerPortal(drawCtx, { diamonds: playerDiamonds, portal: playerPortal, hand: playerHand },
       { selectedPearl: null, selectedCharacter: null, selectedHandIndices: [] },
       me?.colorIndex ?? 1,
