@@ -175,7 +175,7 @@ export interface GameState {
   characterDiscardPile: CharacterCard[];
   
   // Auslage
-  pearlSlots: PearlCard[]; // 4 offene Perlenkarten
+  pearlSlots: (PearlCard | null)[]; // 4 offene Perlenkarten (null = leerer Slot)
   characterSlots: CharacterCard[]; // 2 offene Charakterkarten
   
   // Spieler

@@ -58,11 +58,11 @@ export const PortaleVonMolthar = {
       if (card) characterSlots.push(card);
     }
     
-    // Refill pearl slots
-    const pearlSlots: PearlCard[] = [];
+    // Refill pearl slots — feste Positionen, null für leere Slots
+    const pearlSlots: (PearlCard | null)[] = [null, null, null, null];
     for (let i = 0; i < 4; i++) {
       const card = pearlDeck.pop();
-      if (card) pearlSlots.push(card);
+      pearlSlots[i] = card ?? null;
     }
     
     return {
@@ -107,8 +107,24 @@ export const PortaleVonMolthar = {
       // Get card from slot or deck
       let card: PearlCard | undefined;
       if (slotIndex >= 0 && slotIndex < 4) {
-        card = G.pearlSlots[slotIndex];
-        G.pearlSlots.splice(slotIndex, 1);
+        card = G.pearlSlots[slotIndex] ?? undefined;
+        if (!card) return INVALID_MOVE;
+        // In-Place-Ersatz: Slot auf null, sofort neu befüllen an derselben Position
+        G.pearlSlots[slotIndex] = null;
+        const slotIdsBefore = G.pearlSlots.map(c => c?.id ?? null);
+        const newCard = drawCard(G.pearlDeck, G.pearlDiscardPile, () => { G.isReshufflingPearlDeck = true; });
+        G.pearlSlots[slotIndex] = newCard ?? null;
+        player.hand.push(card);
+        G.actionCount++;
+        // Proaktiver Reshuffle: Deck leer nach Nachziehen, Auslage voll → sofort neu mischen
+        const filledSlots = G.pearlSlots.filter(c => c !== null).length;
+        if (G.pearlDeck.length === 0 && G.pearlDiscardPile.length > 0 && filledSlots >= 4) {
+          G.pearlDeck.push(...G.pearlDiscardPile.splice(0));
+          shuffleArray(G.pearlDeck);
+          G.isReshufflingPearlDeck = true;
+        }
+        applyPearlRefreshIfNeeded(G, slotIdsBefore.filter((id): id is string => id !== null));
+        return;
       } else if (slotIndex === -1) {
         card = drawCard(G.pearlDeck, G.pearlDiscardPile, () => { G.isReshufflingPearlDeck = true; });
       } else {
@@ -119,15 +135,13 @@ export const PortaleVonMolthar = {
 
       player.hand.push(card);
       G.actionCount++;
-      const slotIdsBefore = G.pearlSlots.map(c => c.id);
-      refillSlots(G.pearlSlots, G.pearlDeck, G.pearlDiscardPile, 4, () => { G.isReshufflingPearlDeck = true; });
-      // Proactiver Reshuffle: letzte Deck-Karte gezogen, Auslage voll → sofort neu mischen
-      if (G.pearlDeck.length === 0 && G.pearlDiscardPile.length > 0 && G.pearlSlots.length >= 4) {
+      // Proaktiver Reshuffle: letzte Deck-Karte gezogen (vom Stapel), Auslage voll → sofort neu mischen
+      const filledSlots = G.pearlSlots.filter(c => c !== null).length;
+      if (G.pearlDeck.length === 0 && G.pearlDiscardPile.length > 0 && filledSlots >= 4) {
         G.pearlDeck.push(...G.pearlDiscardPile.splice(0));
         shuffleArray(G.pearlDeck);
         G.isReshufflingPearlDeck = true;
       }
-      applyPearlRefreshIfNeeded(G, slotIdsBefore);
       return;
     },
 
@@ -384,9 +398,14 @@ export const PortaleVonMolthar = {
       if (!player) return INVALID_MOVE;
       if (G.actionCount >= G.maxActions) return INVALID_MOVE;
       
-      // Discard all pearl slots, then refill (alle Karten danach sind neu)
-      G.pearlDiscardPile.push(...G.pearlSlots.splice(0));
-      refillSlots(G.pearlSlots, G.pearlDeck, G.pearlDiscardPile, 4, () => { G.isReshufflingPearlDeck = true; });
+      // Discard all pearl slots, then refill in-place (alle Karten danach sind neu)
+      for (let i = 0; i < G.pearlSlots.length; i++) {
+        if (G.pearlSlots[i] !== null) {
+          G.pearlDiscardPile.push(G.pearlSlots[i]!);
+          G.pearlSlots[i] = null;
+        }
+      }
+      refillFixedSlots(G.pearlSlots, G.pearlDeck, G.pearlDiscardPile, () => { G.isReshufflingPearlDeck = true; });
       applyPearlRefreshIfNeeded(G, []);
       G.actionCount++;
       return;
@@ -921,12 +940,30 @@ function refillSlots<T>(slots: T[], deck: T[], discardPile: T[], maxSlots: numbe
 }
 
 /**
+ * Füllt null-Einträge in einem Fixed-Size-Array in-place auf (stabiles Slot-Modell).
+ * Jeder null-Slot wird einzeln aus dem Deck gezogen — Position bleibt erhalten.
+ */
+function refillFixedSlots(
+  slots: (PearlCard | null)[],
+  deck: PearlCard[],
+  discardPile: PearlCard[],
+  onReshuffle?: () => void
+): void {
+  for (let i = 0; i < slots.length; i++) {
+    if (slots[i] === null) {
+      const card = drawCard(deck, discardPile, onReshuffle);
+      slots[i] = card ?? null;
+    }
+  }
+}
+
+/**
  * Prüft ob eine der neu aufgedeckten Perlenkarten das Refresh-Symbol trägt.
  * Falls ja: alle Charakterkarten aus der Auslage auf den Ablagestapel legen und genau 2 neue ziehen.
  * `slotIdsBefore` enthält die IDs der Karten, die VOR dem Auffüllen in pearlSlots lagen.
  */
 function applyPearlRefreshIfNeeded(G: GameState, slotIdsBefore: string[]): void {
-  const newCards = G.pearlSlots.filter(card => !slotIdsBefore.includes(card.id));
+  const newCards = G.pearlSlots.filter((c): c is PearlCard => c !== null && !slotIdsBefore.includes(c.id));
   if (!newCards.some(card => card.hasRefreshSymbol)) return;
 
   G.characterDiscardPile.push(...G.characterSlots.splice(0));

@@ -42,7 +42,7 @@ function makeMinimalGameState(overrides: Partial<GameState> = {}): GameState {
     characterDeck: [],
     pearlDiscardPile: [],
     characterDiscardPile: [],
-    pearlSlots: [],
+    pearlSlots: [null, null, null, null],
     characterSlots: [],
     players: { '0': makePlayer('0', 'TestSpieler'), '1': makePlayer('1', 'Gegner') },
     playerOrder: ['0', '1'],
