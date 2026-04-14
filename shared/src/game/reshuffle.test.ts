@@ -35,17 +35,15 @@ describe('reshuffle-empty-decks — pearl deck', () => {
   it('4.1 isReshufflingPearlDeck becomes true when refillSlots reshuffles', () => {
     const G = makeGameState(2);
     // Empty the deck, put cards in discard pile
-    G.pearlDeck = [];
-    G.pearlSlots = []; // empty slots to trigger refill
+    // Auslage voll (4 Karten), Deck hat 1 Karte, Discard hat Karten
+    G.pearlDeck = [makePearlCard('p0')];
+    G.pearlSlots = [makePearlCard('s1'), makePearlCard('s2'), makePearlCard('s3'), makePearlCard('s4')];
     G.pearlDiscardPile = [makePearlCard('p1'), makePearlCard('p2')];
 
     const ctx = { currentPlayer: '0', activePlayers: {} };
-    // takePearlCard with slotIndex=-1 draws from deck; slot is empty so deck.pop() fails → reshuffle
-    // Actually we need to trigger refillSlots. Let's take a card via slot -1 after depleting deck.
-    // First put one card in deck so the move itself succeeds, but discard has more:
-    G.pearlDeck = [makePearlCard('p0')];
+    // takePearlCard mit slotIndex=-1 zieht p0 vom Deck (Deck danach leer)
+    // Proaktiver Reshuffle: Deck leer, Auslage voll (4 Karten) → Discard wird gemischt
     moves.takePearlCard({ G, ctx, events: {} }, -1);
-    // After taking, refillSlots runs: deck empty, discard has cards → reshuffle
     expect(G.isReshufflingPearlDeck).toBe(true);
   });
 
@@ -81,21 +79,20 @@ describe('reshuffle-empty-decks — pearl deck', () => {
     expect(G.isReshufflingPearlDeck).toBe(true);
   });
 
-  it('3.4 takePearlCard — letzte Deck-Karte gezogen, Auslage nicht voll → kein Doppel-Reshuffle', () => {
+  it('3.4 takePearlCard — letzte Deck-Karte gezogen, Auslage nicht voll → kein proaktiver Reshuffle', () => {
     const G = makeGameState(2);
-    // Deck has 1 card, display has 3 slots (not full), discard has cards
+    // Deck hat 1 Karte, Auslage hat 1 leeren Slot (nicht voll), Discard hat Karten
     G.pearlDeck = [makePearlCard('p_last')];
-    G.pearlSlots = [makePearlCard('s1'), makePearlCard('s2'), makePearlCard('s3')];
+    G.pearlSlots = [makePearlCard('s1'), makePearlCard('s2'), makePearlCard('s3'), null];
     G.pearlDiscardPile = [makePearlCard('d1'), makePearlCard('d2')];
     G.players['0']!.hand = [];
     G.actionCount = 0;
     const ctx = { currentPlayer: '0', activePlayers: {} };
     moves.takePearlCard({ G, ctx, events: {} }, -1);
-    // refillSlots handles the reshuffle (slots < 4), proactive check does NOT run additionally
-    // After refillSlots: deck has cards remaining from reshuffled discard → proactive check (deck.length===0) is false
-    expect(G.isReshufflingPearlDeck).toBe(true); // set by refillSlots
-    // Discard pile should be empty (consumed by refillSlots reshuffle)
-    expect(G.pearlDiscardPile.length).toBe(0);
+    // filledSlots = 3 (< 4) → proaktiver Reshuffle wird NICHT ausgelöst
+    expect(G.isReshufflingPearlDeck).toBe(false);
+    // Discard bleibt unverändert (kein Reshuffle)
+    expect(G.pearlDiscardPile.length).toBe(2);
   });
 });
 

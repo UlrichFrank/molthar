@@ -201,7 +201,7 @@ export function drawDeckStack(
 export function drawAuslage(
   ctx: CanvasRenderingContext2D,
   characterSlots: CharacterCard[],
-  pearlSlots: PearlCard[],
+  pearlSlots: (PearlCard | null)[],
   config: DrawConfig,
   characterDeckCount: number = 0,
   pearlDeckCount: number = 0,

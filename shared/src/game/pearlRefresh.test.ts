@@ -23,8 +23,8 @@ describe('pearl-refresh-symbol — takePearlCard', () => {
     const G = makeGameState(2);
     // Leere Slots und Deck so vorbereiten, dass genau eine Refresh-Karte nachgefüllt wird
     G.pearlSlots = [
-      makePearlCard('p1'), makePearlCard('p2'), makePearlCard('p3'),
-    ]; // 3 Slots → nach dem Nehmen einer wird auf 4 aufgefüllt
+      makePearlCard('p1'), makePearlCard('p2'), makePearlCard('p3'), makePearlCard('p4'),
+    ]; // 4 feste Slots — Slot 0 wird entnommen und in-place durch refresh-1 ersetzt
     G.pearlDeck = [makePearlCard('refresh-1', true)]; // die nächste Karte hat das Symbol
     G.characterSlots = [makeCharacterCard('c1'), makeCharacterCard('c2')];
     G.characterDeck = [makeCharacterCard('c3'), makeCharacterCard('c4')];
@@ -44,7 +44,7 @@ describe('pearl-refresh-symbol — takePearlCard', () => {
   it('3.2 Kein Refresh bei normaler Perlenkarte', () => {
     const G = makeGameState(2);
     G.pearlSlots = [
-      makePearlCard('p1'), makePearlCard('p2'), makePearlCard('p3'),
+      makePearlCard('p1'), makePearlCard('p2'), makePearlCard('p3'), makePearlCard('p4'),
     ];
     G.pearlDeck = [makePearlCard('normal-1', false)];
     const charSlotsSnapshot = [makeCharacterCard('c1'), makeCharacterCard('c2')];
@@ -60,7 +60,7 @@ describe('pearl-refresh-symbol — takePearlCard', () => {
 
   it('3.3 Charakterdeck leer beim Refresh → Discard wird als Deck verwendet', () => {
     const G = makeGameState(2);
-    G.pearlSlots = [makePearlCard('p1'), makePearlCard('p2'), makePearlCard('p3')];
+    G.pearlSlots = [makePearlCard('p1'), makePearlCard('p2'), makePearlCard('p3'), makePearlCard('p4')];
     G.pearlDeck = [makePearlCard('refresh-1', true)];
     G.characterSlots = [makeCharacterCard('c1'), makeCharacterCard('c2')];
     G.characterDeck = []; // leer
