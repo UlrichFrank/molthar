@@ -40,7 +40,7 @@ export const PortaleVonMolthar = {
         portal: [],
         activatedCharacters: [],
         powerPoints: 0,
-        diamonds: 0,
+        diamondCards: [],
         readyUp: false,
         isAI: false,
         aiDifficulty: undefined,
@@ -302,8 +302,8 @@ export const PortaleVonMolthar = {
         }
       }
 
-      if (player.diamonds + bonusDiamonds < diamondsToSpend) return INVALID_MOVE;
-      const remainingDiamondsForValidation = player.diamonds - diamondsToSpend + bonusDiamonds;
+      if (player.diamondCards.length + bonusDiamonds < diamondsToSpend) return INVALID_MOVE;
+      const remainingDiamondsForValidation = player.diamondCards.length - diamondsToSpend + bonusDiamonds;
 
       // Reine Kostenvalidierung mit der konstruierten, virtuellen Hand
       const isValid = validateCostPayment(entry.card.cost, virtualHand, remainingDiamondsForValidation);
@@ -314,7 +314,7 @@ export const PortaleVonMolthar = {
       // Update player state: konsumierte Karten und Diamanten entfernen
       const unconsumedCards: PearlCard[] = [];
       const consumedCards: PearlCard[] = [];
-      
+
       for (let i = 0; i < player.hand.length; i++) {
         if (handIndicesToRemove.has(i)) {
           consumedCards.push(player.hand[i]!);
@@ -324,12 +324,16 @@ export const PortaleVonMolthar = {
       }
 
       player.hand = unconsumedCards;
-      player.diamonds -= Math.max(0, diamondsToSpend - bonusDiamonds);
 
-      // CostComponents vom Typ 'diamond' wurden in validateCostPayment bestätigt.
-      // Wir müssen diese auch abziehen! (Anzahl an diamonds in Cost components ermitteln)
-      const diamondCosts = entry.card.cost?.filter(c => c.type === 'diamond').reduce((sum, c) => sum + (c.value || 0), 0) || 0;
-      player.diamonds -= diamondCosts;
+      // decreaseWithPearl-Diamanten ausgeben: Karten aus diamondCards → characterDiscardPile
+      const decreaseDiamondsToSpend = Math.max(0, diamondsToSpend - bonusDiamonds);
+      const spentDecreaseCards = player.diamondCards.splice(player.diamondCards.length - decreaseDiamondsToSpend, decreaseDiamondsToSpend);
+      G.characterDiscardPile.push(...spentDecreaseCards);
+
+      // CostComponents vom Typ 'diamond': Karten aus diamondCards → characterDiscardPile
+      const diamondCosts = entry.card.cost?.filter(c => c.type === 'diamond').reduce((sum, c) => sum + (c.value ?? 1), 0) || 0;
+      const spentCostCards = player.diamondCards.splice(player.diamondCards.length - diamondCosts, diamondCosts);
+      G.characterDiscardPile.push(...spentCostCards);
 
       // Consumed Karten auf den Ablagestapel (nur echte Handkarten!)
       consumedCards.forEach(card => G.pearlDiscardPile.push(card));
@@ -337,7 +341,11 @@ export const PortaleVonMolthar = {
 
       // Belohnungen der Karte gutschreiben
       player.powerPoints += entry.card.powerPoints;
-      player.diamonds += entry.card.diamonds;
+      // Diamant-Belohnung: Karten vom characterDeck ziehen
+      for (let i = 0; i < entry.card.diamonds; i++) {
+        const drawnCard = drawCard(G.characterDeck, G.characterDiscardPile, () => { G.isReshufflingCharacterDeck = true; });
+        if (drawnCard) player.diamondCards.push(drawnCard);
+      }
       G.actionCount++;
 
       // WICHTIG: Karte vom Portal-Array zu activatedCharacters verschieben
@@ -526,8 +534,8 @@ export const PortaleVonMolthar = {
         }
       }
 
-      if (caller.diamonds + bonusDiamonds < diamondsToSpend) return INVALID_MOVE;
-      const remainingDiamonds = caller.diamonds - diamondsToSpend + bonusDiamonds;
+      if (caller.diamondCards.length + bonusDiamonds < diamondsToSpend) return INVALID_MOVE;
+      const remainingDiamonds = caller.diamondCards.length - diamondsToSpend + bonusDiamonds;
 
       const isValid = validateCostPayment(entry.card.cost, virtualHand, remainingDiamonds);
       if (!isValid) return INVALID_MOVE;
@@ -540,16 +548,27 @@ export const PortaleVonMolthar = {
         else unconsumed.push(caller.hand[i]!);
       }
       caller.hand = unconsumed;
-      caller.diamonds -= Math.max(0, diamondsToSpend - bonusDiamonds);
 
-      const diamondCosts = entry.card.cost?.filter(c => c.type === 'diamond').reduce((sum, c) => sum + (c.value || 0), 0) || 0;
-      caller.diamonds -= diamondCosts;
+      // decreaseWithPearl-Diamanten ausgeben: Karten aus diamondCards → characterDiscardPile
+      const callerDecreaseSpend = Math.max(0, diamondsToSpend - bonusDiamonds);
+      const callerSpentDecreaseCards = caller.diamondCards.splice(caller.diamondCards.length - callerDecreaseSpend, callerDecreaseSpend);
+      G.characterDiscardPile.push(...callerSpentDecreaseCards);
+
+      // CostComponents vom Typ 'diamond': Karten aus diamondCards → characterDiscardPile
+      const diamondCosts = entry.card.cost?.filter(c => c.type === 'diamond').reduce((sum, c) => sum + (c.value ?? 1), 0) || 0;
+      const callerSpentCostCards = caller.diamondCards.splice(caller.diamondCards.length - diamondCosts, diamondCosts);
+      G.characterDiscardPile.push(...callerSpentCostCards);
+
       consumed.forEach(c => G.pearlDiscardPile.push(c));
       consumed.forEach(c => G.playedRealPearlIds.push(c.id));
 
       // Power points and diamonds go to the caller
       caller.powerPoints += entry.card.powerPoints;
-      caller.diamonds += entry.card.diamonds;
+      // Diamant-Belohnung: Karten vom characterDeck ziehen
+      for (let i = 0; i < entry.card.diamonds; i++) {
+        const drawnCard = drawCard(G.characterDeck, G.characterDiscardPile, () => { G.isReshufflingCharacterDeck = true; });
+        if (drawnCard) caller.diamondCards.push(drawnCard);
+      }
       G.actionCount++;
 
       // Remove card from owner's portal, add to caller's activatedCharacters
@@ -619,8 +638,10 @@ export const PortaleVonMolthar = {
       if (discardedCard) {
         G.pearlDiscardPile.push(discardedCard);
       }
-      player.diamonds += 1;
-      
+      // Diamant-Erwerb: 1 Karte vom characterDeck ziehen
+      const tradedDiamondCard = drawCard(G.characterDeck, G.characterDiscardPile, () => { G.isReshufflingCharacterDeck = true; });
+      if (tradedDiamondCard) player.diamondCards.push(tradedDiamondCard);
+
       // Does not consume an action (free effect)
       return;
     },
@@ -722,13 +743,13 @@ export const PortaleVonMolthar = {
           const pA = G.players[a]!;
           const pB = G.players[b]!;
           if (pB.powerPoints !== pA.powerPoints) return pB.powerPoints - pA.powerPoints;
-          return pB.diamonds - pA.diamonds;
+          return pB.diamondCards.length - pA.diamondCards.length;
         })
         .map(pId => ({
           playerId: pId,
           name: G.players[pId]!.name,
           powerPoints: G.players[pId]!.powerPoints,
-          diamonds: G.players[pId]!.diamonds,
+          diamonds: G.players[pId]!.diamondCards.length,
         }));
       events.endGame({ reason: 'terminated', ranking });
       return;
@@ -834,13 +855,13 @@ export const PortaleVonMolthar = {
           const pA = G.players[a]!;
           const pB = G.players[b]!;
           if (pB.powerPoints !== pA.powerPoints) return pB.powerPoints - pA.powerPoints;
-          return pB.diamonds - pA.diamonds;
+          return pB.diamondCards.length - pA.diamondCards.length;
         })
         .map(pId => ({
           playerId: pId,
           name: G.players[pId]!.name,
           powerPoints: G.players[pId]!.powerPoints,
-          diamonds: G.players[pId]!.diamonds,
+          diamonds: G.players[pId]!.diamondCards.length,
         }));
       return { ranking };
     }

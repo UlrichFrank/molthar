@@ -30,7 +30,7 @@ function makeMinimalGameState(overrides: Partial<GameState> = {}): GameState {
     portal: [],
     activatedCharacters: [],
     powerPoints: 0,
-    diamonds: 0,
+    diamondCards: [],
     readyUp: false,
     isAI: false,
     handLimitModifier: 0,
@@ -542,7 +542,7 @@ describe('TIER 2 – Integration: Charakter mit Wildcard-Fähigkeit aktivieren',
   it('2.6 – Backend blockiert decreaseWithPearl ohne ausreichende Diamanten', () => {
     const G = makeMinimalGameState();
     const player = G.players['0']!;
-    player.diamonds = 0;
+    player.diamondCards = [];
     player.portal.push({
       id: 'entry-5', activated: false,
       card: { id: 'card-5', name: 'C', imageName: '', powerPoints: 0, diamonds: 0, cost: [{ type: 'number', value: 4 }], abilities: [] }
@@ -624,7 +624,8 @@ describe('TIER 5 – Blaue Information & Ressourcen', () => {
       { id: 'p2', value: 2, hasSwapSymbol: false, hasRefreshSymbol: false },
       { id: 'p3', value: 3, hasSwapSymbol: false, hasRefreshSymbol: false },
     ];
-    player.diamonds = 0;
+    player.diamondCards = [];
+    G.characterDeck.push({ id: 'deck-card-1', name: 'DeckKarte', imageName: '', powerPoints: 0, diamonds: 0, cost: [], abilities: [] });
 
     // Ohne Fähigkeit -> INVALID_MOVE
     let result = PortaleVonMolthar.moves!.tradeForDiamond({ G, ctx }, 1); // 1 = 2-Perle
@@ -640,8 +641,8 @@ describe('TIER 5 – Blaue Information & Ressourcen', () => {
     // Richtig! (Index 1 = 2-Perle)
     result = PortaleVonMolthar.moves!.tradeForDiamond({ G, ctx }, 1);
     expect(result).not.toBe('INVALID_MOVE');
-    
-    expect(player.diamonds).toBe(1);
+
+    expect(player.diamondCards.length).toBe(1);
     expect(player.hand).toHaveLength(2);
     expect(player.hand.find(c => c.value === 2)).toBeUndefined();
     expect(G.pearlDiscardPile).toHaveLength(1);
@@ -755,7 +756,7 @@ describe('TIER 7 – irrlicht (geteilte Aktivierung)', () => {
     // 3-player game with playerOrder [0, 1, 2]
     const makeP = (id: string): PlayerState => ({
       id, name: `P${id}`, hand: [], portal: [], activatedCharacters: [],
-      powerPoints: 0, diamonds: 0, readyUp: false, isAI: false,
+      powerPoints: 0, diamondCards: [], readyUp: false, isAI: false,
       handLimitModifier: 0, activeAbilities: [], colorIndex: 1,
     });
     const G = {
@@ -800,7 +801,7 @@ describe('TIER 7 – irrlicht (geteilte Aktivierung)', () => {
     // In a 5-player game, player 3 is not a neighbor of player 0
     const makeP = (id: string): PlayerState => ({
       id, name: `P${id}`, hand: [], portal: [], activatedCharacters: [],
-      powerPoints: 0, diamonds: 0, readyUp: false, isAI: false,
+      powerPoints: 0, diamondCards: [], readyUp: false, isAI: false,
       handLimitModifier: 0, activeAbilities: [], colorIndex: 1,
     });
     const G = {
@@ -880,7 +881,7 @@ describe('TIER 7b – tradeTwoForDiamond (source: trade in activatePortalCard)',
       { id: 'p-two', value: 2, hasSwapSymbol: false, hasRefreshSymbol: false },
       { id: 'p-three', value: 3, hasSwapSymbol: false, hasRefreshSymbol: false },
     ];
-    player.diamonds = 0;
+    player.diamondCards = [];
 
     return { G, player };
   }
@@ -900,7 +901,7 @@ describe('TIER 7b – tradeTwoForDiamond (source: trade in activatePortalCard)',
     // Karte aktiviert
     expect(player.activatedCharacters).toHaveLength(2);
     // Diamant bleibt (bonusDiamonds - diamondsToSpend = 1 - 0 = 1 übrig, aber wir ziehen nur ab was nötig)
-    expect(player.diamonds).toBeGreaterThanOrEqual(0);
+    expect(player.diamondCards.length).toBeGreaterThanOrEqual(0);
   });
 
   it('7b.2 – source:trade mit decreaseWithPearl kombiniert', () => {
@@ -928,7 +929,7 @@ describe('TIER 7b – tradeTwoForDiamond (source: trade in activatePortalCard)',
       { id: 'p5', value: 5, hasSwapSymbol: false, hasRefreshSymbol: false },
       { id: 'p2', value: 2, hasSwapSymbol: false, hasRefreshSymbol: false },
     ];
-    player.diamonds = 0;
+    player.diamondCards = [];
 
     const ctx = makeCtx('0');
     const result = PortaleVonMolthar.moves!.activatePortalCard({ G, ctx }, 0, [

@@ -78,7 +78,7 @@ export function PlayerStatusBadge({ playerState, playerName, actionCount, maxAct
         <span style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
           <span style={{ color: '#fde68a' }}>★ {playerState.powerPoints}</span>
           <span style={{ color: 'rgba(148,163,184,0.5)' }}>|</span>
-          <span style={{ color: '#67e8f9' }}>💎 {playerState.diamonds}</span>
+          <span style={{ color: '#67e8f9' }}>💎 {playerState.diamondCards.length}</span>
 
           {showActionCounter && actionColors && (
             <>

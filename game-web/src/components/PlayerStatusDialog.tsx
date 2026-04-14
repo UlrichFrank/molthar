@@ -26,7 +26,7 @@ export function PlayerStatusDialog({ playerState, playerName, onClose }: PlayerS
         </div>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#67e8f9' }}>
-            💎 {playerState.diamonds}
+            💎 {playerState.diamondCards.length}
           </div>
           <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: 2 }}>{t('player.diamonds')}</div>
         </div>
