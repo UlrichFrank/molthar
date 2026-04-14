@@ -731,6 +731,6 @@ export function consumeCosts(
 }
 
 export function validateDiamondCost(component: CostComponent, diamondCount: number): boolean {
-  const requiredDiamonds = component.value || 0;
-  return diamondCount === requiredDiamonds;
+  const requiredDiamonds = component.value ?? 1;
+  return diamondCount >= requiredDiamonds;
 }

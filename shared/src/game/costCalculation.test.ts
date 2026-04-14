@@ -48,19 +48,30 @@ describe('Cost Validation - Diamond Cost', () => {
     expect(validateDiamondCost(component, 0)).toBe(false);
   });
 
-  it('2.3: required diamonds (mismatch - more)', () => {
+  it('2.3: more diamonds than required — still valid (>= not ===)', () => {
     const component: CostComponent = { type: 'diamond', value: 1 };
-    expect(validateDiamondCost(component, 2)).toBe(false);
+    expect(validateDiamondCost(component, 2)).toBe(true);
   });
 
-  it('2.4: Integrated: required diamonds (match)', () => {
+  it('2.4: no value field — defaults to 1', () => {
+    const component: CostComponent = { type: 'diamond' };
+    expect(validateDiamondCost(component, 1)).toBe(true);
+    expect(validateDiamondCost(component, 0)).toBe(false);
+  });
+
+  it('2.5: Integrated: required diamonds (match)', () => {
     const component: CostComponent = { type: 'diamond', value: 1 };
     expect(validateCostPayment([component], [], 1)).toBe(true);
   });
 
-  it('2.5: Integrated: required diamonds (mismatch - more)', () => {
+  it('2.6: Integrated: more than required diamonds — valid', () => {
     const component: CostComponent = { type: 'diamond', value: 1 };
-    expect(validateCostPayment([component], [], 2)).toBe(false); // too many diamonds provided
+    expect(validateCostPayment([component], [], 2)).toBe(true);
+  });
+
+  it('2.7: Integrated: too few diamonds — invalid', () => {
+    const component: CostComponent = { type: 'diamond', value: 1 };
+    expect(validateCostPayment([component], [], 0)).toBe(false);
   });
 });
 

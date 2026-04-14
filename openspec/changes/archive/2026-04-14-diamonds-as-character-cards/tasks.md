@@ -32,7 +32,7 @@
 
 ## 6. Verifikation
 
-- [ ] 6.1 Karte mit `diamondsReward=1` aktivieren → `player.diamondCards.length` steigt um 1, `characterDeck` schrumpft um 1
-- [ ] 6.2 `decreaseWithPearl` nutzen → Karte wandert von `player.diamondCards` in `characterDiscardPile`
-- [ ] 6.3 `tradeTwoForDiamond` nutzen → Karte kommt vom `characterDeck`, landet in `player.diamondCards`
+- [x] 6.1 Karte mit `diamondsReward=1` aktivieren → `player.diamondCards.length` steigt um 1, `characterDeck` schrumpft um 1
+- [x] 6.2 `decreaseWithPearl` nutzen → Karte wandert von `player.diamondCards` in `characterDiscardPile`
+- [x] 6.3 `tradeTwoForDiamond` nutzen → Karte kommt vom `characterDeck`, landet in `player.diamondCards`
 - [x] 6.4 Alle bestehenden Shared-Tests laufen durch (`make test-shared`)

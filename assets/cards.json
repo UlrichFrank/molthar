@@ -679,7 +679,8 @@
         "value": 2
       },
       {
-        "type": "diamond"
+        "type": "diamond",
+        "value": 1
       }
     ],
     "ability": {
