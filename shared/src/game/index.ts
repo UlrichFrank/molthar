@@ -1,6 +1,6 @@
 import { INVALID_MOVE } from 'boardgame.io/core';
 import type { GameState, PearlCard, CharacterCard, PlayerState, ActivatedCharacter, PaymentSelection } from './types';
-import { calculateHandLimit, getExcessCardCount, validateCostPayment } from './costCalculation';
+import { calculateHandLimit, getExcessCardCount, validateCostPayment, hasUnnecessarySelection } from './costCalculation';
 import { getAllCards as getAllCardDataFromDatabase } from './cardDatabase';
 import { applyRedAbility, applyBlueAbility, deriveActiveAbilities } from './abilityHandlers';
 // @ts-ignore - cardDatabaseLoader.js is a side-effect module (Node.js backend only)
@@ -328,6 +328,9 @@ export const PortaleVonMolthar = {
       if (!isValid) {
         return INVALID_MOVE;
       }
+      if (hasUnnecessarySelection(entry.card.cost, virtualHand, remainingDiamondsForValidation)) {
+        return INVALID_MOVE;
+      }
 
       // Update player state: konsumierte Karten und Diamanten entfernen
       const unconsumedCards: PearlCard[] = [];
@@ -565,6 +568,7 @@ export const PortaleVonMolthar = {
 
       const isValid = validateCostPayment(entry.card.cost, virtualHand, remainingDiamonds);
       if (!isValid) return INVALID_MOVE;
+      if (hasUnnecessarySelection(entry.card.cost, virtualHand, remainingDiamonds)) return INVALID_MOVE;
 
       // Consume hand cards
       const consumed: import('./types').PearlCard[] = [];

@@ -54,6 +54,7 @@ export type TranslationKey =
   | 'activation.abilities'
   | 'activation.activate'
   | 'activation.invalidPayment'
+  | 'activation.overpayment'
   | 'activation.abilityOnesAsEights'
   | 'activation.abilityThreesAsAny'
   | 'activation.abilityDecreaseCard'
@@ -213,6 +214,7 @@ const de: Record<TranslationKey, string> = {
   'activation.abilities':        'Fähigkeiten',
   'activation.activate':         'Aktivieren',
   'activation.invalidPayment':   'Ungültige Zahlung',
+  'activation.overpayment':      'Zu viele Karten ausgewählt',
   'activation.abilityOnesAsEights':  '1→8',
   'activation.abilityThreesAsAny':   '3er zählen als beliebiger Wert',
   'activation.abilityDecreaseCard':  'Karte −1 (kostet 1 💎)',
@@ -356,6 +358,7 @@ const enGB: Record<TranslationKey, string> = {
   'activation.abilities':        'Abilities',
   'activation.activate':         'Activate',
   'activation.invalidPayment':   'Invalid Payment',
+  'activation.overpayment':      'Too many cards selected',
   'activation.abilityOnesAsEights':  '1→8',
   'activation.abilityThreesAsAny':   '3s count as any value',
   'activation.abilityDecreaseCard':  'Card −1 (costs 1 💎)',
@@ -499,6 +502,7 @@ const fr: Record<TranslationKey, string> = {
   'activation.abilities':        'Capacités',
   'activation.activate':         'Activer',
   'activation.invalidPayment':   'Paiement invalide',
+  'activation.overpayment':      'Trop de cartes sélectionnées',
   'activation.abilityOnesAsEights':  '1→8',
   'activation.abilityThreesAsAny':   'Les 3 comptent comme n\'importe quelle valeur',
   'activation.abilityDecreaseCard':  'Carte −1 (coûte 1 💎)',
