@@ -32,22 +32,23 @@ describe('endIf — timing', () => {
     expect(endIf({ G, ctx: makeCtx('0', 99) })).toBeUndefined();
   });
 
-  it('N=2, Spieler 0 triggert bei Runde T — endet nach T+2 Runden', () => {
-    // [0,1], idx=0 → turnsNeeded = N = 2 → end when turn > T+2
-    //   verbleibend: (2-1-0)=1, finale Runde bis inkl. idx=0: (0+1)=1 → 1+1=2
+  it('N=2, Spieler 0 triggert bei Runde T — endet nach T+3 Runden', () => {
+    // [0,1], idx=0 → turnsNeeded = 2*2-1-0 = 3 → end when turn > T+3
+    //   verbleibend: (2-1-0)=1 (P1 spielt), finale Runde: P0, P1 (2 Züge) → 1+2=3
     const G = makeGameState(2);
     const T = 5;
     setupFinalRound(G, '0', T);
     G.players['0'].powerPoints = 12;
 
-    // Noch nicht fertig: Turn T+2 exakt (= triggerTurn + turnsNeeded)
-    expect(endIf({ G, ctx: makeCtx('0', T + 2) })).toBeUndefined();
-    // Fertig: Turn T+3 (erste Runde nach finaler Runde)
-    expect(endIf({ G, ctx: makeCtx('0', T + 3) })).toBeDefined();
+    // Noch nicht fertig: Turn T+3 exakt (= triggerTurn + turnsNeeded)
+    expect(endIf({ G, ctx: makeCtx('0', T + 3) })).toBeUndefined();
+    // Fertig: Turn T+4 (nach vollständiger Schlussrunde)
+    expect(endIf({ G, ctx: makeCtx('0', T + 4) })).toBeDefined();
   });
 
   it('N=2, Spieler 1 triggert bei Runde T — endet nach T+2 Runden', () => {
-    // [0,1], idx=1 → turnsNeeded = (2-1-1)+2 = 2 → end when turn > T+2
+    // [0,1], idx=1 → turnsNeeded = 2*2-1-1 = 2 → end when turn > T+2
+    //   verbleibend: 0 (P1 war letzter), finale Runde: P0, P1 (2 Züge) → 0+2=2
     const G = makeGameState(2);
     const T = 8;
     setupFinalRound(G, '1', T);
@@ -57,16 +58,40 @@ describe('endIf — timing', () => {
     expect(endIf({ G, ctx: makeCtx('0', T + 3) })).toBeDefined();
   });
 
-  it('N=4, Spieler 2 triggert bei Runde T — endet nach T+4 Runden', () => {
-    // [0,1,2,3], idx=2 → turnsNeeded = N = 4 → end when turn > T+4
-    //   verbleibend: (4-1-2)=1, finale Runde bis inkl. idx=2: (2+1)=3 → 1+3=4
+  it('N=4, Spieler 2 triggert bei Runde T — endet nach T+5 Runden', () => {
+    // [0,1,2,3], idx=2 → turnsNeeded = 2*4-1-2 = 5 → end when turn > T+5
+    //   verbleibend: (4-1-2)=1 (P3 spielt), finale Runde: P0, P1, P2, P3 (4 Züge) → 1+4=5
     const G = makeGameState(4);
     const T = 10;
     setupFinalRound(G, '2', T);
     G.players['2'].powerPoints = 13;
 
-    expect(endIf({ G, ctx: makeCtx('0', T + 4) })).toBeUndefined();
-    expect(endIf({ G, ctx: makeCtx('0', T + 5) })).toBeDefined();
+    expect(endIf({ G, ctx: makeCtx('0', T + 5) })).toBeUndefined();
+    expect(endIf({ G, ctx: makeCtx('0', T + 6) })).toBeDefined();
+  });
+
+  it('N=3, Spieler 0 triggert bei Runde T — endet nach T+5 Runden', () => {
+    // [0,1,2], idx=0 → turnsNeeded = 2*3-1-0 = 5 → end when turn > T+5
+    //   verbleibend: P1, P2 (2 Züge), finale Runde: P0, P1, P2 (3 Züge) → 2+3=5
+    const G = makeGameState(3);
+    const T = 7;
+    setupFinalRound(G, '0', T);
+    G.players['0'].powerPoints = 12;
+
+    expect(endIf({ G, ctx: makeCtx('0', T + 5) })).toBeUndefined();
+    expect(endIf({ G, ctx: makeCtx('0', T + 6) })).toBeDefined();
+  });
+
+  it('N=3, Spieler 2 triggert bei Runde T — endet nach T+3 Runden', () => {
+    // [0,1,2], idx=2 → turnsNeeded = 2*3-1-2 = 3 → end when turn > T+3
+    //   verbleibend: 0 (P2 war letzter), finale Runde: P0, P1, P2 (3 Züge) → 0+3=3
+    const G = makeGameState(3);
+    const T = 9;
+    setupFinalRound(G, '2', T);
+    G.players['2'].powerPoints = 12;
+
+    expect(endIf({ G, ctx: makeCtx('0', T + 3) })).toBeUndefined();
+    expect(endIf({ G, ctx: makeCtx('0', T + 4) })).toBeDefined();
   });
 
   it('endet nicht vorzeitig während des Trigger-Zuges selbst', () => {
@@ -135,7 +160,7 @@ describe('endIf — ranking mit Tiebreaker', () => {
     G.players['2'].powerPoints = 12;
     G.players['3'].powerPoints = 8;
 
-    // N=4, idx=0 → turnsNeeded=N=4 → end when turn > 1+4=5; turn=9 qualifies
+    // N=4, idx=0 → turnsNeeded=2*4-1-0=7 → end when turn > 1+7=8; turn=9 qualifies
     const result = endIf({ G, ctx: makeCtx('0', 9) });
     expect(result).toBeDefined();
     expect(result.ranking).toHaveLength(4);
