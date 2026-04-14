@@ -137,7 +137,7 @@ export interface PlayerState {
   portal: ActivatedCharacter[]; // max 2, Karten noch nicht aktiviert
   activatedCharacters: ActivatedCharacter[]; // aktivierte Karten (aus Portal entfernt)
   powerPoints: number;
-  diamonds: number;
+  diamondCards: CharacterCard[];
   readyUp: boolean;
   isAI: boolean;
   aiDifficulty?: 1 | 2 | 3 | 4 | 5; // 1=leicht, 5=genius

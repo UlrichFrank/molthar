@@ -87,8 +87,8 @@ describe('endIf — ranking mit Tiebreaker', () => {
     setupFinalRound(G, '0', 1);
     G.players['0'].powerPoints = 15;
     G.players['1'].powerPoints = 10;
-    G.players['0'].diamonds = 0;
-    G.players['1'].diamonds = 0;
+    G.players['0'].diamondCards = [];
+    G.players['1'].diamondCards = [];
 
     const result = endIf({ G, ctx: makeCtx('0', 5) });
     expect(result).toBeDefined();
@@ -102,8 +102,9 @@ describe('endIf — ranking mit Tiebreaker', () => {
     setupFinalRound(G, '0', 1);
     G.players['0'].powerPoints = 12;
     G.players['1'].powerPoints = 12;
-    G.players['0'].diamonds = 1;
-    G.players['1'].diamonds = 3;
+    const stub = { id: 's', name: 'S', imageName: 's', cost: [], powerPoints: 0, diamonds: 0, abilities: [] };
+    G.players['0'].diamondCards = [stub];
+    G.players['1'].diamondCards = [stub, stub, stub];
 
     const result = endIf({ G, ctx: makeCtx('0', 5) });
     expect(result).toBeDefined();
@@ -116,8 +117,9 @@ describe('endIf — ranking mit Tiebreaker', () => {
     setupFinalRound(G, '0', 1);
     G.players['0'].powerPoints = 12;
     G.players['1'].powerPoints = 12;
-    G.players['0'].diamonds = 2;
-    G.players['1'].diamonds = 2;
+    const stub = { id: 's', name: 'S', imageName: 's', cost: [], powerPoints: 0, diamonds: 0, abilities: [] };
+    G.players['0'].diamondCards = [stub, stub];
+    G.players['1'].diamondCards = [stub, stub];
 
     const result = endIf({ G, ctx: makeCtx('0', 5) });
     expect(result).toBeDefined();
