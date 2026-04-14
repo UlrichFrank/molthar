@@ -142,3 +142,23 @@ Dialog scrolling SHALL only occur when necessary and SHALL be intuitive to users
 - **WHEN** dialog is on screen < 320px (extremely rare edge case)
 - **THEN** dialog may scroll vertically to fit content
 - **AND** horizontal scroll is never needed (dialog respects max-width and wrapping)
+
+### Requirement: Diamantanzahl-Prop im Aktivierungsdialog
+Der `CharacterActivationDialog` SHALL die verfügbare Diamantenanzahl als `number` entgegennehmen. Der Aufrufer berechnet diesen Wert als `player.diamondCards.length`.
+
+#### Scenario: Diamantenanzahl wird korrekt übergeben
+- **WHEN** der Aktivierungsdialog geöffnet wird
+- **THEN** erhält der Dialog `diamonds={player.diamondCards.length}` als Prop
+- **AND** die interne Validierungslogik des Dialogs bleibt unverändert
+
+### Requirement: Diamantkosten-Sektion responsive dargestellt
+Die neue Diamantkosten-Sektion im Aktivierungsdialog SHALL das gleiche visuelle Muster wie bestehende Sektionen verwenden und auf allen Bildschirmgrößen korrekt dargestellt werden.
+
+#### Scenario: Diamantkosten-Sektion auf kleinen Bildschirmen
+- **WHEN** der Dialog auf einem Bildschirm < 500px angezeigt wird
+- **THEN** ist die Diamantkosten-Sektion vollständig sichtbar ohne horizontales Scrollen
+- **AND** der Toggle-Button hat eine ausreichende Touch-Target-Größe (≥ 44px Höhe)
+
+#### Scenario: Diamantkosten-Sektion auf großen Bildschirmen
+- **WHEN** der Dialog auf einem Bildschirm ≥ 500px angezeigt wird
+- **THEN** ist die Diamantkosten-Sektion visuell konsistent mit den anderen Sektionen des Dialogs
