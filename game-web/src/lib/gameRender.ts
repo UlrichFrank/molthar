@@ -277,15 +277,16 @@ export function drawPlayerPortal(
   const portalImg = getPortalImageName(colorIndex, isStartingPlayer);
   drawImageOrFallback(ctx, portalImg, PORTAL_X, PORTAL_IMG_Y, PORTAL_W, PORTAL_IMG_H);
 
-  // Diamonds (left side)
+  // Diamonds (left side) — rendered as character card backs
+  const DIAMOND_CARD_W = 28;
+  const DIAMOND_CARD_H = 36;
+  const DIAMOND_CARD_GAP = 4;
   const diamondX = PORTAL_X + 20;
   const diamondY = PORTAL_Y + 20;
-  ctx.fillStyle = '#7dd3fc';
-  ctx.font = '24px Arial';
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
+  const gap = portal.diamonds > 6 ? 2 : DIAMOND_CARD_GAP;
   for (let i = 0; i < portal.diamonds; i++) {
-    ctx.fillText('💎', diamondX + i * 30, diamondY);
+    const x = diamondX + i * (DIAMOND_CARD_W + gap);
+    drawImageOrFallback(ctx, 'Charakterkarte Hinten.png', x, diamondY, DIAMOND_CARD_W, DIAMOND_CARD_H);
   }
 
   // Portal slots (center)
