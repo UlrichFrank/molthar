@@ -104,8 +104,8 @@ export interface CharacterAbility {
  * Definiert eine Zahlungskarte (echt oder virtuell), die vom UI zusammengestellt wird.
  */
 export interface PaymentSelection {
-  source: 'hand' | 'ability' | 'trade';
-  value: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+  source: 'hand' | 'ability' | 'trade' | 'diamond';
+  value: number;
 
   // Nur relevant, wenn source === 'hand'
   handCardIndex?: number;

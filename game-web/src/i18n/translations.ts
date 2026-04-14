@@ -62,6 +62,10 @@ export type TranslationKey =
   | 'activation.pearlLabel'
   | 'activation.tradeTwoPearl'
   | 'activation.tradeTwoPearlActive'
+  | 'activation.diamondCost'
+  | 'activation.diamondAvailable'
+  | 'activation.diamondConfirm'
+  | 'activation.diamondConfirmed'
   // Discard cards dialog
   | 'discard.title'
   | 'discard.handSize'
@@ -217,6 +221,10 @@ const de: Record<TranslationKey, string> = {
   'activation.pearlLabel':       'Perle {value}:',
   'activation.tradeTwoPearl':    '2-Perle → 💎',
   'activation.tradeTwoPearlActive': '✕ 2-Perle → 💎',
+  'activation.diamondCost':      'Diamanten bezahlen',
+  'activation.diamondAvailable': '{count} verfügbar',
+  'activation.diamondConfirm':   '💎 Bezahlen',
+  'activation.diamondConfirmed': '✓ Bezahlt',
   'discard.title':               'Perlenkarten abwerfen',
   'discard.handSize':            'Handgröße: {count} Karten',
   'discard.handLimit':           'Handlimit: {count} Karten',
@@ -356,6 +364,10 @@ const enGB: Record<TranslationKey, string> = {
   'activation.pearlLabel':       'Pearl {value}:',
   'activation.tradeTwoPearl':    '2-Pearl → 💎',
   'activation.tradeTwoPearlActive': '✕ 2-Pearl → 💎',
+  'activation.diamondCost':      'Pay Diamonds',
+  'activation.diamondAvailable': '{count} available',
+  'activation.diamondConfirm':   '💎 Pay',
+  'activation.diamondConfirmed': '✓ Paid',
   'discard.title':               'Discard Pearl Cards',
   'discard.handSize':            'Hand size: {count} cards',
   'discard.handLimit':           'Hand limit: {count} cards',
@@ -495,6 +507,10 @@ const fr: Record<TranslationKey, string> = {
   'activation.pearlLabel':       'Perle {value} :',
   'activation.tradeTwoPearl':    'Perle 2 → 💎',
   'activation.tradeTwoPearlActive': '✕ Perle 2 → 💎',
+  'activation.diamondCost':      'Payer des diamants',
+  'activation.diamondAvailable': '{count} disponibles',
+  'activation.diamondConfirm':   '💎 Payer',
+  'activation.diamondConfirmed': '✓ Payé',
   'discard.title':               'Défausser des cartes perle',
   'discard.handSize':            'Taille de la main : {count} cartes',
   'discard.handLimit':           'Limite de main : {count} cartes',

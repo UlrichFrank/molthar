@@ -44,9 +44,15 @@ export function CharacterActivationDialog({
   const [abilitySelections, setAbilitySelections] = useState<AbilitySelection[]>([]);
   const [virtualDiamonds, setVirtualDiamonds] = useState(0);
   const [tradeSelection, setTradeSelection] = useState<{ characterId: string; handCardIndex: number } | null>(null);
+  const [diamondCostConfirmed, setDiamondCostConfirmed] = useState(false);
 
   const selectedCharacter = availableCharacters[0]?.card;
   const selectedCharacterSlot = availableCharacters[0]?.slotIndex ?? null;
+
+  const totalDiamondCost = useMemo(
+    () => selectedCharacter?.cost?.filter(c => c.type === 'diamond').reduce((sum, c) => sum + (c.value ?? 1), 0) ?? 0,
+    [selectedCharacter]
+  );
 
   const hasOnesCanBeEights = activeAbilities.some(a => a.type === 'onesCanBeEights');
   const hasThreesCanBeAny = activeAbilities.some(a => a.type === 'threesCanBeAny');
@@ -83,8 +89,11 @@ export function CharacterActivationDialog({
     if (tradeSelection) {
       result.push({ source: 'trade', characterId: tradeSelection.characterId, handCardIndex: tradeSelection.handCardIndex, value: 2 });
     }
+    if (diamondCostConfirmed && totalDiamondCost > 0) {
+      result.push({ source: 'diamond', value: totalDiamondCost });
+    }
     return result;
-  }, [handSelections, abilitySelections, tradeSelection]);
+  }, [handSelections, abilitySelections, tradeSelection, diamondCostConfirmed, totalDiamondCost]);
 
   const diamondsReserved = useMemo(
     () => allSelections.reduce((sum, s) => sum + (s.diamondsUsed ?? 0), 0),
@@ -93,16 +102,17 @@ export function CharacterActivationDialog({
 
   const isValidPayment = useMemo(() => {
     if (!selectedCharacter) return false;
+    if (totalDiamondCost > 0 && !diamondCostConfirmed) return false;
     // Only 'hand' and 'ability' selections count as virtual hand cards for cost validation
     const virtualHand: PearlCard[] = allSelections
-      .filter(sel => sel.source !== 'trade')
+      .filter(sel => sel.source !== 'trade' && sel.source !== 'diamond')
       .map((sel, i) => ({
         id: `virtual-${i}`,
-        value: sel.value,
+        value: sel.value as PearlCard['value'],
         hasSwapSymbol: sel.source === 'hand' ? (hand[sel.handCardIndex ?? 0]?.hasSwapSymbol ?? false) : false,
       }));
     return validateCostPayment(selectedCharacter.cost, virtualHand, diamonds + virtualDiamonds - diamondsReserved);
-  }, [allSelections, selectedCharacter, hand, diamonds, virtualDiamonds, diamondsReserved]);
+  }, [allSelections, selectedCharacter, hand, diamonds, virtualDiamonds, diamondsReserved, totalDiamondCost, diamondCostConfirmed]);
 
   const toggleHandCard = (idx: number) => {
     // Prevent selecting a card reserved for trade
@@ -511,6 +521,51 @@ export function CharacterActivationDialog({
             </div>
           )}
         </>
+      )}
+
+      {/* ── Section 3: Diamond cost confirmation ── */}
+      {totalDiamondCost > 0 && (
+        <div style={{ marginTop: '0.75rem' }}>
+          <h3 style={{ margin: '0 0 0.5rem', fontSize: 'clamp(0.9rem, 4vw, 1.1rem)' }}>
+            {t('activation.diamondCost')}
+          </h3>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            padding: '0.5rem 0.75rem',
+            background: diamondCostConfirmed ? 'rgba(103,232,249,0.12)' : 'rgba(255,255,255,0.06)',
+            borderRadius: '0.4rem',
+          }}>
+            <span style={{ color: '#67e8f9', fontSize: '1rem' }}>
+              💎 {totalDiamondCost}
+            </span>
+            <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>
+              / {t('activation.diamondAvailable', { count: diamonds })}
+            </span>
+            <button
+              onClick={() => setDiamondCostConfirmed(v => !v)}
+              disabled={diamonds < totalDiamondCost}
+              style={{
+                marginLeft: 'auto',
+                padding: '0.2rem 0.6rem',
+                borderRadius: '0.3rem',
+                background: diamondCostConfirmed
+                  ? '#67e8f9'
+                  : diamonds < totalDiamondCost
+                    ? 'rgba(160,160,160,0.15)'
+                    : 'rgba(103,232,249,0.25)',
+                color: diamondCostConfirmed ? '#0f172a' : diamonds < totalDiamondCost ? '#718096' : '#67e8f9',
+                border: `1px solid ${diamonds < totalDiamondCost ? '#4a5568' : '#67e8f9'}`,
+                cursor: diamonds < totalDiamondCost ? 'not-allowed' : 'pointer',
+                fontSize: '0.82rem',
+                opacity: diamonds < totalDiamondCost ? 0.5 : 1,
+              }}
+            >
+              {diamondCostConfirmed ? t('activation.diamondConfirmed') : t('activation.diamondConfirm')}
+            </button>
+          </div>
+        </div>
       )}
 
       <GameDialogActions

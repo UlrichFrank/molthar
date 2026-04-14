@@ -249,7 +249,7 @@ export const PortaleVonMolthar = {
               expectedValue = 8;
             } else if (sel.abilityType === 'threesCanBeAny') {
               if (realCard.value !== 3) return INVALID_MOVE;
-              expectedValue = sel.value;
+              expectedValue = sel.value as PearlCard['value'];
             } else {
               if (sel.value !== expectedValue) return INVALID_MOVE;
             }
@@ -259,7 +259,7 @@ export const PortaleVonMolthar = {
 
           virtualHand.push({
             id: `virtual-${realCard.id}`,
-            value: sel.value,
+            value: sel.value as PearlCard['value'],
             hasSwapSymbol: realCard.hasSwapSymbol,
             hasRefreshSymbol: realCard.hasRefreshSymbol,
           });
@@ -276,10 +276,14 @@ export const PortaleVonMolthar = {
 
           virtualHand.push({
             id: `virtual-bonus-${charCard.id}-${i}`,
-            value: sel.value,
+            value: sel.value as PearlCard['value'],
             hasSwapSymbol: false,
             hasRefreshSymbol: false,
           });
+
+        } else if (sel.source === 'diamond') {
+          // Diamond cost payment — validated against card cost; diamond deduction handled after cost validation
+          // Nothing to add to virtual hand; diamond components are handled by validateCostPayment via diamondCount
 
         } else if (sel.source === 'trade') {
           // Max. 1 Trade-Selection pro Move
@@ -509,11 +513,14 @@ export const PortaleVonMolthar = {
               effectiveValue = 8;
             } else if (sel.abilityType === 'threesCanBeAny') {
               if (realCard.value !== 3) return INVALID_MOVE;
-              effectiveValue = sel.value;
+              effectiveValue = sel.value as PearlCard['value'];
             }
           }
           if (sel.value !== effectiveValue) return INVALID_MOVE;
-          virtualHand.push({ id: `virtual-${realCard.id}`, value: sel.value, hasSwapSymbol: realCard.hasSwapSymbol, hasRefreshSymbol: realCard.hasRefreshSymbol });
+          virtualHand.push({ id: `virtual-${realCard.id}`, value: sel.value as PearlCard['value'], hasSwapSymbol: realCard.hasSwapSymbol, hasRefreshSymbol: realCard.hasRefreshSymbol });
+
+        } else if (sel.source === 'diamond') {
+          // Diamond cost payment — no virtual hand card, handled after cost validation
 
         } else if (sel.source === 'trade') {
           if (tradeCount >= 1) return INVALID_MOVE;

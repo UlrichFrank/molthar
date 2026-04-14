@@ -217,8 +217,9 @@ allCards.forEach(card => {
   describe(`Card: ${card.name} (${card.id})`, () => {
     it('should validate with valid payment', () => {
       const validHand = generateValidHandForCost(card.cost, card.diamonds);
-      // IMPORTANT: Diamonds are an explicit player choice - test with NO diamonds
-      const result = validateCostPayment(card.cost, validHand, 0);
+      // For cards with diamond cost components, the player must have enough diamonds
+      const requiredDiamonds = card.cost?.filter(c => c.type === 'diamond').reduce((sum, c) => sum + (c.value ?? 1), 0) ?? 0;
+      const result = validateCostPayment(card.cost, validHand, requiredDiamonds);
       
       if (card.cost && card.cost.length > 0) {
         const hasImpossible = card.cost.some(c => {
