@@ -734,3 +734,21 @@ export function validateDiamondCost(component: CostComponent, diamondCount: numb
   const requiredDiamonds = component.value ?? 1;
   return diamondCount >= requiredDiamonds;
 }
+
+/**
+ * Returns true if the selected hand contains at least one card that is unnecessary —
+ * i.e., removing it still satisfies the full cost. Used to prevent overpayment.
+ *
+ * Uses a "leave-one-out" approach: O(n * validate) — fast enough for max ~6 hand cards.
+ */
+export function hasUnnecessarySelection(
+  cost: CostComponent[] | undefined,
+  hand: PearlCard[],
+  diamonds: number
+): boolean {
+  for (let i = 0; i < hand.length; i++) {
+    const reduced = hand.filter((_, idx) => idx !== i);
+    if (validateCostPayment(cost, reduced, diamonds)) return true;
+  }
+  return false;
+}

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import type { CharacterCard, PearlCard, CharacterAbility, ActivatedCharacter, PaymentSelection } from '@portale-von-molthar/shared';
-import { validateCostPayment } from '@portale-von-molthar/shared';
+import { validateCostPayment, hasUnnecessarySelection } from '@portale-von-molthar/shared';
 import { getCostSummary, describeCost } from '../lib/cost-helper';
 import { GameDialog, GameDialogTitle, GameDialogActions, CardPicker } from './GameDialog';
 import { useTranslation } from '../i18n/useTranslation';
@@ -111,8 +111,25 @@ export function CharacterActivationDialog({
         value: sel.value as PearlCard['value'],
         hasSwapSymbol: sel.source === 'hand' ? (hand[sel.handCardIndex ?? 0]?.hasSwapSymbol ?? false) : false,
       }));
-    return validateCostPayment(selectedCharacter.cost, virtualHand, diamonds + virtualDiamonds - diamondsReserved);
+    const availableDiamonds = diamonds + virtualDiamonds - diamondsReserved;
+    if (!validateCostPayment(selectedCharacter.cost, virtualHand, availableDiamonds)) return false;
+    if (hasUnnecessarySelection(selectedCharacter.cost, virtualHand, availableDiamonds)) return false;
+    return true;
   }, [allSelections, selectedCharacter, hand, diamonds, virtualDiamonds, diamondsReserved, totalDiamondCost, diamondCostConfirmed]);
+
+  const isOverpaying = useMemo(() => {
+    if (!selectedCharacter) return false;
+    const virtualHand: PearlCard[] = allSelections
+      .filter(sel => sel.source !== 'trade' && sel.source !== 'diamond')
+      .map((sel, i) => ({
+        id: `virtual-${i}`,
+        value: sel.value as PearlCard['value'],
+        hasSwapSymbol: sel.source === 'hand' ? (hand[sel.handCardIndex ?? 0]?.hasSwapSymbol ?? false) : false,
+      }));
+    const availableDiamonds = diamonds + virtualDiamonds - diamondsReserved;
+    return validateCostPayment(selectedCharacter.cost, virtualHand, availableDiamonds) &&
+      hasUnnecessarySelection(selectedCharacter.cost, virtualHand, availableDiamonds);
+  }, [allSelections, selectedCharacter, hand, diamonds, virtualDiamonds, diamondsReserved]);
 
   const toggleHandCard = (idx: number) => {
     // Prevent selecting a card reserved for trade
@@ -566,6 +583,12 @@ export function CharacterActivationDialog({
             </button>
           </div>
         </div>
+      )}
+
+      {isOverpaying && (
+        <p style={{ color: '#f59e0b', textAlign: 'center', margin: '0 0 0.75rem', fontSize: '0.875rem' }}>
+          {t('activation.overpayment')}
+        </p>
       )}
 
       <GameDialogActions

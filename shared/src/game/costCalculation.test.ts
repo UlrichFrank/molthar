@@ -8,6 +8,7 @@ import {
   validateOddTupleCost,
   validateDiamondCost,
   validateCostPayment,
+  hasUnnecessarySelection,
 } from './costCalculation';
 import type { CostComponent, PearlCard } from './types';
 
@@ -362,5 +363,54 @@ describe('Edge Cases', () => {
     // Invalid: hand sums to 9 (too little)
     const tooLittleHand = [createCard(8), createCard(1)];
     expect(validateCostPayment(components, tooLittleHand, 0)).toBe(false);
+  });
+});
+
+describe('hasUnnecessarySelection', () => {
+  it('9.1: exakte Zahlung — false (keine überflüssige Karte)', () => {
+    const cost: CostComponent[] = [{ type: 'number', value: 3 }];
+    const hand = [createCard(3)];
+    expect(hasUnnecessarySelection(cost, hand, 0)).toBe(false);
+  });
+
+  it('9.2: Überzahlung mit einer Extra-Karte — true', () => {
+    const cost: CostComponent[] = [{ type: 'number', value: 3 }];
+    const hand = [createCard(3), createCard(5)];
+    expect(hasUnnecessarySelection(cost, hand, 0)).toBe(true);
+  });
+
+  it('9.3: Diamond-Absorption — Extra-Perlen werden als überflüssig erkannt', () => {
+    // Diamond-Kosten brauchen keine Perlkarten
+    const cost: CostComponent[] = [{ type: 'diamond', value: 1 }];
+    const hand = [createCard(3), createCard(5)];
+    expect(hasUnnecessarySelection(cost, hand, 1)).toBe(true);
+  });
+
+  it('9.4: Leere Hand — false (nichts kann weggelassen werden)', () => {
+    const cost: CostComponent[] = [{ type: 'number', value: 3 }];
+    expect(hasUnnecessarySelection(cost, [], 0)).toBe(false);
+  });
+
+  it('9.5: Eine Karte, exakt passend — false', () => {
+    const cost: CostComponent[] = [{ type: 'sumAnyTuple', sum: 5 }];
+    const hand = [createCard(3), createCard(2)];
+    expect(hasUnnecessarySelection(cost, hand, 0)).toBe(false);
+  });
+
+  it('9.6: Tuple-Kosten mit zu vielen Karten — true', () => {
+    // nTuple 2 braucht 2 Karten mit gleichem Wert; 3 Karten sind zu viele
+    const cost: CostComponent[] = [{ type: 'nTuple', n: 2 }];
+    const hand = [createCard(4), createCard(4), createCard(4)];
+    expect(hasUnnecessarySelection(cost, hand, 0)).toBe(true);
+  });
+
+  it('9.7: Undefined cost (Freikarte) mit leerer Hand — false', () => {
+    expect(hasUnnecessarySelection(undefined, [], 0)).toBe(false);
+  });
+
+  it('9.8: Undefined cost mit einer Karte — true (Karte überflüssig)', () => {
+    // Freikarte: validateCostPayment(undefined, [], 0) = true → Karte ist unnötig
+    const hand = [createCard(1)];
+    expect(hasUnnecessarySelection(undefined, hand, 0)).toBe(true);
   });
 });
