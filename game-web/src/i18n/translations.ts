@@ -32,6 +32,8 @@ export type TranslationKey =
   | 'matches.title'
   | 'matches.noMatches'
   | 'matches.join'
+  | 'matches.creator'
+  | 'matches.participants'
   // Character preview
   | 'character.takeTitle'
   | 'character.viewTitle'
@@ -196,6 +198,8 @@ const de: Record<TranslationKey, string> = {
   'matches.title':               'Offene Spiele',
   'matches.noMatches':           'Keine offenen Spiele vorhanden.',
   'matches.join':                'Beitreten',
+  'matches.creator':             'Erstellt von',
+  'matches.participants':        'Spieler',
   'character.takeTitle':         'Charakterkarte nehmen?',
   'character.viewTitle':         'Charakterkarte',
   'character.take':              'Nehmen',
@@ -340,6 +344,8 @@ const enGB: Record<TranslationKey, string> = {
   'matches.title':               'Open Games',
   'matches.noMatches':           'No open games available.',
   'matches.join':                'Join',
+  'matches.creator':             'Created by',
+  'matches.participants':        'Players',
   'character.takeTitle':         'Take Character Card?',
   'character.viewTitle':         'Character Card',
   'character.take':              'Take',
@@ -484,6 +490,8 @@ const fr: Record<TranslationKey, string> = {
   'matches.title':               'Parties ouvertes',
   'matches.noMatches':           'Aucune partie ouverte disponible.',
   'matches.join':                'Rejoindre',
+  'matches.creator':             'Créé par',
+  'matches.participants':        'Joueurs',
   'character.takeTitle':         'Prendre la carte personnage ?',
   'character.viewTitle':         'Carte personnage',
   'character.take':              'Prendre',
