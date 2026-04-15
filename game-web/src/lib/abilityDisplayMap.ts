@@ -27,6 +27,7 @@ const ABILITY_MAP: Partial<Record<CharacterAbilityType, AbilityDisplayInfo>> = {
   numberAdditionalCardActions: { symbol: '🔢',   nameKey: 'ability.numberAdditionalCardActions.name', descriptionKey: 'ability.numberAdditionalCardActions.description' },
   anyAdditionalCardActions:   { symbol: '🃏',    nameKey: 'ability.anyAdditionalCardActions.name',   descriptionKey: 'ability.anyAdditionalCardActions.description' },
   irrlicht:                   { symbol: '👥',    nameKey: 'ability.irrlicht.name',                   descriptionKey: 'ability.irrlicht.description' },
+  replacePearlSlotsBeforeFirstAction: { symbol: '⭐⇄', nameKey: 'ability.replacePearlSlotsBeforeFirstAction.name', descriptionKey: 'ability.replacePearlSlotsBeforeFirstAction.description' },
 };
 
 const FALLBACK: AbilityDisplayInfo = {

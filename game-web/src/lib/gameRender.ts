@@ -362,17 +362,24 @@ export function drawActivatedCharactersGrid(
 /**
  * Draw portal swap buttons (⇄) below each occupied portal slot,
  * and the replace-pearl-slots button below the pearl deck.
- * Handles regions of type 'portal-swap-btn' and 'ui-replace-pearl-slots'.
+ * Handles regions of type 'portal-swap-btn', 'ui-replace-pearl-slots', and 'ui-replace-pearl-slots-ability'.
  */
 export function drawPortalSwapButtons(ctx: CanvasRenderingContext2D, regions: CanvasRegion[]) {
-  const swapRegions = regions.filter(r => r.type === 'portal-swap-btn' || r.type === 'ui-replace-pearl-slots');
+  const swapRegions = regions.filter(r =>
+    r.type === 'portal-swap-btn' ||
+    r.type === 'ui-replace-pearl-slots' ||
+    r.type === 'ui-replace-pearl-slots-ability'
+  );
   for (const region of swapRegions) {
-    const { x, y, w, h, hoverProgress } = region;
+    const { x, y, w, h, hoverProgress, type, label } = region;
     ctx.save();
 
-    // Background
+    // Background — ability button uses green tint to signal "free action"
     const alpha = 0.75 + hoverProgress * 0.25;
-    ctx.fillStyle = `rgba(99, 102, 241, ${alpha})`;
+    const isFreeAbility = type === 'ui-replace-pearl-slots-ability';
+    ctx.fillStyle = isFreeAbility
+      ? `rgba(22, 199, 132, ${alpha})`
+      : `rgba(99, 102, 241, ${alpha})`;
     ctx.beginPath();
     ctx.roundRect(x, y, w, h, 4);
     ctx.fill();
@@ -380,18 +387,25 @@ export function drawPortalSwapButtons(ctx: CanvasRenderingContext2D, regions: Ca
     // Border with hover glow
     ctx.strokeStyle = hoverProgress > 0.01
       ? `rgba(255, 215, 0, ${0.5 + hoverProgress * 0.5})`
-      : 'rgba(165, 180, 252, 0.8)';
+      : isFreeAbility ? 'rgba(110, 231, 183, 0.8)' : 'rgba(165, 180, 252, 0.8)';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.roundRect(x, y, w, h, 4);
     ctx.stroke();
 
-    // ⇄ symbol
     ctx.fillStyle = '#ffffff';
-    ctx.font = `bold ${Math.round(h * 0.7)}px Arial`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('⇄', x + w / 2, y + h / 2);
+
+    if (isFreeAbility && label) {
+      // Show label text for the free ability button
+      ctx.font = `bold ${Math.round(h * 0.55)}px Arial`;
+      ctx.fillText(label, x + w / 2, y + h / 2);
+    } else {
+      // ⇄ symbol for portal swap and normal replace
+      ctx.font = `bold ${Math.round(h * 0.7)}px Arial`;
+      ctx.fillText('⇄', x + w / 2, y + h / 2);
+    }
 
     ctx.restore();
   }

@@ -24,6 +24,7 @@ export const PERSISTENT_ABILITY_TYPES: ReadonlySet<CharacterAbilityType> = new S
   'numberAdditionalCardActions',
   'anyAdditionalCardActions',
   'irrlicht',
+  'replacePearlSlotsBeforeFirstAction',
 ]);
 
 /**

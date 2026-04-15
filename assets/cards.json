@@ -918,5 +918,23 @@
       "type": "threeExtraActions",
       "timing": "duringTurn"
     }
+  },
+  {
+    "id": "tischlein-deck-dich",
+    "name": "Tischlein deck dich",
+    "imageName": "Charakterkarte41.png",
+    "powerPoints": 0,
+    "diamondsReward": 0,
+    "cardCount": 1,
+    "isSpecial": true,
+    "cost": [
+      {
+        "type": "number",
+        "value": 4
+      }
+    ],
+    "ability": {
+      "type": "replacePearlSlotsBeforeFirstAction"
+    }
   }
 ]

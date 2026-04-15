@@ -95,6 +95,7 @@ export type CharacterAbilityType =
   | 'numberAdditionalCardActions'
   | 'anyAdditionalCardActions'
   | 'irrlicht'
+  | 'replacePearlSlotsBeforeFirstAction'
   | 'none';
 
 export interface CharacterAbility {
@@ -236,6 +237,9 @@ export interface GameState {
 
   /** Gibt an ob das Spiel mit Sonderkarten gespielt wird (gesetzt aus setupData) */
   withSpecialCards: boolean;
+
+  /** Gratis-Perltausch (replacePearlSlotsBeforeFirstAction) wurde in diesem Zug bereits genutzt */
+  replacePearlSlotsAbilityUsed: boolean;
 
   // Metadaten
   startingPlayer: string;

@@ -233,7 +233,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     : null;
 
   // ── Refs for rAF loop (avoids stale closures) ───────────────────────────────
-  const canvasLabelsRef = useRef<CanvasLabels>({ swap: '', discardCards: '' });
+  const canvasLabelsRef = useRef<CanvasLabels>({ swap: '', discardCards: '', freePearlReplace: '' });
   const clickHintLabelRef = useRef<string>('');
   const regionsRef = useRef<CanvasRegion[]>([]);
   const hoverKeyRef = useRef<string | null>(null); // "${type}:${id}"
@@ -268,6 +268,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   canvasLabelsRef.current = {
     swap: t('canvas.swap'),
     discardCards: t('canvas.discardCards'),
+    freePearlReplace: t('canvas.freePearlReplace'),
   };
   clickHintLabelRef.current = t('canvas.clickToTake');
 
@@ -444,7 +445,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     dirtyRef.current = true;
 
     // Dispatch action
-    if (region.type === 'ui-discard-cards' || region.type === 'ui-replace-pearl-slots') {
+    if (region.type === 'ui-discard-cards' || region.type === 'ui-replace-pearl-slots' || region.type === 'ui-replace-pearl-slots-ability') {
       handleUIClick(region);
     } else if (region.type === 'activated-character') {
       // Always allow viewing activated characters
@@ -513,6 +514,8 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
       }
     } else if (region.type === 'ui-replace-pearl-slots') {
       moves.replacePearlSlots?.();
+    } else if (region.type === 'ui-replace-pearl-slots-ability') {
+      moves.replacePearlSlotsAbility?.();
     }
   }
 

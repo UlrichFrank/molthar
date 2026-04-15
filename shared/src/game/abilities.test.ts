@@ -65,6 +65,7 @@ function makeMinimalGameState(overrides: Partial<GameState> = {}): GameState {
     usedPaymentAbilityTypes: [],
     usedAbilitySourceCharacterIds: [],
     withSpecialCards: false,
+    replacePearlSlotsAbilityUsed: false,
     ...overrides,
   } as GameState;
 }
