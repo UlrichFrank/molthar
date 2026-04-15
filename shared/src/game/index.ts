@@ -92,6 +92,8 @@ export const PortaleVonMolthar = {
       isPearlRefreshTriggered: false,
       pendingStealOpponentHandCard: false,
       pendingDiscardOpponentCharacter: false,
+      usedPaymentAbilityTypes: [],
+      usedAbilitySourceCharacterIds: [],
     };
   },
   
@@ -235,6 +237,9 @@ export const PortaleVonMolthar = {
       let diamondsToSpend = 0;
       let bonusDiamonds = 0;
       let tradeCount = 0;
+      // Innerhalb dieser Aktivierung bereits genutzte Ability-Typen und Character-IDs
+      const usedAbilityTypesThisMove = new Set<string>();
+      const usedCharacterIdsThisMove = new Set<string>();
 
       for (let i = 0; i < selections.length; i++) {
         const sel = selections[i];
@@ -252,6 +257,11 @@ export const PortaleVonMolthar = {
           if (sel.abilityType) {
             const hasAbility = player.activeAbilities.some(a => a.type === sel.abilityType);
             if (!hasAbility) return INVALID_MOVE;
+
+            // Jede Zahlungs-Fähigkeit darf pro Zug nur einmal genutzt werden
+            if (G.usedPaymentAbilityTypes.includes(sel.abilityType)) return INVALID_MOVE;
+            if (usedAbilityTypesThisMove.has(sel.abilityType)) return INVALID_MOVE;
+            usedAbilityTypesThisMove.add(sel.abilityType);
 
             if (sel.abilityType === 'decreaseWithPearl') {
               const du = sel.diamondsUsed || 0;
@@ -287,6 +297,11 @@ export const PortaleVonMolthar = {
           const isAnyBonus = charCard.card.abilities.some(a => a.type === 'anyAdditionalCardActions');
 
           if (!isNumberBonus && !isAnyBonus) return INVALID_MOVE;
+
+          // Jede Charakter-Ability-Quelle darf pro Zug nur einmal genutzt werden
+          if (G.usedAbilitySourceCharacterIds.includes(sel.characterId)) return INVALID_MOVE;
+          if (usedCharacterIdsThisMove.has(sel.characterId)) return INVALID_MOVE;
+          usedCharacterIdsThisMove.add(sel.characterId);
 
           virtualHand.push({
             id: `virtual-bonus-${charCard.id}-${i}`,
@@ -368,6 +383,10 @@ export const PortaleVonMolthar = {
         if (drawnCard) player.diamondCards.push(drawnCard);
       }
       G.actionCount++;
+
+      // Genutzte Zahlungs-Fähigkeiten für diesen Zug aufzeichnen
+      for (const t of usedAbilityTypesThisMove) G.usedPaymentAbilityTypes.push(t as any);
+      for (const id of usedCharacterIdsThisMove) G.usedAbilitySourceCharacterIds.push(id);
 
       // WICHTIG: Karte vom Portal-Array zu activatedCharacters verschieben
       const activatedCard = player.portal.splice(portalSlotIndex, 1)[0];
@@ -510,6 +529,8 @@ export const PortaleVonMolthar = {
       let diamondsToSpend = 0;
       let bonusDiamonds = 0;
       let tradeCount = 0;
+      const usedAbilityTypesThisSharedMove = new Set<string>();
+      const usedCharacterIdsThisSharedMove = new Set<string>();
 
       for (let i = 0; i < selections.length; i++) {
         const sel = selections[i];
@@ -525,6 +546,12 @@ export const PortaleVonMolthar = {
           if (sel.abilityType) {
             const hasAbility = caller.activeAbilities.some(a => a.type === sel.abilityType);
             if (!hasAbility) return INVALID_MOVE;
+
+            // Jede Zahlungs-Fähigkeit darf pro Zug nur einmal genutzt werden
+            if (G.usedPaymentAbilityTypes.includes(sel.abilityType)) return INVALID_MOVE;
+            if (usedAbilityTypesThisSharedMove.has(sel.abilityType)) return INVALID_MOVE;
+            usedAbilityTypesThisSharedMove.add(sel.abilityType);
+
             if (sel.abilityType === 'decreaseWithPearl') {
               const du = sel.diamondsUsed || 0;
               if (du < 0 || du > 1) return INVALID_MOVE;
@@ -600,6 +627,10 @@ export const PortaleVonMolthar = {
         if (drawnCard) caller.diamondCards.push(drawnCard);
       }
       G.actionCount++;
+
+      // Genutzte Zahlungs-Fähigkeiten für diesen Zug aufzeichnen
+      for (const t of usedAbilityTypesThisSharedMove) G.usedPaymentAbilityTypes.push(t as any);
+      for (const id of usedCharacterIdsThisSharedMove) G.usedAbilitySourceCharacterIds.push(id);
 
       // Remove card from owner's portal, add to caller's activatedCharacters
       const activatedEntry = owner.portal.splice(portalSlotIndex, 1)[0];
@@ -802,6 +833,8 @@ export const PortaleVonMolthar = {
       G.isReshufflingPearlDeck = false;
       G.isReshufflingCharacterDeck = false;
       G.actionCount = 0;
+      G.usedPaymentAbilityTypes = [];
+      G.usedAbilitySourceCharacterIds = [];
       // Basisaktionen: 3 + dauerhafte oneExtraActionPerTurn-Fähigkeiten des aktuellen Spielers
       const player = G.players[ctx.currentPlayer];
       if (player) {

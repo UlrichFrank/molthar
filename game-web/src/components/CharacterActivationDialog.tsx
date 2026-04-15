@@ -11,6 +11,8 @@ interface CharacterActivationDialogProps {
   diamonds: number;
   activeAbilities?: CharacterAbility[];
   activatedCharacters?: ActivatedCharacter[];
+  usedPaymentAbilityTypes?: CharacterAbility['type'][];
+  usedAbilitySourceCharacterIds?: string[];
   onActivate: (characterSlotIndex: number, selections: PaymentSelection[]) => void;
   onCancel: () => void;
 }
@@ -36,6 +38,8 @@ export function CharacterActivationDialog({
   diamonds,
   activeAbilities = [],
   activatedCharacters = [],
+  usedPaymentAbilityTypes = [],
+  usedAbilitySourceCharacterIds = [],
   onActivate,
   onCancel,
 }: CharacterActivationDialogProps) {
@@ -54,9 +58,9 @@ export function CharacterActivationDialog({
     [selectedCharacter]
   );
 
-  const hasOnesCanBeEights = activeAbilities.some(a => a.type === 'onesCanBeEights');
-  const hasThreesCanBeAny = activeAbilities.some(a => a.type === 'threesCanBeAny');
-  const hasDecreaseWithPearl = activeAbilities.some(a => a.type === 'decreaseWithPearl');
+  const hasOnesCanBeEights = activeAbilities.some(a => a.type === 'onesCanBeEights') && !usedPaymentAbilityTypes.includes('onesCanBeEights');
+  const hasThreesCanBeAny = activeAbilities.some(a => a.type === 'threesCanBeAny') && !usedPaymentAbilityTypes.includes('threesCanBeAny');
+  const hasDecreaseWithPearl = activeAbilities.some(a => a.type === 'decreaseWithPearl') && !usedPaymentAbilityTypes.includes('decreaseWithPearl');
 
   const PAYMENT_ABILITY_TYPES = new Set([
     'onesCanBeEights', 'threesCanBeAny', 'decreaseWithPearl',
@@ -389,6 +393,7 @@ export function CharacterActivationDialog({
 
                 const isSelected = abilitySelections.some(s => s.characterId === char.id);
                 const selectedEntry = abilitySelections.find(s => s.characterId === char.id);
+                const isAbilitySourceUsed = usedAbilitySourceCharacterIds.includes(char.id);
 
                 const isTradeActive = tradeSelection?.characterId === char.id;
                 // Free 2-pearl: exists in hand and not already in handSelections (unless it's the trade one)
@@ -434,7 +439,7 @@ export function CharacterActivationDialog({
                       )}
 
                       {/* numberAdditionalCardActions: add-button */}
-                      {isNumberBonus && printedValue !== undefined && (
+                      {isNumberBonus && printedValue !== undefined && !isAbilitySourceUsed && (
                         isSelected ? (
                           <button
                             onClick={() => toggleAbilitySelection(char.id, printedValue)}
@@ -469,7 +474,7 @@ export function CharacterActivationDialog({
                       )}
 
                       {/* anyAdditionalCardActions: value picker */}
-                      {isAnyBonus && (
+                      {isAnyBonus && !isAbilitySourceUsed && (
                         <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap', alignItems: 'center' }}>
                           {isSelected && selectedEntry ? (
                             <button

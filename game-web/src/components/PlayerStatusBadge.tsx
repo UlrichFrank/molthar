@@ -24,7 +24,7 @@ export function PlayerStatusBadge({ playerState, playerName, actionCount, maxAct
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
-  const blueAbilities = playerState.activeAbilities.filter(a => a.persistent);
+  const blueAbilities = (playerState.activeAbilities ?? []).filter(a => a.persistent);
   const visibleAbilities = blueAbilities.slice(0, 5);
   const extraCount = blueAbilities.length - visibleAbilities.length;
 
@@ -78,7 +78,7 @@ export function PlayerStatusBadge({ playerState, playerName, actionCount, maxAct
         <span style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
           <span style={{ color: '#fde68a' }}>★ {playerState.powerPoints}</span>
           <span style={{ color: 'rgba(148,163,184,0.5)' }}>|</span>
-          <span style={{ color: '#67e8f9' }}>💎 {playerState.diamondCards.length}</span>
+          <span style={{ color: '#67e8f9' }}>💎 {playerState.diamondCards?.length ?? 0}</span>
 
           {showActionCounter && actionColors && (
             <>

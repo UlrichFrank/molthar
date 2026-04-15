@@ -218,6 +218,18 @@ export interface GameState {
   /** Ausstehende Auswahl einer gegnerischen Portal-Karte zum Entfernen. */
   pendingDiscardOpponentCharacter: boolean;
 
+  /**
+   * Fähigkeitstypen (onesCanBeEights, threesCanBeAny, decreaseWithPearl), die in diesem Zug
+   * bereits als Zahlungsmodifikator genutzt wurden. Wird am Zugbeginn zurückgesetzt.
+   */
+  usedPaymentAbilityTypes: CharacterAbilityType[];
+
+  /**
+   * IDs von aktivierten Charakteren, die in diesem Zug bereits als Ability-Quelle (source: 'ability')
+   * genutzt wurden. Wird am Zugbeginn zurückgesetzt.
+   */
+  usedAbilitySourceCharacterIds: string[];
+
   // Metadaten
   startingPlayer: string;
   portalEntryCounter: number; // Monotoner Zähler für deterministische Portal-Eintrags-IDs

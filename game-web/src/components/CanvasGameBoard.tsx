@@ -180,7 +180,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   const actionCount = typeof G.actionCount === 'number' ? G.actionCount : 0;
   const characterSlots = G.characterSlots || [];
   const pearlSlots = G.pearlSlots || [];
-  const playerDiamonds = me?.diamondCards.length ?? 0;
+  const playerDiamonds = me?.diamondCards?.length ?? 0;
   const playerPortal = me?.portal ?? [];
   const playerHand = me?.hand ?? [];
   const activatedCards = (me?.activatedCharacters ?? []).map(s => s.card);
@@ -368,7 +368,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     const me = G.players?.[myPlayerID];
     const characterSlots = G.characterSlots ?? [];
     const pearlSlots = G.pearlSlots ?? [];
-    const playerDiamonds = me?.diamondCards.length ?? 0;
+    const playerDiamonds = me?.diamondCards?.length ?? 0;
     const playerPortal = me?.portal ?? [];
     const playerHand = me?.hand ?? [];
     const activatedCards_ = (me?.activatedCharacters ?? []).map(s => s.card);
@@ -892,9 +892,11 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
             slotIndex: dialog.dialog.portalSlotIndex,
           }]}
           hand={me.hand}
-          diamonds={me.diamondCards.length}
+          diamonds={me.diamondCards?.length ?? 0}
           activeAbilities={me.activeAbilities}
           activatedCharacters={me.activatedCharacters}
+          usedPaymentAbilityTypes={G.usedPaymentAbilityTypes ?? []}
+          usedAbilitySourceCharacterIds={G.usedAbilitySourceCharacterIds ?? []}
           onActivate={(portalSlotIndex, selections) => {
             const ownerPlayerId = dialog.dialog.type === 'activation' ? dialog.dialog.ownerPlayerId : undefined;
             if (ownerPlayerId) {
