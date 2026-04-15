@@ -24,10 +24,13 @@ export const PortaleClient = Client({
 export interface MatchPlayer {
   id: number;
   name?: string;
+  isConnected?: boolean;
 }
 
 export interface Match {
   matchID: string;
   players: MatchPlayer[];
-  setupData?: { numPlayers?: number };
+  setupData?: { numPlayers?: number; withSpecialCards?: boolean };
+  createdAt?: number;
+  updatedAt?: number;
 }
