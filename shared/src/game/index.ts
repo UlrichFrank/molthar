@@ -1056,17 +1056,15 @@ export function createPearlDeck(): PearlCard[] {
     }
   }
 
-  // 2 Joker-Karten: Sonderkarte, Wildcard-Wert (1 als Platzhalter)
-  for (let i = 0; i < 2; i++) {
-    deck.push({
-      id: `pearl-joker-${i}`,
-      value: 1,
-      hasSwapSymbol: false,
-      hasRefreshSymbol: false,
-      isSpecial: true,
-      isJoker: true,
-    });
-  }
+  // 1 Joker-Karte: Sonderkarte, Wildcard-Wert (1 als Platzhalter)
+  deck.push({
+    id: 'pearl-joker-0',
+    value: 1,
+    hasSwapSymbol: false,
+    hasRefreshSymbol: false,
+    isSpecial: true,
+    isJoker: true,
+  });
 
   return deck;
 }
