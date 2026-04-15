@@ -36,6 +36,7 @@ export type CanvasRegionType =
   | 'deck-pearl'
   | 'ui-discard-cards'
   | 'ui-replace-pearl-slots'
+  | 'ui-replace-pearl-slots-ability'
   | 'opponent-portal-card'
   | 'opponent-activated-character';
 
@@ -122,6 +123,7 @@ export interface NeighborOpponent {
 export interface CanvasLabels {
   swap: string;
   discardCards: string;
+  freePearlReplace: string;
 }
 
 export function buildCanvasRegions(
@@ -242,18 +244,36 @@ export function buildCanvasRegions(
     });
   }
 
-  // --- Replace pearl slots button (below pearl deck, active player with remaining actions) ---
-  if (isActive && (G.actionCount ?? 0) < (G.maxActions ?? 3)) {
+  // --- Replace pearl slots button (below pearl deck) ---
+  {
     const REPLACE_BTN_H = 24;
     const REPLACE_BTN_GAP = 4;
-    regions.push({
-      type: 'ui-replace-pearl-slots', id: 'ui-replace-pearl-slots',
-      x: PEARL_DECK_X - DECK_CARD_H, y: PEARL_DECK_Y + DECK_CARD_W + REPLACE_BTN_GAP,
-      w: DECK_CARD_H, h: REPLACE_BTN_H,
-      label: labels?.swap ?? 'Tauschen',
-      enabled: true,
-      ...animState(existing, 'ui-replace-pearl-slots', 'ui-replace-pearl-slots'),
-    });
+    const actionCount = G.actionCount ?? 0;
+    const maxActions = G.maxActions ?? 3;
+    const hasFreeAbility = me?.activeAbilities?.some(a => a.type === 'replacePearlSlotsBeforeFirstAction') ?? false;
+    const freeAbilityAvailable = isActive && actionCount === 0 && hasFreeAbility && !(G.replacePearlSlotsAbilityUsed ?? false);
+
+    if (freeAbilityAvailable) {
+      // Show free replace button (no action cost); hide normal button
+      regions.push({
+        type: 'ui-replace-pearl-slots-ability', id: 'ui-replace-pearl-slots-ability',
+        x: PEARL_DECK_X - DECK_CARD_H, y: PEARL_DECK_Y + DECK_CARD_W + REPLACE_BTN_GAP,
+        w: DECK_CARD_H, h: REPLACE_BTN_H,
+        label: labels?.freePearlReplace ?? 'Gratis tauschen',
+        enabled: true,
+        ...animState(existing, 'ui-replace-pearl-slots-ability', 'ui-replace-pearl-slots-ability'),
+      });
+    } else if (isActive && actionCount < maxActions) {
+      // Show normal replace button (costs an action)
+      regions.push({
+        type: 'ui-replace-pearl-slots', id: 'ui-replace-pearl-slots',
+        x: PEARL_DECK_X - DECK_CARD_H, y: PEARL_DECK_Y + DECK_CARD_W + REPLACE_BTN_GAP,
+        w: DECK_CARD_H, h: REPLACE_BTN_H,
+        label: labels?.swap ?? 'Tauschen',
+        enabled: true,
+        ...animState(existing, 'ui-replace-pearl-slots', 'ui-replace-pearl-slots'),
+      });
+    }
   }
 
   // --- UI buttons (active player only) ---

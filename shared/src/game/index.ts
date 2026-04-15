@@ -96,6 +96,7 @@ export const PortaleVonMolthar = {
       usedPaymentAbilityTypes: [],
       usedAbilitySourceCharacterIds: [],
       withSpecialCards,
+      replacePearlSlotsAbilityUsed: false,
     };
   },
   
@@ -420,17 +421,23 @@ export const PortaleVonMolthar = {
       const player = G.players[ctx.currentPlayer];
       if (!player) return INVALID_MOVE;
       if (G.actionCount >= G.maxActions) return INVALID_MOVE;
-      
-      // Discard all pearl slots, then refill in-place (alle Karten danach sind neu)
-      for (let i = 0; i < G.pearlSlots.length; i++) {
-        if (G.pearlSlots[i] !== null) {
-          G.pearlDiscardPile.push(G.pearlSlots[i]!);
-          G.pearlSlots[i] = null;
-        }
-      }
-      refillFixedSlots(G.pearlSlots, G.pearlDeck, G.pearlDiscardPile, () => { G.isReshufflingPearlDeck = true; });
-      applyPearlRefreshIfNeeded(G, []);
+      doReplacePearlSlots(G);
       G.actionCount++;
+      return;
+    },
+
+    replacePearlSlotsAbility({ G, ctx }: { G: GameState; ctx: any }) {
+      const player = G.players[ctx.currentPlayer];
+      if (!player) return INVALID_MOVE;
+      // Guard: must be used BEFORE the first action
+      if (G.actionCount > 0) return INVALID_MOVE;
+      // Guard: must have the ability
+      const hasAbility = player.activeAbilities.some(a => a.type === 'replacePearlSlotsBeforeFirstAction');
+      if (!hasAbility) return INVALID_MOVE;
+      // Guard: may only be used once per turn
+      if (G.replacePearlSlotsAbilityUsed) return INVALID_MOVE;
+      doReplacePearlSlots(G);
+      G.replacePearlSlotsAbilityUsed = true;
       return;
     },
 
@@ -835,6 +842,7 @@ export const PortaleVonMolthar = {
       G.actionCount = 0;
       G.usedPaymentAbilityTypes = [];
       G.usedAbilitySourceCharacterIds = [];
+      G.replacePearlSlotsAbilityUsed = false;
       // Basisaktionen: 3 + dauerhafte oneExtraActionPerTurn-Fähigkeiten des aktuellen Spielers
       const player = G.players[ctx.currentPlayer];
       if (player) {
@@ -1036,6 +1044,17 @@ export function createPearlDeck(): PearlCard[] {
 
 export function createCharacterDeck(): CharacterCard[] {
   return getAllCardDataFromDatabase();
+}
+
+function doReplacePearlSlots(G: GameState): void {
+  for (let i = 0; i < G.pearlSlots.length; i++) {
+    if (G.pearlSlots[i] !== null) {
+      G.pearlDiscardPile.push(G.pearlSlots[i]!);
+      G.pearlSlots[i] = null;
+    }
+  }
+  refillFixedSlots(G.pearlSlots, G.pearlDeck, G.pearlDiscardPile, () => { G.isReshufflingPearlDeck = true; });
+  applyPearlRefreshIfNeeded(G, []);
 }
 
 export function shuffleArray<T>(array: T[]): void {

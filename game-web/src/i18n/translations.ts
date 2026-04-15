@@ -136,6 +136,7 @@ export type TranslationKey =
   | 'canvas.swap'
   | 'canvas.discardCards'
   | 'canvas.clickToTake'
+  | 'canvas.freePearlReplace'
   // Lobby session info
   | 'lobby.sessionInfo'
   | 'lobby.fallbackPlayerName'
@@ -157,6 +158,7 @@ export type TranslationKey =
   | 'ability.numberAdditionalCardActions.name'
   | 'ability.anyAdditionalCardActions.name'
   | 'ability.irrlicht.name'
+  | 'ability.replacePearlSlotsBeforeFirstAction.name'
   // Ability descriptions
   | 'ability.threeExtraActions.description'
   | 'ability.nextPlayerOneExtraAction.description'
@@ -175,6 +177,7 @@ export type TranslationKey =
   | 'ability.numberAdditionalCardActions.description'
   | 'ability.anyAdditionalCardActions.description'
   | 'ability.irrlicht.description'
+  | 'ability.replacePearlSlotsBeforeFirstAction.description'
   ;
 
 const de: Record<TranslationKey, string> = {
@@ -289,6 +292,7 @@ const de: Record<TranslationKey, string> = {
   'canvas.swap':                 'Tauschen',
   'canvas.discardCards':         'Karten abwerfen',
   'canvas.clickToTake':          '← Klick zum Nehmen',
+  'canvas.freePearlReplace':     '★ Gratis',
   'lobby.sessionInfo':           'Spiel {matchID} als {playerName}',
   'lobby.fallbackPlayerName':    'Spieler {n}',
   'ability.threeExtraActions.name':              '+3 Aktionen',
@@ -308,6 +312,7 @@ const de: Record<TranslationKey, string> = {
   'ability.numberAdditionalCardActions.name':    'Karte mit aufgedrucktem Perlenwert',
   'ability.anyAdditionalCardActions.name':       'Karte mit beliebigem Perlenwert',
   'ability.irrlicht.name':                       'Irrlicht – Nachbarn können mitaktivieren',
+  'ability.replacePearlSlotsBeforeFirstAction.name': 'Perlkarten gratis tauschen',
   'ability.threeExtraActions.description':           'Sofort: +3 Aktionen in diesem Zug',
   'ability.nextPlayerOneExtraAction.description':    'Der nächste Spieler erhält +1 Aktion in seinem Zug',
   'ability.discardOpponentCharacter.description':    'Sofort: Entferne eine Portalkarte eines Gegners',
@@ -325,6 +330,7 @@ const de: Record<TranslationKey, string> = {
   'ability.numberAdditionalCardActions.description': 'Dauerhaft: Diese Karte hat einen aufgedruckten Perlenwert der bei Kosten mitgezählt wird',
   'ability.anyAdditionalCardActions.description':    'Dauerhaft: Diese Karte hat einen aufgedruckten Wildcard-Perlenwert',
   'ability.irrlicht.description':                    'Dauerhaft: Direkte Nachbarn können diese Karte mitaktivieren',
+  'ability.replacePearlSlotsBeforeFirstAction.description': 'Dauerhaft: Einmal pro Zug vor der ersten Aktion alle Perlenkarten kostenlos tauschen',
 };
 
 const enGB: Record<TranslationKey, string> = {
@@ -439,6 +445,7 @@ const enGB: Record<TranslationKey, string> = {
   'canvas.swap':                 'Swap',
   'canvas.discardCards':         'Discard Cards',
   'canvas.clickToTake':          '← Click to take',
+  'canvas.freePearlReplace':     '★ Free',
   'lobby.sessionInfo':           'Game {matchID} as {playerName}',
   'lobby.fallbackPlayerName':    'Player {n}',
   'ability.threeExtraActions.name':              '+3 Actions',
@@ -458,6 +465,7 @@ const enGB: Record<TranslationKey, string> = {
   'ability.numberAdditionalCardActions.name':    'Card with printed pearl value',
   'ability.anyAdditionalCardActions.name':       'Card with wildcard pearl value',
   'ability.irrlicht.name':                       'Will-o-wisp – neighbours can co-activate',
+  'ability.replacePearlSlotsBeforeFirstAction.name': 'Free pearl card swap',
   'ability.threeExtraActions.description':           'Instant: +3 actions this turn',
   'ability.nextPlayerOneExtraAction.description':    'The next player gets +1 action on their turn',
   'ability.discardOpponentCharacter.description':    'Instant: Remove a portal card from an opponent',
@@ -475,6 +483,7 @@ const enGB: Record<TranslationKey, string> = {
   'ability.numberAdditionalCardActions.description': 'Persistent: This card has a printed pearl value that counts toward costs',
   'ability.anyAdditionalCardActions.description':    'Persistent: This card has a printed wildcard pearl value',
   'ability.irrlicht.description':                    'Persistent: Direct neighbours can co-activate this card',
+  'ability.replacePearlSlotsBeforeFirstAction.description': 'Persistent: Once per turn, swap all pearl cards for free before your first action',
 };
 
 const fr: Record<TranslationKey, string> = {
@@ -589,6 +598,7 @@ const fr: Record<TranslationKey, string> = {
   'canvas.swap':                 'Échanger',
   'canvas.discardCards':         'Défausser',
   'canvas.clickToTake':          '← Cliquer pour prendre',
+  'canvas.freePearlReplace':     '★ Gratuit',
   'lobby.sessionInfo':           'Partie {matchID} en tant que {playerName}',
   'lobby.fallbackPlayerName':    'Joueur {n}',
   'ability.threeExtraActions.name':              '+3 actions',
@@ -608,6 +618,7 @@ const fr: Record<TranslationKey, string> = {
   'ability.numberAdditionalCardActions.name':    'Carte avec valeur perle imprimée',
   'ability.anyAdditionalCardActions.name':       'Carte avec valeur perle générique',
   'ability.irrlicht.name':                       'Feu follet – les voisins peuvent co-activer',
+  'ability.replacePearlSlotsBeforeFirstAction.name': 'Échange gratuit de perles',
   'ability.threeExtraActions.description':           'Immédiat : +3 actions ce tour',
   'ability.nextPlayerOneExtraAction.description':    'Le prochain joueur obtient +1 action pendant son tour',
   'ability.discardOpponentCharacter.description':    'Immédiat : Retirez une carte portail d\'un adversaire',
@@ -625,6 +636,7 @@ const fr: Record<TranslationKey, string> = {
   'ability.numberAdditionalCardActions.description': 'Permanent : Cette carte a une valeur perle imprimée qui compte pour les coûts',
   'ability.anyAdditionalCardActions.description':    'Permanent : Cette carte a une valeur perle générique imprimée',
   'ability.irrlicht.description':                    'Permanent : Les voisins directs peuvent co-activer cette carte',
+  'ability.replacePearlSlotsBeforeFirstAction.description': 'Permanent : Une fois par tour, échangez gratuitement toutes les cartes perle avant votre première action',
 };
 
 export const translations: Record<Locale, Record<TranslationKey, string>> = { de, 'en-GB': enGB, fr };
