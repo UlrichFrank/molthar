@@ -17,6 +17,7 @@ interface RawCardData {
     [key: string]: any;
   };
   cardCount: number;
+  isSpecial?: boolean;
 }
 
 // Placeholder - will be populated by tests
@@ -59,6 +60,7 @@ function mapRawCard(raw: RawCardData): CharacterCard {
     abilities,
     sharedActivation: raw.ability.type === 'irrlicht' ? true : undefined,
     printedPearls,
+    isSpecial: raw.isSpecial ?? undefined,
   };
 }
 

@@ -23,17 +23,21 @@ export type TranslationKey =
   | 'waiting.title'
   | 'waiting.description'
   | 'waiting.cancel'
+  | 'waiting.mode.base'
+  | 'waiting.mode.special'
   // Create match
   | 'create.title'
   | 'create.playerCount'
   | 'create.nPlayers'
   | 'create.create'
+  | 'create.withSpecialCards'
   // Match list
   | 'matches.title'
   | 'matches.noMatches'
   | 'matches.join'
   | 'matches.creator'
   | 'matches.participants'
+  | 'lobby.modeSpecial'
   // Character preview
   | 'character.takeTitle'
   | 'character.viewTitle'
@@ -191,15 +195,19 @@ const de: Record<TranslationKey, string> = {
   'waiting.title':               'Warte auf alle Spieler...',
   'waiting.description':         'Das Spiel startet automatisch, wenn alle {count} Spieler beigetreten sind.',
   'waiting.cancel':              'Abbrechen',
+  'waiting.mode.base':           'Modus: Basisspiel',
+  'waiting.mode.special':        'Modus: Mit Sonderkarten',
   'create.title':                'Neues Spiel erstellen',
   'create.playerCount':          'Spieleranzahl:',
   'create.nPlayers':             '{n} Spieler',
   'create.create':               'Spiel erstellen',
+  'create.withSpecialCards':     'Mit Sonderkarten',
   'matches.title':               'Offene Spiele',
   'matches.noMatches':           'Keine offenen Spiele vorhanden.',
   'matches.join':                'Beitreten',
   'matches.creator':             'Erstellt von',
   'matches.participants':        'Spieler',
+  'lobby.modeSpecial':           'Sonderkarten',
   'character.takeTitle':         'Charakterkarte nehmen?',
   'character.viewTitle':         'Charakterkarte',
   'character.take':              'Nehmen',
@@ -337,15 +345,19 @@ const enGB: Record<TranslationKey, string> = {
   'waiting.title':               'Waiting for all players...',
   'waiting.description':         'The game starts automatically when all {count} players have joined.',
   'waiting.cancel':              'Cancel',
+  'waiting.mode.base':           'Mode: Base Game',
+  'waiting.mode.special':        'Mode: With Special Cards',
   'create.title':                'Create New Game',
   'create.playerCount':          'Number of players:',
   'create.nPlayers':             '{n} players',
   'create.create':               'Create Game',
+  'create.withSpecialCards':     'With Special Cards',
   'matches.title':               'Open Games',
   'matches.noMatches':           'No open games available.',
   'matches.join':                'Join',
   'matches.creator':             'Created by',
   'matches.participants':        'Players',
+  'lobby.modeSpecial':           'Special Cards',
   'character.takeTitle':         'Take Character Card?',
   'character.viewTitle':         'Character Card',
   'character.take':              'Take',
@@ -483,15 +495,19 @@ const fr: Record<TranslationKey, string> = {
   'waiting.title':               'En attente de tous les joueurs...',
   'waiting.description':         'La partie démarre automatiquement quand tous les {count} joueurs ont rejoint.',
   'waiting.cancel':              'Annuler',
+  'waiting.mode.base':           'Mode : Jeu de base',
+  'waiting.mode.special':        'Mode : Avec cartes spéciales',
   'create.title':                'Créer une nouvelle partie',
   'create.playerCount':          'Nombre de joueurs :',
   'create.nPlayers':             '{n} joueurs',
   'create.create':               'Créer la partie',
+  'create.withSpecialCards':     'Avec cartes spéciales',
   'matches.title':               'Parties ouvertes',
   'matches.noMatches':           'Aucune partie ouverte disponible.',
   'matches.join':                'Rejoindre',
   'matches.creator':             'Créé par',
   'matches.participants':        'Joueurs',
+  'lobby.modeSpecial':           'Cartes spéciales',
   'character.takeTitle':         'Prendre la carte personnage ?',
   'character.viewTitle':         'Carte personnage',
   'character.take':              'Prendre',

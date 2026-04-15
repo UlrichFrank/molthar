@@ -20,10 +20,11 @@ export const PortaleVonMolthar = {
   /**
    * Setup: Initialize game state
    */
-  setup: ({ ctx }: any): GameState => {
+  setup: ({ ctx }: any, setupData?: { withSpecialCards?: boolean }): GameState => {
     const playerIds = ctx.playOrder;
-    const pearlDeck = createPearlDeck();
-    const characterDeck = createCharacterDeck();
+    const withSpecialCards = setupData?.withSpecialCards ?? false;
+    const pearlDeck = createPearlDeck().filter(c => withSpecialCards || !c.isSpecial);
+    const characterDeck = createCharacterDeck().filter(c => withSpecialCards || !c.isSpecial);
     
     // Shuffle decks
     shuffleArray(pearlDeck);
@@ -94,6 +95,7 @@ export const PortaleVonMolthar = {
       pendingDiscardOpponentCharacter: false,
       usedPaymentAbilityTypes: [],
       usedAbilitySourceCharacterIds: [],
+      withSpecialCards,
     };
   },
   
@@ -258,9 +260,8 @@ export const PortaleVonMolthar = {
             const hasAbility = player.activeAbilities.some(a => a.type === sel.abilityType);
             if (!hasAbility) return INVALID_MOVE;
 
-            // Jede Zahlungs-Fähigkeit darf pro Zug nur einmal genutzt werden
+            // Jede Zahlungs-Fähigkeit darf pro Zug nur einmal genutzt werden (über alle Aktivierungen dieses Zuges)
             if (G.usedPaymentAbilityTypes.includes(sel.abilityType)) return INVALID_MOVE;
-            if (usedAbilityTypesThisMove.has(sel.abilityType)) return INVALID_MOVE;
             usedAbilityTypesThisMove.add(sel.abilityType);
 
             if (sel.abilityType === 'decreaseWithPearl') {
@@ -547,9 +548,8 @@ export const PortaleVonMolthar = {
             const hasAbility = caller.activeAbilities.some(a => a.type === sel.abilityType);
             if (!hasAbility) return INVALID_MOVE;
 
-            // Jede Zahlungs-Fähigkeit darf pro Zug nur einmal genutzt werden
+            // Jede Zahlungs-Fähigkeit darf pro Zug nur einmal genutzt werden (über alle Aktivierungen dieses Zuges)
             if (G.usedPaymentAbilityTypes.includes(sel.abilityType)) return INVALID_MOVE;
-            if (usedAbilityTypesThisSharedMove.has(sel.abilityType)) return INVALID_MOVE;
             usedAbilityTypesThisSharedMove.add(sel.abilityType);
 
             if (sel.abilityType === 'decreaseWithPearl') {
