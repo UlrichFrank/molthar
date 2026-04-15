@@ -28,10 +28,10 @@ export function MatchList({ matches, loadingMatches, playerNameSet, onRefresh, o
   const { t } = useTranslation();
   return (
     <div className="lobby-section">
-      <h2>
-        {t('matches.title')}
+      <h2 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span>{t('matches.title')}</span>
         <button
-          className="refresh-btn"
+          className="match-join-btn"
           onClick={onRefresh}
           disabled={loadingMatches}
           title={t('matches.title')}
@@ -47,34 +47,43 @@ export function MatchList({ matches, loadingMatches, playerNameSet, onRefresh, o
             const joined = match.players.filter(p => p.name !== undefined).length;
             const total = match.players.length;
             const creatorName = match.players[0]?.name;
-            const participantNames = match.players
-              .filter(p => p.name !== undefined)
-              .map(p => p.name)
-              .join(', ');
+            // Participants = everyone except slot 0 (creator)
+            const otherPlayers = match.players.slice(1);
 
             return (
               <li key={match.matchID} className="match-item">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div className="match-item-info">
+                  <div className="match-item-header">
                     {match.createdAt != null && (
-                      <span style={{ color: 'rgba(148,163,184,0.7)', fontSize: '0.8rem' }}>
-                        🕐 {formatMatchTime(match.createdAt)}
-                      </span>
+                      <span className="match-time">🕐 {formatMatchTime(match.createdAt)}</span>
                     )}
                     <span className="match-players">👥 {joined}/{total}</span>
                   </div>
                   {creatorName && (
-                    <span style={{ fontSize: '0.82rem', color: 'rgba(203,213,225,0.85)' }}>
+                    <div className="match-creator">
                       {t('matches.creator')}: <strong>{creatorName}</strong>
-                    </span>
+                    </div>
                   )}
-                  {participantNames && (
-                    <span style={{ fontSize: '0.78rem', color: 'rgba(148,163,184,0.7)' }}>
-                      {t('matches.participants')}: {participantNames}
-                    </span>
+                  {otherPlayers.length > 0 && (
+                    <table className="match-player-table">
+                      <tbody>
+                        {otherPlayers.map((p) => (
+                          <tr key={p.id}>
+                            <td>{p.id + 1}</td>
+                            <td className={p.name ? undefined : 'match-slot-empty'}>
+                              {p.name ?? '—'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   )}
                 </div>
-                <button onClick={() => onJoin(match)} disabled={!playerNameSet}>
+                <button
+                  className="match-join-btn"
+                  onClick={() => onJoin(match)}
+                  disabled={!playerNameSet}
+                >
                   {t('matches.join')}
                 </button>
               </li>

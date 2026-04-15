@@ -20,7 +20,9 @@ export function CreateMatch({ numPlayers, playerNameSet, onNumPlayersChange, onC
           ))}
         </select>
       </div>
-      <button onClick={onCreate} disabled={!playerNameSet}>{t('create.create')}</button>
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <button className="match-join-btn" onClick={onCreate} disabled={!playerNameSet}>{t('create.create')}</button>
+      </div>
     </div>
   );
 }
