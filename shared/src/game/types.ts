@@ -13,6 +13,8 @@ export interface PearlCard {
   hasRefreshSymbol: boolean;
   /** Wenn true: Karte gehört zum Sonderkarten-Set und ist nur bei aktivierter Option im Deck */
   isSpecial?: boolean;
+  /** Wenn true: Joker-Karte — kann beim Aktivieren jeden Wert 1–8 annehmen, kostet 1 Diamant */
+  isJoker?: boolean;
 }
 
 /**
@@ -96,6 +98,7 @@ export type CharacterAbilityType =
   | 'anyAdditionalCardActions'
   | 'irrlicht'
   | 'replacePearlSlotsBeforeFirstAction'
+  | 'joker'
   | 'none';
 
 export interface CharacterAbility {

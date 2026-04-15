@@ -105,6 +105,7 @@ export async function preloadAllImages(): Promise<void> {
     'Perlenkarte6.png',
     'Perlenkarte7.png',
     'Perlenkarte8.png',
+    'PerlenkarteJoker.png',
 
     // Portal images
     'Portal1.jpeg',

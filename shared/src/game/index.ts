@@ -258,26 +258,35 @@ export const PortaleVonMolthar = {
           let expectedValue = realCard.value;
 
           if (sel.abilityType) {
-            const hasAbility = player.activeAbilities.some(a => a.type === sel.abilityType);
-            if (!hasAbility) return INVALID_MOVE;
-
-            // Jede Zahlungs-Fähigkeit darf pro Zug nur einmal genutzt werden (über alle Aktivierungen dieses Zuges)
-            if (G.usedPaymentAbilityTypes.includes(sel.abilityType)) return INVALID_MOVE;
-            usedAbilityTypesThisMove.add(sel.abilityType);
-
-            if (sel.abilityType === 'decreaseWithPearl') {
-              const du = sel.diamondsUsed || 0;
-              if (du < 0 || du > 1) return INVALID_MOVE;
-              diamondsToSpend += du;
-              expectedValue = Math.max(1, realCard.value - du) as PearlCard['value'];
-            } else if (sel.abilityType === 'onesCanBeEights') {
-              if (realCard.value !== 1) return INVALID_MOVE;
-              expectedValue = 8;
-            } else if (sel.abilityType === 'threesCanBeAny') {
-              if (realCard.value !== 3) return INVALID_MOVE;
-              expectedValue = sel.value as PearlCard['value'];
+            if (sel.abilityType === 'joker') {
+              // Joker-Karte: keine Charakter-Fähigkeit nötig, nur die Karte selbst muss isJoker sein
+              if (!realCard.isJoker) return INVALID_MOVE;
+              const v = sel.value;
+              if (v < 1 || v > 8) return INVALID_MOVE;
+              diamondsToSpend += 1;
+              expectedValue = v as PearlCard['value'];
             } else {
-              if (sel.value !== expectedValue) return INVALID_MOVE;
+              const hasAbility = player.activeAbilities.some(a => a.type === sel.abilityType);
+              if (!hasAbility) return INVALID_MOVE;
+
+              // Jede Zahlungs-Fähigkeit darf pro Zug nur einmal genutzt werden (über alle Aktivierungen dieses Zuges)
+              if (G.usedPaymentAbilityTypes.includes(sel.abilityType)) return INVALID_MOVE;
+              usedAbilityTypesThisMove.add(sel.abilityType);
+
+              if (sel.abilityType === 'decreaseWithPearl') {
+                const du = sel.diamondsUsed || 0;
+                if (du < 0 || du > 1) return INVALID_MOVE;
+                diamondsToSpend += du;
+                expectedValue = Math.max(1, realCard.value - du) as PearlCard['value'];
+              } else if (sel.abilityType === 'onesCanBeEights') {
+                if (realCard.value !== 1) return INVALID_MOVE;
+                expectedValue = 8;
+              } else if (sel.abilityType === 'threesCanBeAny') {
+                if (realCard.value !== 3) return INVALID_MOVE;
+                expectedValue = sel.value as PearlCard['value'];
+              } else {
+                if (sel.value !== expectedValue) return INVALID_MOVE;
+              }
             }
           }
 
@@ -552,24 +561,32 @@ export const PortaleVonMolthar = {
           let effectiveValue = realCard.value;
 
           if (sel.abilityType) {
-            const hasAbility = caller.activeAbilities.some(a => a.type === sel.abilityType);
-            if (!hasAbility) return INVALID_MOVE;
+            if (sel.abilityType === 'joker') {
+              if (!realCard.isJoker) return INVALID_MOVE;
+              const v = sel.value;
+              if (v < 1 || v > 8) return INVALID_MOVE;
+              diamondsToSpend += 1;
+              effectiveValue = v as PearlCard['value'];
+            } else {
+              const hasAbility = caller.activeAbilities.some(a => a.type === sel.abilityType);
+              if (!hasAbility) return INVALID_MOVE;
 
-            // Jede Zahlungs-Fähigkeit darf pro Zug nur einmal genutzt werden (über alle Aktivierungen dieses Zuges)
-            if (G.usedPaymentAbilityTypes.includes(sel.abilityType)) return INVALID_MOVE;
-            usedAbilityTypesThisSharedMove.add(sel.abilityType);
+              // Jede Zahlungs-Fähigkeit darf pro Zug nur einmal genutzt werden (über alle Aktivierungen dieses Zuges)
+              if (G.usedPaymentAbilityTypes.includes(sel.abilityType)) return INVALID_MOVE;
+              usedAbilityTypesThisSharedMove.add(sel.abilityType);
 
-            if (sel.abilityType === 'decreaseWithPearl') {
-              const du = sel.diamondsUsed || 0;
-              if (du < 0 || du > 1) return INVALID_MOVE;
-              diamondsToSpend += du;
-              effectiveValue = Math.max(1, realCard.value - du) as typeof effectiveValue;
-            } else if (sel.abilityType === 'onesCanBeEights') {
-              if (realCard.value !== 1) return INVALID_MOVE;
-              effectiveValue = 8;
-            } else if (sel.abilityType === 'threesCanBeAny') {
-              if (realCard.value !== 3) return INVALID_MOVE;
-              effectiveValue = sel.value as PearlCard['value'];
+              if (sel.abilityType === 'decreaseWithPearl') {
+                const du = sel.diamondsUsed || 0;
+                if (du < 0 || du > 1) return INVALID_MOVE;
+                diamondsToSpend += du;
+                effectiveValue = Math.max(1, realCard.value - du) as typeof effectiveValue;
+              } else if (sel.abilityType === 'onesCanBeEights') {
+                if (realCard.value !== 1) return INVALID_MOVE;
+                effectiveValue = 8;
+              } else if (sel.abilityType === 'threesCanBeAny') {
+                if (realCard.value !== 3) return INVALID_MOVE;
+                effectiveValue = sel.value as PearlCard['value'];
+              }
             }
           }
           if (sel.value !== effectiveValue) return INVALID_MOVE;
@@ -1026,7 +1043,7 @@ function applyPearlRefreshIfNeeded(G: GameState, slotIdsBefore: string[]): void 
 
 export function createPearlDeck(): PearlCard[] {
   const deck: PearlCard[] = [];
-  
+
   // Create 7 copies of each value 1-8
   for (let value = 1; value <= 8; value++) {
     for (let i = 0; i < 7; i++) {
@@ -1038,7 +1055,19 @@ export function createPearlDeck(): PearlCard[] {
       });
     }
   }
-  
+
+  // 2 Joker-Karten: Sonderkarte, Wildcard-Wert (1 als Platzhalter)
+  for (let i = 0; i < 2; i++) {
+    deck.push({
+      id: `pearl-joker-${i}`,
+      value: 1,
+      hasSwapSymbol: false,
+      hasRefreshSymbol: false,
+      isSpecial: true,
+      isJoker: true,
+    });
+  }
+
   return deck;
 }
 
