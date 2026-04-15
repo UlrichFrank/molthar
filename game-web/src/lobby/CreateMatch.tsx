@@ -3,11 +3,13 @@ import { useTranslation } from '../i18n/useTranslation';
 interface CreateMatchProps {
   numPlayers: number;
   playerNameSet: boolean;
+  withSpecialCards: boolean;
   onNumPlayersChange: (n: number) => void;
+  onWithSpecialCardsChange: (v: boolean) => void;
   onCreate: () => void;
 }
 
-export function CreateMatch({ numPlayers, playerNameSet, onNumPlayersChange, onCreate }: CreateMatchProps) {
+export function CreateMatch({ numPlayers, playerNameSet, withSpecialCards, onNumPlayersChange, onWithSpecialCardsChange, onCreate }: CreateMatchProps) {
   const { t } = useTranslation();
   return (
     <div className="lobby-section">
@@ -19,6 +21,16 @@ export function CreateMatch({ numPlayers, playerNameSet, onNumPlayersChange, onC
             <option key={n} value={n}>{t('create.nPlayers', { n })}</option>
           ))}
         </select>
+      </div>
+      <div className="form-group form-group--toggle">
+        <label className="toggle-label">
+          <input
+            type="checkbox"
+            checked={withSpecialCards}
+            onChange={(e) => onWithSpecialCardsChange(e.target.checked)}
+          />
+          <span>{t('create.withSpecialCards')}</span>
+        </label>
       </div>
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <button className="match-join-btn" onClick={onCreate} disabled={!playerNameSet}>{t('create.create')}</button>

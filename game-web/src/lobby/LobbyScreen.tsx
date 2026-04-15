@@ -23,6 +23,7 @@ export function LobbyScreen() {
   const [credentials, setCredentials] = useState('');
   const [totalPlayers, setTotalPlayers] = useState(2);
   const [numPlayers, setNumPlayers] = useState(2);
+  const [withSpecialCards, setWithSpecialCards] = useState(false);
   const [matches, setMatches] = useState<Match[]>([]);
   const [loadingMatches, setLoadingMatches] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -109,7 +110,7 @@ export function LobbyScreen() {
     try {
       const { matchID: newMatchID } = await lobbyClient.createMatch(
         PortaleVonMolthar.name,
-        { numPlayers }
+        { numPlayers, setupData: { withSpecialCards } }
       );
       await joinMatch(newMatchID, '0', numPlayers);
     } catch {
@@ -120,6 +121,7 @@ export function LobbyScreen() {
   const handleJoinMatch = (match: Match) => {
     const freeSlot = match.players.find(p => p.name === undefined);
     if (!freeSlot) { setError(t('lobby.errorNoSlot')); return; }
+    setWithSpecialCards(match.setupData?.withSpecialCards ?? false);
     joinMatch(match.matchID, String(freeSlot.id), match.players.length);
   };
 
@@ -186,6 +188,7 @@ export function LobbyScreen() {
       <WaitingRoom
         matchID={matchID}
         totalPlayers={totalPlayers}
+        withSpecialCards={withSpecialCards}
         onAllJoined={() => setView('in-game')}
         onCancel={handleCancelWaiting}
       />
@@ -279,7 +282,9 @@ export function LobbyScreen() {
       <CreateMatch
         numPlayers={numPlayers}
         playerNameSet={!!playerName.trim()}
+        withSpecialCards={withSpecialCards}
         onNumPlayersChange={setNumPlayers}
+        onWithSpecialCardsChange={setWithSpecialCards}
         onCreate={createMatch}
       />
 

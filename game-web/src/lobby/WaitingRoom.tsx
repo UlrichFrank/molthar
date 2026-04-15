@@ -6,11 +6,12 @@ import { useTranslation } from '../i18n/useTranslation';
 interface WaitingRoomProps {
   matchID: string;
   totalPlayers: number;
+  withSpecialCards?: boolean;
   onAllJoined: () => void;
   onCancel: () => void;
 }
 
-export function WaitingRoom({ matchID, totalPlayers, onAllJoined, onCancel }: WaitingRoomProps) {
+export function WaitingRoom({ matchID, totalPlayers, withSpecialCards, onAllJoined, onCancel }: WaitingRoomProps) {
   const { t } = useTranslation();
   useEffect(() => {
     const checkPlayers = async () => {
@@ -36,6 +37,9 @@ export function WaitingRoom({ matchID, totalPlayers, onAllJoined, onCancel }: Wa
     <div className="lobby-container">
       <h1>{t('waiting.title')}</h1>
       <p>{t('waiting.description', { count: totalPlayers })}</p>
+      <p className="waiting-mode">
+        {withSpecialCards ? t('waiting.mode.special') : t('waiting.mode.base')}
+      </p>
       <div className="waiting-spinner">⏳</div>
       <button onClick={onCancel}>{t('waiting.cancel')}</button>
     </div>

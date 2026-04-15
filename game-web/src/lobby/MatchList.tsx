@@ -58,6 +58,9 @@ export function MatchList({ matches, loadingMatches, playerNameSet, onRefresh, o
                       <span className="match-time">🕐 {formatMatchTime(match.createdAt)}</span>
                     )}
                     <span className="match-players">👥 {joined}/{total}</span>
+                    {match.setupData?.withSpecialCards && (
+                      <span className="match-mode-badge">{t('lobby.modeSpecial')}</span>
+                    )}
                   </div>
                   {creatorName && (
                     <div className="match-creator">

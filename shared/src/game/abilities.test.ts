@@ -62,6 +62,9 @@ function makeMinimalGameState(overrides: Partial<GameState> = {}): GameState {
     isReshufflingCharacterDeck: false,
     pendingStealOpponentHandCard: false,
     pendingDiscardOpponentCharacter: false,
+    usedPaymentAbilityTypes: [],
+    usedAbilitySourceCharacterIds: [],
+    withSpecialCards: false,
     ...overrides,
   } as GameState;
 }

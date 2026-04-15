@@ -11,6 +11,8 @@ export interface PearlCard {
   hasSwapSymbol: boolean;
   /** Wenn true: beim Aufdecken dieser Karte werden die beiden Charakterkarten der Auslage entfernt und 2 neue nachgezogen. */
   hasRefreshSymbol: boolean;
+  /** Wenn true: Karte gehört zum Sonderkarten-Set und ist nur bei aktivierter Option im Deck */
+  isSpecial?: boolean;
 }
 
 /**
@@ -41,6 +43,8 @@ export interface CharacterCard {
   printedPearls?: PrintedPearlValue[];
   /** Geteilte Aktivierung: Nachbarn des Besitzers können diese Karte in ihren Zügen aktivieren (irrlicht) */
   sharedActivation?: boolean;
+  /** Wenn true: Karte gehört zum Sonderkarten-Set und ist nur bei aktivierter Option im Deck */
+  isSpecial?: boolean;
 }
 
 /**
@@ -229,6 +233,9 @@ export interface GameState {
    * genutzt wurden. Wird am Zugbeginn zurückgesetzt.
    */
   usedAbilitySourceCharacterIds: string[];
+
+  /** Gibt an ob das Spiel mit Sonderkarten gespielt wird (gesetzt aus setupData) */
+  withSpecialCards: boolean;
 
   // Metadaten
   startingPlayer: string;
