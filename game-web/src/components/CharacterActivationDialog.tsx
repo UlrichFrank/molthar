@@ -49,6 +49,7 @@ export function CharacterActivationDialog({
   const [virtualDiamonds, setVirtualDiamonds] = useState(0);
   const [tradeSelection, setTradeSelection] = useState<{ characterId: string; handCardIndex: number } | null>(null);
   const [diamondCostConfirmed, setDiamondCostConfirmed] = useState(false);
+  const [jokerPendingIndices, setJokerPendingIndices] = useState<Set<number>>(new Set());
 
   const selectedCharacter = availableCharacters[0]?.card;
   const selectedCharacterSlot = availableCharacters[0]?.slotIndex ?? null;
@@ -138,14 +139,60 @@ export function CharacterActivationDialog({
   const toggleHandCard = (idx: number) => {
     // Prevent selecting a card reserved for trade
     if (tradeSelection && idx === tradeSelection.handCardIndex) return;
+    const card = hand[idx]!;
+
+    if (card.isJoker) {
+      if (handSelections.has(idx)) {
+        // Deselect joker (remove value)
+        const next = new Map(handSelections);
+        next.delete(idx);
+        setHandSelections(next);
+        // Go back to pending so picker stays visible
+        const pending = new Set(jokerPendingIndices);
+        pending.add(idx);
+        setJokerPendingIndices(pending);
+      } else if (jokerPendingIndices.has(idx)) {
+        // Cancel pending picker
+        const pending = new Set(jokerPendingIndices);
+        pending.delete(idx);
+        setJokerPendingIndices(pending);
+      } else {
+        // Open value picker
+        const pending = new Set(jokerPendingIndices);
+        pending.add(idx);
+        setJokerPendingIndices(pending);
+      }
+      return;
+    }
+
     const next = new Map(handSelections);
     if (next.has(idx)) {
       next.delete(idx);
     } else {
-      const card = hand[idx]!;
       next.set(idx, { handCardIndex: idx, value: card.value });
     }
     setHandSelections(next);
+  };
+
+  const pickJokerValue = (idx: number, value: PearlCard['value']) => {
+    const existing = handSelections.get(idx);
+    if (existing?.abilityType === 'joker' && existing.value === value) {
+      // Same value clicked: deselect, go back to pending
+      const next = new Map(handSelections);
+      next.delete(idx);
+      setHandSelections(next);
+      const pending = new Set(jokerPendingIndices);
+      pending.add(idx);
+      setJokerPendingIndices(pending);
+      return;
+    }
+    // Pick (or change) value
+    const next = new Map(handSelections);
+    next.set(idx, { handCardIndex: idx, value, abilityType: 'joker', diamondsUsed: 1 });
+    setHandSelections(next);
+    const pending = new Set(jokerPendingIndices);
+    pending.delete(idx);
+    setJokerPendingIndices(pending);
   };
 
   const handleTradeToggle = (characterId: string) => {
@@ -201,7 +248,7 @@ export function CharacterActivationDialog({
     }
   };
 
-  const selectedSet = new Set(handSelections.keys());
+  const selectedSet = new Set([...handSelections.keys(), ...jokerPendingIndices]);
   const reservedSet = tradeSelection ? new Set([tradeSelection.handCardIndex]) : new Set<number>();
   const effectiveDiamonds = diamonds + virtualDiamonds;
 
@@ -243,12 +290,64 @@ export function CharacterActivationDialog({
               selected={selectedSet}
               reserved={reservedSet}
               onToggle={toggleHandCard}
-              getImageSrc={(card) => `/assets/Perlenkarte${card.value}${card.hasRefreshSymbol ? '-neu' : ''}.png`}
+              getImageSrc={(card) => card.isJoker ? '/assets/PerlenkarteJoker.png' : `/assets/Perlenkarte${card.value}${card.hasRefreshSymbol ? '-neu' : ''}.png`}
               getAlt={(card) => `Pearl ${card.value}`}
             />
 
+            {/* Joker value pickers — shown for pending or selected joker cards */}
+            {[...new Set([...jokerPendingIndices, ...handSelections.keys()])].filter(idx => hand[idx]?.isJoker).map(idx => {
+              const sel = handSelections.get(idx);
+              const jokerOccupied = sel?.abilityType === 'joker';
+              // Diamonds available for this joker: if already occupied, always allow changing value
+              const diamondsAvailableForJoker = jokerOccupied || (effectiveDiamonds - diamondsReserved >= 1);
+              return (
+                <div
+                  key={idx}
+                  style={{
+                    marginTop: '0.4rem',
+                    padding: '0.35rem 0.5rem',
+                    background: 'rgba(255,255,255,0.08)',
+                    borderRadius: '0.4rem',
+                    fontSize: '0.82rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  <span style={{ color: '#f6e05e' }}>🃏</span>
+                  <span style={{ color: '#a0aec0', fontSize: '0.76rem' }}>1 💎</span>
+                  <span style={{ color: '#a0aec0', fontSize: '0.75rem' }}>→</span>
+                  {PEARL_VALUES.map(v => (
+                    <button
+                      key={v}
+                      onClick={() => diamondsAvailableForJoker ? pickJokerValue(idx, v) : undefined}
+                      disabled={!diamondsAvailableForJoker && !(jokerOccupied && sel?.value === v)}
+                      style={{
+                        padding: '0.1rem 0.35rem',
+                        borderRadius: '0.25rem',
+                        background: sel?.value === v
+                          ? '#f6e05e'
+                          : !diamondsAvailableForJoker
+                            ? 'rgba(160,160,160,0.15)'
+                            : 'rgba(246,224,94,0.2)',
+                        color: sel?.value === v ? '#1a202c' : !diamondsAvailableForJoker ? '#718096' : '#f6e05e',
+                        border: `1px solid ${!diamondsAvailableForJoker ? '#4a5568' : '#f6e05e'}`,
+                        cursor: !diamondsAvailableForJoker ? 'not-allowed' : 'pointer',
+                        fontSize: '0.78rem',
+                        minWidth: '1.4rem',
+                        opacity: !diamondsAvailableForJoker ? 0.5 : 1,
+                      }}
+                    >
+                      {v}
+                    </button>
+                  ))}
+                </div>
+              );
+            })}
+
             {/* Per-card ability badges, shown directly beneath each selected hand card */}
-            {Array.from(handSelections.values()).map((sel) => {
+            {Array.from(handSelections.values()).filter(sel => !hand[sel.handCardIndex]?.isJoker).map((sel) => {
               const card = hand[sel.handCardIndex]!;
               const canUseOnes = hasOnesCanBeEights && card.value === 1;
               const canUseThrees = hasThreesCanBeAny && card.value === 3;
