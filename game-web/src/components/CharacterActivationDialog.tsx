@@ -3,6 +3,7 @@ import type { CharacterCard, PearlCard, CharacterAbility, ActivatedCharacter, Pa
 import { validateCostPayment, hasUnnecessarySelection } from '@portale-von-molthar/shared';
 import { getCostSummary, describeCost } from '../lib/cost-helper';
 import { GameDialog, GameDialogTitle, GameDialogActions, CardPicker } from './GameDialog';
+import { CharacterAbilityList } from './CharacterAbilityList';
 import { useTranslation } from '../i18n/useTranslation';
 
 interface CharacterActivationDialogProps {
@@ -267,6 +268,8 @@ export function CharacterActivationDialog({
           />
         ))}
       </div>
+
+      {selectedCharacter && <CharacterAbilityList card={selectedCharacter} />}
 
       {selectedCharacter && (
         <>

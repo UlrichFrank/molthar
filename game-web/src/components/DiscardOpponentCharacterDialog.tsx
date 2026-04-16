@@ -1,5 +1,6 @@
 import type { PlayerState } from '@portale-von-molthar/shared';
 import { GameDialog, GameDialogTitle } from './GameDialog';
+import { CharacterAbilityList } from './CharacterAbilityList';
 import { useTranslation } from '../i18n/useTranslation';
 
 interface DiscardOpponentCharacterDialogProps {
@@ -35,6 +36,7 @@ export function DiscardOpponentCharacterDialog({ opponents, onDiscard }: Discard
                   src={`/assets/${encodeURIComponent(entry.card.imageName)}`}
                   alt={entry.card.name}
                 />
+                <CharacterAbilityList card={entry.card} />
               </button>
             ))}
           </div>
