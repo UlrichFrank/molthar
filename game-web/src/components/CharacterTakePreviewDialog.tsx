@@ -1,5 +1,6 @@
 import type { CharacterCard } from '@portale-von-molthar/shared';
 import { GameDialog, GameDialogTitle, GameDialogActions } from './GameDialog';
+import { CharacterAbilityList } from './CharacterAbilityList';
 import { useTranslation } from '../i18n/useTranslation';
 
 interface CharacterTakePreviewDialogProps {
@@ -23,11 +24,14 @@ export function CharacterTakePreviewDialog({ card, faceDown = false, onConfirm, 
             className="w-auto max-h-[200px] object-contain block rounded-lg"
           />
         ) : (
-          <img
-            src={`/assets/${encodeURIComponent(card.imageName)}`}
-            alt={card.name}
-            className="w-auto max-h-[200px] object-contain block rounded-lg"
-          />
+          <>
+            <img
+              src={`/assets/${encodeURIComponent(card.imageName)}`}
+              alt={card.name}
+              className="w-auto max-h-[200px] object-contain block rounded-lg"
+            />
+            <CharacterAbilityList card={card} />
+          </>
         )}
       </div>
 

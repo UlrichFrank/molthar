@@ -1,10 +1,11 @@
 import type { CharacterCard } from '@portale-von-molthar/shared';
 import { GameDialog, GameDialogTitle } from './GameDialog';
+import { CharacterAbilityList } from './CharacterAbilityList';
 import { useTranslation } from '../i18n/useTranslation';
 
 interface CharacterReplacementDialogProps {
   newCard: CharacterCard;
-  portalCards: CharacterCard[];
+  portalCards: (CharacterCard | null)[];
   onSelect: (replacedSlotIndex: number) => void;
   onDiscard: () => void;
   canDiscard?: boolean;
@@ -34,6 +35,7 @@ export function CharacterReplacementDialog({ newCard, portalCards, onSelect, onD
           card={newCard}
           className="w-auto max-h-[200px] object-contain block rounded-lg"
         />
+        <CharacterAbilityList card={newCard} />
 
         <div className="text-[#16c784] text-2xl">↓</div>
 
@@ -44,10 +46,14 @@ export function CharacterReplacementDialog({ newCard, portalCards, onSelect, onD
               className="game-dialog-card-btn"
               onClick={() => onSelect(idx)}
             >
-              <CharacterImage
-                card={card}
-                className="w-auto max-h-[160px] object-contain block rounded-lg"
-              />
+              {card ? (
+                <CharacterImage
+                  card={card}
+                  className="w-auto max-h-[160px] object-contain block rounded-lg"
+                />
+              ) : (
+                <div className="w-[100px] h-[160px] rounded-lg border-2 border-dashed border-gray-500 flex items-center justify-center" />
+              )}
             </button>
           ))}
         </div>

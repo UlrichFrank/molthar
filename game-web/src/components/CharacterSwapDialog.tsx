@@ -1,5 +1,6 @@
 import type { CharacterCard } from '@portale-von-molthar/shared';
 import { GameDialog, GameDialogTitle } from './GameDialog';
+import { CharacterAbilityList } from './CharacterAbilityList';
 import { useTranslation } from '../i18n/useTranslation';
 
 interface CharacterSwapDialogProps {
@@ -38,6 +39,7 @@ export function CharacterSwapDialog({ portalCard, tableCards, onSwap, onCancel }
           card={portalCard}
           className="w-auto max-h-[200px] object-contain block rounded-lg"
         />
+        <CharacterAbilityList card={portalCard} />
 
         <div className="text-[#a5b4fc] text-2xl">⇄</div>
 

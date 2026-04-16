@@ -567,14 +567,19 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
             const portalCharacters = me.portal.map(entry => entry.card);
             dialog.openReplacementDialog(topCard, portalCharacters);
           } else {
-            setPendingTakeCardFromDeck({ card: topCard, faceDown: !hasPreviewAbility });
+            setPendingTakeCardFromDeck({ card: topCard, faceDown: peekedCard === null });
           }
         };
 
         if (hasPreviewAbility && G.actionCount === 0 && !peekedCard) {
+          const topCard = G.characterDeck[G.characterDeck.length - 1];
+          if (!topCard) break;
+          const portalSlots: (import('@portale-von-molthar/shared').CharacterCard | null)[] = [
+            me.portal[0]?.card ?? null,
+            me.portal[1]?.card ?? null,
+          ];
           moves.peekCharacterDeck();
-        } else if (hasPreviewAbility && peekedCard) {
-          takeCharCard();
+          dialog.openReplacementDialog(topCard, portalSlots, true, true);
         } else {
           takeCharCard();
         }
@@ -872,7 +877,11 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
                 card => card?.id === dialog.dialog.newCharacter.id
               );
               // characterIndex === -1 means card came from the deck
-              moves.takeCharacterCard(characterIndex, replacedSlotIndex);
+              if (characterIndex === -1 && me && me.portal.length < 2) {
+                moves.takeCharacterCard(-1);
+              } else {
+                moves.takeCharacterCard(characterIndex, replacedSlotIndex);
+              }
             }
             dialog.closeDialog();
           }}
