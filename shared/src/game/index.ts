@@ -121,9 +121,8 @@ export const PortaleVonMolthar = {
         G.pearlSlots[slotIndex] = newCard ?? null;
         player.hand.push(card);
         G.actionCount++;
-        // Proaktiver Reshuffle: Deck leer nach Nachziehen, Auslage voll → sofort neu mischen
-        const filledSlots = G.pearlSlots.filter(c => c !== null).length;
-        if (G.pearlDeck.length === 0 && G.pearlDiscardPile.length > 0 && filledSlots >= 4) {
+        // Proaktiver Reshuffle: Deck leer nach Nachziehen → sofort neu mischen
+        if (G.pearlDeck.length === 0 && G.pearlDiscardPile.length > 0) {
           G.pearlDeck.push(...G.pearlDiscardPile.splice(0));
           shuffleArray(G.pearlDeck);
           G.isReshufflingPearlDeck = true;
@@ -140,9 +139,8 @@ export const PortaleVonMolthar = {
 
       player.hand.push(card);
       G.actionCount++;
-      // Proaktiver Reshuffle: letzte Deck-Karte gezogen (vom Stapel), Auslage voll → sofort neu mischen
-      const filledSlots = G.pearlSlots.filter(c => c !== null).length;
-      if (G.pearlDeck.length === 0 && G.pearlDiscardPile.length > 0 && filledSlots >= 4) {
+      // Proaktiver Reshuffle: letzte Deck-Karte gezogen (vom Stapel) → sofort neu mischen
+      if (G.pearlDeck.length === 0 && G.pearlDiscardPile.length > 0) {
         G.pearlDeck.push(...G.pearlDiscardPile.splice(0));
         shuffleArray(G.pearlDeck);
         G.isReshufflingPearlDeck = true;

@@ -79,20 +79,36 @@ describe('reshuffle-empty-decks — pearl deck', () => {
     expect(G.isReshufflingPearlDeck).toBe(true);
   });
 
-  it('3.4 takePearlCard — letzte Deck-Karte gezogen, Auslage nicht voll → kein proaktiver Reshuffle', () => {
+  it('2.1 takePearlCard Slot-Zug — Deck hat 1 Karte, 3 Slots gefüllt, 1 leer → nach Slot-Zug wird Deck neu gemischt', () => {
     const G = makeGameState(2);
-    // Deck hat 1 Karte, Auslage hat 1 leeren Slot (nicht voll), Discard hat Karten
+    // Deck hat 1 Karte, Auslage hat 1 leeren Slot, Discard hat Karten
     G.pearlDeck = [makePearlCard('p_last')];
     G.pearlSlots = [makePearlCard('s1'), makePearlCard('s2'), makePearlCard('s3'), null];
     G.pearlDiscardPile = [makePearlCard('d1'), makePearlCard('d2')];
     G.players['0']!.hand = [];
     G.actionCount = 0;
     const ctx = { currentPlayer: '0', activePlayers: {} };
+    // Slot-Zug: Karte aus Slot 0 nehmen (wird mit p_last aufgefüllt, Deck danach leer)
+    moves.takePearlCard({ G, ctx, events: {} }, 0);
+    // Nach Fix: proaktiver Reshuffle auch wenn Auslage nicht voll
+    expect(G.isReshufflingPearlDeck).toBe(true);
+    expect(G.pearlDeck.length).toBeGreaterThan(0);
+    expect(G.pearlDiscardPile.length).toBe(0);
+  });
+
+  it('2.2 takePearlCard Deck-Zug — Deck hat 1 Karte, alle Slots gefüllt → nach Deck-Zug wird Deck neu gemischt (Regression)', () => {
+    const G = makeGameState(2);
+    // Deck hat 1 Karte, Auslage voll (4 Karten), Discard hat Karten
+    G.pearlDeck = [makePearlCard('p_last')];
+    G.pearlSlots = [makePearlCard('s1'), makePearlCard('s2'), makePearlCard('s3'), makePearlCard('s4')];
+    G.pearlDiscardPile = [makePearlCard('d1'), makePearlCard('d2'), makePearlCard('d3')];
+    G.players['0']!.hand = [];
+    G.actionCount = 0;
+    const ctx = { currentPlayer: '0', activePlayers: {} };
     moves.takePearlCard({ G, ctx, events: {} }, -1);
-    // filledSlots = 3 (< 4) → proaktiver Reshuffle wird NICHT ausgelöst
-    expect(G.isReshufflingPearlDeck).toBe(false);
-    // Discard bleibt unverändert (kein Reshuffle)
-    expect(G.pearlDiscardPile.length).toBe(2);
+    expect(G.isReshufflingPearlDeck).toBe(true);
+    expect(G.pearlDeck.length).toBeGreaterThan(0);
+    expect(G.pearlDiscardPile.length).toBe(0);
   });
 });
 
