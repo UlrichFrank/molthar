@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { PortaleVonMolthar } from './index';
+import { PortaleVonMolthar, createCharacterDeck } from './index';
+import type { GameState, PlayerState } from './types';
 
 function makeGameState(numPlayers = 2) {
   const playerIds = Array.from({ length: numPlayers }, (_, i) => String(i));
@@ -8,114 +9,51 @@ function makeGameState(numPlayers = 2) {
 
 const endIf = (PortaleVonMolthar as any).endIf as (args: { G: any; ctx: any }) => any;
 
-function makeCtx(currentPlayer: string, turn: number) {
-  return { currentPlayer, turn };
-}
-
-function setupFinalRound(G: any, startingPlayer: string, triggerTurn: number) {
-  G.finalRound = true;
-  G.finalRoundStartingPlayer = startingPlayer;
-  G.finalRoundTriggerTurn = triggerTurn;
+function setupFinalRound(G: any, finalRoundNumber: number, roundNumber: number = finalRoundNumber + 1) {
+  G.finalRoundNumber = finalRoundNumber;
+  G.roundNumber = roundNumber;
 }
 
 describe('endIf — timing', () => {
-  it('gibt undefined zurück wenn finalRound nicht aktiv', () => {
+  it('gibt undefined zurück wenn finalRoundNumber null', () => {
     const G = makeGameState(2);
-    expect(endIf({ G, ctx: makeCtx('0', 99) })).toBeUndefined();
+    expect(endIf({ G, ctx: {} })).toBeUndefined();
   });
 
-  it('gibt undefined zurück wenn finalRoundTriggerTurn null', () => {
+  it('gibt undefined zurück wenn roundNumber <= finalRoundNumber', () => {
     const G = makeGameState(2);
-    G.finalRound = true;
-    G.finalRoundStartingPlayer = '0';
-    G.finalRoundTriggerTurn = null;
-    expect(endIf({ G, ctx: makeCtx('0', 99) })).toBeUndefined();
+    G.finalRoundNumber = 4;
+    G.roundNumber = 4;
+    expect(endIf({ G, ctx: {} })).toBeUndefined();
   });
 
-  it('N=2, Spieler 0 triggert bei Runde T — endet nach T+3 Runden', () => {
-    // [0,1], idx=0 → turnsNeeded = 2*2-1-0 = 3 → end when turn > T+3
-    //   verbleibend: (2-1-0)=1 (P1 spielt), finale Runde: P0, P1 (2 Züge) → 1+2=3
+  it('endet wenn roundNumber > finalRoundNumber', () => {
     const G = makeGameState(2);
-    const T = 5;
-    setupFinalRound(G, '0', T);
+    G.finalRoundNumber = 4;
+    G.roundNumber = 5;
     G.players['0'].powerPoints = 12;
-
-    // Noch nicht fertig: Turn T+3 exakt (= triggerTurn + turnsNeeded)
-    expect(endIf({ G, ctx: makeCtx('0', T + 3) })).toBeUndefined();
-    // Fertig: Turn T+4 (nach vollständiger Schlussrunde)
-    expect(endIf({ G, ctx: makeCtx('0', T + 4) })).toBeDefined();
+    expect(endIf({ G, ctx: {} })).toBeDefined();
   });
 
-  it('N=2, Spieler 1 triggert bei Runde T — endet nach T+2 Runden', () => {
-    // [0,1], idx=1 → turnsNeeded = 2*2-1-1 = 2 → end when turn > T+2
-    //   verbleibend: 0 (P1 war letzter), finale Runde: P0, P1 (2 Züge) → 0+2=2
+  it('endet nicht vorzeitig während der finalen Runde läuft', () => {
     const G = makeGameState(2);
-    const T = 8;
-    setupFinalRound(G, '1', T);
-    G.players['1'].powerPoints = 14;
-
-    expect(endIf({ G, ctx: makeCtx('0', T + 2) })).toBeUndefined();
-    expect(endIf({ G, ctx: makeCtx('0', T + 3) })).toBeDefined();
-  });
-
-  it('N=4, Spieler 2 triggert bei Runde T — endet nach T+5 Runden', () => {
-    // [0,1,2,3], idx=2 → turnsNeeded = 2*4-1-2 = 5 → end when turn > T+5
-    //   verbleibend: (4-1-2)=1 (P3 spielt), finale Runde: P0, P1, P2, P3 (4 Züge) → 1+4=5
-    const G = makeGameState(4);
-    const T = 10;
-    setupFinalRound(G, '2', T);
-    G.players['2'].powerPoints = 13;
-
-    expect(endIf({ G, ctx: makeCtx('0', T + 5) })).toBeUndefined();
-    expect(endIf({ G, ctx: makeCtx('0', T + 6) })).toBeDefined();
-  });
-
-  it('N=3, Spieler 0 triggert bei Runde T — endet nach T+5 Runden', () => {
-    // [0,1,2], idx=0 → turnsNeeded = 2*3-1-0 = 5 → end when turn > T+5
-    //   verbleibend: P1, P2 (2 Züge), finale Runde: P0, P1, P2 (3 Züge) → 2+3=5
-    const G = makeGameState(3);
-    const T = 7;
-    setupFinalRound(G, '0', T);
+    G.finalRoundNumber = 4;
+    G.roundNumber = 4;
     G.players['0'].powerPoints = 12;
-
-    expect(endIf({ G, ctx: makeCtx('0', T + 5) })).toBeUndefined();
-    expect(endIf({ G, ctx: makeCtx('0', T + 6) })).toBeDefined();
-  });
-
-  it('N=3, Spieler 2 triggert bei Runde T — endet nach T+3 Runden', () => {
-    // [0,1,2], idx=2 → turnsNeeded = 2*3-1-2 = 3 → end when turn > T+3
-    //   verbleibend: 0 (P2 war letzter), finale Runde: P0, P1, P2 (3 Züge) → 0+3=3
-    const G = makeGameState(3);
-    const T = 9;
-    setupFinalRound(G, '2', T);
-    G.players['2'].powerPoints = 12;
-
-    expect(endIf({ G, ctx: makeCtx('0', T + 3) })).toBeUndefined();
-    expect(endIf({ G, ctx: makeCtx('0', T + 4) })).toBeDefined();
-  });
-
-  it('endet nicht vorzeitig während des Trigger-Zuges selbst', () => {
-    // Wichtig: kein sofortiges Spielende wenn 12 Punkte erreicht werden
-    const G = makeGameState(2);
-    const T = 3;
-    setupFinalRound(G, '0', T);
-    G.players['0'].powerPoints = 12;
-
-    // Direkt im Trigger-Zug: turn = T, currentPlayer = '0'
-    expect(endIf({ G, ctx: makeCtx('0', T) })).toBeUndefined();
+    expect(endIf({ G, ctx: {} })).toBeUndefined();
   });
 });
 
 describe('endIf — ranking mit Tiebreaker', () => {
   it('2.1 klarer Gewinner — ranking[0] hat die meisten Punkte', () => {
     const G = makeGameState(2);
-    setupFinalRound(G, '0', 1);
+    setupFinalRound(G, 4);
     G.players['0'].powerPoints = 15;
     G.players['1'].powerPoints = 10;
     G.players['0'].diamondCards = [];
     G.players['1'].diamondCards = [];
 
-    const result = endIf({ G, ctx: makeCtx('0', 5) });
+    const result = endIf({ G, ctx: {} });
     expect(result).toBeDefined();
     expect(result.ranking[0].playerId).toBe('0');
     expect(result.ranking[0].powerPoints).toBe(15);
@@ -124,14 +62,14 @@ describe('endIf — ranking mit Tiebreaker', () => {
 
   it('2.2 Tiebreaker — gleiche Punkte, mehr Diamanten gewinnt', () => {
     const G = makeGameState(2);
-    setupFinalRound(G, '0', 1);
+    setupFinalRound(G, 4);
     G.players['0'].powerPoints = 12;
     G.players['1'].powerPoints = 12;
     const stub = { id: 's', name: 'S', imageName: 's', cost: [], powerPoints: 0, diamonds: 0, abilities: [] };
     G.players['0'].diamondCards = [stub];
     G.players['1'].diamondCards = [stub, stub, stub];
 
-    const result = endIf({ G, ctx: makeCtx('0', 5) });
+    const result = endIf({ G, ctx: {} });
     expect(result).toBeDefined();
     expect(result.ranking[0].playerId).toBe('1');
     expect(result.ranking[0].diamonds).toBe(3);
@@ -139,14 +77,14 @@ describe('endIf — ranking mit Tiebreaker', () => {
 
   it('2.3 echtes Unentschieden — gleiche Punkte und Diamanten', () => {
     const G = makeGameState(2);
-    setupFinalRound(G, '0', 1);
+    setupFinalRound(G, 4);
     G.players['0'].powerPoints = 12;
     G.players['1'].powerPoints = 12;
     const stub = { id: 's', name: 'S', imageName: 's', cost: [], powerPoints: 0, diamonds: 0, abilities: [] };
     G.players['0'].diamondCards = [stub, stub];
     G.players['1'].diamondCards = [stub, stub];
 
-    const result = endIf({ G, ctx: makeCtx('0', 5) });
+    const result = endIf({ G, ctx: {} });
     expect(result).toBeDefined();
     expect(result.ranking[0].powerPoints).toBe(result.ranking[1].powerPoints);
     expect(result.ranking[0].diamonds).toBe(result.ranking[1].diamonds);
@@ -154,17 +92,196 @@ describe('endIf — ranking mit Tiebreaker', () => {
 
   it('2.4 Ranking enthält alle Spieler (4-Spieler-Spiel)', () => {
     const G = makeGameState(4);
-    setupFinalRound(G, '0', 1);
+    setupFinalRound(G, 4);
     G.players['0'].powerPoints = 14;
     G.players['1'].powerPoints = 10;
     G.players['2'].powerPoints = 12;
     G.players['3'].powerPoints = 8;
 
-    // N=4, idx=0 → turnsNeeded=2*4-1-0=7 → end when turn > 1+7=8; turn=9 qualifies
-    const result = endIf({ G, ctx: makeCtx('0', 9) });
+    const result = endIf({ G, ctx: {} });
     expect(result).toBeDefined();
     expect(result.ranking).toHaveLength(4);
     expect(result.ranking[0].playerId).toBe('0');
     expect(result.ranking[1].playerId).toBe('2');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Helpers für Rundenzähler-Tests
+// ---------------------------------------------------------------------------
+
+const turnOnEnd = (PortaleVonMolthar as any).turn.onEnd as (args: { G: any; ctx: any }) => void;
+const turnOnBegin = (PortaleVonMolthar as any).turn.onBegin as (args: { G: any; ctx: any }) => void;
+
+function makePlayer(id: string): PlayerState {
+  return {
+    id,
+    name: `Player ${id}`,
+    hand: [],
+    portal: [],
+    activatedCharacters: [],
+    powerPoints: 0,
+    diamondCards: [],
+    readyUp: false,
+    isAI: false,
+    handLimitModifier: 0,
+    activeAbilities: [],
+    colorIndex: 1,
+  };
+}
+
+function makeG(overrides: Partial<GameState> = {}): GameState {
+  const G: GameState = {
+    pearlDeck: [],
+    characterDeck: createCharacterDeck(),
+    pearlDiscardPile: [],
+    characterDiscardPile: [],
+    pearlSlots: [null, null, null, null],
+    characterSlots: [],
+    players: { '0': makePlayer('0'), '1': makePlayer('1'), '2': makePlayer('2') },
+    playerOrder: ['0', '1', '2'],
+    actionCount: 0,
+    maxActions: 3,
+    finalRound: false,
+    roundNumber: 1,
+    finalRoundNumber: null,
+    requiresHandDiscard: false,
+    excessCardCount: 0,
+    currentHandLimit: 5,
+    startingPlayer: '0',
+    portalEntryCounter: 0,
+    nextPlayerExtraAction: false,
+    playedRealPearlIds: [],
+    pendingTakeBackPlayedPearl: false,
+    isReshufflingPearlDeck: false,
+    isReshufflingCharacterDeck: false,
+    isPearlRefreshTriggered: false,
+    pendingStealOpponentHandCard: false,
+    pendingDiscardOpponentCharacter: false,
+    usedPaymentAbilityTypes: [],
+    usedAbilitySourceCharacterIds: [],
+    withSpecialCards: false,
+    replacePearlSlotsAbilityUsed: false,
+    ...overrides,
+  } as GameState;
+  return G;
+}
+
+// ctx für einen Spieler an einer bestimmten Position in der playOrder
+function makeCtxForPlayer(playerId: string, playOrder: string[]) {
+  const playOrderPos = playOrder.indexOf(playerId);
+  return { currentPlayer: playerId, playOrder, playOrderPos };
+}
+
+describe('7.2 — Trigger in Runde 3 → finalRoundNumber = 4, finalRound erst in Runde 4', () => {
+  it('setzt finalRoundNumber auf roundNumber + 1 wenn Spieler ≥12 Punkte erreicht', () => {
+    const G = makeG({ roundNumber: 3 });
+    const move = (PortaleVonMolthar as any).moves.activatePortalCard as Function;
+
+    // Spieler '0' hat eine Charakterkarte im Portal (kostenlos: leere cost[])
+    const charCard = {
+      id: 'test-char',
+      name: 'Test',
+      imageName: 'test.png',
+      cost: [],
+      powerPoints: 12,
+      diamonds: 0,
+      abilities: [],
+    };
+    G.players['0']!.portal = [{ id: 'entry-1', card: charCard, activated: false }];
+    G.players['0']!.hand = [];
+
+    const ctx = { currentPlayer: '0', turn: 10 };
+    move({ G, ctx }, 0, []);
+
+    expect(G.finalRoundNumber).toBe(4);
+    expect(G.finalRound).toBe(false); // noch nicht gesetzt — erst in turn.onBegin der Runde 4
+  });
+
+  it('finalRound wird in turn.onBegin erst in Runde 4 gesetzt (wenn startingPlayer an der Reihe)', () => {
+    const playOrder = ['0', '1', '2'];
+    const G = makeG({ roundNumber: 3, finalRoundNumber: 4 });
+
+    // Runde 3, Startspieler beginnt: finalRound sollte noch false bleiben
+    turnOnBegin({ G, ctx: makeCtxForPlayer('0', playOrder) });
+    expect(G.finalRound).toBe(false);
+
+    // Runde 4, Startspieler beginnt: finalRound sollte jetzt true werden
+    G.roundNumber = 4;
+    turnOnBegin({ G, ctx: makeCtxForPlayer('0', playOrder) });
+    expect(G.finalRound).toBe(true);
+  });
+
+  it('finalRound wird nicht gesetzt wenn ein nicht-Startspieler an der Reihe ist', () => {
+    const playOrder = ['0', '1', '2'];
+    const G = makeG({ roundNumber: 4, finalRoundNumber: 4 });
+
+    // Runde 4, aber Spieler '1' (nicht Startspieler) ist dran
+    turnOnBegin({ G, ctx: makeCtxForPlayer('1', playOrder) });
+    expect(G.finalRound).toBe(false);
+  });
+});
+
+describe('7.3 — Spiel endet nach vollständiger finaler Runde', () => {
+  it('roundNumber wird in turn.onEnd erhöht wenn nächster Spieler der Startspieler ist', () => {
+    // 3 Spieler, Startspieler = '0', Reihenfolge ['0','1','2']
+    // Nach Zug von '2' (playOrderPos=2), nächster = pos 0 = '0' = startingPlayer → increment
+    const playOrder = ['0', '1', '2'];
+    const G = makeG({ roundNumber: 4, finalRoundNumber: 4 });
+
+    turnOnEnd({ G, ctx: makeCtxForPlayer('2', playOrder) });
+    expect(G.roundNumber).toBe(5);
+  });
+
+  it('roundNumber wird NICHT erhöht nach Zug eines anderen Spielers', () => {
+    const playOrder = ['0', '1', '2'];
+    const G = makeG({ roundNumber: 4, finalRoundNumber: 4 });
+
+    turnOnEnd({ G, ctx: makeCtxForPlayer('0', playOrder) });
+    expect(G.roundNumber).toBe(4); // nächster ist '1', nicht startingPlayer
+
+    turnOnEnd({ G, ctx: makeCtxForPlayer('1', playOrder) });
+    expect(G.roundNumber).toBe(4); // nächster ist '2', nicht startingPlayer
+  });
+
+  it('endIf feuert nach dem letzten Zug der finalen Runde', () => {
+    const playOrder = ['0', '1', '2'];
+    const G = makeG({ roundNumber: 4, finalRoundNumber: 4 });
+    G.players['0']!.powerPoints = 14;
+
+    // Letzter Zug der finalen Runde: Spieler '2' beendet, roundNumber → 5
+    turnOnEnd({ G, ctx: makeCtxForPlayer('2', playOrder) });
+    expect(G.roundNumber).toBe(5);
+
+    // endIf sollte jetzt feuern
+    const result = endIf({ G, ctx: {} });
+    expect(result).toBeDefined();
+    expect(result.ranking).toBeDefined();
+  });
+});
+
+describe('7.4 — Zweiter Spieler mit ≥12 Punkten überschreibt finalRoundNumber nicht', () => {
+  it('finalRoundNumber bleibt unverändert wenn bereits gesetzt', () => {
+    const G = makeG({ roundNumber: 3, finalRoundNumber: 4 });
+    const move = (PortaleVonMolthar as any).moves.activatePortalCard as Function;
+
+    const charCard = {
+      id: 'test-char-2',
+      name: 'Test2',
+      imageName: 'test2.png',
+      cost: [],
+      powerPoints: 13,
+      diamonds: 0,
+      abilities: [],
+    };
+    G.players['1']!.portal = [{ id: 'entry-2', card: charCard, activated: false }];
+    G.players['1']!.hand = [];
+
+    const ctx = { currentPlayer: '1', turn: 15 };
+    move({ G, ctx }, 0, []);
+
+    // Spieler '1' hat jetzt ≥12 Punkte, aber finalRoundNumber war schon 4
+    expect(G.players['1']!.powerPoints).toBe(13);
+    expect(G.finalRoundNumber).toBe(4); // bleibt unverändert
   });
 });

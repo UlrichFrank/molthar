@@ -78,8 +78,8 @@ export const PortaleVonMolthar = {
       actionCount: 0,
       maxActions: 3,
       finalRound: false,
-      finalRoundStartingPlayer: null,
-      finalRoundTriggerTurn: null,
+      roundNumber: 1,
+      finalRoundNumber: null,
       requiresHandDiscard: false,
       excessCardCount: 0,
       currentHandLimit: 5,
@@ -416,10 +416,8 @@ export const PortaleVonMolthar = {
       }
 
       // Check if player reached 12+ power points to trigger final round
-      if (player.powerPoints >= 12 && !G.finalRound) {
-        G.finalRound = true;
-        G.finalRoundStartingPlayer = ctx.currentPlayer;
-        G.finalRoundTriggerTurn = ctx.turn;
+      if (player.powerPoints >= 12 && !G.finalRoundNumber) {
+        G.finalRoundNumber = G.roundNumber + 1;
       }
       return;
     },
@@ -661,10 +659,8 @@ export const PortaleVonMolthar = {
         caller.activatedCharacters.push(activatedEntry);
       }
 
-      if (caller.powerPoints >= 12 && !G.finalRound) {
-        G.finalRound = true;
-        G.finalRoundStartingPlayer = ctx.currentPlayer;
-        G.finalRoundTriggerTurn = ctx.turn;
+      if (caller.powerPoints >= 12 && !G.finalRoundNumber) {
+        G.finalRoundNumber = G.roundNumber + 1;
       }
       return;
     },
@@ -873,6 +869,12 @@ export const PortaleVonMolthar = {
         G.maxActions += 1;
         G.nextPlayerExtraAction = false;
       }
+      // finalRound-Flag setzen wenn die letzte Runde mit dem Startspieler beginnt
+      if (ctx.currentPlayer === G.startingPlayer) {
+        if (G.finalRoundNumber !== null && G.roundNumber === G.finalRoundNumber) {
+          G.finalRound = true;
+        }
+      }
     },
     onEnd: ({ G, ctx }: { G: GameState; ctx: any }) => {
       // playedRealPearlIds am Zugende zurücksetzen
@@ -882,6 +884,14 @@ export const PortaleVonMolthar = {
       const player = G.players[ctx.currentPlayer];
       if (player) {
         player.peekedCard = null;
+      }
+      // Rundenende: roundNumber erhöhen wenn der nächste Spieler der Startspieler wäre
+      if (ctx.playOrder && ctx.playOrder.length > 0) {
+        const nextPos = (ctx.playOrderPos + 1) % ctx.playOrder.length;
+        const nextPlayer = ctx.playOrder[nextPos];
+        if (nextPlayer === G.startingPlayer) {
+          G.roundNumber++;
+        }
       }
     },
     onMove: ({ G, ctx }: { G: GameState; ctx: any }) => {
@@ -915,27 +925,14 @@ export const PortaleVonMolthar = {
   /**
    * End If Condition: Check for game end
    */
-  endIf: ({ G, ctx }: { G: GameState; ctx: any }) => {
-    if (!G.finalRound || G.finalRoundTriggerTurn === null) {
+  endIf: ({ G }: { G: GameState; ctx: any }) => {
+    if (G.finalRoundNumber === null) {
       return undefined;
     }
 
-    const startingPlayerIdx = G.playerOrder.indexOf(G.finalRoundStartingPlayer || '');
-    if (startingPlayerIdx === -1) {
-      return undefined;
-    }
-
-    const N = G.playerOrder.length;
-    const triggerTurn = G.finalRoundTriggerTurn;
-    // Turns needed after trigger:
-    //   remaining current round: N - 1 - startingPlayerIdx
-    //   full final round (all N players): N
-    //   total: 2N - 1 - startingPlayerIdx
-    const turnsNeeded = 2 * N - 1 - startingPlayerIdx;
-
-    // Game ends when enough turns have passed (endIf fires between turns,
-    // so ctx.turn is already the next turn's number when checked here)
-    if (ctx.turn > triggerTurn + turnsNeeded) {
+    // Feuert nach turn.onEnd: wenn roundNumber auf finalRoundNumber+1 erhöht wurde,
+    // hat der letzte Spieler der finalen Runde gespielt → Spiel endet.
+    if (G.roundNumber > G.finalRoundNumber) {
       const ranking = [...G.playerOrder]
         .sort((a, b) => {
           const pA = G.players[a]!;
@@ -951,7 +948,7 @@ export const PortaleVonMolthar = {
         }));
       return { ranking };
     }
-    
+
     return undefined;
   },
 };
