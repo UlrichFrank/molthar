@@ -32,7 +32,8 @@ function makeMinimalGameState(overrides: Partial<GameState> = {}): GameState {
     actionCount: 0,
     maxActions: 3,
     finalRound: false,
-    finalRoundStartingPlayer: null,
+    roundNumber: 1,
+    finalRoundNumber: null,
     requiresHandDiscard: false,
     excessCardCount: 0,
     currentHandLimit: 5,
@@ -50,7 +51,6 @@ function makeMinimalGameState(overrides: Partial<GameState> = {}): GameState {
     usedAbilitySourceCharacterIds: [],
     withSpecialCards: true,
     replacePearlSlotsAbilityUsed: false,
-    finalRoundTriggerTurn: null,
     ...overrides,
   } as GameState;
 }
