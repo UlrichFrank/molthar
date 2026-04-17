@@ -1,0 +1,24 @@
+on:
+  schedule:
+    - cron: '0 8 * * *' # Läuft täglich
+  workflow_dispatch: # Manuell auslösbar
+
+jobs:
+  delete-package-versions:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Delete old molthar-backend versions
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: 'molthar-backend'
+          package-type: 'container' # oder 'npm', 'maven', etc.
+          min-versions-to-keep: 1 # Behält die neueste Version
+
+      - name: Delete old molthar-frontend versions
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: 'molthar-frontend'
+          package-type: 'container' # oder 'npm', 'maven', etc.
+          min-versions-to-keep: 1 # Behält die neueste Version
