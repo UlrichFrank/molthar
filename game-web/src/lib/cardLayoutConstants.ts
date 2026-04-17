@@ -63,16 +63,24 @@ export const UI_PANEL_W = 185;
 export const UI_PANEL_H = 55;
 
 // === Activated Characters Grid Positioning (right of portal slots) ===
-// Grid displays 2 rows × 4 columns of activated character cards at 75% size
+// Grid displays 2 rows × 3 columns of activated character cards at 90% size (6 per page)
 // Positioned directly right of the 2nd portal slot with small gap
 export const ACTIVATED_GRID_X = SLOT_AREA_X + 2 * (SLOT_W + SLOT_GAP) + 10; // Right of 2nd portal slot with margin
 export const ACTIVATED_GRID_Y = PORTAL_Y; // Align with portal top
-export const ACTIVATED_CARD_W = Math.round(CARD_W * 0.75); // 67
-export const ACTIVATED_CARD_H = Math.round(CARD_H * 0.75); // 104
-export const ACTIVATED_CARD_GAP = Math.round(CARD_GAP * 0.75); // 11
-export const ACTIVATED_GRID_COLS = 4;
+export const ACTIVATED_CARD_W = Math.round(CARD_W * 0.90); // 80
+export const ACTIVATED_CARD_H = Math.round(CARD_H * 0.90); // 124
+export const ACTIVATED_CARD_GAP = Math.round(CARD_GAP * 0.90); // 14
+export const ACTIVATED_GRID_COLS = 3;
 export const ACTIVATED_GRID_ROWS = 2;
-export const ACTIVATED_MAX = ACTIVATED_GRID_COLS * ACTIVATED_GRID_ROWS; // 8
+export const ACTIVATED_PAGE_SIZE = 6; // Cards per page (3×2 grid)
+export const ACTIVATED_GRID_H = ACTIVATED_GRID_ROWS * ACTIVATED_CARD_H + (ACTIVATED_GRID_ROWS - 1) * ACTIVATED_CARD_GAP;
+
+// === Activated Characters Pagination Arrows ===
+export const ACTIVATED_ARROW_SIZE = 14; // Triangle arrow size in px
+export const ACTIVATED_ARROW_MARGIN = 4; // Gap between grid edge and arrow
+export const ACTIVATED_ARROW_COLOR_INACTIVE = '#aaaaaa';
+export const ACTIVATED_ARROW_COLOR_ACTIVE = '#ffffff';
+export const ACTIVATED_ARROW_COLOR_HOVER = '#dddddd';
 
 // === Deck Stack Positioning & Dimensions ===
 // Decks are positioned below face-up cards with 90° rotation

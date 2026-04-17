@@ -7,11 +7,21 @@ import {
   drawAuslage,
   drawPlayerPortal,
   drawActivatedCharactersGrid,
+  drawActivatedPageArrows,
   drawUIButton,
   drawPortalSwapButtons,
   drawRegionEffects,
   drawOpponentPortals,
 } from '../lib/gameRender';
+import {
+  ACTIVATED_GRID_X,
+  ACTIVATED_GRID_Y,
+  ACTIVATED_GRID_H,
+  ACTIVATED_PAGE_SIZE,
+  ACTIVATED_GRID_COLS,
+  ACTIVATED_CARD_W,
+  ACTIVATED_CARD_GAP,
+} from '../lib/cardLayoutConstants';
 import type { OpponentZoneData } from '../lib/gameRender';
 import { preloadAllImages } from '../lib/imageLoaderV2';
 import { ActivatedCharacterDetailView } from './ActivatedCharacterDetailView';
@@ -48,6 +58,7 @@ const BASE_H = 800;
 function buildOpponentsArray(
   G: GameState,
   myPlayerID: string,
+  opponentActivatedPages: Record<string, 0 | 1> = {},
 ): Array<import('../lib/gameRender').OpponentZoneData | null> {
   const playerOrder = G.playerOrder || Object.keys(G.players || {});
   const n = playerOrder.length;
@@ -61,11 +72,13 @@ function buildOpponentsArray(
     const player = G.players?.[playerId];
     if (!player) return null;
     return {
+      playerId,
       colorIndex: player.colorIndex ?? 1,
       isStartingPlayer: playerId === G.startingPlayer,
       portal: player.portal ?? [],
       activatedCharacters: player.activatedCharacters ?? [],
       handCount: player.hand?.length ?? 0,
+      activatedPage: opponentActivatedPages[playerId] ?? 0,
     };
   }
 
@@ -204,6 +217,15 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     return () => clearTimeout(timer);
   }, [matchData, myPlayerID]);
 
+  // ── Pagination state for activated character grids ─────────────────────────
+  const [ownActivatedPage, setOwnActivatedPage] = useState<0 | 1>(0);
+  const [opponentActivatedPages, setOpponentActivatedPages] = useState<Record<string, 0 | 1>>({});
+  const ownActivatedPageRef = useRef<0 | 1>(0);
+  const opponentActivatedPagesRef = useRef<Record<string, 0 | 1>>({});
+  // Keep refs in sync
+  ownActivatedPageRef.current = ownActivatedPage;
+  opponentActivatedPagesRef.current = opponentActivatedPages;
+
   // ── Detail view state (stays in React) ─────────────────────────────────────
   const [activeCharacterIndex, setActiveCharacterIndex] = useState<number | null>(null);
   const activatedCharacters = me?.activatedCharacters ?? [];
@@ -282,8 +304,19 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
       if (!player) return;
       allOpponentPortals.push({ playerId: pid, portal: player.portal ?? [], zoneIndex: zoneIndex as 0 | 1 | 2 | 3 });
     });
-    regionsRef.current = buildCanvasRegions(G, myPlayerID, isActive, regionsRef.current, allOpponentPortals, canvasLabelsRef.current);
-  }, [G, myPlayerID, isActive]);
+    regionsRef.current = buildCanvasRegions(G, myPlayerID, isActive, regionsRef.current, allOpponentPortals, canvasLabelsRef.current, ownActivatedPage, opponentActivatedPages);
+  }, [G, myPlayerID, isActive, ownActivatedPage, opponentActivatedPages]);
+
+  // ── Auto-advance/reset own activated page ──────────────────────────────────
+  useEffect(() => {
+    const count = me?.activatedCharacters.length ?? 0;
+    if (count > ACTIVATED_PAGE_SIZE && ownActivatedPage === 0) {
+      setOwnActivatedPage(1);
+    } else if (count <= ACTIVATED_PAGE_SIZE && ownActivatedPage === 1) {
+      setOwnActivatedPage(0);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [me?.activatedCharacters.length]);
 
   // ── Canvas size setup (on viewport resize) ──────────────────────────────────
   useEffect(() => {
@@ -377,11 +410,14 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     const charDeckHover = regions.find(r => r.type === 'deck-character')?.hoverProgress ?? 0;
     const pearlDeckHover = regions.find(r => r.type === 'deck-pearl')?.hoverProgress ?? 0;
 
+    const ownPage = ownActivatedPageRef.current;
+    const oppPages = opponentActivatedPagesRef.current;
+
     // Build opponents array [left, top-left, top-right, right] from playerOrder
-    const opponents: Array<OpponentZoneData | null> = buildOpponentsArray(G, myPlayerID);
+    const opponents: Array<OpponentZoneData | null> = buildOpponentsArray(G, myPlayerID, oppPages);
 
     drawBackground(drawCtx);
-    drawOpponentPortals(drawCtx, opponents);
+    drawOpponentPortals(drawCtx, opponents, regions);
     drawAuslage(drawCtx, characterSlots, pearlSlots,
       { selectedPearl: null, selectedCharacter: null, selectedHandIndices: [] },
       G.characterDeck?.length ?? 0, G.pearlDeck?.length ?? 0,
@@ -391,7 +427,16 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
       me?.colorIndex ?? 1,
       myPlayerID === G.startingPlayer);
     drawActivatedCharactersGrid(drawCtx, activatedCards_,
-      { selectedPearl: null, selectedCharacter: null, selectedHandIndices: [] });
+      { selectedPearl: null, selectedCharacter: null, selectedHandIndices: [] }, ownPage);
+    // Draw own pagination arrows
+    {
+      const gridWidth = ACTIVATED_GRID_COLS * ACTIVATED_CARD_W + (ACTIVATED_GRID_COLS - 1) * ACTIVATED_CARD_GAP;
+      const prevHover = regions.find(r => r.type === 'activated-page-arrow' && r.id === 'own:prev')?.hoverProgress ?? 0;
+      const nextHover = regions.find(r => r.type === 'activated-page-arrow' && r.id === 'own:next')?.hoverProgress ?? 0;
+      drawActivatedPageArrows(drawCtx, activatedCards_.length, ownPage,
+        ACTIVATED_GRID_X, ACTIVATED_GRID_Y, ACTIVATED_GRID_H,
+        undefined, undefined, gridWidth, undefined, prevHover, nextHover);
+    }
     drawPortalSwapButtons(drawCtx, regions);
 
     // Canvas UI panel — only discard button remains; end-turn handled by HTML overlay
@@ -445,7 +490,23 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     dirtyRef.current = true;
 
     // Dispatch action
-    if (region.type === 'ui-discard-cards' || region.type === 'ui-replace-pearl-slots' || region.type === 'ui-replace-pearl-slots-ability') {
+    if (region.type === 'activated-page-arrow') {
+      const { direction, arrowPlayerId } = region;
+      if (!direction || !arrowPlayerId) return;
+      if (arrowPlayerId === 'own') {
+        setOwnActivatedPage(prev => {
+          const next = direction === 'next' ? Math.min(1, prev + 1) : Math.max(0, prev - 1);
+          return next as 0 | 1;
+        });
+      } else {
+        setOpponentActivatedPages(prev => {
+          const current = prev[arrowPlayerId] ?? 0;
+          const next = direction === 'next' ? Math.min(1, current + 1) : Math.max(0, current - 1);
+          return { ...prev, [arrowPlayerId]: next as 0 | 1 };
+        });
+      }
+      return;
+    } else if (region.type === 'ui-discard-cards' || region.type === 'ui-replace-pearl-slots' || region.type === 'ui-replace-pearl-slots-ability') {
       handleUIClick(region);
     } else if (region.type === 'activated-character') {
       // Always allow viewing activated characters
