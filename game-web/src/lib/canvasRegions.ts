@@ -12,14 +12,18 @@ import {
   AUSLAGE_START_X, AUSLAGE_START_Y, CARD_W, CARD_H, CARD_GAP,
   SLOT_W, SLOT_H,
   HAND_CARD_W, HAND_CARD_H, HAND_MAX,
-  ACTIVATED_MAX,
+  ACTIVATED_PAGE_SIZE,
+  ACTIVATED_GRID_X, ACTIVATED_GRID_Y,
+  ACTIVATED_GRID_COLS, ACTIVATED_GRID_ROWS,
+  ACTIVATED_CARD_W, ACTIVATED_CARD_GAP, ACTIVATED_GRID_H,
+  ACTIVATED_ARROW_SIZE, ACTIVATED_ARROW_MARGIN,
   CHAR_DECK_X, CHAR_DECK_Y, PEARL_DECK_X, PEARL_DECK_Y,
   DECK_CARD_W, DECK_CARD_H,
   UI_PANEL_X, UI_PANEL_Y, UI_PANEL_W, UI_PANEL_H,
   OPP_SCALED_W, OPP_SCALED_H, OPP_SLOT_W, OPP_SLOT_H, OPP_SLOT_GAP,
   OPP_SLOT_REL_X, OPP_SLOT_REL_Y,
   OPP_ACT_REL_X, OPP_ACT_REL_Y, OPP_ACT_W, OPP_ACT_H, OPP_ACT_GAP,
-  ACTIVATED_GRID_COLS,
+  OPP_SCALE,
   getHandCardPosition,
   getPortalSlotPosition,
   getActivatedCardPosition,
@@ -38,7 +42,8 @@ export type CanvasRegionType =
   | 'ui-replace-pearl-slots'
   | 'ui-replace-pearl-slots-ability'
   | 'opponent-portal-card'
-  | 'opponent-activated-character';
+  | 'opponent-activated-character'
+  | 'activated-page-arrow';
 
 export interface CanvasRegion {
   type: CanvasRegionType;
@@ -61,6 +66,10 @@ export interface CanvasRegion {
   label?: string;
   /** When false, no hover effect and no interaction response */
   enabled?: boolean;
+  /** For 'activated-page-arrow' regions: navigation direction */
+  direction?: 'prev' | 'next';
+  /** For 'activated-page-arrow' regions: 'own' or opponent player ID */
+  arrowPlayerId?: string;
 }
 
 /**
@@ -132,7 +141,9 @@ export function buildCanvasRegions(
   isActive: boolean,
   existing: CanvasRegion[] = [],
   allOpponentPortals: NeighborOpponent[] = [],
-  labels?: CanvasLabels
+  labels?: CanvasLabels,
+  ownActivatedPage: number = 0,
+  opponentActivatedPages: Record<string, number> = {}
 ): CanvasRegion[] {
   const regions: CanvasRegion[] = [];
   const me = G.players?.[playerID];
@@ -211,15 +222,48 @@ export function buildCanvasRegions(
     });
   }
 
-  // --- Activated characters ---
-  const activated = (me?.activatedCharacters ?? []).slice(0, ACTIVATED_MAX);
-  for (let i = 0; i < activated.length; i++) {
-    const { cardX, cardY, w, h } = getActivatedCardPosition(i);
+  // --- Activated characters (page-sliced, absolute id) ---
+  {
+    const allActivated = me?.activatedCharacters ?? [];
+    const totalActivated = allActivated.length;
+    const pageStart = ownActivatedPage * ACTIVATED_PAGE_SIZE;
+    const pageSlice = allActivated.slice(pageStart, pageStart + ACTIVATED_PAGE_SIZE);
+    for (let i = 0; i < pageSlice.length; i++) {
+      const absoluteIndex = pageStart + i;
+      const { cardX, cardY, w, h } = getActivatedCardPosition(i); // page-local index for position
+      regions.push({
+        type: 'activated-character', id: absoluteIndex,
+        x: cardX, y: cardY, w, h,
+        angle: Math.PI,
+        ...animState(existing, 'activated-character', absoluteIndex),
+      });
+    }
+
+    // --- Pagination arrows (own player) ---
+    const arrowHalfSize = ACTIVATED_ARROW_SIZE / 2;
+    const arrowCY = ACTIVATED_GRID_Y + ACTIVATED_GRID_H / 2;
+    const gridWidth = ACTIVATED_GRID_COLS * ACTIVATED_CARD_W + (ACTIVATED_GRID_COLS - 1) * ACTIVATED_CARD_GAP;
+
+    // Left (prev) arrow
+    const leftArrowX = ACTIVATED_GRID_X - ACTIVATED_ARROW_MARGIN - ACTIVATED_ARROW_SIZE;
     regions.push({
-      type: 'activated-character', id: i,
-      x: cardX, y: cardY, w, h,
-      angle: Math.PI,
-      ...animState(existing, 'activated-character', i),
+      type: 'activated-page-arrow', id: 'own:prev',
+      direction: 'prev', arrowPlayerId: 'own',
+      x: leftArrowX, y: arrowCY - arrowHalfSize,
+      w: ACTIVATED_ARROW_SIZE, h: ACTIVATED_ARROW_SIZE,
+      enabled: ownActivatedPage > 0,
+      ...animState(existing, 'activated-page-arrow', 'own:prev'),
+    });
+
+    // Right (next) arrow
+    const rightArrowX = ACTIVATED_GRID_X + gridWidth + ACTIVATED_ARROW_MARGIN;
+    regions.push({
+      type: 'activated-page-arrow', id: 'own:next',
+      direction: 'next', arrowPlayerId: 'own',
+      x: rightArrowX, y: arrowCY - arrowHalfSize,
+      w: ACTIVATED_ARROW_SIZE, h: ACTIVATED_ARROW_SIZE,
+      enabled: totalActivated > ACTIVATED_PAGE_SIZE * (ownActivatedPage + 1),
+      ...animState(existing, 'activated-page-arrow', 'own:next'),
     });
   }
 
@@ -371,6 +415,12 @@ export function buildCanvasRegions(
     const hw = OPP_SCALED_W / 2;
     const hh = OPP_SCALED_H / 2;
 
+    // Scaled arrow constants for opponent zones
+    const oppArrowSize = Math.max(4, Math.round(ACTIVATED_ARROW_SIZE * OPP_SCALE));
+    const oppArrowMargin = Math.max(1, Math.round(ACTIVATED_ARROW_MARGIN * OPP_SCALE));
+    const oppGridW = ACTIVATED_GRID_COLS * OPP_ACT_W + (ACTIVATED_GRID_COLS - 1) * OPP_ACT_GAP;
+    const oppGridH = ACTIVATED_GRID_ROWS * OPP_ACT_H + (ACTIVATED_GRID_ROWS - 1) * OPP_ACT_GAP;
+
     for (let zoneIndex = 0; zoneIndex < 4; zoneIndex++) {
       const opp = opponentByZone[zoneIndex];
       if (!opp || opp.activatedCharacters.length === 0) continue;
@@ -379,8 +429,11 @@ export function buildCanvasRegions(
       const cx = zone.x + zone.w / 2;
       const cy = zone.y + zone.h / 2;
 
-      const maxAct = Math.min(opp.activatedCharacters.length, ACTIVATED_MAX);
-      for (let i = 0; i < maxAct; i++) {
+      const oppPage = opponentActivatedPages[opp.playerId] ?? 0;
+      const oppPageStart = oppPage * ACTIVATED_PAGE_SIZE;
+      const oppPageSlice = opp.activatedCharacters.slice(oppPageStart, oppPageStart + ACTIVATED_PAGE_SIZE);
+
+      for (let i = 0; i < oppPageSlice.length; i++) {
         const col = i % ACTIVATED_GRID_COLS;
         const row = Math.floor(i / ACTIVATED_GRID_COLS);
         const localX = -hw + OPP_ACT_REL_X + col * (OPP_ACT_W + OPP_ACT_GAP);
@@ -391,7 +444,8 @@ export function buildCanvasRegions(
         const worldX = cx + slotCX * Math.cos(rot) - slotCY * Math.sin(rot);
         const worldY = cy + slotCX * Math.sin(rot) + slotCY * Math.cos(rot);
 
-        const regionId = `${opp.playerId}:${i}`;
+        const absoluteIndex = oppPageStart + i;
+        const regionId = `${opp.playerId}:${absoluteIndex}`;
         regions.push({
           type: 'opponent-activated-character',
           id: regionId,
@@ -402,6 +456,39 @@ export function buildCanvasRegions(
           ...animState(existing, 'opponent-activated-character', regionId),
         });
       }
+
+      // --- Opponent pagination arrows (in virtual coordinates, rotated) ---
+      const oppGridCenterLocalY = -hh + OPP_ACT_REL_Y + oppGridH / 2;
+
+      // Left (prev) arrow
+      const leftLocalCX = -hw + OPP_ACT_REL_X - oppArrowMargin - oppArrowSize / 2;
+      const leftWorldX = cx + leftLocalCX * Math.cos(rot) - oppGridCenterLocalY * Math.sin(rot);
+      const leftWorldY = cy + leftLocalCX * Math.sin(rot) + oppGridCenterLocalY * Math.cos(rot);
+      regions.push({
+        type: 'activated-page-arrow', id: `${opp.playerId}:prev`,
+        direction: 'prev', arrowPlayerId: opp.playerId,
+        x: leftWorldX, y: leftWorldY,
+        w: oppArrowSize, h: oppArrowSize,
+        angle: rot,
+        centered: true,
+        enabled: oppPage > 0,
+        ...animState(existing, 'activated-page-arrow', `${opp.playerId}:prev`),
+      });
+
+      // Right (next) arrow
+      const rightLocalCX = -hw + OPP_ACT_REL_X + oppGridW + oppArrowMargin + oppArrowSize / 2;
+      const rightWorldX = cx + rightLocalCX * Math.cos(rot) - oppGridCenterLocalY * Math.sin(rot);
+      const rightWorldY = cy + rightLocalCX * Math.sin(rot) + oppGridCenterLocalY * Math.cos(rot);
+      regions.push({
+        type: 'activated-page-arrow', id: `${opp.playerId}:next`,
+        direction: 'next', arrowPlayerId: opp.playerId,
+        x: rightWorldX, y: rightWorldY,
+        w: oppArrowSize, h: oppArrowSize,
+        angle: rot,
+        centered: true,
+        enabled: opp.activatedCharacters.length > ACTIVATED_PAGE_SIZE * (oppPage + 1),
+        ...animState(existing, 'activated-page-arrow', `${opp.playerId}:next`),
+      });
     }
   }
 

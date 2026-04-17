@@ -40,7 +40,13 @@ import {
   ACTIVATED_CARD_W,
   ACTIVATED_CARD_H,
   ACTIVATED_CARD_GAP,
-  ACTIVATED_MAX,
+  ACTIVATED_GRID_H,
+  ACTIVATED_PAGE_SIZE,
+  ACTIVATED_ARROW_SIZE,
+  ACTIVATED_ARROW_MARGIN,
+  ACTIVATED_ARROW_COLOR_INACTIVE,
+  ACTIVATED_ARROW_COLOR_ACTIVE,
+  ACTIVATED_ARROW_COLOR_HOVER,
   DECK_CARD_W,
   DECK_CARD_H,
   DECK_ROTATION,
@@ -80,6 +86,8 @@ import {
   OPP_PORTAL_IMG_H,
   OPP_PORTAL_IMG_REL_Y,
   ACTIVATED_GRID_COLS,
+  ACTIVATED_GRID_ROWS,
+  OPP_SCALE,
   getPortalImageName,
 } from './cardLayoutConstants';
 
@@ -333,30 +341,117 @@ export function drawPlayerPortal(
 export function drawActivatedCharactersGrid(
   ctx: CanvasRenderingContext2D,
   activatedCards: CharacterCard[],
-  config: DrawConfig
+  config: DrawConfig,
+  page: number = 0,
 ) {
-  // Display up to 12 activated character cards in a 3x4 grid
-  // Card images are located based on imageName field in card data
-  // This uses the same image filename resolution pattern as auslage and portal rendering
   if (!activatedCards || activatedCards.length === 0) {
-    return; // No activated cards to display
+    return;
   }
-  
-  const cardsToDisplay = activatedCards.slice(0, ACTIVATED_MAX);
-  
+
+  const pageStart = page * ACTIVATED_PAGE_SIZE;
+  const cardsToDisplay = activatedCards.slice(pageStart, pageStart + ACTIVATED_PAGE_SIZE);
+
   cardsToDisplay.forEach((card, idx) => {
-    const { cardX, cardY, w, h } = getActivatedCardPosition(idx);
-    
+    const { cardX, cardY, w, h } = getActivatedCardPosition(idx); // page-local index
+
     ctx.save();
-    // Move to center, rotate 180°, move back
     ctx.translate(cardX + w / 2, cardY + h / 2);
-    ctx.rotate(Math.PI); // 180° rotation
+    ctx.rotate(Math.PI);
     ctx.translate(-(cardX + w / 2), -(cardY + h / 2));
-    
+
     drawImageOrFallback(ctx, card.imageName, cardX, cardY, w, h, card.name);
-    
+
     ctx.restore();
   });
+}
+
+/**
+ * Draw pagination arrows (◄ / ►) for an activated-characters grid.
+ * Arrows are always rendered; color indicates active/inactive/hover state.
+ *
+ * @param ctx           Canvas rendering context (may be in a transformed state for opponent zones)
+ * @param totalCount    Total number of activated characters (all pages)
+ * @param currentPage   Currently displayed page (0-based)
+ * @param gridX         Left edge of the grid in current coordinate space
+ * @param gridY         Top edge of the grid in current coordinate space
+ * @param gridH         Height of the grid
+ * @param arrowSize     Triangle arrow size
+ * @param arrowMargin   Gap between grid edge and arrow
+ * @param gridWidth     Total pixel width of the grid (cols*cardW + (cols-1)*cardGap)
+ * @param pageSize      Number of cards per page
+ * @param prevHover     0–1 hover progress for the prev arrow
+ * @param nextHover     0–1 hover progress for the next arrow
+ */
+export function drawActivatedPageArrows(
+  ctx: CanvasRenderingContext2D,
+  totalCount: number,
+  currentPage: number,
+  gridX: number,
+  gridY: number,
+  gridH: number,
+  arrowSize: number = ACTIVATED_ARROW_SIZE,
+  arrowMargin: number = ACTIVATED_ARROW_MARGIN,
+  gridWidth: number = ACTIVATED_GRID_COLS * ACTIVATED_CARD_W + (ACTIVATED_GRID_COLS - 1) * ACTIVATED_CARD_GAP,
+  pageSize: number = ACTIVATED_PAGE_SIZE,
+  prevHover: number = 0,
+  nextHover: number = 0,
+) {
+  const arrowCY = gridY + gridH / 2;
+  const half = arrowSize / 2;
+
+  const prevEnabled = currentPage > 0;
+  const nextEnabled = totalCount > pageSize * (currentPage + 1);
+
+  // Left (prev) arrow ◄
+  const leftX = gridX - arrowMargin - arrowSize;
+  const prevColor = !prevEnabled
+    ? ACTIVATED_ARROW_COLOR_INACTIVE
+    : prevHover > 0.01
+      ? blendColors(ACTIVATED_ARROW_COLOR_ACTIVE, ACTIVATED_ARROW_COLOR_HOVER, prevHover)
+      : ACTIVATED_ARROW_COLOR_ACTIVE;
+
+  ctx.save();
+  ctx.fillStyle = prevColor;
+  ctx.beginPath();
+  ctx.moveTo(leftX, arrowCY);              // left tip
+  ctx.lineTo(leftX + arrowSize, arrowCY - half); // top right
+  ctx.lineTo(leftX + arrowSize, arrowCY + half); // bottom right
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  // Right (next) arrow ►
+  const rightX = gridX + gridWidth + arrowMargin;
+  const nextColor = !nextEnabled
+    ? ACTIVATED_ARROW_COLOR_INACTIVE
+    : nextHover > 0.01
+      ? blendColors(ACTIVATED_ARROW_COLOR_ACTIVE, ACTIVATED_ARROW_COLOR_HOVER, nextHover)
+      : ACTIVATED_ARROW_COLOR_ACTIVE;
+
+  ctx.save();
+  ctx.fillStyle = nextColor;
+  ctx.beginPath();
+  ctx.moveTo(rightX + arrowSize, arrowCY);  // right tip
+  ctx.lineTo(rightX, arrowCY - half);        // top left
+  ctx.lineTo(rightX, arrowCY + half);        // bottom left
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+/** Linearly blend two hex colors by factor t (0=a, 1=b) */
+function blendColors(a: string, b: string, t: number): string {
+  const parse = (hex: string) => [
+    parseInt(hex.slice(1, 3), 16),
+    parseInt(hex.slice(3, 5), 16),
+    parseInt(hex.slice(5, 7), 16),
+  ];
+  const [ar, ag, ab] = parse(a);
+  const [br, bg, bb] = parse(b);
+  const r = Math.round(ar + (br - ar) * t);
+  const g = Math.round(ag + (bg - ag) * t);
+  const bl = Math.round(ab + (bb - ab) * t);
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${bl.toString(16).padStart(2, '0')}`;
 }
 
 /**
@@ -561,11 +656,13 @@ export function drawRegionEffects(ctx: CanvasRenderingContext2D, regions: Canvas
  * Opponent zone data for rendering one opponent's portal area.
  */
 export interface OpponentZoneData {
+  playerId?: string;
   colorIndex: number;
   isStartingPlayer: boolean;
   portal: ActivatedCharacter[];
   activatedCharacters: ActivatedCharacter[];
   handCount: number;
+  activatedPage?: number;
 }
 
 /**
@@ -581,6 +678,9 @@ function drawOpponentZone(
   zone: { x: number; y: number; w: number; h: number },
   data: OpponentZoneData,
   rotationDeg: number,
+  activatedPage: number = 0,
+  prevArrowHover: number = 0,
+  nextArrowHover: number = 0,
 ) {
   const cx = zone.x + zone.w / 2;
   const cy = zone.y + zone.h / 2;
@@ -610,19 +710,39 @@ function drawOpponentZone(
   }
 
   // 3. Activated characters grid — right of portal slots (from opponent's perspective)
-  const maxAct = Math.min(data.activatedCharacters.length, ACTIVATED_MAX);
-  for (let i = 0; i < maxAct; i++) {
+  const oppPageStart = activatedPage * ACTIVATED_PAGE_SIZE;
+  const oppPageSlice = data.activatedCharacters.slice(oppPageStart, oppPageStart + ACTIVATED_PAGE_SIZE);
+  for (let i = 0; i < oppPageSlice.length; i++) {
     const col = i % ACTIVATED_GRID_COLS;
     const row = Math.floor(i / ACTIVATED_GRID_COLS);
     const actX = -hw + OPP_ACT_REL_X + col * (OPP_ACT_W + OPP_ACT_GAP);
     const actY = -hh + OPP_ACT_REL_Y + row * (OPP_ACT_H + OPP_ACT_GAP);
-    const card = data.activatedCharacters[i]!;
+    const card = oppPageSlice[i]!;
     ctx.save();
     ctx.translate(actX + OPP_ACT_W / 2, actY + OPP_ACT_H / 2);
     ctx.rotate(Math.PI);
     ctx.translate(-(actX + OPP_ACT_W / 2), -(actY + OPP_ACT_H / 2));
     drawImageOrFallback(ctx, card.card.imageName, actX, actY, OPP_ACT_W, OPP_ACT_H, card.card.name);
     ctx.restore();
+  }
+
+  // 3b. Opponent pagination arrows (in the zone's rotated coordinate space)
+  {
+    const oppArrowSize = Math.max(4, Math.round(ACTIVATED_ARROW_SIZE * OPP_SCALE));
+    const oppArrowMargin = Math.max(1, Math.round(ACTIVATED_ARROW_MARGIN * OPP_SCALE));
+    const oppGridW = ACTIVATED_GRID_COLS * OPP_ACT_W + (ACTIVATED_GRID_COLS - 1) * OPP_ACT_GAP;
+    const oppGridH = ACTIVATED_GRID_ROWS * OPP_ACT_H + (ACTIVATED_GRID_ROWS - 1) * OPP_ACT_GAP;
+    const oppGridX = -hw + OPP_ACT_REL_X;
+    const oppGridY = -hh + OPP_ACT_REL_Y;
+    drawActivatedPageArrows(
+      ctx,
+      data.activatedCharacters.length,
+      activatedPage,
+      oppGridX, oppGridY, oppGridH,
+      oppArrowSize, oppArrowMargin,
+      oppGridW, ACTIVATED_PAGE_SIZE,
+      prevArrowHover, nextArrowHover,
+    );
   }
 
   // 4. Hand cards — face-down stack, left side (from opponent's perspective)
@@ -662,6 +782,7 @@ function drawOpponentZone(
 export function drawOpponentPortals(
   ctx: CanvasRenderingContext2D,
   opponents: Array<OpponentZoneData | null>,
+  regions: import('./canvasRegions').CanvasRegion[] = [],
 ) {
   const zoneLeft     = { x: 0,                                          y: ZONE_TOP_H, w: MARGIN_H,                    h: ZONE_CENTER_H };
   const zoneTopLeft  = { x: MARGIN_H,                                   y: 0,          w: (BASE_W - 2 * MARGIN_H) / 2, h: ZONE_TOP_H };
@@ -685,7 +806,10 @@ export function drawOpponentPortals(
   zones.forEach(({ zone, deg }, i) => {
     const data = opponents[i];
     if (data) {
-      drawOpponentZone(ctx, zone, data, deg);
+      const page = data.activatedPage ?? 0;
+      const prevHover = regions.find(r => r.type === 'activated-page-arrow' && r.id === `${data.playerId}:prev`)?.hoverProgress ?? 0;
+      const nextHover = regions.find(r => r.type === 'activated-page-arrow' && r.id === `${data.playerId}:next`)?.hoverProgress ?? 0;
+      drawOpponentZone(ctx, zone, data, deg, page, prevHover, nextHover);
     } else {
       drawScrollInZone(zone, deg);
     }
