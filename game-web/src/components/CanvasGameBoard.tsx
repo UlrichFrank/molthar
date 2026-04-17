@@ -315,7 +315,8 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     } else if (count <= ACTIVATED_PAGE_SIZE && ownActivatedPage === 1) {
       setOwnActivatedPage(0);
     }
-  }, [me?.activatedCharacters.length, ownActivatedPage]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [me?.activatedCharacters.length]);
 
   // ── Canvas size setup (on viewport resize) ──────────────────────────────────
   useEffect(() => {
