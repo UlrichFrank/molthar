@@ -939,7 +939,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
         <StealOpponentHandCardDialog
           opponents={(G.playerOrder || [])
             .filter(id => id !== myPlayerID)
-            .map(id => G.players?.[id])
+            .map(id => { const p = G.players?.[id]; return p ? { ...p, name: resolvePlayerName(id, p.name) } : undefined; })
             .filter((p): p is PlayerState => p !== undefined && p.hand.length > 0)}
           onSteal={(targetPlayerId, handCardIndex) => {
             moves.resolveStealOpponentHandCard(targetPlayerId, handCardIndex);
@@ -958,7 +958,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
               : order;
             return rotated
               .filter(id => id !== myPlayerID)
-              .map(id => G.players?.[id])
+              .map(id => { const p = G.players?.[id]; return p ? { ...p, name: resolvePlayerName(id, p.name) } : undefined; })
               .filter((p): p is PlayerState => p !== undefined && p.portal.length > 0);
           })()}
           onDiscard={(targetPlayerId, portalEntryId) => {
