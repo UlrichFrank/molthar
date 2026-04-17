@@ -144,3 +144,106 @@ Fly.io free tier      minimal    $0†         Fly.io mgmt   ★★★
   Umbau, aber danach wartungsfrei und kostenlos
 - **Einfachste Gesamtlösung:** Option B (alles Railway) — eine Plattform,
   Docker Compose vorhanden, kein Vercel nötig
+
+---
+
+## Option E — Alles auf Vercel (kein externer Server) ← **gewählte Richtung**
+
+boardgame.io's Socket.IO-Transport wird durch REST + Polling ersetzt.
+Die Spiellogik (`shared/`) bleibt vollständig unverändert.
+
+```
+  VERCEL (ein Deployment)
+  ═══════════════════════════════════════════════════════════
+
+  Frontend (CDN)            API Routes (Serverless)
+  ┌──────────────┐          ┌──────────────────────────────┐
+  │              │          │  GET  /api/matches            │
+  │  React App   │◄────────►│  POST /api/matches            │
+  │              │  HTTP    │  POST /api/matches/[id]/join  │
+  │  useGameClient│  Poll   │  POST /api/matches/[id]/move  │
+  │  Hook (neu)  │ 500ms    │  GET  /api/matches/[id]       │
+  │              │          │  DELETE /api/matches/[id]     │
+  └──────────────┘          └──────────┬───────────────────┘
+                                       │ read/write
+                            ┌──────────▼───────────────────┐
+                            │  Vercel KV (Redis/Upstash)    │
+                            │  - match state (G + ctx)      │
+                            │  - match metadata (players)   │
+                            └──────────────────────────────┘
+```
+
+Move-Flow:
+```
+Spieler A klickt   →  POST /api/matches/[id]/move
+                       → lade state aus KV
+                       → wende Move via createGameReducer() an   ← boardgame.io intern
+                       → speichere neuen state in KV
+                       ← 200 OK
+
+Spieler B pollt    →  GET /api/matches/[id]  (alle 500ms)
+                       → lade state aus KV
+                       ← neuer state → React re-render
+```
+
+### Was sich ändert
+
+```
+  DATEI                                ÄNDERUNG
+  ────────────────────────────────────────────────────────────
+  shared/                              0 Änderungen
+  game-web/src/components/**           0 Änderungen
+  game-web/src/lobby/LobbyScreen.tsx   minimal: PortaleClient → custom wrapper
+  game-web/src/lobby/useLobbyClient.ts Neubau: bgio LobbyClient → fetch()
+  backend/                             nicht mehr deployed
+
+  NEU:
+  game-web/api/matches/index.ts        GET (list) + POST (create)
+  game-web/api/matches/[id]/index.ts   GET (state)
+  game-web/api/matches/[id]/join.ts    POST
+  game-web/api/matches/[id]/move.ts    POST — Herzstück (createGameReducer)
+  game-web/api/matches/[id]/leave.ts   DELETE
+  game-web/src/hooks/useGameClient.ts  custom Hook (G, ctx, moves, polling)
+  game-web/vercel.json                 Vercel-Config + Monorepo-Build
+```
+
+`CanvasGameBoard` bleibt unverändert — sein Interface (`G`, `ctx`, `moves`, `playerID`,
+`isActive`) wird vom neuen `useGameClient` Hook befüllt statt vom boardgame.io `Client()`.
+
+### Schlüsseldetail: boardgame.io-Reducer wiederverwenden
+
+boardgame.io exportiert `createGameReducer` — damit läuft die gesamte Spiellogik
+direkt in der Vercel Function, ohne den Socket.IO-Server:
+
+```typescript
+// game-web/api/matches/[id]/move.ts
+import { createGameReducer } from 'boardgame.io/internal';
+import { PortaleVonMolthar } from '@portale-von-molthar/shared';
+
+const reducer = createGameReducer({ game: PortaleVonMolthar });
+// state laden, reducer anwenden, state speichern
+```
+
+### Monorepo-Build für Vercel
+
+`game-web/vercel.json` muss `shared` vor `game-web` bauen
+(da `shared` nur `dist/` exportiert, nicht die TS-Quellen):
+
+```json
+{
+  "buildCommand": "cd .. && pnpm --filter @portale-von-molthar/shared build && pnpm --filter game-web build",
+  "outputDirectory": "dist",
+  "installCommand": "cd .. && pnpm install --frozen-lockfile"
+}
+```
+
+Vercel Root Directory (Dashboard-Einstellung): `game-web`
+
+### Kosten
+
+- Vercel KV Hobby: 256MB, 30K requests/Tag — für dieses Spielvolumen ausreichend
+- Vercel Hobby: kostenlos
+
+### Aufwand
+
+~500 neue Zeilen, 0 Zeilen Spiellogik geändert. Mittlerer Umbau (~1-2 Tage).
