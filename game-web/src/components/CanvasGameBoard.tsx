@@ -747,7 +747,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
             { position: 'absolute', top: '26%', left: 6, zIndex: 100 },
             { position: 'absolute', top: 6, left: '17%', zIndex: 100 },
             { position: 'absolute', top: 6, left: '50%', zIndex: 100 },
-            { position: 'absolute', top: '26%', right: 6, zIndex: 100 },
+            { position: 'absolute', top: '55%', right: 6, zIndex: 100 },
           ];
           return opponentIds.map((playerId, zoneIdx) => {
             if (!playerId) return null;
