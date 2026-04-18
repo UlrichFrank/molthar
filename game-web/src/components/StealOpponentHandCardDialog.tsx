@@ -84,22 +84,6 @@ export function StealOpponentHandCardDialog({ opponents, onSteal }: StealOpponen
               </button>
             ))}
           </div>
-          <div style={{ marginTop: 12 }}>
-            <button
-              onClick={() => selectStealOpponent(null)}
-              style={{
-                padding: '8px 16px',
-                background: 'rgba(30,41,59,0.8)',
-                border: '2px solid #475569',
-                borderRadius: 6,
-                color: '#94a3b8',
-                cursor: 'pointer',
-                fontSize: '0.9rem',
-              }}
-            >
-              {t('steal.back')}
-            </button>
-          </div>
         </div>
       )}
     </GameDialog>
