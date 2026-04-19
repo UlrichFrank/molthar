@@ -6,13 +6,16 @@ import { useTranslation } from '../i18n/useTranslation';
 interface WaitingRoomProps {
   matchID: string;
   totalPlayers: number;
+  /** Number of human players — bots are excluded. Default: totalPlayers */
+  humanPlayerCount?: number;
   withSpecialCards?: boolean;
   onAllJoined: () => void;
   onCancel: () => void;
 }
 
-export function WaitingRoom({ matchID, totalPlayers, withSpecialCards, onAllJoined, onCancel }: WaitingRoomProps) {
+export function WaitingRoom({ matchID, totalPlayers, humanPlayerCount, withSpecialCards, onAllJoined, onCancel }: WaitingRoomProps) {
   const { t } = useTranslation();
+  const requiredCount = humanPlayerCount ?? totalPlayers;
   useEffect(() => {
     const checkPlayers = async () => {
       try {
@@ -20,7 +23,7 @@ export function WaitingRoom({ matchID, totalPlayers, withSpecialCards, onAllJoin
         const currentMatch = list.find(m => m.matchID === matchID);
         if (currentMatch) {
           const joinedCount = currentMatch.players.filter(p => p.name !== undefined).length;
-          if (joinedCount === totalPlayers) {
+          if (joinedCount >= requiredCount) {
             onAllJoined();
           }
         }
@@ -31,7 +34,7 @@ export function WaitingRoom({ matchID, totalPlayers, withSpecialCards, onAllJoin
 
     const interval = setInterval(checkPlayers, 1000);
     return () => clearInterval(interval);
-  }, [matchID, totalPlayers, onAllJoined]);
+  }, [matchID, requiredCount, onAllJoined]);
 
   return (
     <div className="lobby-container">

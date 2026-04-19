@@ -250,6 +250,20 @@ export interface GameState {
 }
 
 /**
+ * NPC strategy identifier
+ */
+export type NpcStrategy = 'random' | 'greedy' | 'diamond' | 'efficient' | 'aggressive';
+
+/**
+ * Configuration for a single NPC slot in a match
+ */
+export interface NpcSlotConfig {
+  playerIndex: number;
+  strategy: NpcStrategy;
+  name: string;
+}
+
+/**
  * boardgame.io Context (provided by framework)
  */
 export interface GameContext {

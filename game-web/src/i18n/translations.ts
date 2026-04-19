@@ -31,6 +31,16 @@ export type TranslationKey =
   | 'create.nPlayers'
   | 'create.create'
   | 'create.withSpecialCards'
+  | 'create.totalPlayers'
+  | 'create.humanSlot'
+  | 'create.npcSlot'
+  | 'create.npcStrategy'
+  | 'create.npcMinHuman'
+  | 'create.npcStrategy.random'
+  | 'create.npcStrategy.greedy'
+  | 'create.npcStrategy.diamond'
+  | 'create.npcStrategy.efficient'
+  | 'create.npcStrategy.aggressive'
   // Match list
   | 'matches.title'
   | 'matches.noMatches'
@@ -205,6 +215,16 @@ const de: Record<TranslationKey, string> = {
   'create.nPlayers':             '{n} Spieler',
   'create.create':               'Spiel erstellen',
   'create.withSpecialCards':     'Mit Sonderkarten',
+  'create.totalPlayers':         'Spieler gesamt:',
+  'create.humanSlot':            'Mensch',
+  'create.npcSlot':              'NPC',
+  'create.npcStrategy':          'Strategie:',
+  'create.npcMinHuman':          'Mindestens 1 menschlicher Spieler erforderlich',
+  'create.npcStrategy.random':   'Irrnis (Zufall)',
+  'create.npcStrategy.greedy':   'Gier von Goldbach (Opportunist)',
+  'create.npcStrategy.diamond':  'Edelstein-Erda (Diamanten)',
+  'create.npcStrategy.efficient': 'Weiser Wendelin (Effizient)',
+  'create.npcStrategy.aggressive': 'Raubritter Ralf (Aggressiv)',
   'matches.title':               'Offene Spiele',
   'matches.noMatches':           'Keine offenen Spiele vorhanden.',
   'matches.join':                'Beitreten',
@@ -358,6 +378,16 @@ const enGB: Record<TranslationKey, string> = {
   'create.nPlayers':             '{n} players',
   'create.create':               'Create Game',
   'create.withSpecialCards':     'With Special Cards',
+  'create.totalPlayers':         'Total players:',
+  'create.humanSlot':            'Human',
+  'create.npcSlot':              'NPC',
+  'create.npcStrategy':          'Strategy:',
+  'create.npcMinHuman':          'At least 1 human player required',
+  'create.npcStrategy.random':   'Irrnis (Random)',
+  'create.npcStrategy.greedy':   'Gier von Goldbach (Opportunist)',
+  'create.npcStrategy.diamond':  'Edelstein-Erda (Diamonds)',
+  'create.npcStrategy.efficient': 'Weiser Wendelin (Efficient)',
+  'create.npcStrategy.aggressive': 'Raubritter Ralf (Aggressive)',
   'matches.title':               'Open Games',
   'matches.noMatches':           'No open games available.',
   'matches.join':                'Join',
@@ -511,6 +541,16 @@ const fr: Record<TranslationKey, string> = {
   'create.nPlayers':             '{n} joueurs',
   'create.create':               'Créer la partie',
   'create.withSpecialCards':     'Avec cartes spéciales',
+  'create.totalPlayers':         'Joueurs au total :',
+  'create.humanSlot':            'Humain',
+  'create.npcSlot':              'PNJ',
+  'create.npcStrategy':          'Stratégie :',
+  'create.npcMinHuman':          'Au moins 1 joueur humain requis',
+  'create.npcStrategy.random':   'Irrnis (Aléatoire)',
+  'create.npcStrategy.greedy':   'Gier von Goldbach (Opportuniste)',
+  'create.npcStrategy.diamond':  'Edelstein-Erda (Diamants)',
+  'create.npcStrategy.efficient': 'Weiser Wendelin (Efficace)',
+  'create.npcStrategy.aggressive': 'Raubritter Ralf (Agressif)',
   'matches.title':               'Parties ouvertes',
   'matches.noMatches':           'Aucune partie ouverte disponible.',
   'matches.join':                'Rejoindre',
