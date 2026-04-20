@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { PortaleVonMolthar } from '@portale-von-molthar/shared';
+import type { NpcSlotConfig } from '@portale-von-molthar/shared';
 import { lobbyClient, PortaleClient } from './useLobbyClient';
 import type { Match } from './useLobbyClient';
 import { WaitingRoom } from './WaitingRoom';
@@ -24,6 +25,7 @@ export function LobbyScreen() {
   const [totalPlayers, setTotalPlayers] = useState(2);
   const [numPlayers, setNumPlayers] = useState(2);
   const [withSpecialCards, setWithSpecialCards] = useState(false);
+  const [npcSlots, setNpcSlots] = useState<NpcSlotConfig[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [loadingMatches, setLoadingMatches] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -110,8 +112,9 @@ export function LobbyScreen() {
     try {
       const { matchID: newMatchID } = await lobbyClient.createMatch(
         PortaleVonMolthar.name,
-        { numPlayers, setupData: { withSpecialCards } }
+        { numPlayers, setupData: { withSpecialCards, npcSlots } }
       );
+      // NPC slots are joined by the BotRunner (server-side) — frontend only passes npcSlots in setupData.
       await joinMatch(newMatchID, '0', numPlayers);
     } catch {
       setError(t('lobby.errorCreateFailed'));
@@ -184,10 +187,12 @@ export function LobbyScreen() {
   }
 
   if (view === 'waiting') {
+    const humanPlayerCount = totalPlayers - npcSlots.length;
     return (
       <WaitingRoom
         matchID={matchID}
         totalPlayers={totalPlayers}
+        humanPlayerCount={humanPlayerCount}
         withSpecialCards={withSpecialCards}
         onAllJoined={() => setView('in-game')}
         onCancel={handleCancelWaiting}
@@ -283,8 +288,10 @@ export function LobbyScreen() {
         numPlayers={numPlayers}
         playerNameSet={!!playerName.trim()}
         withSpecialCards={withSpecialCards}
+        npcSlots={npcSlots}
         onNumPlayersChange={setNumPlayers}
         onWithSpecialCardsChange={setWithSpecialCards}
+        onNpcSlotsChange={setNpcSlots}
         onCreate={createMatch}
       />
 

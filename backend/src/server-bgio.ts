@@ -1,5 +1,6 @@
 import { Server, Origins, FlatFile } from 'boardgame.io/server';
 import { PortaleVonMolthar } from '@portale-von-molthar/shared';
+import { BotRunner } from './bot-runner';
 
 /**
  * boardgame.io Server for Portale von Molthar
@@ -58,4 +59,13 @@ server.run(PORT, () => {
   console.log(`📍 Socket.IO server: http://${HOST}:${PORT}`);
   console.log(`📋 Lobby API: http://${HOST}:${PORT}/games/${PortaleVonMolthar.name}`);
   console.log(`🔗 Frontend: http://127.0.0.1:5173`);
+
+  // Start NPC bot runner after a short delay to let the server fully initialise
+  const botRunner = new BotRunner(`http://127.0.0.1:${PORT}`);
+  setTimeout(() => {
+    botRunner.start().catch((err: unknown) => {
+      console.error('[BotRunner] Failed to start:', err);
+    });
+    console.log(`🤖 BotRunner started`);
+  }, 2000);
 });
