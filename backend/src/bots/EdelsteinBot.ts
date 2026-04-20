@@ -1,11 +1,11 @@
 /**
  * EdelsteinBot — "Edelstein-Erda"
  * Strategy: diamond — prioritises characters with the most diamond rewards.
- * Collects pearls that match the target character's cost.
+ * Pearl selection uses strategy-aware scoring targeting the diamond-richest card.
  */
 
 import type { GameState, CharacterCard } from '@portale-von-molthar/shared';
-import { canPayCard, findBotPayment } from '@portale-von-molthar/shared';
+import { canPayCard, findBotPayment, bestPearlSlotByScore } from '@portale-von-molthar/shared';
 import type { BotAction } from './enumerate';
 import { resolvePending } from './pending';
 
@@ -42,18 +42,8 @@ export function EdelsteinBot(
     return { move: 'takeCharacterCard', args: [bestIdx] };
   }
 
-  // 3. Take a pearl that matches the cost of our target portal card
-  const targetCard = pickTargetCard(player.portal.map(e => e.card), G.characterSlots);
-  if (targetCard) {
-    const neededValues = neededPearlValues(targetCard, player.hand);
-    const matchingSlot = findMatchingPearlSlot(G, neededValues);
-    if (matchingSlot !== null) {
-      return { move: 'takePearlCard', args: [matchingSlot] };
-    }
-  }
-
-  // 4. Fallback: highest pearl
-  const bestSlot = bestPearlSlotIndex(G);
+  // 3. Take pearl that best helps target card (diamond strategy scoring)
+  const bestSlot = bestPearlSlotByScore(G, playerID, 'diamond');
   if (bestSlot !== null) return { move: 'takePearlCard', args: [bestSlot] };
 
   return { event: 'endTurn' };
@@ -72,45 +62,4 @@ function bestDiamondCharIndex(slots: CharacterCard[]): number {
     }
   }
   return best;
-}
-
-function pickTargetCard(portal: CharacterCard[], display: CharacterCard[]): CharacterCard | null {
-  const candidates = [...portal, ...display];
-  if (candidates.length === 0) return null;
-  return candidates.reduce((best, c) =>
-    c.diamonds > best.diamonds || (c.diamonds === best.diamonds && c.powerPoints > best.powerPoints)
-      ? c
-      : best,
-  );
-}
-
-function neededPearlValues(card: CharacterCard, hand: import('@portale-von-molthar/shared').PearlCard[]): number[] {
-  const needed: number[] = [];
-  for (const comp of card.cost ?? []) {
-    if (comp.type === 'number' && comp.value !== undefined) {
-      if (!hand.some(h => h.value === comp.value)) needed.push(comp.value);
-    }
-  }
-  return needed;
-}
-
-function findMatchingPearlSlot(G: GameState, neededValues: number[]): number | null {
-  for (let i = 0; i < G.pearlSlots.length; i++) {
-    const card = G.pearlSlots[i];
-    if (card && neededValues.includes(card.value)) return i;
-  }
-  return null;
-}
-
-function bestPearlSlotIndex(G: GameState): number | null {
-  let bestSlot: number | null = null;
-  let bestValue = -1;
-  for (let i = 0; i < G.pearlSlots.length; i++) {
-    const card = G.pearlSlots[i];
-    if (card && card.value > bestValue) {
-      bestValue = card.value;
-      bestSlot = i;
-    }
-  }
-  return bestSlot;
 }

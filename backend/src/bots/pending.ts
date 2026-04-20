@@ -37,7 +37,10 @@ export function resolvePending(
       );
     if (opponents.length > 0) {
       const target = opponents[0]!;
-      return { move: 'resolveDiscardOpponentCharacter', args: [target.id, 0] };
+      const entry = target.portal[0];
+      if (entry) {
+        return { move: 'resolveDiscardOpponentCharacter', args: [target.id, entry.id] };
+      }
     }
   }
 

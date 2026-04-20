@@ -256,8 +256,11 @@ export class BotRunner {
           const cost = JSON.stringify(entry.card.cost);
           return `  [${i}] ${entry.card.name} (${entry.card.powerPoints}pts) cost=${cost} canPay=${payable ? 'YES' : 'NO'}`;
         });
+        const auslage = (currentG.pearlSlots as any[])
+          .map((p: any, i: number) => p ? `[${i}]${p.value}` : `[${i}]-`)
+          .join(' ');
         console.log(
-          `[NPC pid=${bot.playerID} action=${currentG.actionCount as number}/${currentG.maxActions as number}] hand=[${hand}] diamonds=${diamonds}\n` +
+          `[NPC pid=${bot.playerID} action=${currentG.actionCount as number}/${currentG.maxActions as number}] hand=[${hand}] diamonds=${diamonds} auslage=${auslage}\n` +
           (portalLines.length ? portalLines.join('\n') : '  (kein Portal)')
         );
       }
