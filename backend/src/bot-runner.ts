@@ -12,7 +12,7 @@
 import { Client } from 'boardgame.io/client';
 import { SocketIO } from 'boardgame.io/multiplayer';
 import { LobbyClient } from 'boardgame.io/client';
-import { PortaleVonMolthar } from '@portale-von-molthar/shared';
+import { PortaleVonMolthar, canPayCard } from '@portale-von-molthar/shared';
 import type { NpcSlotConfig } from '@portale-von-molthar/shared';
 import { createBot } from './bots/index';
 import type { BotStrategyFn } from './bots/index';
@@ -40,7 +40,7 @@ interface MatchBots {
 // Credentials persistence
 // ---------------------------------------------------------------------------
 
-const CREDS_FILE = path.join(__dirname, '..', 'data', 'npc-credentials.json');
+const CREDS_FILE = path.join(__dirname, '..', 'data-npc', 'credentials.json');
 
 function loadCredentials(): Record<string, string> {
   try {
@@ -246,7 +246,25 @@ export class BotRunner {
         return;
       }
 
+      // --- NPC DEBUG LOG ---
+      const dbgPlayer = currentG?.players?.[bot.playerID];
+      if (dbgPlayer) {
+        const hand = (dbgPlayer.hand as any[]).map((p: any) => p.value).join(',');
+        const diamonds = (dbgPlayer.diamondCards as any[]).length;
+        const portalLines = (dbgPlayer.portal as any[]).map((entry: any, i: number) => {
+          const payable = canPayCard(entry.card, dbgPlayer.hand, diamonds);
+          const cost = JSON.stringify(entry.card.cost);
+          return `  [${i}] ${entry.card.name} (${entry.card.powerPoints}pts) cost=${cost} canPay=${payable ? 'YES' : 'NO'}`;
+        });
+        console.log(
+          `[NPC pid=${bot.playerID} action=${currentG.actionCount as number}/${currentG.maxActions as number}] hand=[${hand}] diamonds=${diamonds}\n` +
+          (portalLines.length ? portalLines.join('\n') : '  (kein Portal)')
+        );
+      }
+      // --- END DEBUG LOG ---
+
       const decision = bot.strategy(currentG, currentCtx, bot.playerID);
+      console.log(`  → ${JSON.stringify(decision)}`);
 
       if ('event' in decision) {
         (bot.client as any).events?.[decision.event]?.();
