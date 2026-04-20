@@ -1,11 +1,11 @@
 /**
  * GierBot — "Gier von Goldbach"
  * Strategy: greedy — activates any payable card (highest points first),
- * otherwise takes the highest-value pearl visible, otherwise takes a character card.
+ * otherwise takes the pearl that best helps the target card, otherwise takes a character card.
  */
 
 import type { GameState, CharacterCard } from '@portale-von-molthar/shared';
-import { canPayCard, findBotPayment } from '@portale-von-molthar/shared';
+import { canPayCard, findBotPayment, bestPearlSlotByScore } from '@portale-von-molthar/shared';
 import type { BotAction } from './enumerate';
 import { resolvePending } from './pending';
 
@@ -39,8 +39,8 @@ export function GierBot(
     return { move: 'takeCharacterCard', args: [bestIdx] };
   }
 
-  // 3. Take highest-value visible pearl
-  const bestPearlSlot = bestPearlSlotIndex(G);
+  // 3. Take pearl that best helps target card (strategy-aware scoring)
+  const bestPearlSlot = bestPearlSlotByScore(G, playerID, 'greedy');
   if (bestPearlSlot !== null) {
     return { move: 'takePearlCard', args: [bestPearlSlot] };
   }
@@ -54,17 +54,4 @@ function bestCharacterIndex(slots: CharacterCard[]): number {
     if ((slots[i]?.powerPoints ?? 0) > (slots[best]?.powerPoints ?? 0)) best = i;
   }
   return best;
-}
-
-function bestPearlSlotIndex(G: GameState): number | null {
-  let bestSlot: number | null = null;
-  let bestValue = -1;
-  for (let i = 0; i < G.pearlSlots.length; i++) {
-    const card = G.pearlSlots[i];
-    if (card && card.value > bestValue) {
-      bestValue = card.value;
-      bestSlot = i;
-    }
-  }
-  return bestSlot;
 }

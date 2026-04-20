@@ -5,7 +5,7 @@
  */
 
 import type { GameState, CharacterCard } from '@portale-von-molthar/shared';
-import { canPayCard, findBotPayment } from '@portale-von-molthar/shared';
+import { canPayCard, findBotPayment, bestPearlSlotByScore } from '@portale-von-molthar/shared';
 import type { BotAction } from './enumerate';
 import { resolvePending } from './pending';
 
@@ -49,8 +49,8 @@ export function RalfBot(
     return { move: 'takeCharacterCard', args: [bestIdx] };
   }
 
-  // 3. Take highest-value pearl
-  const bestSlot = bestPearlSlotIndex(G);
+  // 3. Take pearl with strategy-aware scoring (high contest weight = defensive play)
+  const bestSlot = bestPearlSlotByScore(G, playerID, 'aggressive');
   if (bestSlot !== null) return { move: 'takePearlCard', args: [bestSlot] };
 
   return { event: 'endTurn' };
@@ -70,15 +70,3 @@ function bestCharacterIndex(slots: CharacterCard[]): number {
   return best;
 }
 
-function bestPearlSlotIndex(G: GameState): number | null {
-  let bestSlot: number | null = null;
-  let bestValue = -1;
-  for (let i = 0; i < G.pearlSlots.length; i++) {
-    const card = G.pearlSlots[i];
-    if (card && card.value > bestValue) {
-      bestValue = card.value;
-      bestSlot = i;
-    }
-  }
-  return bestSlot;
-}
