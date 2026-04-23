@@ -224,26 +224,37 @@ export function scorePearlSlot(
 // Returns null if no pearl slots are available.
 // ---------------------------------------------------------------------------
 
-export function bestPearlSlotByScore(
+/**
+ * Gibt alle nicht-leeren Perlenslots mit ihrem Score zurück.
+ * Bots können darauf Softmax anwenden.
+ */
+export function scoredPearlSlots(
   G: GameState,
   playerID: string,
   strategy: NpcStrategy,
-): number | null {
+): Array<{ slot: number; score: number }> {
   const weights = getStrategyWeights(strategy);
   const targetCard = pickTargetCard(G, playerID, strategy);
 
-  let bestSlot: number | null = null;
-  let bestScore = -Infinity;
+  const result: Array<{ slot: number; score: number }> = [];
 
   for (let i = 0; i < G.pearlSlots.length; i++) {
     const pearl = G.pearlSlots[i];
     if (!pearl) continue;
     const score = scorePearlSlot(pearl.value, targetCard, G, playerID, weights);
-    if (score > bestScore) {
-      bestScore = score;
-      bestSlot = i;
-    }
+    result.push({ slot: i, score });
   }
 
-  return bestSlot;
+  return result;
+}
+
+export function bestPearlSlotByScore(
+  G: GameState,
+  playerID: string,
+  strategy: NpcStrategy,
+): number | null {
+  const scored = scoredPearlSlots(G, playerID, strategy);
+  if (scored.length === 0) return null;
+
+  return scored.reduce((best, curr) => (curr.score > best.score ? curr : best)).slot;
 }

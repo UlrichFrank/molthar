@@ -9,9 +9,9 @@
 
 ## 3. Shared: scoredPearlSlots API-Erweiterung
 
-- [ ] 3.1 `scoredPearlSlots(G, playerID, strategy)` in `shared/src/game/botPearlScorer.ts` hinzufügen
-- [ ] 3.2 Neue Funktion aus `shared` exportieren (package exports prüfen)
-- [ ] 3.3 `bestPearlSlotByScore` intern auf `scoredPearlSlots` umstellen (kein Behavior-Change)
+- [x] 3.1 `scoredPearlSlots(G, playerID, strategy)` in `shared/src/game/botPearlScorer.ts` hinzufügen
+- [x] 3.2 Neue Funktion aus `shared` exportieren (package exports prüfen)
+- [x] 3.3 `bestPearlSlotByScore` intern auf `scoredPearlSlots` umstellen (kein Behavior-Change)
 
 ## 4. Bot-Anpassungen
 
