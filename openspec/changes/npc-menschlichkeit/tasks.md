@@ -5,7 +5,7 @@
 
 ## 2. Endgame-Timing-Utility-Modul
 
-- [ ] 2.1 `backend/src/bots/timing.ts` erstellen mit `getTimingMultiplier(G, playerID)`
+- [x] 2.1 `backend/src/bots/timing.ts` erstellen mit `getTimingMultiplier(G, playerID)`
 
 ## 3. Shared: scoredPearlSlots API-Erweiterung
 
