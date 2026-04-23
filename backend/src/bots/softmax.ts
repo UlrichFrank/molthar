@@ -53,7 +53,9 @@ export function softmaxPick<T>(
   const shifted = items.map(i => ({ item: i.item, score: i.score - minScore }));
 
   // Boltzmann-Gewichte berechnen
-  const weights = shifted.map(i => Math.exp(i.score / temperature));
+  // Numerisch stabil: zusätzlicher Shift um max-Score (log-sum-exp Trick)
+  const maxScore = Math.max(...shifted.map(i => i.score));
+  const weights = shifted.map(i => Math.exp((i.score - maxScore) / temperature));
   const totalWeight = weights.reduce((sum, w) => sum + w, 0);
 
   // Zufälliges Element nach Gewicht auswählen

@@ -23,6 +23,6 @@
 
 ## 5. Tests
 
-- [ ] 5.1 Unit-Tests für `softmaxPick` (hohe/niedrige Temperatur, negative Scores)
-- [ ] 5.2 Unit-Tests für `getTimingMultiplier` (alle 3 Fälle)
-- [ ] 5.3 Unit-Tests für `scoredPearlSlots` (Score-Array korrekt befüllt)
+- [x] 5.1 Unit-Tests für `softmaxPick` (hohe/niedrige Temperatur, negative Scores)
+- [x] 5.2 Unit-Tests für `getTimingMultiplier` (alle 3 Fälle)
+- [x] 5.3 Unit-Tests für `scoredPearlSlots` (Score-Array korrekt befüllt)
