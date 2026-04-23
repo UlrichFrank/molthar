@@ -4,10 +4,14 @@
  * Pearl selection uses strategy-aware scoring targeting the diamond-richest card.
  */
 
-import type { GameState, CharacterCard } from '@portale-von-molthar/shared';
-import { canPayCard, findBotPayment, bestPearlSlotByScore } from '@portale-von-molthar/shared';
+import type { GameState } from '@portale-von-molthar/shared';
+import { canPayCard, findBotPayment, scoredPearlSlots } from '@portale-von-molthar/shared';
 import type { BotAction } from './enumerate';
 import { resolvePending } from './pending';
+import { softmaxPick, STRATEGY_TEMPERATURES } from './softmax';
+import { getTimingMultiplier } from './timing';
+
+const T = STRATEGY_TEMPERATURES.diamond;
 
 export function EdelsteinBot(
   G: GameState,
@@ -20,46 +24,41 @@ export function EdelsteinBot(
   const pending = resolvePending(G, playerID, 'diamond');
   if (pending) return pending;
 
-  // 1. Activate payable portal card with most diamonds (tiebreak: most points)
+  const timingMult = getTimingMultiplier(G, playerID);
+
+  // 1. Activate payable portal card — Softmax gewichtet nach Diamonds + Punkten × Timing
   const activatable = player.portal
     .map((entry, i) => ({ entry, i }))
-    .filter(({ entry }) => canPayCard(entry.card, player.hand, player.diamondCards.length))
-    .sort((a, b) =>
-      b.entry.card.diamonds !== a.entry.card.diamonds
-        ? b.entry.card.diamonds - a.entry.card.diamonds
-        : b.entry.card.powerPoints - a.entry.card.powerPoints,
-    );
+    .filter(({ entry }) => canPayCard(entry.card, player.hand, player.diamondCards.length));
 
   if (activatable.length > 0) {
-    const { entry, i } = activatable[0]!;
-    const payment = findBotPayment(entry.card, player.hand, player.diamondCards.length, 'diamond');
-    if (payment) return { move: 'activatePortalCard', args: [i, payment] };
+    const scored = activatable.map(a => ({
+      item: a,
+      score: a.entry.card.diamonds * 3 + a.entry.card.powerPoints * timingMult,
+    }));
+    const chosen = softmaxPick(scored, T);
+    const payment = findBotPayment(chosen.entry.card, player.hand, player.diamondCards.length, 'diamond');
+    if (payment) return { move: 'activatePortalCard', args: [chosen.i, payment] };
   }
 
-  // 2. Take character card with most diamonds if portal has room
+  // 2. Take character card — Softmax gewichtet nach Diamonds, Tiebreak Punkte
   if (player.portal.length < 2 && G.characterSlots.length > 0) {
-    const bestIdx = bestDiamondCharIndex(G.characterSlots);
+    const scored = G.characterSlots.map((card, i) => ({
+      item: i,
+      score: card.diamonds * 3 + card.powerPoints,
+    }));
+    const bestIdx = softmaxPick(scored, T);
     return { move: 'takeCharacterCard', args: [bestIdx] };
   }
 
-  // 3. Take pearl that best helps target card (diamond strategy scoring)
-  const bestSlot = bestPearlSlotByScore(G, playerID, 'diamond');
-  if (bestSlot !== null) return { move: 'takePearlCard', args: [bestSlot] };
+  // 3. Take pearl — Softmax über Slot-Scores
+  const slots = scoredPearlSlots(G, playerID, 'diamond');
+  if (slots.length > 0) {
+    const scored = slots.map(s => ({ item: s.slot, score: s.score }));
+    const bestSlot = softmaxPick(scored, T);
+    return { move: 'takePearlCard', args: [bestSlot] };
+  }
 
   return { event: 'endTurn' };
 }
 
-function bestDiamondCharIndex(slots: CharacterCard[]): number {
-  let best = 0;
-  for (let i = 1; i < slots.length; i++) {
-    const curr = slots[i]!;
-    const bestCard = slots[best]!;
-    if (
-      curr.diamonds > bestCard.diamonds ||
-      (curr.diamonds === bestCard.diamonds && curr.powerPoints > bestCard.powerPoints)
-    ) {
-      best = i;
-    }
-  }
-  return best;
-}

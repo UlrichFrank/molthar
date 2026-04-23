@@ -5,10 +5,13 @@
  */
 
 import type { GameState, CharacterCard } from '@portale-von-molthar/shared';
-import { canPayCard, findBotPayment, bestPearlSlotByScore } from '@portale-von-molthar/shared';
+import { canPayCard, findBotPayment, scoredPearlSlots } from '@portale-von-molthar/shared';
 import type { BotAction } from './enumerate';
 import { resolvePending } from './pending';
+import { softmaxPick, STRATEGY_TEMPERATURES } from './softmax';
+import { getTimingMultiplier } from './timing';
 
+const T = STRATEGY_TEMPERATURES.aggressive;
 const RED_PRIORITY_ABILITIES = ['discardOpponentCharacter', 'stealOpponentHandCard'];
 
 export function RalfBot(
@@ -23,35 +26,40 @@ export function RalfBot(
   const pending = resolvePending(G, playerID, 'aggressive');
   if (pending) return pending;
 
-  // 1. Prefer portal cards with red abilities, then fallback to most points
+  const timingMult = getTimingMultiplier(G, playerID);
+
+  // 1. Activate payable portal card — Softmax: rote Fähigkeiten + Punkte × Timing
   const activatable = player.portal
     .map((entry, i) => ({ entry, i }))
-    .filter(({ entry }) => canPayCard(entry.card, player.hand, player.diamondCards.length))
-    .sort((a, b) => {
-      const aRed = hasRedAbility(a.entry.card) ? 1 : 0;
-      const bRed = hasRedAbility(b.entry.card) ? 1 : 0;
-      if (bRed !== aRed) return bRed - aRed;
-      return b.entry.card.powerPoints - a.entry.card.powerPoints;
-    });
+    .filter(({ entry }) => canPayCard(entry.card, player.hand, player.diamondCards.length));
 
   if (activatable.length > 0) {
-    const { entry, i } = activatable[0]!;
-    const payment = findBotPayment(entry.card, player.hand, player.diamondCards.length, 'aggressive');
-    if (payment) return { move: 'activatePortalCard', args: [i, payment] };
+    const scored = activatable.map(a => ({
+      item: a,
+      score: (hasRedAbility(a.entry.card) ? 5 : 0) + a.entry.card.powerPoints * timingMult,
+    }));
+    const chosen = softmaxPick(scored, T);
+    const payment = findBotPayment(chosen.entry.card, player.hand, player.diamondCards.length, 'aggressive');
+    if (payment) return { move: 'activatePortalCard', args: [chosen.i, payment] };
   }
 
-  // 2. Take character card with red ability if portal has room
+  // 2. Take character card — Softmax: rote Fähigkeit stark bevorzugen
   if (player.portal.length < 2 && G.characterSlots.length > 0) {
-    const redIdx = G.characterSlots.findIndex(hasRedAbility);
-    if (redIdx >= 0) return { move: 'takeCharacterCard', args: [redIdx] };
-    // Fallback: most power points
-    const bestIdx = bestCharacterIndex(G.characterSlots);
+    const scored = G.characterSlots.map((card, i) => ({
+      item: i,
+      score: (hasRedAbility(card) ? 8 : 0) + card.powerPoints,
+    }));
+    const bestIdx = softmaxPick(scored, T);
     return { move: 'takeCharacterCard', args: [bestIdx] };
   }
 
-  // 3. Take pearl with strategy-aware scoring (high contest weight = defensive play)
-  const bestSlot = bestPearlSlotByScore(G, playerID, 'aggressive');
-  if (bestSlot !== null) return { move: 'takePearlCard', args: [bestSlot] };
+  // 3. Take pearl — Softmax über Slot-Scores (hoher Contest-Weight = defensiv)
+  const slots = scoredPearlSlots(G, playerID, 'aggressive');
+  if (slots.length > 0) {
+    const scored = slots.map(s => ({ item: s.slot, score: s.score }));
+    const bestSlot = softmaxPick(scored, T);
+    return { move: 'takePearlCard', args: [bestSlot] };
+  }
 
   return { event: 'endTurn' };
 }
@@ -61,12 +69,3 @@ function hasRedAbility(card: CharacterCard): boolean {
     a => !a.persistent && RED_PRIORITY_ABILITIES.includes(a.type),
   );
 }
-
-function bestCharacterIndex(slots: CharacterCard[]): number {
-  let best = 0;
-  for (let i = 1; i < slots.length; i++) {
-    if ((slots[i]?.powerPoints ?? 0) > (slots[best]?.powerPoints ?? 0)) best = i;
-  }
-  return best;
-}
-

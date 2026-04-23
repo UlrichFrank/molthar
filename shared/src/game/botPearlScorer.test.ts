@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { estimateEffort, scorePearlSlot, pickTargetCard, bestPearlSlotByScore } from './botPearlScorer';
+import { estimateEffort, scorePearlSlot, pickTargetCard, bestPearlSlotByScore, scoredPearlSlots } from './botPearlScorer';
 import type { CharacterCard, PearlCard, CostComponent, GameState, PlayerState } from './types';
 
 // ---------------------------------------------------------------------------
@@ -303,5 +303,50 @@ describe('bestPearlSlotByScore', () => {
 
     // Slot 1 (value 5) helps more than slot 0 (value 2)
     expect(bestPearlSlotByScore(G, '0', 'greedy')).toBe(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+
+describe('scoredPearlSlots', () => {
+  it('returns empty array when no pearl slots available', () => {
+    const G = makeGame({ players: { '0': makePlayer([]) }, pearlSlots: [null, null, null, null] });
+    expect(scoredPearlSlots(G, '0', 'greedy')).toEqual([]);
+  });
+
+  it('returns one entry per non-null slot', () => {
+    const G = makeGame({
+      players: { '0': makePlayer([]) },
+      pearlSlots: [makePearl(3), null, makePearl(5), null],
+    });
+    const result = scoredPearlSlots(G, '0', 'greedy');
+    expect(result).toHaveLength(2);
+    expect(result.map(r => r.slot)).toEqual([0, 2]);
+  });
+
+  it('assigns higher score to more helpful pearl', () => {
+    const targetCard = makeChar([{ type: 'number', value: 5 }, { type: 'number', value: 3 }]);
+    const G = makeGame({
+      players: { '0': makePlayer([makePearl(3)], [targetCard]) },
+      pearlSlots: [makePearl(2), makePearl(5), null, null],
+      pearlDeck: [makePearl(2), makePearl(2), makePearl(5), makePearl(5)],
+    });
+    const result = scoredPearlSlots(G, '0', 'greedy');
+    const slot0 = result.find(r => r.slot === 0)!;
+    const slot1 = result.find(r => r.slot === 1)!;
+    expect(slot1.score).toBeGreaterThan(slot0.score);
+  });
+
+  it('best slot from scoredPearlSlots matches bestPearlSlotByScore', () => {
+    const targetCard = makeChar([{ type: 'number', value: 5 }, { type: 'number', value: 3 }]);
+    const G = makeGame({
+      players: { '0': makePlayer([makePearl(3)], [targetCard]) },
+      pearlSlots: [makePearl(2), makePearl(5), null, null],
+      pearlDeck: [makePearl(2), makePearl(2), makePearl(5), makePearl(5)],
+    });
+    const scored = scoredPearlSlots(G, '0', 'efficient');
+    const bestFromScored = scored.reduce((a, b) => (b.score > a.score ? b : a)).slot;
+    const bestDirect = bestPearlSlotByScore(G, '0', 'efficient');
+    expect(bestFromScored).toBe(bestDirect);
   });
 });

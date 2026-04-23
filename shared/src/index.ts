@@ -4,5 +4,5 @@ export { validateCostPayment, hasUnnecessarySelection, findCostAssignment } from
 export { getAllCards } from './game/index.js';
 export { waitForCardsLoaded } from './game/browserCardDatabaseLoader.js';
 export { canPayCard, findBotPayment, chooseBestPayment } from './game/botPaymentSolver.js';
-export { estimateEffort, pickTargetCard, scorePearlSlot, bestPearlSlotByScore, getStrategyWeights } from './game/botPearlScorer.js';
+export { estimateEffort, pickTargetCard, scorePearlSlot, scoredPearlSlots, bestPearlSlotByScore, getStrategyWeights } from './game/botPearlScorer.js';
 export type { PearlWeights } from './game/botPearlScorer.js';
