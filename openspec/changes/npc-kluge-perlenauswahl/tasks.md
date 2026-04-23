@@ -33,6 +33,6 @@
 
 ## 5. Integration Tests
 
-- [ ] 5.1 Test für `pickPearlAction`: nützliche Perle vorhanden → wird gewählt
-- [ ] 5.2 Test für `pickPearlAction`: keine nützliche Perle → replacePearlSlots
-- [ ] 5.3 Test für `pickPearlAction`: Hand voll, alle nützlich → keine Perle nehmen
+- [x] 5.1 Test für `pickPearlAction`: nützliche Perle vorhanden → wird gewählt
+- [x] 5.2 Test für `pickPearlAction`: keine nützliche Perle → replacePearlSlots
+- [x] 5.3 Test für `pickPearlAction`: Hand voll, alle nützlich → keine Perle nehmen
