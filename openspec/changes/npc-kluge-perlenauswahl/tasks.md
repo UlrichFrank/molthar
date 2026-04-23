@@ -24,12 +24,12 @@
 
 ## 4. Neues Pearl-Entscheidungsmodell in Bots
 
-- [ ] 4.1 Hilfsfunktion `pickPearlAction(G, playerID, strategy)` in `backend/src/bots/pearlDecision.ts` — kapselt die gesamte neue Logik
-- [ ] 4.2 `GierBot` — Pearl-Entscheidung auf `pickPearlAction` umstellen
-- [ ] 4.3 `EdelsteinBot` — Pearl-Entscheidung auf `pickPearlAction` umstellen
-- [ ] 4.4 `WendelinBot` — Pearl-Entscheidung auf `pickPearlAction` umstellen
-- [ ] 4.5 `RalfBot` — Pearl-Entscheidung auf `pickPearlAction` umstellen
-- [ ] 4.6 `IrrnisBot` — Handlimit-Schutz integrieren (filtere nutzlose takePearlCard-Aktionen wenn Hand voll und alle Karten nützlich)
+- [x] 4.1 Hilfsfunktion `pickPearlAction(G, playerID, strategy)` in `backend/src/bots/pearlDecision.ts` — kapselt die gesamte neue Logik
+- [x] 4.2 `GierBot` — Pearl-Entscheidung auf `pickPearlAction` umstellen
+- [x] 4.3 `EdelsteinBot` — Pearl-Entscheidung auf `pickPearlAction` umstellen
+- [x] 4.4 `WendelinBot` — Pearl-Entscheidung auf `pickPearlAction` umstellen
+- [x] 4.5 `RalfBot` — Pearl-Entscheidung auf `pickPearlAction` umstellen
+- [x] 4.6 `IrrnisBot` — Handlimit-Schutz integrieren (filtere nutzlose takePearlCard-Aktionen wenn Hand voll und alle Karten nützlich)
 
 ## 5. Integration Tests
 

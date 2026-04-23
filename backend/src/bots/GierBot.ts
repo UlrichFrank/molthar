@@ -5,11 +5,12 @@
  */
 
 import type { GameState } from '@portale-von-molthar/shared';
-import { canPayCard, findBotPayment, scoredPearlSlots } from '@portale-von-molthar/shared';
+import { canPayCard, findBotPayment } from '@portale-von-molthar/shared';
 import type { BotAction } from './enumerate';
 import { resolvePending } from './pending';
 import { softmaxPick, STRATEGY_TEMPERATURES } from './softmax';
 import { getTimingMultiplier } from './timing';
+import { pickPearlAction } from './pearlDecision';
 
 const T = STRATEGY_TEMPERATURES.greedy;
 
@@ -49,13 +50,9 @@ export function GierBot(
     return { move: 'takeCharacterCard', args: [bestIdx] };
   }
 
-  // 3. Take pearl — Softmax über Slot-Scores
-  const slots = scoredPearlSlots(G, playerID, 'greedy');
-  if (slots.length > 0) {
-    const scored = slots.map(s => ({ item: s.slot, score: s.score }));
-    const bestSlot = softmaxPick(scored, T);
-    return { move: 'takePearlCard', args: [bestSlot] };
-  }
+  // 3. Take pearl — needs-aware decision
+  const pearlAction = pickPearlAction(G, playerID, 'greedy');
+  if (pearlAction) return pearlAction;
 
   return { event: 'endTurn' };
 }

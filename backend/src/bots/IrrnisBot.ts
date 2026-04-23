@@ -6,6 +6,7 @@
  */
 
 import type { GameState } from '@portale-von-molthar/shared';
+import { computeNeededValues } from '@portale-von-molthar/shared';
 import type { BotAction } from './enumerate';
 import { enumerateMoves } from './enumerate';
 import { getTimingMultiplier } from './timing';
@@ -15,8 +16,25 @@ export function IrrnisBot(
   ctx: { currentPlayer: string },
   playerID: string,
 ): BotAction {
-  const moves = enumerateMoves(G, ctx, playerID, 'random');
+  let moves = enumerateMoves(G, ctx, playerID, 'random');
   if (moves.length === 0) return { event: 'endTurn' };
+
+  // Handlimit-Schutz: wenn Hand voll und keine Perle nützlich, takePearlCard entfernen
+  const player = G.players[playerID];
+  if (player) {
+    const handLimit = 5 + player.handLimitModifier;
+    if (player.hand.length >= handLimit) {
+      const neededValues = computeNeededValues(
+        player.portal.map(e => e.card),
+        player.hand,
+        player.diamondCards.length,
+        player.activeAbilities,
+      );
+      if (neededValues.size === 0) {
+        moves = moves.filter(m => !('move' in m && m.move === 'takePearlCard'));
+      }
+    }
+  }
 
   const timingMult = getTimingMultiplier(G, playerID);
 
