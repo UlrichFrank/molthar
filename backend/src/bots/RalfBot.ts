@@ -5,11 +5,12 @@
  */
 
 import type { GameState, CharacterCard } from '@portale-von-molthar/shared';
-import { canPayCard, findBotPayment, scoredPearlSlots } from '@portale-von-molthar/shared';
+import { canPayCard, findBotPayment } from '@portale-von-molthar/shared';
 import type { BotAction } from './enumerate';
 import { resolvePending } from './pending';
 import { softmaxPick, STRATEGY_TEMPERATURES } from './softmax';
 import { getTimingMultiplier } from './timing';
+import { pickPearlAction } from './pearlDecision';
 
 const T = STRATEGY_TEMPERATURES.aggressive;
 const RED_PRIORITY_ABILITIES = ['discardOpponentCharacter', 'stealOpponentHandCard'];
@@ -53,13 +54,9 @@ export function RalfBot(
     return { move: 'takeCharacterCard', args: [bestIdx] };
   }
 
-  // 3. Take pearl — Softmax über Slot-Scores (hoher Contest-Weight = defensiv)
-  const slots = scoredPearlSlots(G, playerID, 'aggressive');
-  if (slots.length > 0) {
-    const scored = slots.map(s => ({ item: s.slot, score: s.score }));
-    const bestSlot = softmaxPick(scored, T);
-    return { move: 'takePearlCard', args: [bestSlot] };
-  }
+  // 3. Take pearl — needs-aware decision
+  const pearlAction = pickPearlAction(G, playerID, 'aggressive');
+  if (pearlAction) return pearlAction;
 
   return { event: 'endTurn' };
 }

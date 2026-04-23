@@ -6,11 +6,12 @@
  */
 
 import type { GameState } from '@portale-von-molthar/shared';
-import { canPayCard, findBotPayment, scoredPearlSlots, estimateEffort } from '@portale-von-molthar/shared';
+import { canPayCard, findBotPayment, estimateEffort } from '@portale-von-molthar/shared';
 import type { BotAction } from './enumerate';
 import { resolvePending } from './pending';
 import { softmaxPick, STRATEGY_TEMPERATURES } from './softmax';
 import { getTimingMultiplier } from './timing';
+import { pickPearlAction } from './pearlDecision';
 
 const T = STRATEGY_TEMPERATURES.efficient;
 
@@ -67,13 +68,9 @@ export function WendelinBot(
     }
   }
 
-  // 3. Take pearl — Softmax über Slot-Scores
-  const slots = scoredPearlSlots(G, playerID, 'efficient');
-  if (slots.length > 0) {
-    const scored = slots.map(s => ({ item: s.slot, score: s.score }));
-    const bestSlot = softmaxPick(scored, T);
-    return { move: 'takePearlCard', args: [bestSlot] };
-  }
+  // 3. Take pearl — needs-aware decision
+  const pearlAction = pickPearlAction(G, playerID, 'efficient');
+  if (pearlAction) return pearlAction;
 
   return { event: 'endTurn' };
 }
