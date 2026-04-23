@@ -249,25 +249,27 @@ export class BotRunner {
       // --- NPC DEBUG LOG ---
       const dbgPlayer = currentG?.players?.[bot.playerID];
       if (dbgPlayer) {
-        const hand = (dbgPlayer.hand as any[]).map((p: any) => p.value).join(',');
         const diamonds = (dbgPlayer.diamondCards as any[]).length;
-        const portalLines = (dbgPlayer.portal as any[]).map((entry: any, i: number) => {
+        const hand = (dbgPlayer.hand as any[]).map((p: any) => String(p.value)).join('  ') || '–';
+        const auslage = (currentG.pearlSlots as any[]).map((p: any) => p ? String(p.value) : '–').join('  ');
+        const portalLines = (dbgPlayer.portal as any[]).map((entry: any) => {
           const payable = canPayCard(entry.card, dbgPlayer.hand, diamonds);
-          const cost = JSON.stringify(entry.card.cost);
-          return `  [${i}] ${entry.card.name} (${entry.card.powerPoints}pts) cost=${cost} canPay=${payable ? 'YES' : 'NO'}`;
+          const cost = formatCost(entry.card.cost);
+          const pad = ' '.repeat(Math.max(0, 22 - entry.card.name.length));
+          return `  ${entry.card.name}${pad}(${entry.card.powerPoints}pts)  [${cost}]  → ${payable ? 'JA' : 'NEIN'}`;
         });
-        const auslage = (currentG.pearlSlots as any[])
-          .map((p: any, i: number) => p ? `[${i}]${p.value}` : `[${i}]-`)
-          .join(' ');
+        const sep = '─'.repeat(52);
         console.log(
-          `[NPC pid=${bot.playerID} action=${currentG.actionCount as number}/${currentG.maxActions as number}] hand=[${hand}] diamonds=${diamonds} auslage=${auslage}\n` +
-          (portalLines.length ? portalLines.join('\n') : '  (kein Portal)')
+          `${sep}\n` +
+          `${dbgPlayer.name}  |  Aktion ${currentG.actionCount as number}/${currentG.maxActions as number}\n` +
+          `  Hand: ${hand}    Auslage: ${auslage}   ◆${diamonds}\n` +
+          (portalLines.length ? portalLines.join('\n') : '  Portal: (leer)'),
         );
       }
       // --- END DEBUG LOG ---
 
       const decision = bot.strategy(currentG, currentCtx, bot.playerID);
-      console.log(`  → ${JSON.stringify(decision)}`);
+      console.log(`  ➜ ${formatDecision(decision, currentG, bot.playerID)}`);
 
       if ('event' in decision) {
         (bot.client as any).events?.[decision.event]?.();
@@ -299,4 +301,87 @@ export class BotRunner {
 
 function randomDelay(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function formatCost(cost: any[]): string {
+  if (!cost?.length) return '–';
+  return cost.map((c: any) => {
+    switch (c.type) {
+      case 'number':      return String(c.value);
+      case 'nTuple':      return `${c.n}×${c.value}`;
+      case 'sumAnyTuple': return `∑${c.sum}`;
+      case 'sumTuple':    return `∑${c.sum}(${c.n}×)`;
+      case 'run':         return `Folge×${c.length}`;
+      case 'evenTuple':   return `gerade×${c.n}`;
+      case 'oddTuple':    return `ungerade×${c.n}`;
+      case 'diamond':     return `◆${c.value ?? 1}`;
+      case 'tripleChoice': return `${c.value1}|${c.value2}`;
+      default:            return c.type;
+    }
+  }).join(' + ');
+}
+
+function formatDecision(decision: any, G: any, playerID: string): string {
+  if ('event' in decision) return 'Zug beenden';
+  const { move, args } = decision;
+  switch (move) {
+    case 'takePearlCard': {
+      const slot = args?.[0] as number;
+      if (slot === -1) {
+        const next = (G?.pearlDeck as any[])?.at(-1);
+        return next ? `Perle blind ziehen (nächste wäre: ${next.value as number})` : 'Perle blind ziehen';
+      }
+      const pearl = G?.pearlSlots?.[slot];
+      return pearl ? `Perle ${pearl.value as number} nehmen (Slot ${slot})` : `Perle Slot ${slot}`;
+    }
+    case 'replacePearlSlots':
+      return 'Alle Perlenslots ersetzen';
+    case 'activatePortalCard': {
+      const idx = args?.[0] as number;
+      const player = (G?.players as any)?.[playerID];
+      const entry = player?.portal?.[idx];
+      const cardName = (entry?.card?.name as string) ?? `Portal-Slot ${idx}`;
+      const payment = args?.[1] as any[];
+      const pearls = payment?.map((s: any) => s.value).join(' + ') ?? '?';
+      return `Aktiviere: ${cardName}  (zahle: ${pearls})`;
+    }
+    case 'takeCharacterCard': {
+      const slotIdx = args?.[0] as number;
+      const replaceIdx = args?.[1] as number | undefined;
+      let cardName: string;
+      if (slotIdx === -1) {
+        const next = (G?.characterDeck as any[])?.at(-1);
+        cardName = next ? `${next.name as string} (blind)` : '(blind)';
+      } else {
+        const card = (G?.characterSlots as any[])?.[slotIdx];
+        cardName = card ? `${card.name as string} (${card.powerPoints as number}pts)` : `Slot ${slotIdx}`;
+      }
+      if (replaceIdx !== undefined) {
+        const player = (G?.players as any)?.[playerID];
+        const replaced = player?.portal?.[replaceIdx];
+        const replacedName = (replaced?.card?.name as string) ?? `Portal-Slot ${replaceIdx}`;
+        return `Charakterkarte nehmen: ${cardName}  → wirft ab: ${replacedName}`;
+      }
+      return `Charakterkarte nehmen: ${cardName}`;
+    }
+    case 'resolveStealOpponentHandCard': {
+      const targetID = args?.[0] as string;
+      const cardIdx = args?.[1] as number;
+      const targetPlayer = (G?.players as any)?.[targetID];
+      const stolenCard = targetPlayer?.hand?.[cardIdx];
+      const stolen = stolenCard ? ` (Perle ${stolenCard.value as number})` : '';
+      return `Stehle Karte von ${(targetPlayer?.name as string) ?? targetID}${stolen}`;
+    }
+    case 'resolveDiscardOpponentCharacter': {
+      const targetID = args?.[0] as string;
+      const targetPlayer = (G?.players as any)?.[targetID];
+      return `Entfernt Portalzielkarte von ${(targetPlayer?.name as string) ?? targetID}`;
+    }
+    case 'resolveReturnPearl':
+      return 'Perle zurückholen';
+    case 'dismissReturnPearlDialog':
+      return 'Perle zurückholen: keine verfügbar';
+    default:
+      return `${move}`;
+  }
 }
