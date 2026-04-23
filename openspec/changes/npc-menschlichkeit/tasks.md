@@ -15,11 +15,11 @@
 
 ## 4. Bot-Anpassungen
 
-- [ ] 4.1 `GierBot` — Softmax für Perlen-, Charakter- und Aktivierungsauswahl + Timing
-- [ ] 4.2 `EdelsteinBot` — Softmax für Perlen-, Charakter- und Aktivierungsauswahl + Timing
-- [ ] 4.3 `WendelinBot` — Softmax für Perlen-, Charakter- und Aktivierungsauswahl + Timing
-- [ ] 4.4 `RalfBot` — Softmax für Perlen-, Charakter- und Aktivierungsauswahl + Timing
-- [ ] 4.5 `IrrnisBot` — nur Timing-Multiplikator (kein Softmax, bleibt zufällig)
+- [x] 4.1 `GierBot` — Softmax für Perlen-, Charakter- und Aktivierungsauswahl + Timing
+- [x] 4.2 `EdelsteinBot` — Softmax für Perlen-, Charakter- und Aktivierungsauswahl + Timing
+- [x] 4.3 `WendelinBot` — Softmax für Perlen-, Charakter- und Aktivierungsauswahl + Timing
+- [x] 4.4 `RalfBot` — Softmax für Perlen-, Charakter- und Aktivierungsauswahl + Timing
+- [x] 4.5 `IrrnisBot` — nur Timing-Multiplikator (kein Softmax, bleibt zufällig)
 
 ## 5. Tests
 
