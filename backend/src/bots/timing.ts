@@ -1,35 +1,53 @@
 /**
- * timing.ts — Endgame-Timing-Awareness für NPC-Bots.
+ * timing.ts — kontinuierliches Endgame-Timing für NPC-Bots.
  *
- * Gibt einen Multiplikator zurück, der steuert wie stark Bots
- * Punkt-Aktivierungen priorisieren sollen:
- *   1.8 — Endspurt (eigene Punkte ≥ 9)
- *   1.4 — Gegner führt (max. Gegner-Punkte ≥ 9, eigene < 9)
- *   1.0 — Normal
+ * Der Multiplikator wird aus drei additiven Druck-Signalen gebildet:
+ *   own_pressure   — eigene Punkte über der Schwelle
+ *   leader_pressure — führender Gegner über der Schwelle
+ *   deck_pressure  — wie leer der Nachziehstapel ist
+ *
+ * Zusammen ergibt das einen Wert im Bereich [1.0, ~2.7]. Höher = Bots
+ * gewichten Aktivierungspunkte stärker als andere Signale.
  */
 
 import type { GameState } from '@portale-von-molthar/shared';
 
+/** Gewicht der eigenen Punkte oberhalb `PRESSURE_THRESHOLD`. */
+export const URGENCY_OWN = 0.9;
+/** Gewicht des führenden Gegners oberhalb `PRESSURE_THRESHOLD`. */
+export const URGENCY_OPP = 0.5;
+/** Gewicht des Deck-Endes (steigt linear von deck=30 gegen 0). */
+export const URGENCY_DECK = 0.3;
+
+const PRESSURE_THRESHOLD = 6;
+const PRESSURE_SPAN = 6; // 6..12 → 0..1
+const DECK_SPAN = 30;
+
 /**
- * Berechnet den Timing-Multiplikator für die Aktivierungspriorisierung.
- * Höherer Wert = Punkte werden stärker gewichtet.
+ * Kontinuierlicher Timing-Multiplikator für Bot-Aktivierungspriorisierung.
+ * Monoton steigend in own_pts, leader_pts, sowie fallendem Deck.
  */
 export function getTimingMultiplier(G: GameState, playerID: string): number {
   const player = G.players[playerID];
   if (!player) return 1.0;
 
-  const ownPoints = player.powerPoints;
-
-  if (ownPoints >= 9) return 1.8;
-
-  const maxOpponentPoints = Math.max(
+  const ownPts = player.powerPoints;
+  const leaderPts = Math.max(
     0,
     ...Object.values(G.players)
       .filter(p => p.id !== playerID)
       .map(p => p.powerPoints),
   );
+  const deckSize = G.pearlDeck.length;
 
-  if (maxOpponentPoints >= 9) return 1.4;
+  const ownPressure = Math.min(1, Math.max(0, (ownPts - PRESSURE_THRESHOLD) / PRESSURE_SPAN));
+  const oppPressure = Math.min(1, Math.max(0, (leaderPts - PRESSURE_THRESHOLD) / PRESSURE_SPAN));
+  const deckPressure = Math.min(1, Math.max(0, (DECK_SPAN - deckSize) / DECK_SPAN));
 
-  return 1.0;
+  return (
+    1.0 +
+    URGENCY_OWN * ownPressure +
+    URGENCY_OPP * oppPressure +
+    URGENCY_DECK * deckPressure
+  );
 }

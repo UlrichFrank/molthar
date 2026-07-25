@@ -1,7 +1,7 @@
 import type { NpcStrategy, NpcSlotConfig } from '@portale-von-molthar/shared';
 import { useTranslation } from '../i18n/useTranslation';
 
-const NPC_STRATEGIES: NpcStrategy[] = ['random', 'greedy', 'diamond', 'efficient', 'aggressive'];
+const NPC_STRATEGIES: NpcStrategy[] = ['efficient', 'aggressive', 'diamond'];
 const STRATEGY_NAMES: Record<NpcStrategy, string> = {
   random: 'create.npcStrategy.random',
   greedy: 'create.npcStrategy.greedy',
@@ -12,8 +12,8 @@ const STRATEGY_NAMES: Record<NpcStrategy, string> = {
 
 const NPC_NAMES: Record<NpcStrategy, string> = {
   random: 'Irrnis der Zufallsgeist',
-  greedy: 'Gier von Goldbach',
-  diamond: 'Edelstein-Erda',
+  greedy: 'Weiser Wendelin',
+  diamond: 'Edelsteinsammlerin Erda',
   efficient: 'Weiser Wendelin',
   aggressive: 'Raubritter Ralf',
 };

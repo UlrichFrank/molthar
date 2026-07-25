@@ -55,8 +55,9 @@ export function enumerateMoves(
       p => p.id !== playerID && p.portal.length > 0,
     );
     for (const opp of opponents) {
-      for (let i = 0; i < opp.portal.length; i++) {
-        actions.push({ move: 'resolveDiscardOpponentCharacter', args: [opp.id, i] });
+      for (const entry of opp.portal) {
+        // resolveDiscardOpponentCharacter expects (targetPlayerId, portalEntryId)
+        actions.push({ move: 'resolveDiscardOpponentCharacter', args: [opp.id, entry.id] });
       }
     }
     return actions;
@@ -122,6 +123,24 @@ export function enumerateMoves(
 
   // replacePearlSlots
   actions.push({ move: 'replacePearlSlots', args: [] });
+
+  // Blue-ability moves (free, no action cost) — only enumerated when the
+  // player holds the persistent ability. Boardgame.io still validates guards.
+  if (player.activeAbilities.some(a => a.type === 'previewCharacter') && G.actionCount === 0) {
+    actions.push({ move: 'peekCharacterDeck', args: [] });
+  }
+  if (player.activeAbilities.some(a => a.type === 'changeCharacterActions') && G.actionCount === 0) {
+    for (let p = 0; p < player.portal.length; p++) {
+      for (let t = 0; t < G.characterSlots.length; t++) {
+        actions.push({ move: 'swapPortalCharacter', args: [p, t] });
+      }
+    }
+  }
+  if (player.activeAbilities.some(a => a.type === 'tradeTwoForDiamond')) {
+    for (let h = 0; h < player.hand.length; h++) {
+      if (player.hand[h]?.value === 2) actions.push({ move: 'tradeForDiamond', args: [h] });
+    }
+  }
 
   // endTurn (always available once actions are used)
   actions.push({ event: 'endTurn' });

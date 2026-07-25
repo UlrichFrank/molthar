@@ -1,16 +1,35 @@
 /**
- * EdelsteinBot — "Edelstein-Erda"
- * Strategy: diamond — prioritises characters with the most diamond rewards.
- * Pearl selection uses strategy-aware scoring targeting the diamond-richest card.
+ * EdelsteinBot — "Edelsteinsammlerin Erda" (Engine-First)
+ * Strategy: diamond — build a diamond-based engine, then leverage it for late
+ * high-cost activations.
+ *
+ * Smart Core hooks:
+ *  - resolvePending
+ *  - pickBlueAbilityAction (uses tradeForDiamond eagerly — diamond bot loves it)
+ *  - evaluatePortalSwap (scoreCardForStrategy gives blue-modifier +4 bonus)
+ *  - kontinuierliches Timing
+ *  - pearl decision denyThreshold=0.7 → moderate contest bias
+ *
+ * Personality delta:
+ *  - Card score:      diamonds*3 + powerPoints + blueModifierBonus
+ *  - Early phase:     prefer diamond-rich even at lower points
+ *  - Softmax T:       0.9 (methodical but flexible)
  */
 
 import type { GameState } from '@portale-von-molthar/shared';
-import { canPayCard, findBotPayment } from '@portale-von-molthar/shared';
+import {
+  canPayCard,
+  findBotPayment,
+  estimateEffort,
+  evaluatePortalSwap,
+  scoreCardForStrategy,
+} from '@portale-von-molthar/shared';
 import type { BotAction } from './enumerate';
 import { resolvePending } from './pending';
 import { softmaxPick, STRATEGY_TEMPERATURES } from './softmax';
 import { getTimingMultiplier } from './timing';
 import { pickPearlAction } from './pearlDecision';
+import { pickBlueAbilityAction } from './blueAbilities';
 
 const T = STRATEGY_TEMPERATURES.diamond;
 
@@ -25,12 +44,16 @@ export function EdelsteinBot(
   const pending = resolvePending(G, playerID, 'diamond');
   if (pending) return pending;
 
-  const timingMult = getTimingMultiplier(G, playerID);
+  const blue = pickBlueAbilityAction(G, playerID, 'diamond');
+  if (blue) return blue;
 
-  // 1. Activate payable portal card — Softmax gewichtet nach Diamonds + Punkten × Timing
+  const timingMult = getTimingMultiplier(G, playerID);
+  const diamonds = player.diamondCards.length;
+
+  // 1. Activate payable portal card — diamonds weighted x3.
   const activatable = player.portal
     .map((entry, i) => ({ entry, i }))
-    .filter(({ entry }) => canPayCard(entry.card, player.hand, player.diamondCards.length));
+    .filter(({ entry }) => canPayCard(entry.card, player.hand, diamonds));
 
   if (activatable.length > 0) {
     const scored = activatable.map(a => ({
@@ -38,24 +61,32 @@ export function EdelsteinBot(
       score: a.entry.card.diamonds * 3 + a.entry.card.powerPoints * timingMult,
     }));
     const chosen = softmaxPick(scored, T);
-    const payment = findBotPayment(chosen.entry.card, player.hand, player.diamondCards.length, 'diamond');
+    const payment = findBotPayment(chosen.entry.card, player.hand, diamonds, 'diamond');
     if (payment) return { move: 'activatePortalCard', args: [chosen.i, payment] };
   }
 
-  // 2. Take character card — Softmax gewichtet nach Diamonds, Tiebreak Punkte
-  if (player.portal.length < 2 && G.characterSlots.length > 0) {
-    const scored = G.characterSlots.map((card, i) => ({
-      item: i,
-      score: card.diamonds * 3 + card.powerPoints,
+  // 2. Character card — take or swap. Diamond + blue-modifier bonuses via scoreCardForStrategy.
+  if (G.characterSlots.length > 0) {
+    const candidateScored = G.characterSlots.map((card, displayIdx) => ({
+      item: { card, displayIdx },
+      score: scoreCardForStrategy(card, 'diamond', estimateEffort(card, player.hand, diamonds)),
     }));
-    const bestIdx = softmaxPick(scored, T);
-    return { move: 'takeCharacterCard', args: [bestIdx] };
+
+    if (candidateScored.length > 0) {
+      const best = softmaxPick(candidateScored, T);
+      if (player.portal.length < 2) {
+        return { move: 'takeCharacterCard', args: [best.displayIdx] };
+      }
+      const swap = evaluatePortalSwap(G, playerID, best.card, 'diamond');
+      if (swap.swap && swap.portalSlot !== undefined) {
+        return { move: 'takeCharacterCard', args: [best.displayIdx, swap.portalSlot] };
+      }
+    }
   }
 
-  // 3. Take pearl — needs-aware decision
+  // 3. Pearl — needs-aware.
   const pearlAction = pickPearlAction(G, playerID, 'diamond');
   if (pearlAction) return pearlAction;
 
   return { event: 'endTurn' };
 }
-
