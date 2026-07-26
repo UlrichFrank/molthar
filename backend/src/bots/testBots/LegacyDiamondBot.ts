@@ -1,19 +1,17 @@
 /**
- * EdelsteinBot — "Edelsteinsammlerin Erda" (Engine-First)
- * Strategy: diamond — build a diamond-based engine, then leverage it for late
- * high-cost activations.
+ * LegacyDiamondBot — Snapshot of the pre-personas EdelsteinBot (commit d87cce1).
  *
- * Smart Core hooks:
- *  - resolvePending
- *  - pickBlueAbilityAction (uses tradeForDiamond eagerly — diamond bot loves it)
- *  - evaluatePortalSwap (scoreCardForStrategy gives blue-modifier +4 bonus)
- *  - kontinuierliches Timing
- *  - pearl decision denyThreshold=0.7 → moderate contest bias
+ * Used only in verify.ts control tournaments (see run.ts `--legacy-diamond`)
+ * to measure whether the new persona bots outperform the previous Meta-Sieger
+ * strategy. **Never imported into the production bot factory** (`bots/index.ts`).
  *
- * Personality delta:
- *  - Card score:      diamonds*3 + powerPoints + blueModifierBonus
- *  - Early phase:     prefer diamond-rich even at lower points
- *  - Softmax T:       0.9 (methodical but flexible)
+ * Kept 1:1 as the git-restored code — DO NOT extend with new features/fixes,
+ * otherwise the comparison stops being a fair baseline.
+ *
+ * Original header:
+ *   EdelsteinBot — "Edelsteinsammlerin Erda" (Engine-First)
+ *   Strategy: diamond — build a diamond-based engine, then leverage it for late
+ *   high-cost activations.
  */
 
 import type { GameState } from '@portale-von-molthar/shared';
@@ -24,16 +22,16 @@ import {
   evaluatePortalSwap,
   scoreCardForStrategy,
 } from '@portale-von-molthar/shared';
-import type { BotAction } from './enumerate';
-import { resolvePending } from './pending';
-import { softmaxPick, STRATEGY_TEMPERATURES } from './softmax';
-import { getTimingMultiplier } from './timing';
-import { pickPearlAction } from './pearlDecision';
-import { pickBlueAbilityAction } from './blueAbilities';
+import type { BotAction } from '../enumerate';
+import { resolvePending } from '../pending';
+import { softmaxPick, STRATEGY_TEMPERATURES } from '../softmax';
+import { getTimingMultiplier } from '../timing';
+import { pickPearlAction } from '../pearlDecision';
+import { pickBlueAbilityAction } from '../blueAbilities';
 
 const T = STRATEGY_TEMPERATURES.diamond;
 
-export function EdelsteinBot(
+export function LegacyDiamondBot(
   G: GameState,
   _ctx: { currentPlayer: string },
   playerID: string,
@@ -69,12 +67,7 @@ export function EdelsteinBot(
   if (G.characterSlots.length > 0) {
     const candidateScored = G.characterSlots.map((card, displayIdx) => ({
       item: { card, displayIdx },
-      score: scoreCardForStrategy(
-        card,
-        'diamond',
-        estimateEffort(card, player.hand, diamonds),
-        G.pearlDeck.length,
-      ),
+      score: scoreCardForStrategy(card, 'diamond', estimateEffort(card, player.hand, diamonds)),
     }));
 
     if (candidateScored.length > 0) {
@@ -82,7 +75,7 @@ export function EdelsteinBot(
       if (player.portal.length < 2) {
         return { move: 'takeCharacterCard', args: [best.displayIdx] };
       }
-      const swap = evaluatePortalSwap(G, playerID, best.card, 'diamond', G.pearlDeck.length);
+      const swap = evaluatePortalSwap(G, playerID, best.card, 'diamond');
       if (swap.swap && swap.portalSlot !== undefined) {
         return { move: 'takeCharacterCard', args: [best.displayIdx, swap.portalSlot] };
       }

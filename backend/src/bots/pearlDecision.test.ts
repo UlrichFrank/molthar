@@ -112,20 +112,41 @@ describe('pickPearlAction: nützliche Perle vorhanden', () => {
 // ---------------------------------------------------------------------------
 
 describe('pickPearlAction: keine nützliche Perle und Hand voll', () => {
-  it('gibt replacePearlSlots zurück wenn Hand voll und kein Bedarf gedeckt wird', () => {
+  it('gibt replacePearlSlots zurück wenn Hand voll und benötigter Wert im Deck steckt', () => {
     const portalCard = card([{ type: 'number', value: 8 }], 'card1');
-    // Hand schon voll (5 Karten), braucht 8, hat nur 2er und 3er im Markt
+    // Hand schon voll (5 Karten), braucht 8, hat nur 2er und 3er im Markt.
+    // Aber: Deck enthält eine 8 → refresh könnte Fortschritt bringen.
     const player = makePlayer({
       portal: [{ card: portalCard, entryOrder: 0 }],
       hand: [pearl(1), pearl(2), pearl(3), pearl(4), pearl(5)], // Hand voll (limit = 5)
     });
     const pearlSlots: (PearlCard | null)[] = [pearl(2), pearl(3), null, null];
     const G = makeGame(player, pearlSlots);
+    G.pearlDeck = [pearl(8, 'deck-8'), pearl(6, 'deck-6')];
 
     const action = pickPearlAction(G, '0', 'greedy');
 
     expect(action).not.toBeNull();
     expect(action).toMatchObject({ move: 'replacePearlSlots', args: [] });
+  });
+
+  it('gibt null zurück (endTurn) wenn Hand voll UND kein benötigter Wert in Deck+Discard', () => {
+    // Deadlock-Fix (npc-personas-verfeinern): refresh würde nichts bringen,
+    // wenn im gesamten Deck+Discard kein nützlicher Wert existiert → endTurn.
+    const portalCard = card([{ type: 'number', value: 8 }], 'card1');
+    const player = makePlayer({
+      portal: [{ card: portalCard, entryOrder: 0 }],
+      hand: [pearl(1), pearl(2), pearl(3), pearl(4), pearl(5)],
+    });
+    const pearlSlots: (PearlCard | null)[] = [pearl(2), pearl(3), null, null];
+    const G = makeGame(player, pearlSlots);
+    // Deck und Discard enthalten keine 8 → replacePearlSlots wäre fruchtlos
+    G.pearlDeck = [pearl(1, 'd1'), pearl(2, 'd2'), pearl(3, 'd3')];
+    G.pearlDiscardPile = [pearl(4, 'dis4'), pearl(5, 'dis5')];
+
+    const action = pickPearlAction(G, '0', 'greedy');
+
+    expect(action).toBeNull();
   });
 });
 
@@ -135,7 +156,8 @@ describe('pickPearlAction: keine nützliche Perle und Hand voll', () => {
 
 describe('pickPearlAction: Hand voll und alle Handkarten nützlich', () => {
   it('gibt replacePearlSlots zurück statt nutzlose Perle zu nehmen', () => {
-    // Bot hat Karte die {5, 6} benötigt, Hand voll mit nützlichen Perlen
+    // Bot hat Karte die {5, 6} benötigt, Hand voll mit nützlichen Perlen.
+    // Deck enthält eine 5 → refresh KANN helfen (Deadlock-Fix trifft nicht zu).
     const portalCard = card([
       { type: 'number', value: 5 },
       { type: 'number', value: 6 },
@@ -147,8 +169,9 @@ describe('pickPearlAction: Hand voll und alle Handkarten nützlich', () => {
     // Markt hat nur Werte die nicht in neededValues sind: {5, 6} fehlen, Markt hat {1, 2}
     const pearlSlots: (PearlCard | null)[] = [pearl(1), pearl(2), null, null];
     const G = makeGame(player, pearlSlots);
+    G.pearlDeck = [pearl(5, 'd5'), pearl(6, 'd6')];
 
-    // Hand voll (5 Karten), kein Kandidat im Markt → replacePearlSlots
+    // Hand voll (5 Karten), kein Kandidat im Markt aber refresh würde helfen → replacePearlSlots
     const action = pickPearlAction(G, '0', 'greedy');
 
     expect(action).not.toBeNull();

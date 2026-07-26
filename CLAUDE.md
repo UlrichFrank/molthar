@@ -98,6 +98,20 @@ make clean                # Remove build artifacts (dist/ folders)
 make clean-all            # Remove node_modules + dist + lock files
 ```
 
+### Deployment (vServer)
+```bash
+make deploy               # Build linux/amd64 → push ghcr.io → SSH pull + up
+make deploy-status        # Container status on vServer
+make deploy-logs          # Tail logs on vServer
+make deploy-rollback TAG=git-<sha>   # Roll back to a previously pushed version
+```
+
+Deployment layout lives under `deploy/`:
+- `deploy/traefik/` — Reverse proxy stack (Let's Encrypt wildcard via Netcup DNS-01)
+- `deploy/molthar/` — This app's compose stack (pulls images from ghcr.io)
+
+Full setup + troubleshooting: `deploy/README.md`.
+
 ## Architecture & Key Patterns
 
 ### Game State Management (boardgame.io)
@@ -229,3 +243,19 @@ Character cards have abilities in two tiers:
 ```
 
 The backend validates all declarations (ability active, card exists, diamonds available). `costCalculation.ts` remains unchanged — it receives a pre-built virtual hand.
+
+## NPC Simulation & Verification
+
+**Directory:** `backend/src/simulation/`
+
+- **`run.ts`** — Turnier-CLI. Wichtige Flags: `--strategies <list>`, `--games N`, `--diagnose-deadlock` (dumpt letzte 30 Züge abgebrochener Spiele als JSONL `[DEADLOCK gameId=...]`), `--legacy-diamond` (bindet Slot `greedy` an `LegacyDiamondBot` aus `bots/testBots/` — kein Factory-Pollution).
+- **`verify.ts`** — Erfolgskriterien-Check. Fährt zwei Turniere (Personas untereinander + Personas vs Legacy) und prüft drei Schwellen: `abortRate < 5%`, `avgRounds < 20`, `alle Personas > 55%` gegen Legacy. Exit 0 bei bestanden, 1 sonst. `pnpm tsx src/simulation/verify.ts [--games 300] [--seed X]`.
+- **`analyze-deadlocks.mjs`** — Post-hoc-Analyzer für `--diagnose-deadlock`-Output. Findet häufigste Move-Sequenzen und Punkte-Stagnation. Usage: `node src/simulation/analyze-deadlocks.mjs <path-to-jsonl>`.
+
+**Bot-Konfiguration:**
+- Drei Persona-Bots (Wendelin/Stratege, Ralf/Raubritter, Erda/Sammlerin) teilen `Smart Core`: `botPortalSwap.ts`, `botPearlScorer.ts` (mit `denyThreshold`), `timing.ts` (kontinuierlicher Multiplikator), `blueAbilities.ts` (peek/swap/trade/rehand).
+- Legacy-Alias: `greedy` → WendelinBot; `random` → IrrnisBot (nur Test); LegacyDiamondBot nur in Kontroll-Turnieren via `botOverrides`.
+
+**Deadlock-Fix:** `pickPearlAction` in `backend/src/bots/pearlDecision.ts` gibt `null` (→ endTurn) statt `replacePearlSlots` zurück, wenn Hand voll und kein benötigter Wert in Deck+Discard. Verhindert Endlos-Refresh-Schleifen.
+
+**rehand-Hook:** `engine.ts` ruft `pickBlueAbilityAction(..., { onlyEndOfTurn: true })` bevor `endTurn (maxActions)`-Automatik greift. Guard: `Set<${roundNumber}:${playerID}>` verhindert Doppel-Rehand.

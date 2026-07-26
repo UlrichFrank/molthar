@@ -172,3 +172,73 @@ describe('evaluatePortalSwap', () => {
     );
   });
 });
+
+// ---------------------------------------------------------------------------
+// scoreCardForStrategy — early-game diamond bonus + payability bonus
+// ---------------------------------------------------------------------------
+
+describe('scoreCardForStrategy — early-game diamond bonus', () => {
+  it('diamond strategy: diamond-rich card beats plain higher-pt card when deckSize > 15', () => {
+    const diamondRich = makeChar({ powerPoints: 3, diamonds: 3 });
+    const plain6 = makeChar({ powerPoints: 6, diamonds: 0 });
+    // deckSize > 15 → +3*3 = +9 bonus for diamondRich
+    // diamondRich (effort 0): 3*3 + 3 + 5 (payable) + 9 (early) = 26
+    // plain6    (effort 0): 6 + 5 (payable) = 11
+    const rich = scoreCardForStrategy(diamondRich, 'diamond', 0, 20);
+    const plain = scoreCardForStrategy(plain6, 'diamond', 0, 20);
+    expect(rich).toBeGreaterThan(plain);
+    expect(rich - plain).toBe(15);
+  });
+
+  it('diamond bonus is NOT applied when deckSize is undefined', () => {
+    const diamondRich = makeChar({ powerPoints: 3, diamonds: 3 });
+    // Without deckSize: 3*3 + 3 + 5 (payable) = 17 (no +9 early bonus)
+    expect(scoreCardForStrategy(diamondRich, 'diamond', 0)).toBe(17);
+  });
+
+  it('diamond bonus is NOT applied when deckSize <= 15', () => {
+    const diamondRich = makeChar({ powerPoints: 3, diamonds: 3 });
+    expect(scoreCardForStrategy(diamondRich, 'diamond', 0, 15)).toBe(17);
+    expect(scoreCardForStrategy(diamondRich, 'diamond', 0, 10)).toBe(17);
+  });
+
+  it('diamond bonus requires diamonds >= 2 even in early game', () => {
+    const oneDiamond = makeChar({ powerPoints: 4, diamonds: 1 });
+    // 1*3 + 4 + 5 (payable) = 12 → no early bonus for only 1 diamond
+    expect(scoreCardForStrategy(oneDiamond, 'diamond', 0, 20)).toBe(12);
+  });
+});
+
+describe('scoreCardForStrategy — payability bonus', () => {
+  it('payable low-pt card beats unpayable high-pt card (efficient)', () => {
+    const payableLow = makeChar({ powerPoints: 3, diamonds: 0 });
+    const unpayableHigh = makeChar({ powerPoints: 5, diamonds: 0 });
+    // efficient effort=0: 3 + 5 = 8; effort=3: 5/(3+1) = 1.25
+    expect(scoreCardForStrategy(payableLow, 'efficient', 0))
+      .toBeGreaterThan(scoreCardForStrategy(unpayableHigh, 'efficient', 3));
+  });
+
+  it('payable low-pt card beats unpayable high-pt card (aggressive)', () => {
+    const payableLow = makeChar({ powerPoints: 3, diamonds: 0 });
+    const unpayableHigh = makeChar({ powerPoints: 5, diamonds: 0 });
+    // aggressive effort=0: 3+5=8 vs effort=3: 5+0=5
+    expect(scoreCardForStrategy(payableLow, 'aggressive', 0))
+      .toBeGreaterThan(scoreCardForStrategy(unpayableHigh, 'aggressive', 3));
+  });
+
+  it('payable low-pt card beats unpayable high-pt card (diamond)', () => {
+    const payableLow = makeChar({ powerPoints: 3, diamonds: 0 });
+    const unpayableHigh = makeChar({ powerPoints: 5, diamonds: 0 });
+    // diamond effort=0: 0+3+5=8 vs effort=3: 0+5+0=5
+    expect(scoreCardForStrategy(payableLow, 'diamond', 0))
+      .toBeGreaterThan(scoreCardForStrategy(unpayableHigh, 'diamond', 3));
+  });
+
+  it('payable low-pt card beats unpayable high-pt card (greedy)', () => {
+    const payableLow = makeChar({ powerPoints: 3, diamonds: 0 });
+    const unpayableHigh = makeChar({ powerPoints: 5, diamonds: 0 });
+    // greedy effort=0: 3+5=8 vs effort=3: 5+0=5
+    expect(scoreCardForStrategy(payableLow, 'greedy', 0))
+      .toBeGreaterThan(scoreCardForStrategy(unpayableHigh, 'greedy', 3));
+  });
+});

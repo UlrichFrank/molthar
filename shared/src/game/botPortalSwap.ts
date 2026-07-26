@@ -33,26 +33,52 @@ function hasBlueModifier(card: CharacterCard): boolean {
 
 /**
  * Strategy-specific score for a character card, used for portal-slot comparison.
- * Higher = better. Effort is optional (only needed for efficient strategy).
+ * Higher = better.
+ *
+ * All strategies receive a **payability trump bonus** for cards that are payable
+ * right now (effort === 0). Without this, aggressive/diamond bots (which don't
+ * weight effort in their base score) can get stuck holding an unpayable portal
+ * while a payable display card would break the deadlock — fix from
+ * `npc-personas-verfeinern` deadlock analysis.
+ *
+ * @param deckSize optional pearl-deck size; enables the diamond early-game bonus
+ *   (deckSize > 15 && card.diamonds >= 2 → +3 * card.diamonds).
  */
+const PAYABILITY_BONUS = 5;
+
 export function scoreCardForStrategy(
   card: CharacterCard,
   strategy: NpcStrategy,
   effort: number,
+  deckSize?: number,
 ): number {
+  const payableBonus = effort === 0 ? PAYABILITY_BONUS : 0;
+  const diamondEarlyBonus =
+    strategy === 'diamond' && deckSize !== undefined && deckSize > 15 && card.diamonds >= 2
+      ? 3 * card.diamonds
+      : 0;
+
   switch (strategy) {
-    case 'efficient':
-      return effort === 0 ? card.powerPoints : card.powerPoints / (effort + 1);
+    case 'efficient': {
+      const base = effort === 0 ? card.powerPoints : card.powerPoints / (effort + 1);
+      return base + payableBonus;
+    }
     case 'diamond':
-      return card.diamonds * 3 + card.powerPoints + (hasBlueModifier(card) ? 4 : 0);
+      return (
+        card.diamonds * 3 +
+        card.powerPoints +
+        (hasBlueModifier(card) ? 4 : 0) +
+        payableBonus +
+        diamondEarlyBonus
+      );
     case 'aggressive':
-      return card.powerPoints + (hasRedAbility(card) ? 8 : 0);
+      return card.powerPoints + (hasRedAbility(card) ? 8 : 0) + payableBonus;
     case 'greedy':
-      return card.powerPoints;
+      return card.powerPoints + payableBonus;
     case 'random':
       return 0;
     default:
-      return card.powerPoints;
+      return card.powerPoints + payableBonus;
   }
 }
 
@@ -83,6 +109,7 @@ export function evaluatePortalSwap(
   playerID: string,
   candidateCard: CharacterCard,
   strategy: NpcStrategy,
+  deckSize?: number,
 ): PortalSwapDecision {
   const player = G.players[playerID];
   if (!player) return { swap: false, delta: 0 };
@@ -93,6 +120,7 @@ export function evaluatePortalSwap(
     candidateCard,
     strategy,
     estimateEffort(candidateCard, player.hand, diamonds),
+    deckSize,
   );
 
   const portalScores = player.portal.map((entry, i) => ({
@@ -101,6 +129,7 @@ export function evaluatePortalSwap(
       entry.card,
       strategy,
       estimateEffort(entry.card, player.hand, diamonds),
+      deckSize,
     ),
   }));
 

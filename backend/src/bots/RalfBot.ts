@@ -74,7 +74,12 @@ export function RalfBot(
   if (G.characterSlots.length > 0) {
     const candidateScored = G.characterSlots.map((card, displayIdx) => ({
       item: { card, displayIdx },
-      score: scoreCardForStrategy(card, 'aggressive', estimateEffort(card, player.hand, diamonds)),
+      score: scoreCardForStrategy(
+        card,
+        'aggressive',
+        estimateEffort(card, player.hand, diamonds),
+        G.pearlDeck.length,
+      ),
     }));
 
     if (candidateScored.length > 0) {
@@ -82,7 +87,7 @@ export function RalfBot(
       if (player.portal.length < 2) {
         return { move: 'takeCharacterCard', args: [best.displayIdx] };
       }
-      const swap = evaluatePortalSwap(G, playerID, best.card, 'aggressive');
+      const swap = evaluatePortalSwap(G, playerID, best.card, 'aggressive', G.pearlDeck.length);
       if (swap.swap && swap.portalSlot !== undefined) {
         return { move: 'takeCharacterCard', args: [best.displayIdx, swap.portalSlot] };
       }
