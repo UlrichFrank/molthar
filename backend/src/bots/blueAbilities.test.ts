@@ -106,6 +106,12 @@ const tradeAbility: CharacterAbility = {
   persistent: true,
   description: 'Trade 2-pearl for diamond',
 };
+const rehandAbility: CharacterAbility = {
+  id: 'ab-rehand',
+  type: 'changeHandActions',
+  persistent: true,
+  description: 'Rehand after last action',
+};
 
 describe('pickBlueAbilityAction — peekCharacterDeck', () => {
   it('returns peek when ability is active and turn just started', () => {
@@ -215,5 +221,37 @@ describe('pickBlueAbilityAction — precedence', () => {
     const G = makeGame(player);
     const action = pickBlueAbilityAction(G, '0', 'diamond');
     expect(action?.move).toBe('peekCharacterDeck');
+  });
+});
+
+describe('pickBlueAbilityAction — rehandCards (onlyEndOfTurn)', () => {
+  it('returns rehand when ability is active, hand cannot pay portal, and turn is ending', () => {
+    // Portal wants a 7; hand is a 2 → not payable, no diamonds.
+    const unpayable = makeChar({ cost: [{ type: 'number', value: 7 }] });
+    const player = makePlayer(
+      {
+        hand: [makePearl(2)],
+        portal: [{ id: 'a', card: unpayable, activated: false }],
+      },
+      [rehandAbility],
+    );
+    const G = makeGame(player, { actionCount: 3, maxActions: 3 });
+    const action = pickBlueAbilityAction(G, '0', 'greedy', { onlyEndOfTurn: true });
+    expect(action).toEqual({ move: 'rehandCards', args: [] });
+  });
+
+  it('returns null when the hand CAN pay a portal card', () => {
+    // Portal wants a 3; hand has a 3 → payable, no reason to rehand.
+    const payable = makeChar({ cost: [{ type: 'number', value: 3 }] });
+    const player = makePlayer(
+      {
+        hand: [makePearl(3)],
+        portal: [{ id: 'a', card: payable, activated: false }],
+      },
+      [rehandAbility],
+    );
+    const G = makeGame(player, { actionCount: 3, maxActions: 3 });
+    const action = pickBlueAbilityAction(G, '0', 'greedy', { onlyEndOfTurn: true });
+    expect(action).toBeNull();
   });
 });

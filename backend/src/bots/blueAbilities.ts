@@ -9,16 +9,18 @@
  *   1. peekCharacterDeck  — before first action, once per turn
  *   2. swapPortalCharacter — before first action, once per turn
  *   3. tradeForDiamond    — anytime, when a 2-pearl is worth trading
+ *   4. rehandCards        — end-of-turn only (actionCount ≥ maxActions),
+ *                            when hand can't afford any portal card
  *
- * Note on rehandCards: the engine auto-ends the turn when actionCount ≥
- * maxActions, so no bot hook is available at that point. See tasks.md for
- * follow-up work on this limitation.
+ * The `options.onlyEndOfTurn` flag restricts the dispatcher to handlers that
+ * are valid at turn-end (currently: rehandCards only). The simulation engine
+ * uses this to invoke rehandCards before auto-ending the turn.
  */
 
 import type { GameState, NpcStrategy, CharacterCard } from '@portale-von-molthar/shared';
-import { estimateEffort } from '@portale-von-molthar/shared';
+import { estimateEffort, canPayCard } from '@portale-von-molthar/shared';
 import { evaluatePortalSwap, scoreCardForStrategy } from '@portale-von-molthar/shared';
-import type { BotAction } from './enumerate';
+import type { MoveAction } from './enumerate';
 
 // ---------------------------------------------------------------------------
 // Public entry
@@ -28,10 +30,19 @@ export function pickBlueAbilityAction(
   G: GameState,
   playerID: string,
   strategy: NpcStrategy,
-): BotAction | null {
+  options?: { onlyEndOfTurn?: boolean },
+): MoveAction | null {
   const player = G.players[playerID];
   if (!player) return null;
   if (!player.activeAbilities || player.activeAbilities.length === 0) return null;
+
+  const onlyEndOfTurn = options?.onlyEndOfTurn === true;
+
+  if (onlyEndOfTurn) {
+    // End-of-turn handlers only — skip peek/swap/trade (all pre-first-action
+    // or anytime, and either useless or invalid once actionCount is at max).
+    return maybeRehand(G, playerID, strategy);
+  }
 
   // ─ Handler 1: peekCharacterDeck (before first action)
   const peek = maybePeek(G, playerID);
@@ -52,7 +63,7 @@ export function pickBlueAbilityAction(
 // Handlers
 // ---------------------------------------------------------------------------
 
-function maybePeek(G: GameState, playerID: string): BotAction | null {
+function maybePeek(G: GameState, playerID: string): MoveAction | null {
   const player = G.players[playerID];
   if (!player) return null;
   if (G.actionCount > 0) return null;
@@ -67,7 +78,7 @@ function maybeSwap(
   G: GameState,
   playerID: string,
   strategy: NpcStrategy,
-): BotAction | null {
+): MoveAction | null {
   const player = G.players[playerID];
   if (!player) return null;
   if (G.actionCount > 0) return null;
@@ -91,7 +102,7 @@ function maybeSwap(
       continue;
     }
 
-    const decision = evaluatePortalSwap(G, playerID, candidate, strategy);
+    const decision = evaluatePortalSwap(G, playerID, candidate, strategy, G.pearlDeck.length);
     if (decision.swap && decision.portalSlot !== undefined) {
       if (!best || decision.delta > best.delta) {
         best = { portalSlot: decision.portalSlot, tableSlot: tableIdx, delta: decision.delta };
@@ -107,7 +118,7 @@ function maybeTrade(
   G: GameState,
   playerID: string,
   strategy: NpcStrategy,
-): BotAction | null {
+): MoveAction | null {
   const player = G.players[playerID];
   if (!player) return null;
   if (!player.activeAbilities.some(a => a.type === 'tradeTwoForDiamond')) return null;
@@ -135,7 +146,7 @@ function maybeTrade(
     if (effort >= 2) {
       // Score gain from having one more diamond is roughly effort - 1.
       // Only trade when we're not close to activation via the 2.
-      const alsoLookScore = scoreCardForStrategy(target, strategy, effort);
+      const alsoLookScore = scoreCardForStrategy(target, strategy, effort, G.pearlDeck.length);
       if (alsoLookScore > 4) {
         return { move: 'tradeForDiamond', args: [twoIdx] };
       }
@@ -157,4 +168,36 @@ function pickHighestEffortPortalTarget(
     if (!best || effort > best.effort) best = { card: entry.card, effort };
   }
   return best?.card ?? null;
+}
+
+/**
+ * maybeRehand — fires at end of turn when the current hand is dead-weight.
+ *
+ * Only proposes `rehandCards` when:
+ *   - The player has the `changeHandActions` ability active
+ *   - actionCount >= maxActions (the move's server-side guard)
+ *   - Player has at least one portal card (something to save the hand for)
+ *   - The current hand cannot pay any portal card
+ *
+ * Doesn't call itself twice per turn — the engine tracks that separately.
+ */
+function maybeRehand(
+  G: GameState,
+  playerID: string,
+  _strategy: NpcStrategy,
+): MoveAction | null {
+  const player = G.players[playerID];
+  if (!player) return null;
+  if (!player.activeAbilities.some(a => a.type === 'changeHandActions')) return null;
+  if (G.actionCount < G.maxActions) return null;
+  if (player.portal.length === 0) return null;
+  if (player.hand.length === 0) return null;
+
+  const diamonds = player.diamondCards.length;
+  const anyPayable = player.portal.some(entry =>
+    canPayCard(entry.card, player.hand, diamonds),
+  );
+  if (anyPayable) return null;
+
+  return { move: 'rehandCards', args: [] };
 }

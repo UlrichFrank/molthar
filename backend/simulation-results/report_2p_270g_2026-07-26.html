@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NPC-Turnier Dashboard — 2P · 270 Spiele</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; padding: 24px; }
+  h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+  .meta { font-size: 0.85rem; color: #94a3b8; margin-bottom: 32px; }
+  .meta span { margin-right: 16px; }
+  .grid { display: grid; gap: 24px; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); }
+  .card { background: #1e293b; border-radius: 12px; padding: 20px; }
+  .card h2 { font-size: 1rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+  th { text-align: left; color: #64748b; font-weight: 500; padding: 6px 8px; border-bottom: 1px solid #334155; }
+  td { padding: 8px; border-bottom: 1px solid #1e293b; }
+  tr:last-child td { border-bottom: none; }
+  .bar-bg { background: #334155; border-radius: 4px; height: 8px; width: 100%; margin-top: 4px; }
+  .bar-fill { height: 8px; border-radius: 4px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+  .h2h-grid { display: grid; gap: 2px; font-size: 0.75rem; }
+  .h2h-cell { padding: 6px; text-align: center; border-radius: 4px; font-weight: 600; }
+  .h2h-label { padding: 6px; color: #64748b; font-size: 0.75rem; display: flex; align-items: center; }
+  .h2h-self { background: #334155; color: #64748b; }
+  canvas { max-height: 280px; }
+</style>
+</head>
+<body>
+
+<h1>NPC-Turnier Dashboard</h1>
+<div class="meta">
+  <span>📅 26.7.2026, 09:38:50</span>
+  <span>👥 2 Spieler</span>
+  <span>🎮 270 Spiele</span>
+  <span>⏱ 61.3s</span>
+  <span>🌱 Seed: <code>deadlock-fix-v1</code></span>
+  <span>⚠️ 9 abgebrochen</span>
+</div>
+
+<div class="grid">
+
+  <!-- Win Rate Table -->
+  <div class="card">
+    <h2>Gewinnrate</h2>
+    <table>
+      <thead><tr><th>Strategie</th><th>Gewinnrate</th><th>Ø Punkte</th><th>Ø Rang</th><th>Spiele</th></tr></thead>
+      <tbody>
+        <tr>
+            <td><span class="badge" style="background:#10b98122;color:#10b981">WendelinBot (efficient)</span></td>
+            <td>
+              <div>53.2%</div>
+              <div class="bar-bg"><div class="bar-fill" style="width:53.2%;background:#10b981"></div></div>
+            </td>
+            <td>10.8</td>
+            <td>1.47</td>
+            <td>173</td>
+          </tr><tr>
+            <td><span class="badge" style="background:#ef444422;color:#ef4444">RalfBot (aggressive)</span></td>
+            <td>
+              <div>51.1%</div>
+              <div class="bar-bg"><div class="bar-fill" style="width:51.1%;background:#ef4444"></div></div>
+            </td>
+            <td>10.5</td>
+            <td>1.49</td>
+            <td>174</td>
+          </tr><tr>
+            <td><span class="badge" style="background:#3b82f622;color:#3b82f6">EdelsteinBot (diamond)</span></td>
+            <td>
+              <div>45.7%</div>
+              <div class="bar-bg"><div class="bar-fill" style="width:45.7%;background:#3b82f6"></div></div>
+            </td>
+            <td>10.5</td>
+            <td>1.54</td>
+            <td>175</td>
+          </tr>
+      </tbody>
+    </table>
+  </div>
+
+  
+  <div class="card" style="grid-column: 1 / -1">
+    <h2>Head-to-Head Win-Rate (Zeile gewinnt gegen Spalte)</h2>
+    <div class="h2h-grid" style="grid-template-columns: 160px repeat(3, 1fr);">
+      <div class="h2h-label" style="font-weight:600;color:#e2e8f0">↓ vs →</div>
+      <div class="h2h-cell" style="background:#10b98122;color:#10b981;font-size:0.65rem">efficient</div>
+      <div class="h2h-cell" style="background:#ef444422;color:#ef4444;font-size:0.65rem">aggressive</div>
+      <div class="h2h-cell" style="background:#3b82f622;color:#3b82f6;font-size:0.65rem">diamond</div>
+      <div class="h2h-label"><span style="color:#10b981">efficient</span></div>
+      <div class="h2h-cell h2h-self">—</div>
+      <div class="h2h-cell" style="background:#15803d;color:#fff">54%</div>
+      <div class="h2h-cell" style="background:#15803d;color:#fff">55%</div>
+      <div class="h2h-label"><span style="color:#ef4444">aggressive</span></div>
+      <div class="h2h-cell" style="background:#b45309;color:#fff">46%</div>
+      <div class="h2h-cell h2h-self">—</div>
+      <div class="h2h-cell" style="background:#15803d;color:#fff">58%</div>
+      <div class="h2h-label"><span style="color:#3b82f6">diamond</span></div>
+      <div class="h2h-cell" style="background:#b45309;color:#fff">45%</div>
+      <div class="h2h-cell" style="background:#b45309;color:#fff">42%</div>
+      <div class="h2h-cell h2h-self">—</div>
+    </div>
+  </div>
+
+  <!-- Score Distribution Chart -->
+  <div class="card">
+    <h2>Punkteverteilung</h2>
+    <canvas id="scoreChart"></canvas>
+  </div>
+
+  <!-- Game Length Chart -->
+  <div class="card">
+    <h2>Spieldauer (Runden)</h2>
+    <canvas id="lengthChart"></canvas>
+  </div>
+
+</div>
+
+<script>
+const TOURNAMENT_DATA = {
+  "strategies": [
+    "efficient",
+    "aggressive",
+    "diamond"
+  ],
+  "strategyLabels": {
+    "efficient": "WendelinBot (efficient)",
+    "aggressive": "RalfBot (aggressive)",
+    "diamond": "EdelsteinBot (diamond)"
+  },
+  "strategyColors": {
+    "efficient": "#10b981",
+    "aggressive": "#ef4444",
+    "diamond": "#3b82f6"
+  },
+  "scoreDistribution": {
+    "efficient": {
+      "min": 0,
+      "max": 15,
+      "avg": 10.815028901734104,
+      "median": 12
+    },
+    "aggressive": {
+      "min": 0,
+      "max": 17,
+      "avg": 10.5,
+      "median": 12
+    },
+    "diamond": {
+      "min": 1,
+      "max": 16,
+      "avg": 10.451428571428572,
+      "median": 12
+    }
+  },
+  "games": [
+    {
+      "rounds": 34,
+      "aborted": false
+    },
+    {
+      "rounds": 29,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 20,
+      "aborted": false
+    },
+    {
+      "rounds": 68,
+      "aborted": true
+    },
+    {
+      "rounds": 19,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 21,
+      "aborted": false
+    },
+    {
+      "rounds": 33,
+      "aborted": false
+    },
+    {
+      "rounds": 29,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 39,
+      "aborted": false
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    },
+    {
+      "rounds": 31,
+      "aborted": false
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    },
+    {
+      "rounds": 21,
+      "aborted": false
+    },
+    {
+      "rounds": 28,
+      "aborted": false
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    },
+    {
+      "rounds": 29,
+      "aborted": false
+    },
+    {
+      "rounds": 29,
+      "aborted": false
+    },
+    {
+      "rounds": 22,
+      "aborted": false
+    },
+    {
+      "rounds": 20,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 28,
+      "aborted": false
+    },
+    {
+      "rounds": 21,
+      "aborted": false
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    },
+    {
+      "rounds": 28,
+      "aborted": false
+    },
+    {
+      "rounds": 23,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 29,
+      "aborted": false
+    },
+    {
+      "rounds": 28,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 80,
+      "aborted": true
+    },
+    {
+      "rounds": 20,
+      "aborted": false
+    },
+    {
+      "rounds": 19,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 28,
+      "aborted": false
+    },
+    {
+      "rounds": 31,
+      "aborted": false
+    },
+    {
+      "rounds": 20,
+      "aborted": false
+    },
+    {
+      "rounds": 29,
+      "aborted": false
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    },
+    {
+      "rounds": 20,
+      "aborted": false
+    },
+    {
+      "rounds": 80,
+      "aborted": true
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 32,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 32,
+      "aborted": false
+    },
+    {
+      "rounds": 23,
+      "aborted": false
+    },
+    {
+      "rounds": 33,
+      "aborted": false
+    },
+    {
+      "rounds": 36,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 29,
+      "aborted": false
+    },
+    {
+      "rounds": 22,
+      "aborted": false
+    },
+    {
+      "rounds": 32,
+      "aborted": false
+    },
+    {
+      "rounds": 90,
+      "aborted": true
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    },
+    {
+      "rounds": 50,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 32,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 33,
+      "aborted": false
+    },
+    {
+      "rounds": 31,
+      "aborted": false
+    },
+    {
+      "rounds": 36,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    },
+    {
+      "rounds": 21,
+      "aborted": false
+    },
+    {
+      "rounds": 28,
+      "aborted": false
+    },
+    {
+      "rounds": 30,
+      "aborted": false
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    },
+    {
+      "rounds": 60,
+      "aborted": false
+    },
+    {
+      "rounds": 22,
+      "aborted": false
+    },
+    {
+      "rounds": 21,
+      "aborted": false
+    },
+    {
+      "rounds": 29,
+      "aborted": false
+    },
+    {
+      "rounds": 33,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 31,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 33,
+      "aborted": false
+    },
+    {
+      "rounds": 31,
+      "aborted": false
+    },
+    {
+      "rounds": 36,
+      "aborted": false
+    },
+    {
+      "rounds": 19,
+      "aborted": false
+    },
+    {
+      "rounds": 73,
+      "aborted": true
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    },
+    {
+      "rounds": 23,
+      "aborted": false
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 33,
+      "aborted": false
+    },
+    {
+      "rounds": 31,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 20,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 20,
+      "aborted": false
+    },
+    {
+      "rounds": 22,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 21,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 36,
+      "aborted": false
+    },
+    {
+      "rounds": 21,
+      "aborted": false
+    },
+    {
+      "rounds": 31,
+      "aborted": false
+    },
+    {
+      "rounds": 33,
+      "aborted": false
+    },
+    {
+      "rounds": 41,
+      "aborted": false
+    },
+    {
+      "rounds": 34,
+      "aborted": false
+    },
+    {
+      "rounds": 40,
+      "aborted": false
+    },
+    {
+      "rounds": 21,
+      "aborted": false
+    },
+    {
+      "rounds": 30,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    },
+    {
+      "rounds": 17,
+      "aborted": false
+    },
+    {
+      "rounds": 23,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 19,
+      "aborted": false
+    },
+    {
+      "rounds": 22,
+      "aborted": false
+    },
+    {
+      "rounds": 31,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 28,
+      "aborted": false
+    },
+    {
+      "rounds": 32,
+      "aborted": false
+    },
+    {
+      "rounds": 29,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    },
+    {
+      "rounds": 23,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 30,
+      "aborted": false
+    },
+    {
+      "rounds": 28,
+      "aborted": false
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    },
+    {
+      "rounds": 23,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 19,
+      "aborted": false
+    },
+    {
+      "rounds": 29,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 30,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 20,
+      "aborted": false
+    },
+    {
+      "rounds": 30,
+      "aborted": false
+    },
+    {
+      "rounds": 29,
+      "aborted": false
+    },
+    {
+      "rounds": 30,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 17,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 22,
+      "aborted": false
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 22,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 77,
+      "aborted": true
+    },
+    {
+      "rounds": 28,
+      "aborted": false
+    },
+    {
+      "rounds": 28,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    },
+    {
+      "rounds": 28,
+      "aborted": false
+    },
+    {
+      "rounds": 91,
+      "aborted": true
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 22,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 23,
+      "aborted": false
+    },
+    {
+      "rounds": 23,
+      "aborted": false
+    },
+    {
+      "rounds": 34,
+      "aborted": false
+    },
+    {
+      "rounds": 32,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 29,
+      "aborted": false
+    },
+    {
+      "rounds": 21,
+      "aborted": false
+    },
+    {
+      "rounds": 19,
+      "aborted": false
+    },
+    {
+      "rounds": 44,
+      "aborted": false
+    },
+    {
+      "rounds": 23,
+      "aborted": false
+    },
+    {
+      "rounds": 23,
+      "aborted": false
+    },
+    {
+      "rounds": 28,
+      "aborted": false
+    },
+    {
+      "rounds": 61,
+      "aborted": true
+    },
+    {
+      "rounds": 36,
+      "aborted": false
+    },
+    {
+      "rounds": 21,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 21,
+      "aborted": false
+    },
+    {
+      "rounds": 34,
+      "aborted": false
+    },
+    {
+      "rounds": 29,
+      "aborted": false
+    },
+    {
+      "rounds": 29,
+      "aborted": false
+    },
+    {
+      "rounds": 40,
+      "aborted": false
+    },
+    {
+      "rounds": 20,
+      "aborted": false
+    },
+    {
+      "rounds": 20,
+      "aborted": false
+    },
+    {
+      "rounds": 23,
+      "aborted": false
+    },
+    {
+      "rounds": 65,
+      "aborted": false
+    },
+    {
+      "rounds": 22,
+      "aborted": false
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    },
+    {
+      "rounds": 32,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 31,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 38,
+      "aborted": false
+    },
+    {
+      "rounds": 53,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 29,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 28,
+      "aborted": false
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    },
+    {
+      "rounds": 80,
+      "aborted": true
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 23,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 29,
+      "aborted": false
+    },
+    {
+      "rounds": 18,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 33,
+      "aborted": false
+    },
+    {
+      "rounds": 29,
+      "aborted": false
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    },
+    {
+      "rounds": 28,
+      "aborted": false
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    },
+    {
+      "rounds": 28,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 28,
+      "aborted": false
+    },
+    {
+      "rounds": 33,
+      "aborted": false
+    },
+    {
+      "rounds": 26,
+      "aborted": false
+    },
+    {
+      "rounds": 21,
+      "aborted": false
+    },
+    {
+      "rounds": 29,
+      "aborted": false
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    },
+    {
+      "rounds": 31,
+      "aborted": false
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 29,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 20,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 31,
+      "aborted": false
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 35,
+      "aborted": false
+    },
+    {
+      "rounds": 28,
+      "aborted": false
+    },
+    {
+      "rounds": 24,
+      "aborted": false
+    },
+    {
+      "rounds": 38,
+      "aborted": false
+    },
+    {
+      "rounds": 23,
+      "aborted": false
+    },
+    {
+      "rounds": 30,
+      "aborted": false
+    },
+    {
+      "rounds": 27,
+      "aborted": false
+    },
+    {
+      "rounds": 23,
+      "aborted": false
+    },
+    {
+      "rounds": 19,
+      "aborted": false
+    },
+    {
+      "rounds": 25,
+      "aborted": false
+    }
+  ],
+  "avgGameLength": 26.977011494252874
+};
+
+// Score Distribution (grouped bar: min/avg/max per strategy)
+const scoreCtx = document.getElementById('scoreChart').getContext('2d');
+new Chart(scoreCtx, {
+  type: 'bar',
+  data: {
+    labels: TOURNAMENT_DATA.strategies.map(s => TOURNAMENT_DATA.strategyLabels[s]),
+    datasets: [
+      {
+        label: 'Min',
+        data: TOURNAMENT_DATA.strategies.map(s => TOURNAMENT_DATA.scoreDistribution[s]?.min ?? 0),
+        backgroundColor: TOURNAMENT_DATA.strategies.map(s => TOURNAMENT_DATA.strategyColors[s] + '44'),
+        borderColor: TOURNAMENT_DATA.strategies.map(s => TOURNAMENT_DATA.strategyColors[s]),
+        borderWidth: 1,
+      },
+      {
+        label: 'Ø',
+        data: TOURNAMENT_DATA.strategies.map(s => TOURNAMENT_DATA.scoreDistribution[s]?.avg ?? 0),
+        backgroundColor: TOURNAMENT_DATA.strategies.map(s => TOURNAMENT_DATA.strategyColors[s] + 'aa'),
+        borderColor: TOURNAMENT_DATA.strategies.map(s => TOURNAMENT_DATA.strategyColors[s]),
+        borderWidth: 1,
+      },
+      {
+        label: 'Max',
+        data: TOURNAMENT_DATA.strategies.map(s => TOURNAMENT_DATA.scoreDistribution[s]?.max ?? 0),
+        backgroundColor: TOURNAMENT_DATA.strategies.map(s => TOURNAMENT_DATA.strategyColors[s]),
+        borderColor: TOURNAMENT_DATA.strategies.map(s => TOURNAMENT_DATA.strategyColors[s]),
+        borderWidth: 1,
+      },
+    ],
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { labels: { color: '#94a3b8' } } },
+    scales: {
+      x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
+      y: { ticks: { color: '#64748b' }, grid: { color: '#334155' }, title: { display: true, text: 'Punkte', color: '#64748b' } },
+    },
+  },
+});
+
+// Game Length Histogram
+const completedGames = TOURNAMENT_DATA.games.filter(g => !g.aborted);
+const roundCounts = completedGames.map(g => g.rounds);
+const maxRound = Math.max(...roundCounts, 1);
+const binSize = Math.max(1, Math.ceil(maxRound / 15));
+const bins = {};
+for (const r of roundCounts) {
+  const bin = Math.floor(r / binSize) * binSize;
+  bins[bin] = (bins[bin] || 0) + 1;
+}
+const binKeys = Object.keys(bins).map(Number).sort((a, b) => a - b);
+
+const lengthCtx = document.getElementById('lengthChart').getContext('2d');
+new Chart(lengthCtx, {
+  type: 'bar',
+  data: {
+    labels: binKeys.map(k => `${k}–${k + binSize - 1}`),
+    datasets: [{
+      label: 'Anzahl Spiele',
+      data: binKeys.map(k => bins[k]),
+      backgroundColor: '#3b82f688',
+      borderColor: '#3b82f6',
+      borderWidth: 1,
+    }],
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      title: { display: true, text: `Ø ${TOURNAMENT_DATA.avgGameLength.toFixed(1)} Runden`, color: '#94a3b8' },
+    },
+    scales: {
+      x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
+      y: { ticks: { color: '#64748b' }, grid: { color: '#334155' } },
+    },
+  },
+});
+</script>
+</body>
+</html>

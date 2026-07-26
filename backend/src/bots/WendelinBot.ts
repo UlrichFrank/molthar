@@ -72,7 +72,7 @@ export function WendelinBot(
         const effort = estimateEffort(card, player.hand, diamonds);
         return {
           item: { card, displayIdx },
-          score: scoreCardForStrategy(card, 'efficient', effort),
+          score: scoreCardForStrategy(card, 'efficient', effort, G.pearlDeck.length),
         };
       })
       .filter(c => Number.isFinite(c.score));
@@ -88,7 +88,7 @@ export function WendelinBot(
       }
 
       // Portal full: consider swap.
-      const swap = evaluatePortalSwap(G, playerID, candidateCard, 'efficient');
+      const swap = evaluatePortalSwap(G, playerID, candidateCard, 'efficient', G.pearlDeck.length);
       if (swap.swap && swap.portalSlot !== undefined) {
         return { move: 'takeCharacterCard', args: [displayIdx, swap.portalSlot] };
       }

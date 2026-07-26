@@ -59,7 +59,16 @@ export function pickPearlAction(
   const handFull = player.hand.length >= handLimit;
 
   if (handFull) {
-    // 4. Hand voll und keine nützliche Perle → Slots erneuern statt Müll nehmen
+    // 4. Hand voll und keine nützliche Perle. Prüfe ob replacePearlSlots
+    //    überhaupt Fortschritt bringen könnte — Deadlock-Fix (npc-personas-verfeinern):
+    //    Wenn kein benötigter Wert im kombinierten Deck+Discard existiert, führt
+    //    replacePearlSlots nur zu neuen aber unbrauchbaren Slots. Besser endTurn,
+    //    damit der Gegner spielen kann und Zustand sich ändert.
+    if (neededValues.size > 0) {
+      const combined = [...G.pearlDeck, ...G.pearlDiscardPile];
+      const refreshCouldHelp = combined.some(p => neededValues.has(p.value));
+      if (!refreshCouldHelp) return null;
+    }
     return { move: 'replacePearlSlots', args: [] };
   }
 
