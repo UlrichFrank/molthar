@@ -14,11 +14,11 @@ import type { NpcStrategy } from '@portale-von-molthar/shared';
 // ---------------------------------------------------------------------------
 
 export const STRATEGY_TEMPERATURES: Record<NpcStrategy, number> = {
-  random:     Infinity, // Gleichverteilung — kein Softmax nötig
-  greedy:     1.5,      // impulsiv, macht öfter Fehler
-  aggressive: 1.2,      // unberechenbar, manchmal irrational
-  efficient:  0.8,      // solide, gelegentlich suboptimal
-  diamond:    0.6,      // methodisch, selten Fehler
+  random:     Infinity, // Gleichverteilung — nur für Test-Alias
+  greedy:     1.5,      // Legacy — auf efficient gemappt in Factory
+  aggressive: 1.0,      // Raubritter — reaktiv, moderate Streuung
+  efficient:  0.7,      // Stratege — fokussiert, wenig Zufall
+  diamond:    0.9,      // Sammler — methodisch, aber flexibel
 };
 
 // ---------------------------------------------------------------------------

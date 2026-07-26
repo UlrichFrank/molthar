@@ -189,8 +189,8 @@ describe('scorePearlSlot — Urgency', () => {
 // scorePearlSlot — Signal 3: Contestedness
 // ---------------------------------------------------------------------------
 
-describe('scorePearlSlot — Contestedness', () => {
-  it('lowers score when another player benefits from the same pearl', () => {
+describe('scorePearlSlot — Contestedness (raider-style block bonus)', () => {
+  it('raider bot (denyThreshold=0) prefers pearls opponents need', () => {
     const opponentTarget = makeChar([{ type: 'number', value: 5 }]);
     const G = makeGame({
       players: {
@@ -201,16 +201,64 @@ describe('scorePearlSlot — Contestedness', () => {
       pearlDeck: [],
     });
 
-    // Pearl 5 helps opponent → should lower score (contestedness active)
-    const scoreContested = scorePearlSlot(5, null, G, '0', { help: 0, urgency: 0, contest: 3 });
-    const scoreUncontested = scorePearlSlot(2, null, G, '0', { help: 0, urgency: 0, contest: 3 });
-    expect(scoreContested).toBeLessThan(scoreUncontested);
+    // With denyThreshold=0, contest fully adds to score → contested pearl is preferred.
+    const raiderWeights = { help: 0, urgency: 0, contest: 3, denyThreshold: 0 };
+    const scoreContested = scorePearlSlot(5, null, G, '0', raiderWeights);
+    const scoreUncontested = scorePearlSlot(2, null, G, '0', raiderWeights);
+    expect(scoreContested).toBeGreaterThan(scoreUncontested);
   });
 
-  it('weights next player double in contestedness', () => {
+  it('strategist bot (denyThreshold=1.0) ignores contest when self-value is high', () => {
     const opponentTarget = makeChar([{ type: 'number', value: 5 }]);
+    const myTarget = makeChar([{ type: 'number', value: 5 }]);
+    // My hand does not yet have a 5 — pearl 5 gives me helpfulness 1
+    const G = makeGame({
+      players: {
+        '0': makePlayer([], [myTarget]),
+        '1': makePlayer([makePearl(3)], [opponentTarget]),
+      },
+      playerOrder: ['0', '1'],
+      pearlDeck: [],
+    });
 
-    // Two opponents both benefit — next player (pos 1) should weigh more than later player (pos 2)
+    const strategistWeights = { help: 3, urgency: 0, contest: 3, denyThreshold: 1.0 };
+    // own_value = 3*1 = 3, opp_value = 3*1*2 (next-player *2) = 6 → contest_add = max(0, 6-3) = 3
+    // So strategist still values contested pearl slightly higher, but only when opp really outstrips own value.
+    // Compared to a pearl that only I benefit from (opp_value=0):
+    const G_uncontested = makeGame({
+      players: {
+        '0': makePlayer([], [myTarget]),
+        '1': makePlayer([makePearl(3)]),
+      },
+      playerOrder: ['0', '1'],
+      pearlDeck: [],
+    });
+    const contested = scorePearlSlot(5, myTarget, G, '0', strategistWeights);
+    const uncontested = scorePearlSlot(5, myTarget, G_uncontested, '0', strategistWeights);
+    expect(contested).toBeGreaterThan(uncontested); // contest still adds when opp benefits more than my threshold
+  });
+
+  it('never lowers score below own-value (contest is additive only)', () => {
+    const opponentTarget = makeChar([{ type: 'number', value: 5 }]);
+    const myTarget = makeChar([{ type: 'number', value: 5 }]);
+    const G = makeGame({
+      players: {
+        '0': makePlayer([], [myTarget]),
+        '1': makePlayer([makePearl(3)], [opponentTarget]),
+      },
+      playerOrder: ['0', '1'],
+      pearlDeck: [],
+    });
+    // own_value=3, opp_value even amplified never subtracts.
+    const score = scorePearlSlot(5, myTarget, G, '0', { help: 3, urgency: 0, contest: 3, denyThreshold: 1.0 });
+    const ownOnly = 3 * 1;
+    expect(score).toBeGreaterThanOrEqual(ownOnly);
+  });
+
+  it('weights next player double in contestedness (raider)', () => {
+    const opponentTarget = makeChar([{ type: 'number', value: 5 }]);
+    const raider = { help: 0, urgency: 0, contest: 3, denyThreshold: 0 };
+
     const G = makeGame({
       players: {
         '0': makePlayer([]),
@@ -220,9 +268,7 @@ describe('scorePearlSlot — Contestedness', () => {
       playerOrder: ['0', '1', '2'],
       pearlDeck: [],
     });
-
-    // Both players need a 5 — contestedness should be higher than if only one player (later) needed it
-    const score3players = scorePearlSlot(5, null, G, '0', { help: 0, urgency: 0, contest: 3 });
+    const score3players = scorePearlSlot(5, null, G, '0', raider);
 
     const G2 = makeGame({
       players: {
@@ -233,9 +279,9 @@ describe('scorePearlSlot — Contestedness', () => {
       playerOrder: ['0', '1', '2'],
       pearlDeck: [],
     });
-    const score2players = scorePearlSlot(5, null, G2, '0', { help: 0, urgency: 0, contest: 3 });
-    // More players benefiting = more contested = lower score
-    expect(score3players).toBeLessThan(score2players);
+    const score2players = scorePearlSlot(5, null, G2, '0', raider);
+    // More opponents benefiting = higher score for raider (block-first)
+    expect(score3players).toBeGreaterThan(score2players);
   });
 });
 

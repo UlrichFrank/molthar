@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { getTimingMultiplier } from './timing';
-import type { GameState, PlayerState } from '@portale-von-molthar/shared';
+import {
+  getTimingMultiplier,
+  URGENCY_OWN,
+  URGENCY_OPP,
+  URGENCY_DECK,
+} from './timing';
+import type { GameState, PlayerState, PearlCard } from '@portale-von-molthar/shared';
 
 function makePlayer(id: string, powerPoints: number): PlayerState {
   return {
@@ -19,9 +24,18 @@ function makePlayer(id: string, powerPoints: number): PlayerState {
   };
 }
 
-function makeGame(players: Record<string, PlayerState>): GameState {
+function makeGame(
+  players: Record<string, PlayerState>,
+  deckSize = 30,
+): GameState {
+  const pearlDeck: PearlCard[] = Array.from({ length: deckSize }, (_, i) => ({
+    id: `p${i}`,
+    value: 1,
+    hasSwapSymbol: false,
+    hasRefreshSymbol: false,
+  }));
   return {
-    pearlDeck: [],
+    pearlDeck,
     characterDeck: [],
     pearlDiscardPile: [],
     characterDiscardPile: [],
@@ -55,43 +69,68 @@ function makeGame(players: Record<string, PlayerState>): GameState {
   };
 }
 
-describe('getTimingMultiplier', () => {
-  it('returns 1.0 in normal phase (all players < 9 points)', () => {
-    const G = makeGame({ '0': makePlayer('0', 5), '1': makePlayer('1', 6) });
-    expect(getTimingMultiplier(G, '0')).toBe(1.0);
+describe('getTimingMultiplier (continuous)', () => {
+  it('is ~1.0 in early game with full deck', () => {
+    const G = makeGame({ '0': makePlayer('0', 0), '1': makePlayer('1', 0) }, 40);
+    expect(getTimingMultiplier(G, '0')).toBeCloseTo(1.0, 5);
   });
 
-  it('returns 1.8 when own points >= 9 (Endspurt)', () => {
-    const G = makeGame({ '0': makePlayer('0', 9), '1': makePlayer('1', 4) });
-    expect(getTimingMultiplier(G, '0')).toBe(1.8);
+  it('grows monotonically with own points', () => {
+    const g6 = makeGame({ '0': makePlayer('0', 6), '1': makePlayer('1', 0) }, 30);
+    const g9 = makeGame({ '0': makePlayer('0', 9), '1': makePlayer('1', 0) }, 30);
+    const g11 = makeGame({ '0': makePlayer('0', 11), '1': makePlayer('1', 0) }, 30);
+    const m6 = getTimingMultiplier(g6, '0');
+    const m9 = getTimingMultiplier(g9, '0');
+    const m11 = getTimingMultiplier(g11, '0');
+    expect(m6).toBeLessThan(m9);
+    expect(m9).toBeLessThan(m11);
   });
 
-  it('returns 1.8 when own points > 9', () => {
-    const G = makeGame({ '0': makePlayer('0', 11), '1': makePlayer('1', 7) });
-    expect(getTimingMultiplier(G, '0')).toBe(1.8);
+  it('11 own points yields multiplier ≥ 1.7', () => {
+    const G = makeGame({ '0': makePlayer('0', 11), '1': makePlayer('1', 0) }, 30);
+    expect(getTimingMultiplier(G, '0')).toBeGreaterThanOrEqual(1.7);
   });
 
-  it('returns 1.4 when opponent has >= 9 and own < 9', () => {
-    const G = makeGame({ '0': makePlayer('0', 6), '1': makePlayer('1', 10) });
-    expect(getTimingMultiplier(G, '0')).toBe(1.4);
+  it('opponent at 10 raises pressure over baseline', () => {
+    const g = makeGame({ '0': makePlayer('0', 4), '1': makePlayer('1', 10) }, 30);
+    expect(getTimingMultiplier(g, '0')).toBeGreaterThan(1.0 + URGENCY_OPP * 0.5);
   });
 
-  it('returns 1.8 when both own >= 9 and opponent >= 9 (own takes priority)', () => {
-    const G = makeGame({ '0': makePlayer('0', 9), '1': makePlayer('1', 10) });
-    expect(getTimingMultiplier(G, '0')).toBe(1.8);
+  it('empty deck adds full URGENCY_DECK to base', () => {
+    const g = makeGame({ '0': makePlayer('0', 0), '1': makePlayer('1', 0) }, 0);
+    expect(getTimingMultiplier(g, '0')).toBeCloseTo(1.0 + URGENCY_DECK, 5);
+  });
+
+  it('combines all three signals additively', () => {
+    const g = makeGame({ '0': makePlayer('0', 12), '1': makePlayer('1', 12) }, 0);
+    // ownPressure=1, oppPressure=1, deckPressure=1
+    const expected = 1 + URGENCY_OWN + URGENCY_OPP + URGENCY_DECK;
+    expect(getTimingMultiplier(g, '0')).toBeCloseTo(expected, 5);
   });
 
   it('returns 1.0 when player not found', () => {
-    const G = makeGame({ '0': makePlayer('0', 5) });
+    const G = makeGame({ '0': makePlayer('0', 5) }, 30);
     expect(getTimingMultiplier(G, 'nonexistent')).toBe(1.0);
   });
 
-  it('returns 1.4 when any of multiple opponents has >= 9', () => {
-    const G = makeGame({
-      '0': makePlayer('0', 3),
-      '1': makePlayer('1', 7),
-      '2': makePlayer('2', 9),
-    });
-    expect(getTimingMultiplier(G, '0')).toBe(1.4);
+  it('picks the max opponent as leader', () => {
+    const G = makeGame(
+      {
+        '0': makePlayer('0', 3),
+        '1': makePlayer('1', 7),
+        '2': makePlayer('2', 11),
+      },
+      30,
+    );
+    const withMax = getTimingMultiplier(G, '0');
+    const G2 = makeGame(
+      {
+        '0': makePlayer('0', 3),
+        '1': makePlayer('1', 7),
+        '2': makePlayer('2', 7),
+      },
+      30,
+    );
+    expect(withMax).toBeGreaterThan(getTimingMultiplier(G2, '0'));
   });
 });

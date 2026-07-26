@@ -20,6 +20,13 @@ export interface PearlWeights {
   help: number;
   urgency: number;
   contest: number;
+  /**
+   * How much of the opponent-benefit signal counts only when it exceeds
+   * `own_value * denyThreshold`. 0 = always block (raider), 1 = only take
+   * when opp value strictly exceeds own value (strategist). Optional;
+   * defaults to 1.0 to keep older callers strategist-like.
+   */
+  denyThreshold?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -27,11 +34,11 @@ export interface PearlWeights {
 // ---------------------------------------------------------------------------
 
 const STRATEGY_WEIGHTS: Record<NpcStrategy, PearlWeights> = {
-  greedy:     { help: 3,   urgency: 1.5, contest: 0.5 },
-  efficient:  { help: 3,   urgency: 2,   contest: 0.5 },
-  diamond:    { help: 3,   urgency: 1.5, contest: 0.5 },
-  aggressive: { help: 2,   urgency: 1.5, contest: 3   },
-  random:     { help: 0,   urgency: 0,   contest: 0   },
+  greedy:     { help: 3,   urgency: 1.5, contest: 0.5, denyThreshold: 0.7 },
+  efficient:  { help: 3,   urgency: 2,   contest: 0.5, denyThreshold: 1.0 },
+  diamond:    { help: 3,   urgency: 1.5, contest: 0.5, denyThreshold: 0.7 },
+  aggressive: { help: 2,   urgency: 1.5, contest: 3,   denyThreshold: 0.0 },
+  random:     { help: 0,   urgency: 0,   contest: 0,   denyThreshold: 1.0 },
 };
 
 export function getStrategyWeights(strategy: NpcStrategy): PearlWeights {
@@ -216,7 +223,14 @@ export function scorePearlSlot(
     }
   }
 
-  return weights.help * helpfulness + weights.urgency * urgency - weights.contest * contestedness;
+  const ownValue = weights.help * helpfulness + weights.urgency * urgency;
+  const oppValue = weights.contest * contestedness;
+  const denyThreshold = weights.denyThreshold ?? 1.0;
+  // Contest only bites when it exceeds own-value * denyThreshold.
+  // Raider (denyThreshold=0): opp benefit fully adds — bot wants to block.
+  // Strategist (denyThreshold=1.0): opp benefit only counts when opp value exceeds own value.
+  const contestContribution = Math.max(0, oppValue - ownValue * denyThreshold);
+  return ownValue + contestContribution;
 }
 
 // ---------------------------------------------------------------------------

@@ -1,0 +1,4246 @@
+{
+  "meta": {
+    "date": "2026-07-25T21:13:21.176Z",
+    "numPlayers": 2,
+    "numGames": 180,
+    "gamesPerMatchup": 20,
+    "strategies": [
+      "efficient",
+      "aggressive",
+      "diamond"
+    ],
+    "withSpecialCards": false,
+    "seed": "baseline-3bot",
+    "durationMs": 59480,
+    "abortedGames": 37
+  },
+  "games": [
+    {
+      "gameId": "g00000",
+      "strategies": {
+        "0": "efficient",
+        "1": "efficient"
+      },
+      "rounds": 37,
+      "totalActions": 277,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 13,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 7,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00001",
+      "strategies": {
+        "0": "efficient",
+        "1": "efficient"
+      },
+      "rounds": 27,
+      "totalActions": 217,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 13,
+          "diamonds": 2
+        },
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 11,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00002",
+      "strategies": {
+        "0": "efficient",
+        "1": "efficient"
+      },
+      "rounds": 25,
+      "totalActions": 184,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 7,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00003",
+      "strategies": {
+        "0": "efficient",
+        "1": "efficient"
+      },
+      "rounds": 30,
+      "totalActions": 186,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 14,
+          "diamonds": 2
+        },
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 0,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00004",
+      "strategies": {
+        "0": "efficient",
+        "1": "efficient"
+      },
+      "rounds": 20,
+      "totalActions": 129,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 12,
+          "diamonds": 0
+        },
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 0,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00005",
+      "strategies": {
+        "0": "efficient",
+        "1": "efficient"
+      },
+      "rounds": 24,
+      "totalActions": 174,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 3,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00006",
+      "strategies": {
+        "0": "efficient",
+        "1": "efficient"
+      },
+      "rounds": 27,
+      "totalActions": 203,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 17,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 10,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00007",
+      "strategies": {
+        "0": "efficient",
+        "1": "efficient"
+      },
+      "rounds": 27,
+      "totalActions": 200,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 14,
+          "diamonds": 2
+        },
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 4,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00008",
+      "strategies": {
+        "0": "efficient",
+        "1": "efficient"
+      },
+      "rounds": 24,
+      "totalActions": 182,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 13,
+          "diamonds": 0
+        },
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 11,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00009",
+      "strategies": {
+        "0": "efficient",
+        "1": "efficient"
+      },
+      "rounds": 19,
+      "totalActions": 159,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 13,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 3,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00010",
+      "strategies": {
+        "0": "efficient",
+        "1": "efficient"
+      },
+      "rounds": 61,
+      "totalActions": 478,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00011",
+      "strategies": {
+        "0": "efficient",
+        "1": "efficient"
+      },
+      "rounds": 28,
+      "totalActions": 244,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 12,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 11,
+          "diamonds": 1
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00012",
+      "strategies": {
+        "0": "efficient",
+        "1": "efficient"
+      },
+      "rounds": 19,
+      "totalActions": 152,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 7,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00013",
+      "strategies": {
+        "0": "efficient",
+        "1": "efficient"
+      },
+      "rounds": 24,
+      "totalActions": 186,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 3
+        },
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 9,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00014",
+      "strategies": {
+        "0": "efficient",
+        "1": "efficient"
+      },
+      "rounds": 67,
+      "totalActions": 529,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00015",
+      "strategies": {
+        "0": "efficient",
+        "1": "efficient"
+      },
+      "rounds": 23,
+      "totalActions": 182,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 16,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 8,
+          "diamonds": 1
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00016",
+      "strategies": {
+        "0": "efficient",
+        "1": "efficient"
+      },
+      "rounds": 30,
+      "totalActions": 248,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 6,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00017",
+      "strategies": {
+        "0": "efficient",
+        "1": "efficient"
+      },
+      "rounds": 18,
+      "totalActions": 132,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 0
+        },
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 0,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00018",
+      "strategies": {
+        "0": "efficient",
+        "1": "efficient"
+      },
+      "rounds": 21,
+      "totalActions": 162,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 12,
+          "diamonds": 0
+        },
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 2,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00019",
+      "strategies": {
+        "0": "efficient",
+        "1": "efficient"
+      },
+      "rounds": 26,
+      "totalActions": 212,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 2
+        },
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 6,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00020",
+      "strategies": {
+        "0": "efficient",
+        "1": "aggressive"
+      },
+      "rounds": 73,
+      "totalActions": 554,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00021",
+      "strategies": {
+        "0": "efficient",
+        "1": "aggressive"
+      },
+      "rounds": 27,
+      "totalActions": 199,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 14,
+          "diamonds": 0
+        },
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 0,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00022",
+      "strategies": {
+        "0": "efficient",
+        "1": "aggressive"
+      },
+      "rounds": 25,
+      "totalActions": 172,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 2
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 9,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00023",
+      "strategies": {
+        "0": "efficient",
+        "1": "aggressive"
+      },
+      "rounds": 22,
+      "totalActions": 153,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 5,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00024",
+      "strategies": {
+        "0": "efficient",
+        "1": "aggressive"
+      },
+      "rounds": 20,
+      "totalActions": 145,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 13,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 2,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00025",
+      "strategies": {
+        "0": "efficient",
+        "1": "aggressive"
+      },
+      "rounds": 77,
+      "totalActions": 601,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00026",
+      "strategies": {
+        "0": "efficient",
+        "1": "aggressive"
+      },
+      "rounds": 23,
+      "totalActions": 168,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 13,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 2,
+          "diamonds": 1
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00027",
+      "strategies": {
+        "0": "efficient",
+        "1": "aggressive"
+      },
+      "rounds": 69,
+      "totalActions": 484,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00028",
+      "strategies": {
+        "0": "efficient",
+        "1": "aggressive"
+      },
+      "rounds": 25,
+      "totalActions": 180,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 14,
+          "diamonds": 0
+        },
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 9,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00029",
+      "strategies": {
+        "0": "efficient",
+        "1": "aggressive"
+      },
+      "rounds": 25,
+      "totalActions": 187,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 13,
+          "diamonds": 0
+        },
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 2,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00030",
+      "strategies": {
+        "0": "efficient",
+        "1": "aggressive"
+      },
+      "rounds": 22,
+      "totalActions": 164,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 12,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 0,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00031",
+      "strategies": {
+        "0": "efficient",
+        "1": "aggressive"
+      },
+      "rounds": 97,
+      "totalActions": 682,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00032",
+      "strategies": {
+        "0": "efficient",
+        "1": "aggressive"
+      },
+      "rounds": 24,
+      "totalActions": 170,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 11,
+          "diamonds": 1
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00033",
+      "strategies": {
+        "0": "efficient",
+        "1": "aggressive"
+      },
+      "rounds": 87,
+      "totalActions": 663,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00034",
+      "strategies": {
+        "0": "efficient",
+        "1": "aggressive"
+      },
+      "rounds": 38,
+      "totalActions": 271,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 12,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 7,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00035",
+      "strategies": {
+        "0": "efficient",
+        "1": "aggressive"
+      },
+      "rounds": 55,
+      "totalActions": 402,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 15,
+          "diamonds": 0
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 11,
+          "diamonds": 1
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00036",
+      "strategies": {
+        "0": "efficient",
+        "1": "aggressive"
+      },
+      "rounds": 26,
+      "totalActions": 184,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 3,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00037",
+      "strategies": {
+        "0": "efficient",
+        "1": "aggressive"
+      },
+      "rounds": 18,
+      "totalActions": 133,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 13,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 10,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00038",
+      "strategies": {
+        "0": "efficient",
+        "1": "aggressive"
+      },
+      "rounds": 28,
+      "totalActions": 208,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 12,
+          "diamonds": 2
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 11,
+          "diamonds": 1
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00039",
+      "strategies": {
+        "0": "efficient",
+        "1": "aggressive"
+      },
+      "rounds": 36,
+      "totalActions": 307,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 14,
+          "diamonds": 2
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 4,
+          "diamonds": 1
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00040",
+      "strategies": {
+        "0": "efficient",
+        "1": "diamond"
+      },
+      "rounds": 88,
+      "totalActions": 605,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00041",
+      "strategies": {
+        "0": "efficient",
+        "1": "diamond"
+      },
+      "rounds": 30,
+      "totalActions": 204,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 3,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00042",
+      "strategies": {
+        "0": "efficient",
+        "1": "diamond"
+      },
+      "rounds": 22,
+      "totalActions": 141,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 12,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 0,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00043",
+      "strategies": {
+        "0": "efficient",
+        "1": "diamond"
+      },
+      "rounds": 20,
+      "totalActions": 134,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 2,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00044",
+      "strategies": {
+        "0": "efficient",
+        "1": "diamond"
+      },
+      "rounds": 25,
+      "totalActions": 183,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 5,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00045",
+      "strategies": {
+        "0": "efficient",
+        "1": "diamond"
+      },
+      "rounds": 36,
+      "totalActions": 214,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 2
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 2,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00046",
+      "strategies": {
+        "0": "efficient",
+        "1": "diamond"
+      },
+      "rounds": 23,
+      "totalActions": 150,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 12,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 4,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00047",
+      "strategies": {
+        "0": "efficient",
+        "1": "diamond"
+      },
+      "rounds": 28,
+      "totalActions": 207,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 14,
+          "diamonds": 7
+        },
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 0,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00048",
+      "strategies": {
+        "0": "efficient",
+        "1": "diamond"
+      },
+      "rounds": 40,
+      "totalActions": 263,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 0
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 7,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00049",
+      "strategies": {
+        "0": "efficient",
+        "1": "diamond"
+      },
+      "rounds": 69,
+      "totalActions": 404,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00050",
+      "strategies": {
+        "0": "efficient",
+        "1": "diamond"
+      },
+      "rounds": 26,
+      "totalActions": 171,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 12,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 7,
+          "diamonds": 3
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00051",
+      "strategies": {
+        "0": "efficient",
+        "1": "diamond"
+      },
+      "rounds": 53,
+      "totalActions": 388,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 14,
+          "diamonds": 2
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 9,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00052",
+      "strategies": {
+        "0": "efficient",
+        "1": "diamond"
+      },
+      "rounds": 31,
+      "totalActions": 218,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 7
+        },
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 0,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00053",
+      "strategies": {
+        "0": "efficient",
+        "1": "diamond"
+      },
+      "rounds": 23,
+      "totalActions": 175,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 7
+        },
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 4,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00054",
+      "strategies": {
+        "0": "efficient",
+        "1": "diamond"
+      },
+      "rounds": 41,
+      "totalActions": 271,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 3
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 9,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00055",
+      "strategies": {
+        "0": "efficient",
+        "1": "diamond"
+      },
+      "rounds": 23,
+      "totalActions": 159,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 12,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 6,
+          "diamonds": 1
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00056",
+      "strategies": {
+        "0": "efficient",
+        "1": "diamond"
+      },
+      "rounds": 25,
+      "totalActions": 180,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 13,
+          "diamonds": 4
+        },
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 0,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00057",
+      "strategies": {
+        "0": "efficient",
+        "1": "diamond"
+      },
+      "rounds": 57,
+      "totalActions": 375,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 13,
+          "diamonds": 6
+        },
+        {
+          "playerId": "0",
+          "strategy": "efficient",
+          "name": "Player 1",
+          "powerPoints": 9,
+          "diamonds": 1
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00058",
+      "strategies": {
+        "0": "efficient",
+        "1": "diamond"
+      },
+      "rounds": 89,
+      "totalActions": 568,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00059",
+      "strategies": {
+        "0": "efficient",
+        "1": "diamond"
+      },
+      "rounds": 110,
+      "totalActions": 664,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00060",
+      "strategies": {
+        "0": "aggressive",
+        "1": "efficient"
+      },
+      "rounds": 16,
+      "totalActions": 118,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 12,
+          "diamonds": 3
+        },
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 4,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00061",
+      "strategies": {
+        "0": "aggressive",
+        "1": "efficient"
+      },
+      "rounds": 24,
+      "totalActions": 159,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 11,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00062",
+      "strategies": {
+        "0": "aggressive",
+        "1": "efficient"
+      },
+      "rounds": 40,
+      "totalActions": 329,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 16,
+          "diamonds": 2
+        },
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 7,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00063",
+      "strategies": {
+        "0": "aggressive",
+        "1": "efficient"
+      },
+      "rounds": 14,
+      "totalActions": 91,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 12,
+          "diamonds": 0
+        },
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 0,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00064",
+      "strategies": {
+        "0": "aggressive",
+        "1": "efficient"
+      },
+      "rounds": 29,
+      "totalActions": 212,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 6,
+          "diamonds": 1
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00065",
+      "strategies": {
+        "0": "aggressive",
+        "1": "efficient"
+      },
+      "rounds": 33,
+      "totalActions": 234,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 12,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 7,
+          "diamonds": 3
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00066",
+      "strategies": {
+        "0": "aggressive",
+        "1": "efficient"
+      },
+      "rounds": 74,
+      "totalActions": 522,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00067",
+      "strategies": {
+        "0": "aggressive",
+        "1": "efficient"
+      },
+      "rounds": 31,
+      "totalActions": 220,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 12,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 11,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00068",
+      "strategies": {
+        "0": "aggressive",
+        "1": "efficient"
+      },
+      "rounds": 70,
+      "totalActions": 483,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00069",
+      "strategies": {
+        "0": "aggressive",
+        "1": "efficient"
+      },
+      "rounds": 40,
+      "totalActions": 241,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 13,
+          "diamonds": 0
+        },
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 0,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00070",
+      "strategies": {
+        "0": "aggressive",
+        "1": "efficient"
+      },
+      "rounds": 35,
+      "totalActions": 257,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 0
+        },
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 7,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00071",
+      "strategies": {
+        "0": "aggressive",
+        "1": "efficient"
+      },
+      "rounds": 21,
+      "totalActions": 158,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 9,
+          "diamonds": 3
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00072",
+      "strategies": {
+        "0": "aggressive",
+        "1": "efficient"
+      },
+      "rounds": 30,
+      "totalActions": 249,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 13,
+          "diamonds": 0
+        },
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 8,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00073",
+      "strategies": {
+        "0": "aggressive",
+        "1": "efficient"
+      },
+      "rounds": 20,
+      "totalActions": 142,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 0
+        },
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 2,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00074",
+      "strategies": {
+        "0": "aggressive",
+        "1": "efficient"
+      },
+      "rounds": 86,
+      "totalActions": 610,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00075",
+      "strategies": {
+        "0": "aggressive",
+        "1": "efficient"
+      },
+      "rounds": 16,
+      "totalActions": 113,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 7,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00076",
+      "strategies": {
+        "0": "aggressive",
+        "1": "efficient"
+      },
+      "rounds": 30,
+      "totalActions": 222,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 15,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 6,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00077",
+      "strategies": {
+        "0": "aggressive",
+        "1": "efficient"
+      },
+      "rounds": 67,
+      "totalActions": 558,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 5,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00078",
+      "strategies": {
+        "0": "aggressive",
+        "1": "efficient"
+      },
+      "rounds": 28,
+      "totalActions": 221,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 0
+        },
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 1
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00079",
+      "strategies": {
+        "0": "aggressive",
+        "1": "efficient"
+      },
+      "rounds": 33,
+      "totalActions": 212,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 16,
+          "diamonds": 2
+        },
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 7,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00080",
+      "strategies": {
+        "0": "aggressive",
+        "1": "aggressive"
+      },
+      "rounds": 28,
+      "totalActions": 206,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 0
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 5,
+          "diamonds": 1
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00081",
+      "strategies": {
+        "0": "aggressive",
+        "1": "aggressive"
+      },
+      "rounds": 26,
+      "totalActions": 184,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 14,
+          "diamonds": 2
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 11,
+          "diamonds": 1
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00082",
+      "strategies": {
+        "0": "aggressive",
+        "1": "aggressive"
+      },
+      "rounds": 74,
+      "totalActions": 519,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00083",
+      "strategies": {
+        "0": "aggressive",
+        "1": "aggressive"
+      },
+      "rounds": 32,
+      "totalActions": 197,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 5,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00084",
+      "strategies": {
+        "0": "aggressive",
+        "1": "aggressive"
+      },
+      "rounds": 20,
+      "totalActions": 137,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 2
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 9,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00085",
+      "strategies": {
+        "0": "aggressive",
+        "1": "aggressive"
+      },
+      "rounds": 25,
+      "totalActions": 167,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 14,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 6,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00086",
+      "strategies": {
+        "0": "aggressive",
+        "1": "aggressive"
+      },
+      "rounds": 72,
+      "totalActions": 455,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00087",
+      "strategies": {
+        "0": "aggressive",
+        "1": "aggressive"
+      },
+      "rounds": 21,
+      "totalActions": 149,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00088",
+      "strategies": {
+        "0": "aggressive",
+        "1": "aggressive"
+      },
+      "rounds": 46,
+      "totalActions": 340,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 16,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 2,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00089",
+      "strategies": {
+        "0": "aggressive",
+        "1": "aggressive"
+      },
+      "rounds": 25,
+      "totalActions": 177,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 14,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 4,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00090",
+      "strategies": {
+        "0": "aggressive",
+        "1": "aggressive"
+      },
+      "rounds": 32,
+      "totalActions": 219,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 14,
+          "diamonds": 3
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 10,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00091",
+      "strategies": {
+        "0": "aggressive",
+        "1": "aggressive"
+      },
+      "rounds": 25,
+      "totalActions": 175,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 12,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 6,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00092",
+      "strategies": {
+        "0": "aggressive",
+        "1": "aggressive"
+      },
+      "rounds": 29,
+      "totalActions": 202,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 3
+        },
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 5,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00093",
+      "strategies": {
+        "0": "aggressive",
+        "1": "aggressive"
+      },
+      "rounds": 24,
+      "totalActions": 179,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 14,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 0,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00094",
+      "strategies": {
+        "0": "aggressive",
+        "1": "aggressive"
+      },
+      "rounds": 28,
+      "totalActions": 204,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 12,
+          "diamonds": 0
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 3,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00095",
+      "strategies": {
+        "0": "aggressive",
+        "1": "aggressive"
+      },
+      "rounds": 24,
+      "totalActions": 156,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 13,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 4,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00096",
+      "strategies": {
+        "0": "aggressive",
+        "1": "aggressive"
+      },
+      "rounds": 22,
+      "totalActions": 148,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 14,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 5,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00097",
+      "strategies": {
+        "0": "aggressive",
+        "1": "aggressive"
+      },
+      "rounds": 23,
+      "totalActions": 152,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 9,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00098",
+      "strategies": {
+        "0": "aggressive",
+        "1": "aggressive"
+      },
+      "rounds": 77,
+      "totalActions": 464,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00099",
+      "strategies": {
+        "0": "aggressive",
+        "1": "aggressive"
+      },
+      "rounds": 80,
+      "totalActions": 640,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00100",
+      "strategies": {
+        "0": "aggressive",
+        "1": "diamond"
+      },
+      "rounds": 33,
+      "totalActions": 227,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 16,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 9,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00101",
+      "strategies": {
+        "0": "aggressive",
+        "1": "diamond"
+      },
+      "rounds": 23,
+      "totalActions": 161,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 3
+        },
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 5,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00102",
+      "strategies": {
+        "0": "aggressive",
+        "1": "diamond"
+      },
+      "rounds": 47,
+      "totalActions": 317,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 13,
+          "diamonds": 6
+        },
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 11,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00103",
+      "strategies": {
+        "0": "aggressive",
+        "1": "diamond"
+      },
+      "rounds": 30,
+      "totalActions": 202,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 0
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 5,
+          "diamonds": 3
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00104",
+      "strategies": {
+        "0": "aggressive",
+        "1": "diamond"
+      },
+      "rounds": 31,
+      "totalActions": 198,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 15,
+          "diamonds": 0
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 8,
+          "diamonds": 4
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00105",
+      "strategies": {
+        "0": "aggressive",
+        "1": "diamond"
+      },
+      "rounds": 23,
+      "totalActions": 155,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 0
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 4,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00106",
+      "strategies": {
+        "0": "aggressive",
+        "1": "diamond"
+      },
+      "rounds": 115,
+      "totalActions": 756,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00107",
+      "strategies": {
+        "0": "aggressive",
+        "1": "diamond"
+      },
+      "rounds": 69,
+      "totalActions": 438,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00108",
+      "strategies": {
+        "0": "aggressive",
+        "1": "diamond"
+      },
+      "rounds": 85,
+      "totalActions": 590,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00109",
+      "strategies": {
+        "0": "aggressive",
+        "1": "diamond"
+      },
+      "rounds": 37,
+      "totalActions": 245,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 13,
+          "diamonds": 6
+        },
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 9,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00110",
+      "strategies": {
+        "0": "aggressive",
+        "1": "diamond"
+      },
+      "rounds": 28,
+      "totalActions": 177,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 16,
+          "diamonds": 0
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 7,
+          "diamonds": 4
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00111",
+      "strategies": {
+        "0": "aggressive",
+        "1": "diamond"
+      },
+      "rounds": 43,
+      "totalActions": 279,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 13,
+          "diamonds": 4
+        },
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 6,
+          "diamonds": 1
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00112",
+      "strategies": {
+        "0": "aggressive",
+        "1": "diamond"
+      },
+      "rounds": 80,
+      "totalActions": 489,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00113",
+      "strategies": {
+        "0": "aggressive",
+        "1": "diamond"
+      },
+      "rounds": 22,
+      "totalActions": 122,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 0
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 0,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00114",
+      "strategies": {
+        "0": "aggressive",
+        "1": "diamond"
+      },
+      "rounds": 28,
+      "totalActions": 181,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 0
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 8,
+          "diamonds": 5
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00115",
+      "strategies": {
+        "0": "aggressive",
+        "1": "diamond"
+      },
+      "rounds": 29,
+      "totalActions": 203,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 14,
+          "diamonds": 0
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 10,
+          "diamonds": 6
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00116",
+      "strategies": {
+        "0": "aggressive",
+        "1": "diamond"
+      },
+      "rounds": 53,
+      "totalActions": 379,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 15,
+          "diamonds": 0
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 6,
+          "diamonds": 1
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00117",
+      "strategies": {
+        "0": "aggressive",
+        "1": "diamond"
+      },
+      "rounds": 24,
+      "totalActions": 162,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 4
+        },
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 8,
+          "diamonds": 1
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00118",
+      "strategies": {
+        "0": "aggressive",
+        "1": "diamond"
+      },
+      "rounds": 30,
+      "totalActions": 187,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 15,
+          "diamonds": 0
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 8,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00119",
+      "strategies": {
+        "0": "aggressive",
+        "1": "diamond"
+      },
+      "rounds": 22,
+      "totalActions": 147,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "aggressive",
+          "name": "Player 1",
+          "powerPoints": 14,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 8,
+          "diamonds": 4
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00120",
+      "strategies": {
+        "0": "diamond",
+        "1": "efficient"
+      },
+      "rounds": 63,
+      "totalActions": 403,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 14,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 2,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00121",
+      "strategies": {
+        "0": "diamond",
+        "1": "efficient"
+      },
+      "rounds": 33,
+      "totalActions": 242,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 16,
+          "diamonds": 6
+        },
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 6,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00122",
+      "strategies": {
+        "0": "diamond",
+        "1": "efficient"
+      },
+      "rounds": 30,
+      "totalActions": 209,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 4
+        },
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 0,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00123",
+      "strategies": {
+        "0": "diamond",
+        "1": "efficient"
+      },
+      "rounds": 69,
+      "totalActions": 378,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00124",
+      "strategies": {
+        "0": "diamond",
+        "1": "efficient"
+      },
+      "rounds": 59,
+      "totalActions": 393,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 6
+        },
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 4,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00125",
+      "strategies": {
+        "0": "diamond",
+        "1": "efficient"
+      },
+      "rounds": 42,
+      "totalActions": 268,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 0
+        },
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 3,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00126",
+      "strategies": {
+        "0": "diamond",
+        "1": "efficient"
+      },
+      "rounds": 36,
+      "totalActions": 275,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 16,
+          "diamonds": 5
+        },
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 10,
+          "diamonds": 1
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00127",
+      "strategies": {
+        "0": "diamond",
+        "1": "efficient"
+      },
+      "rounds": 25,
+      "totalActions": 174,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 14,
+          "diamonds": 0
+        },
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 7,
+          "diamonds": 4
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00128",
+      "strategies": {
+        "0": "diamond",
+        "1": "efficient"
+      },
+      "rounds": 89,
+      "totalActions": 556,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 0
+        },
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 7,
+          "diamonds": 1
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00129",
+      "strategies": {
+        "0": "diamond",
+        "1": "efficient"
+      },
+      "rounds": 33,
+      "totalActions": 221,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 12,
+          "diamonds": 2
+        },
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 5,
+          "diamonds": 1
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00130",
+      "strategies": {
+        "0": "diamond",
+        "1": "efficient"
+      },
+      "rounds": 50,
+      "totalActions": 324,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 12,
+          "diamonds": 3
+        },
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 6,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00131",
+      "strategies": {
+        "0": "diamond",
+        "1": "efficient"
+      },
+      "rounds": 57,
+      "totalActions": 409,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 14,
+          "diamonds": 3
+        },
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 9,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00132",
+      "strategies": {
+        "0": "diamond",
+        "1": "efficient"
+      },
+      "rounds": 21,
+      "totalActions": 143,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 0
+        },
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 5,
+          "diamonds": 3
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00133",
+      "strategies": {
+        "0": "diamond",
+        "1": "efficient"
+      },
+      "rounds": 89,
+      "totalActions": 590,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00134",
+      "strategies": {
+        "0": "diamond",
+        "1": "efficient"
+      },
+      "rounds": 27,
+      "totalActions": 175,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 2,
+          "diamonds": 1
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00135",
+      "strategies": {
+        "0": "diamond",
+        "1": "efficient"
+      },
+      "rounds": 87,
+      "totalActions": 552,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 13,
+          "diamonds": 0
+        },
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 11,
+          "diamonds": 4
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00136",
+      "strategies": {
+        "0": "diamond",
+        "1": "efficient"
+      },
+      "rounds": 24,
+      "totalActions": 169,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 12,
+          "diamonds": 2
+        },
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 9,
+          "diamonds": 1
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00137",
+      "strategies": {
+        "0": "diamond",
+        "1": "efficient"
+      },
+      "rounds": 26,
+      "totalActions": 178,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 14,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 5,
+          "diamonds": 4
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00138",
+      "strategies": {
+        "0": "diamond",
+        "1": "efficient"
+      },
+      "rounds": 22,
+      "totalActions": 149,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "efficient",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 6,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00139",
+      "strategies": {
+        "0": "diamond",
+        "1": "efficient"
+      },
+      "rounds": 68,
+      "totalActions": 423,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00140",
+      "strategies": {
+        "0": "diamond",
+        "1": "aggressive"
+      },
+      "rounds": 78,
+      "totalActions": 502,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00141",
+      "strategies": {
+        "0": "diamond",
+        "1": "aggressive"
+      },
+      "rounds": 53,
+      "totalActions": 367,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 15,
+          "diamonds": 8
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 7,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00142",
+      "strategies": {
+        "0": "diamond",
+        "1": "aggressive"
+      },
+      "rounds": 81,
+      "totalActions": 515,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00143",
+      "strategies": {
+        "0": "diamond",
+        "1": "aggressive"
+      },
+      "rounds": 26,
+      "totalActions": 195,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 7
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 0,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00144",
+      "strategies": {
+        "0": "diamond",
+        "1": "aggressive"
+      },
+      "rounds": 73,
+      "totalActions": 415,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00145",
+      "strategies": {
+        "0": "diamond",
+        "1": "aggressive"
+      },
+      "rounds": 19,
+      "totalActions": 120,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 0,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00146",
+      "strategies": {
+        "0": "diamond",
+        "1": "aggressive"
+      },
+      "rounds": 31,
+      "totalActions": 187,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 12,
+          "diamonds": 3
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 1,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00147",
+      "strategies": {
+        "0": "diamond",
+        "1": "aggressive"
+      },
+      "rounds": 26,
+      "totalActions": 177,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 7,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00148",
+      "strategies": {
+        "0": "diamond",
+        "1": "aggressive"
+      },
+      "rounds": 25,
+      "totalActions": 155,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 3,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00149",
+      "strategies": {
+        "0": "diamond",
+        "1": "aggressive"
+      },
+      "rounds": 78,
+      "totalActions": 424,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00150",
+      "strategies": {
+        "0": "diamond",
+        "1": "aggressive"
+      },
+      "rounds": 35,
+      "totalActions": 239,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 13,
+          "diamonds": 0
+        },
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 11,
+          "diamonds": 5
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00151",
+      "strategies": {
+        "0": "diamond",
+        "1": "aggressive"
+      },
+      "rounds": 35,
+      "totalActions": 222,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 13,
+          "diamonds": 0
+        },
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 4,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00152",
+      "strategies": {
+        "0": "diamond",
+        "1": "aggressive"
+      },
+      "rounds": 32,
+      "totalActions": 211,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 5
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 5,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00153",
+      "strategies": {
+        "0": "diamond",
+        "1": "aggressive"
+      },
+      "rounds": 69,
+      "totalActions": 431,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00154",
+      "strategies": {
+        "0": "diamond",
+        "1": "aggressive"
+      },
+      "rounds": 79,
+      "totalActions": 503,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00155",
+      "strategies": {
+        "0": "diamond",
+        "1": "aggressive"
+      },
+      "rounds": 31,
+      "totalActions": 219,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 16,
+          "diamonds": 0
+        },
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 11,
+          "diamonds": 4
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00156",
+      "strategies": {
+        "0": "diamond",
+        "1": "aggressive"
+      },
+      "rounds": 34,
+      "totalActions": 226,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 7
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 1,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00157",
+      "strategies": {
+        "0": "diamond",
+        "1": "aggressive"
+      },
+      "rounds": 35,
+      "totalActions": 257,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 13,
+          "diamonds": 0
+        },
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 10,
+          "diamonds": 3
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00158",
+      "strategies": {
+        "0": "diamond",
+        "1": "aggressive"
+      },
+      "rounds": 32,
+      "totalActions": 214,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 8
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 9,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00159",
+      "strategies": {
+        "0": "diamond",
+        "1": "aggressive"
+      },
+      "rounds": 39,
+      "totalActions": 270,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 15,
+          "diamonds": 5
+        },
+        {
+          "playerId": "1",
+          "strategy": "aggressive",
+          "name": "Player 2",
+          "powerPoints": 9,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00160",
+      "strategies": {
+        "0": "diamond",
+        "1": "diamond"
+      },
+      "rounds": 87,
+      "totalActions": 472,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00161",
+      "strategies": {
+        "0": "diamond",
+        "1": "diamond"
+      },
+      "rounds": 46,
+      "totalActions": 270,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 14,
+          "diamonds": 4
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 11,
+          "diamonds": 3
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00162",
+      "strategies": {
+        "0": "diamond",
+        "1": "diamond"
+      },
+      "rounds": 30,
+      "totalActions": 194,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 14,
+          "diamonds": 5
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 6,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00163",
+      "strategies": {
+        "0": "diamond",
+        "1": "diamond"
+      },
+      "rounds": 22,
+      "totalActions": 153,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 12,
+          "diamonds": 5
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 7,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00164",
+      "strategies": {
+        "0": "diamond",
+        "1": "diamond"
+      },
+      "rounds": 24,
+      "totalActions": 146,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 14,
+          "diamonds": 0
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 2,
+          "diamonds": 1
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00165",
+      "strategies": {
+        "0": "diamond",
+        "1": "diamond"
+      },
+      "rounds": 17,
+      "totalActions": 115,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 14,
+          "diamonds": 2
+        },
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 0,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00166",
+      "strategies": {
+        "0": "diamond",
+        "1": "diamond"
+      },
+      "rounds": 27,
+      "totalActions": 172,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 13,
+          "diamonds": 13
+        },
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 1,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00167",
+      "strategies": {
+        "0": "diamond",
+        "1": "diamond"
+      },
+      "rounds": 36,
+      "totalActions": 210,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 12,
+          "diamonds": 3
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 6,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00168",
+      "strategies": {
+        "0": "diamond",
+        "1": "diamond"
+      },
+      "rounds": 30,
+      "totalActions": 189,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 16,
+          "diamonds": 5
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 5,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00169",
+      "strategies": {
+        "0": "diamond",
+        "1": "diamond"
+      },
+      "rounds": 22,
+      "totalActions": 135,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 13,
+          "diamonds": 1
+        },
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 2,
+          "diamonds": 1
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00170",
+      "strategies": {
+        "0": "diamond",
+        "1": "diamond"
+      },
+      "rounds": 29,
+      "totalActions": 184,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 12,
+          "diamonds": 4
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 9,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00171",
+      "strategies": {
+        "0": "diamond",
+        "1": "diamond"
+      },
+      "rounds": 87,
+      "totalActions": 473,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00172",
+      "strategies": {
+        "0": "diamond",
+        "1": "diamond"
+      },
+      "rounds": 86,
+      "totalActions": 518,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00173",
+      "strategies": {
+        "0": "diamond",
+        "1": "diamond"
+      },
+      "rounds": 30,
+      "totalActions": 197,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 13,
+          "diamonds": 3
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 5,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00174",
+      "strategies": {
+        "0": "diamond",
+        "1": "diamond"
+      },
+      "rounds": 98,
+      "totalActions": 562,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00175",
+      "strategies": {
+        "0": "diamond",
+        "1": "diamond"
+      },
+      "rounds": 37,
+      "totalActions": 247,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 14,
+          "diamonds": 4
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 0,
+          "diamonds": 0
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00176",
+      "strategies": {
+        "0": "diamond",
+        "1": "diamond"
+      },
+      "rounds": 28,
+      "totalActions": 186,
+      "ranking": [
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 12,
+          "diamonds": 1
+        },
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 6,
+          "diamonds": 1
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00177",
+      "strategies": {
+        "0": "diamond",
+        "1": "diamond"
+      },
+      "rounds": 119,
+      "totalActions": 649,
+      "ranking": [],
+      "aborted": true
+    },
+    {
+      "gameId": "g00178",
+      "strategies": {
+        "0": "diamond",
+        "1": "diamond"
+      },
+      "rounds": 21,
+      "totalActions": 143,
+      "ranking": [
+        {
+          "playerId": "1",
+          "strategy": "diamond",
+          "name": "Player 2",
+          "powerPoints": 12,
+          "diamonds": 4
+        },
+        {
+          "playerId": "0",
+          "strategy": "diamond",
+          "name": "Player 1",
+          "powerPoints": 6,
+          "diamonds": 2
+        }
+      ],
+      "aborted": false
+    },
+    {
+      "gameId": "g00179",
+      "strategies": {
+        "0": "diamond",
+        "1": "diamond"
+      },
+      "rounds": 85,
+      "totalActions": 430,
+      "ranking": [],
+      "aborted": true
+    }
+  ],
+  "stats": {
+    "perStrategy": {
+      "efficient": {
+        "wins": 52,
+        "winRate": 0.5148514851485149,
+        "avgScore": 9.336633663366337,
+        "avgRank": 1.4851485148514851,
+        "avgRounds": 30.15841584158416,
+        "gamesPlayed": 101
+      },
+      "aggressive": {
+        "wins": 52,
+        "winRate": 0.5531914893617021,
+        "avgScore": 10.138297872340425,
+        "avgRank": 1.446808510638298,
+        "avgRounds": 29.117021276595743,
+        "gamesPlayed": 94
+      },
+      "diamond": {
+        "wins": 39,
+        "winRate": 0.42857142857142855,
+        "avgScore": 8.802197802197803,
+        "avgRank": 1.5714285714285714,
+        "avgRounds": 32.75824175824176,
+        "gamesPlayed": 91
+      }
+    },
+    "headToHead": {
+      "efficient": {
+        "efficient": {
+          "wins": 18,
+          "total": 36,
+          "winRate": 0.5
+        },
+        "aggressive": {
+          "wins": 14,
+          "total": 32,
+          "winRate": 0.4375
+        },
+        "diamond": {
+          "wins": 20,
+          "total": 33,
+          "winRate": 0.6060606060606061
+        }
+      },
+      "aggressive": {
+        "efficient": {
+          "wins": 18,
+          "total": 32,
+          "winRate": 0.5625
+        },
+        "aggressive": {
+          "wins": 16,
+          "total": 32,
+          "winRate": 0.5
+        },
+        "diamond": {
+          "wins": 18,
+          "total": 30,
+          "winRate": 0.6
+        }
+      },
+      "diamond": {
+        "efficient": {
+          "wins": 13,
+          "total": 33,
+          "winRate": 0.3939393939393939
+        },
+        "aggressive": {
+          "wins": 12,
+          "total": 30,
+          "winRate": 0.4
+        },
+        "diamond": {
+          "wins": 14,
+          "total": 28,
+          "winRate": 0.5
+        }
+      }
+    },
+    "avgGameLength": 30.643356643356643,
+    "scoreDistribution": {
+      "efficient": {
+        "min": 0,
+        "max": 17,
+        "avg": 9.336633663366337,
+        "median": 12
+      },
+      "aggressive": {
+        "min": 0,
+        "max": 16,
+        "avg": 10.138297872340425,
+        "median": 12
+      },
+      "diamond": {
+        "min": 0,
+        "max": 16,
+        "avg": 8.802197802197803,
+        "median": 9
+      }
+    }
+  }
+}

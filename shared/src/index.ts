@@ -7,3 +7,5 @@ export { canPayCard, findBotPayment, chooseBestPayment } from './game/botPayment
 export { estimateEffort, pickTargetCard, scorePearlSlot, scoredPearlSlots, bestPearlSlotByScore, getStrategyWeights } from './game/botPearlScorer.js';
 export type { PearlWeights } from './game/botPearlScorer.js';
 export { computeNeededValues } from './game/botNeededValues.js';
+export { evaluatePortalSwap, scoreCardForStrategy } from './game/botPortalSwap.js';
+export type { PortalSwapDecision } from './game/botPortalSwap.js';
