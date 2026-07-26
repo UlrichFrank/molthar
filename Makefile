@@ -1,5 +1,6 @@
 .PHONY: help install dev build start stop clean test test-report \
-        docker-build docker-build-backend docker-build-frontend docker-run docker-stop docker-logs
+        docker-build docker-build-backend docker-build-frontend docker-run docker-stop docker-logs docker-push \
+        deploy deploy-build deploy-remote deploy-rollback deploy-logs deploy-status deploy-restart deploy-init
 
 DOCKER_TAG     ?= latest
 BACKEND_IMAGE  ?= portale-backend
@@ -15,6 +16,15 @@ REGISTRY_BACKEND  ?= $(REGISTRY)/molthar-backend
 REGISTRY_FRONTEND ?= $(REGISTRY)/molthar-frontend
 # Set PLATFORMS=linux/amd64,linux/arm64 to build multi-platform images locally
 PLATFORMS      ?=
+
+# ── vServer Deployment ────────────────────────────────────────────────────────
+# SSH alias (see ~/.ssh/config); DEPLOY_PATH = compose stack location on server
+DEPLOY_HOST    ?= vServer
+DEPLOY_PATH    ?= ~/deploy/molthar
+# Base domain for app subdomains — MUST match APPS_DOMAIN in deploy/molthar/.env
+APPS_DOMAIN    ?= apps.diefranks.eu
+# Short git SHA — used as immutable image tag alongside 'latest'
+GIT_SHA        := $(shell git rev-parse --short HEAD)
 
 # Colors for output
 BLUE := \033[0;34m
@@ -37,7 +47,7 @@ help:
 	@echo "  make build          Build backend only"
 	@echo "  make build-all      Build backend and shared packages"
 	@echo ""
-	@echo "$(GREEN)Docker:$(NC)"
+	@echo "$(GREEN)Docker (local — build & run on this machine):$(NC)"
 	@echo "  make docker-build              Build backend + frontend images"
 	@echo "  make docker-build-backend      Build backend image only"
 	@echo "  make docker-build-frontend     Build frontend image only"
@@ -45,7 +55,14 @@ help:
 	@echo "  make docker-stop               Stop containers"
 	@echo "  make docker-logs               Follow container logs"
 	@echo "  make docker-push               Tag + push images to ghcr.io (needs docker login)"
-	@echo "  make docker-run-prod           Run production images from ghcr.io"
+	@echo ""
+	@echo "$(GREEN)Deployment (vServer via SSH + Traefik):$(NC)"
+	@echo "  make deploy                    Build linux/amd64 → push → SSH pull + up"
+	@echo "  make deploy-rollback TAG=git-<sha>   Deploy a previously built version"
+	@echo "  make deploy-logs               Tail container logs on vServer"
+	@echo "  make deploy-status             Show container status on vServer"
+	@echo "  make deploy-restart            Restart containers on vServer"
+	@echo "  make deploy-init               Check vServer bootstrap prerequisites"
 	@echo ""
 	@echo "$(GREEN)Testing:$(NC)"
 	@echo "  make test           Run all tests (shared + game-web)"
@@ -216,8 +233,53 @@ docker-push: docker-build
 	docker push $(REGISTRY_FRONTEND):$(DOCKER_TAG)
 	@echo "$(GREEN)✓ Images pushed to ghcr.io$(NC)"
 
-# Run production images from ghcr.io (for Synology / server deployment)
-docker-run-prod:
-	@echo "$(BLUE)Starting production containers from ghcr.io...$(NC)"
-	EXTRA_ORIGINS=$(EXTRA_ORIGINS) docker compose -f docker-compose.prod.yml up -d
-	@echo "$(GREEN)✓ Containers started$(NC)"
+# ── Deployment to vServer ─────────────────────────────────────────────────────
+# Builds linux/amd64 images (works from Mac ARM via QEMU), pushes to ghcr.io
+# with two tags (latest + git-<sha>), then triggers `compose pull && up -d`
+# on the vServer over SSH. VITE_SERVER_URL is baked into the frontend bundle.
+
+deploy-build:
+	@echo "$(BLUE)Building linux/amd64 images (sha: $(GIT_SHA), domain: $(APPS_DOMAIN))...$(NC)"
+	docker buildx build --platform linux/amd64 \
+		-t $(REGISTRY_BACKEND):latest \
+		-t $(REGISTRY_BACKEND):git-$(GIT_SHA) \
+		-f Dockerfile --push .
+	docker buildx build --platform linux/amd64 \
+		--build-arg VITE_SERVER_URL=https://molthar-api.$(APPS_DOMAIN) \
+		-t $(REGISTRY_FRONTEND):latest \
+		-t $(REGISTRY_FRONTEND):git-$(GIT_SHA) \
+		-f Dockerfile.frontend --push .
+	@echo "$(GREEN)✓ Pushed tags: latest, git-$(GIT_SHA)$(NC)"
+
+deploy-remote:
+	@TAG=$${TAG:-latest}; \
+	echo "$(BLUE)Deploying IMAGE_TAG=$$TAG to $(DEPLOY_HOST):$(DEPLOY_PATH)...$(NC)"; \
+	ssh $(DEPLOY_HOST) "cd $(DEPLOY_PATH) && IMAGE_TAG=$$TAG docker compose pull && IMAGE_TAG=$$TAG docker compose up -d"
+	@echo "$(GREEN)✓ Deployed$(NC)"
+
+deploy: deploy-build deploy-remote
+	@echo "$(GREEN)✓ Deploy complete (sha: $(GIT_SHA))$(NC)"
+
+deploy-rollback:
+	@test -n "$(TAG)" || { echo "$(RED)Usage: make deploy-rollback TAG=git-abc123$(NC)"; exit 1; }
+	@$(MAKE) deploy-remote TAG=$(TAG)
+
+deploy-logs:
+	ssh -t $(DEPLOY_HOST) 'cd $(DEPLOY_PATH) && docker compose logs -f --tail=100'
+
+deploy-status:
+	ssh $(DEPLOY_HOST) 'cd $(DEPLOY_PATH) && docker compose ps'
+
+deploy-restart:
+	ssh $(DEPLOY_HOST) 'cd $(DEPLOY_PATH) && docker compose restart'
+
+deploy-init:
+	@echo "$(BLUE)Checking vServer bootstrap on $(DEPLOY_HOST)...$(NC)"
+	@ssh -o ConnectTimeout=5 $(DEPLOY_HOST) 'docker --version' 2>/dev/null && echo "$(GREEN)✓ Docker installed$(NC)" || { echo "$(RED)✗ Docker missing — see deploy/README.md$(NC)"; exit 1; }
+	@ssh $(DEPLOY_HOST) 'docker compose version' >/dev/null 2>&1 && echo "$(GREEN)✓ Docker Compose plugin available$(NC)" || echo "$(RED)✗ Docker Compose plugin missing$(NC)"
+	@ssh $(DEPLOY_HOST) 'docker network ls --format "{{.Name}}" | grep -qx web' && echo "$(GREEN)✓ Network 'web' exists$(NC)" || echo "$(RED)✗ Run: ssh $(DEPLOY_HOST) 'docker network create web'$(NC)"
+	@ssh $(DEPLOY_HOST) 'test -d ~/deploy/traefik' && echo "$(GREEN)✓ ~/deploy/traefik exists$(NC)" || echo "$(RED)✗ scp -r deploy/traefik $(DEPLOY_HOST):~/deploy/$(NC)"
+	@ssh $(DEPLOY_HOST) 'test -d $(DEPLOY_PATH)' && echo "$(GREEN)✓ $(DEPLOY_PATH) exists$(NC)" || echo "$(RED)✗ scp -r deploy/molthar $(DEPLOY_HOST):~/deploy/$(NC)"
+	@ssh $(DEPLOY_HOST) 'test -f ~/deploy/traefik/.env' && echo "$(GREEN)✓ traefik/.env present$(NC)" || echo "$(RED)✗ create ~/deploy/traefik/.env from .env.example$(NC)"
+	@ssh $(DEPLOY_HOST) 'test -f $(DEPLOY_PATH)/.env' && echo "$(GREEN)✓ molthar/.env present$(NC)" || echo "$(RED)✗ create $(DEPLOY_PATH)/.env from .env.example$(NC)"
+	@echo "$(BLUE)See deploy/README.md for full setup steps.$(NC)"

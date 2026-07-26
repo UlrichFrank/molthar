@@ -1,0 +1,40 @@
+services:
+  backend:
+    image: ghcr.io/ulrichfrank/molthar-backend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      - EXTRA_ORIGINS=https://molthar.${APPS_DOMAIN:?APPS_DOMAIN required}
+    volumes:
+      - ./data:/app/data
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.molthar-api.rule=Host(`molthar-api.${APPS_DOMAIN}`)"
+      - "traefik.http.routers.molthar-api.entrypoints=websecure"
+      - "traefik.http.routers.molthar-api.tls=true"
+      - "traefik.http.routers.molthar-api.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.molthar-api.tls.domains[0].main=*.${APPS_DOMAIN}"
+      - "traefik.http.services.molthar-api.loadbalancer.server.port=3001"
+
+  frontend:
+    image: ghcr.io/ulrichfrank/molthar-frontend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.molthar.rule=Host(`molthar.${APPS_DOMAIN}`)"
+      - "traefik.http.routers.molthar.entrypoints=websecure"
+      - "traefik.http.routers.molthar.tls=true"
+      - "traefik.http.routers.molthar.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.molthar.tls.domains[0].main=*.${APPS_DOMAIN}"
+      - "traefik.http.services.molthar.loadbalancer.server.port=80"
+
+networks:
+  web:
+    external: true

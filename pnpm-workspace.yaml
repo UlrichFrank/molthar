@@ -3,3 +3,6 @@ packages:
   - 'backend'
   - 'game-web'
   - 'card-manager'
+allowBuilds:
+  esbuild: set this to true or false
+  msw: set this to true or false

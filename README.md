@@ -81,96 +81,16 @@ ghcr.io/ulrichfrank/molthar-frontend:latest
 
 ---
 
-## Docker Compose Integration
+## Production Deployment
 
-### Standalone (Raspberry Pi, Homeserver, Synology)
+Für den Betrieb auf einem entfernten Server (Netcup vServer via SSH, HTTPS über Traefik + Let's Encrypt Wildcard-Cert) siehe **[`deploy/README.md`](./deploy/README.md)**.
 
-`docker-compose.prod.yml` auf den Server kopieren und starten:
-
-```bash
-# Einmalig einrichten
-mkdir -p ~/docker/molthar && cd ~/docker/molthar
-curl -O https://raw.githubusercontent.com/UlrichFrank/molthar/main/docker-compose.prod.yml
-
-# Starten
-docker compose -f docker-compose.prod.yml up -d
-```
-
-Das Frontend ermittelt die Backend-URL automatisch aus `window.location.hostname` —
-kein manuelles Konfigurieren der IP nötig.
-
-Werden Requests von einer bestimmten Origin blockiert (z.B. bei Reverse Proxy),
-kann die CORS-Allowlist per Umgebungsvariable erweitert werden:
+Kurzform nach abgeschlossenem Bootstrap:
 
 ```bash
-EXTRA_ORIGINS=http://mein-nas.local docker compose -f docker-compose.prod.yml up -d
-```
-
-### Integration in ein bestehendes Docker Compose Setup
-
-Portale von Molthar lässt sich als Sektion in ein vorhandenes `docker-compose.yml` einbinden:
-
-```yaml
-services:
-  # ... deine anderen Services ...
-
-  portale-backend:
-    image: ghcr.io/ulrichfrank/molthar-backend:latest
-    ports:
-      - "3001:3001"     # Hostport anpassen falls belegt; PORT-Env muss dann ebenfalls gesetzt werden
-    environment:
-      - PORT=3001       # Muss mit dem Hostport übereinstimmen
-      # Comma-separated zusätzliche CORS-Origins (optional)
-      - EXTRA_ORIGINS=http://192.168.1.100,http://mein-server.local
-    restart: unless-stopped
-
-  portale-frontend:
-    image: ghcr.io/ulrichfrank/molthar-frontend:latest
-    ports:
-      - "3000:80"       # Hostport anpassen falls 80 belegt ist
-    depends_on:
-      - portale-backend
-    restart: unless-stopped
-
-volumes:
-  portale_data:
-```
-
-Nach dem Start ist das Spiel erreichbar unter **http://\<server-ip\>:3000**.
-
-### Mit Traefik Reverse Proxy
-
-```yaml
-services:
-  portale-backend:
-    image: ghcr.io/ulrichfrank/molthar-backend:latest
-    restart: unless-stopped
-    volumes:
-      - portale_data:/app/data
-    environment:
-      - EXTRA_ORIGINS=https://molthar.example.com
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.molthar-api.rule=Host(`molthar.example.com`) && PathPrefix(`/games`, `/socket.io`)"
-      - "traefik.http.services.molthar-api.loadbalancer.server.port=3001"
-
-  portale-frontend:
-    image: ghcr.io/ulrichfrank/molthar-frontend:latest
-    restart: unless-stopped
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.molthar.rule=Host(`molthar.example.com`)"
-      - "traefik.http.services.molthar.loadbalancer.server.port=80"
-
-volumes:
-  portale_data:
-```
-
-### Updates
-
-```bash
-docker compose -f docker-compose.prod.yml pull
-docker compose -f docker-compose.prod.yml up -d
+make deploy                      # build + push + SSH pull + up
+make deploy-status               # laufende Container prüfen
+make deploy-rollback TAG=git-<sha>   # auf frühere Version zurück
 ```
 
 ---

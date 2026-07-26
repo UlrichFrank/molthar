@@ -1,0 +1,24 @@
+services:
+  traefik:
+    image: traefik:v3.7
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    command:
+      - --configFile=/etc/traefik/traefik.yml
+    environment:
+      # Read by the Netcup lego DNS-01 provider (used by the ACME resolver in traefik.yml)
+      NETCUP_CUSTOMER_NUMBER: ${NETCUP_CUSTOMER_NUMBER:?required}
+      NETCUP_API_KEY: ${NETCUP_API_KEY:?required}
+      NETCUP_API_PASSWORD: ${NETCUP_API_PASSWORD:?required}
+    volumes:
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./acme.json:/acme/acme.json
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - web
+
+networks:
+  web:
+    external: true
