@@ -13,5 +13,13 @@ game-web/dist
 .env.local
 *.log
 .DS_Store
+.git
 openspec
+
+# Source-only / unused heavy assets (not referenced by the app)
 assets/*.psd
+assets/*.af
+assets/Anleitung*
+
+# Tests never run inside the image
+**/*.test.ts
