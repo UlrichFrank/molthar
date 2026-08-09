@@ -145,11 +145,37 @@
   margin: 0 0 4px 2px;
 }
 
+/* Zone wrapper: caps the fluid card rows so they don't get grotesque on wide
+   phones/small tablets. 440px ≈ the iPhone-14 content width (390 − 2×8 = 374px)
+   plus ~18% headroom; below that every row simply fills the viewport. */
+.mobile-zone {
+  width: 100%;
+  max-width: 440px;
+  margin-inline: auto;
+}
+
+/* Market rows are fixed-count grids — they must NEVER wrap, so the four market
+   pearls always stay together on one line (hot path) and the draw piles sit at
+   the end of their own row. Card width is derived from the row: pearls
+   (100% − 4×gap)/5 ≈ 70px @390px, characters (100% − 2×gap)/3 ≈ 121px @390px. */
 .mobile-market-row {
-  display: flex;
+  display: grid;
   gap: 6px;
-  align-items: flex-start;
-  flex-wrap: wrap;
+  align-items: start;
+}
+
+.mobile-market-row--pearls {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.mobile-market-row--characters {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.mobile-market-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .mobile-card-btn {
@@ -179,13 +205,14 @@
   border-radius: 4px;
 }
 
+/* Fluid: the parent grid/flex track decides the width, aspect-ratio the height. */
 .mobile-card-btn--character {
-  width: 60px;
+  width: 100%;
   aspect-ratio: 59 / 92;
 }
 
 .mobile-card-btn--pearl {
-  width: 46px;
+  width: 100%;
   aspect-ratio: 59 / 92;
 }
 
@@ -211,13 +238,24 @@
   align-items: flex-start;
 }
 
+/* Own portal is the most important surface of the scroll area: the two slots
+   share the space left over by the meta column, capped at 224px → ~109px per
+   card @390px and ~104px @360px (was a fixed 72px). */
 .mobile-portal-slots {
   display: flex;
   gap: 6px;
+  flex: 1 1 224px;
+  min-width: 0;
+  max-width: 224px;
+}
+
+.mobile-portal-slots > * {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .mobile-card-btn--portal {
-  width: 72px;
+  width: 100%;
   aspect-ratio: 59 / 92;
   border: 2px solid rgba(148, 163, 184, 0.3);
   border-radius: 6px;
@@ -240,6 +278,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
   font-size: 0.7rem;
   color: #94a3b8;
 }
@@ -351,6 +390,8 @@
 }
 
 /* ── Activated characters sheet grid ───────────────────────────────────── */
+/* Sheet grid keeps its own thumbnail size — it reuses `.mobile-card-btn--portal`
+   for styling only and must not inherit the (much larger) board slot width. */
 .mobile-activated-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
@@ -358,4 +399,9 @@
   max-height: 60dvh;
   overflow-y: auto;
   padding: 4px 2px;
+}
+
+.mobile-activated-grid .mobile-card-btn--portal {
+  width: 100%;
+  max-width: 84px;
 }

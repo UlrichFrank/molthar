@@ -13,7 +13,7 @@ export function PortalZone({ core, onOpenActivatedGrid }: PortalZoneProps) {
   const portal = core.playerPortal;
 
   return (
-    <div>
+    <div className="mobile-zone">
       <div className="mobile-section-title">{t('mobile.portal')}</div>
       <div className="mobile-portal-section">
         <div className="mobile-portal-slots">

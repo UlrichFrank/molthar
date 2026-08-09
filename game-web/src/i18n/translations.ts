@@ -190,7 +190,8 @@ export type TranslationKey =
   | 'ability.irrlicht.description'
   | 'ability.replacePearlSlotsBeforeFirstAction.description'
   // Mobile board (Task 7.4)
-  | 'mobile.market'
+  | 'mobile.marketPearls'
+  | 'mobile.marketCharacters'
   | 'mobile.portal'
   | 'mobile.hand'
   | 'mobile.characterDeck'
@@ -366,7 +367,8 @@ const de: Record<TranslationKey, string> = {
   'ability.anyAdditionalCardActions.description':    'Dauerhaft: Diese Karte hat einen aufgedruckten Wildcard-Perlenwert',
   'ability.irrlicht.description':                    'Dauerhaft: Direkte Nachbarn können diese Karte mitaktivieren',
   'ability.replacePearlSlotsBeforeFirstAction.description': 'Dauerhaft: Einmal pro Zug vor der ersten Aktion alle Perlenkarten kostenlos tauschen',
-  'mobile.market':               'Markt',
+  'mobile.marketPearls':         'Markt · Perlen',
+  'mobile.marketCharacters':     'Markt · Charaktere',
   'mobile.portal':                'Portal',
   'mobile.hand':                  'Hand',
   'mobile.characterDeck':         'Charakterstapel',
@@ -542,7 +544,8 @@ const enGB: Record<TranslationKey, string> = {
   'ability.anyAdditionalCardActions.description':    'Persistent: This card has a printed wildcard pearl value',
   'ability.irrlicht.description':                    'Persistent: Direct neighbours can co-activate this card',
   'ability.replacePearlSlotsBeforeFirstAction.description': 'Persistent: Once per turn, swap all pearl cards for free before your first action',
-  'mobile.market':               'Market',
+  'mobile.marketPearls':         'Market · Pearls',
+  'mobile.marketCharacters':     'Market · Characters',
   'mobile.portal':                'Portal',
   'mobile.hand':                  'Hand',
   'mobile.characterDeck':         'Character deck',
@@ -718,7 +721,8 @@ const fr: Record<TranslationKey, string> = {
   'ability.anyAdditionalCardActions.description':    'Permanent : Cette carte a une valeur perle générique imprimée',
   'ability.irrlicht.description':                    'Permanent : Les voisins directs peuvent co-activer cette carte',
   'ability.replacePearlSlotsBeforeFirstAction.description': 'Permanent : Une fois par tour, échangez gratuitement toutes les cartes perle avant votre première action',
-  'mobile.market':               'Marché',
+  'mobile.marketPearls':         'Marché · Perles',
+  'mobile.marketCharacters':     'Marché · Personnages',
   'mobile.portal':                'Portail',
   'mobile.hand':                  'Main',
   'mobile.characterDeck':         'Pioche personnages',
