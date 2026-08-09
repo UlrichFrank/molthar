@@ -15,10 +15,17 @@ interface MobileStatusBarProps {
 
 const AVATAR_COLORS = ['#f87171', '#60a5fa', '#34d399', '#fbbf24', '#c084fc'];
 
+/** From 4 players on, the bar switches to the compact size tier (see mobile.css). */
+const COMPACT_FROM_PLAYERS = 4;
+
 /**
  * Task 3.1-3.5/D4: "Variante C" — fixed player order (own player first), exactly
  * one expanded detail box, the rest compact avatars. Tapping an avatar moves the
  * detail box to that player's fixed slot without reordering anyone.
+ *
+ * The detail box is laid out on two internal lines (name + "am Zug" pill / rank,
+ * points, diamonds, action counter) so that a full 5-player bar still fits into a
+ * single row on a 360px viewport without clipping.
  */
 export function MobileStatusBar({ G, myPlayerID, activePlayerID, actionCount, maxActions, resolvePlayerName, onOpenOpponentDetail }: MobileStatusBarProps) {
   const { t } = useTranslation();
@@ -38,9 +45,10 @@ export function MobileStatusBar({ G, myPlayerID, activePlayerID, actionCount, ma
   }, [order, G.players]);
 
   const currentExpanded = order.includes(expandedId) ? expandedId : myPlayerID;
+  const isCompact = order.length >= COMPACT_FROM_PLAYERS;
 
   return (
-    <div className="mobile-status-bar">
+    <div className={'mobile-status-bar' + (isCompact ? ' mobile-status-bar--compact' : '')}>
       {order.map(pid => {
         const player = G.players?.[pid];
         if (!player) return null;
@@ -48,6 +56,8 @@ export function MobileStatusBar({ G, myPlayerID, activePlayerID, actionCount, ma
         const isTurn = pid === activePlayerID;
         const name = resolvePlayerName(pid, player.name);
         const initial = name.charAt(0).toUpperCase() || '?';
+        const color = AVATAR_COLORS[((player.colorIndex ?? 1) - 1) % AVATAR_COLORS.length];
+        const rank = ranks[pid] ?? 1;
 
         if (pid === currentExpanded) {
           return (
@@ -59,24 +69,31 @@ export function MobileStatusBar({ G, myPlayerID, activePlayerID, actionCount, ma
               onClick={isOwn ? undefined : () => onOpenOpponentDetail(pid)}
               className={
                 'mobile-status-detail'
-                + (isOwn ? ' mobile-status-detail--own' : '')
+                + (isOwn ? ' mobile-status-detail--own' : ' mobile-status-detail--tappable')
                 + (isTurn ? ' mobile-status-detail--turn' : '')
               }
-              style={isOwn ? undefined : { cursor: 'pointer' }}
               title={isOwn ? undefined : t('mobile.viewOpponentDetail')}
             >
-              <span className="mobile-status-detail-name">{initial}. {name}</span>
-              <span className="mobile-status-detail-stat" style={{ color: '#94a3b8' }}>
-                {t('mobile.rank', { rank: ranks[pid] ?? 1, total: order.length })}
-              </span>
-              <span className="mobile-status-detail-stat" style={{ color: '#fde68a' }}>★{player.powerPoints}</span>
-              <span className="mobile-status-detail-stat" style={{ color: '#67e8f9' }}>💎{player.diamondCards?.length ?? 0}</span>
-              {isTurn && (
-                <span className="mobile-status-detail-actions" style={{ color: '#4ade80' }}>
-                  {t('mobile.yourTurnBadge')} {actionCount}/{maxActions}
+              <span className="mobile-status-detail-circle" style={{ background: color }}>{initial}</span>
+              <span className="mobile-status-detail-info">
+                <span className="mobile-status-detail-line">
+                  <span className="mobile-status-detail-name">{name}</span>
+                  {isTurn && <span className="mobile-status-turn-badge">{t('mobile.yourTurnBadge')}</span>}
                 </span>
-              )}
-              {!isOwn && <span className="mobile-status-detail-stat" style={{ color: '#64748b' }}>▸</span>}
+                <span className="mobile-status-detail-meta">
+                  <span className="mobile-status-detail-rank">
+                    {isCompact ? t('mobile.rankShort', { rank }) : t('mobile.rank', { rank, total: order.length })}
+                  </span>
+                  <span className="mobile-status-detail-points">★{player.powerPoints}</span>
+                  <span className="mobile-status-detail-diamonds">💎{player.diamondCards?.length ?? 0}</span>
+                  {isTurn && (
+                    <span className="mobile-status-detail-actions" title={t('mobile.actionsLabel')}>
+                      {actionCount}/{maxActions}
+                    </span>
+                  )}
+                </span>
+              </span>
+              {!isOwn && <span className="mobile-status-detail-chevron">▸</span>}
             </div>
           );
         }
@@ -87,12 +104,13 @@ export function MobileStatusBar({ G, myPlayerID, activePlayerID, actionCount, ma
             type="button"
             data-testid="mobile-status-avatar"
             className={'mobile-status-avatar' + (isOwn ? ' mobile-status-avatar--own' : '')}
-            style={{ background: AVATAR_COLORS[((player.colorIndex ?? 1) - 1) % AVATAR_COLORS.length] }}
             onClick={() => setExpandedId(pid)}
             aria-label={name}
           >
-            {initial}
-            {isTurn && <span className="mobile-status-avatar-turn-dot" />}
+            <span className="mobile-status-avatar-circle" style={{ background: color }}>
+              {initial}
+              {isTurn && <span className="mobile-status-avatar-turn-dot" />}
+            </span>
             <span className="mobile-status-avatar-points">★{player.powerPoints}</span>
           </button>
         );

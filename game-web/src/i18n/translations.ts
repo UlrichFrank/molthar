@@ -198,6 +198,8 @@ export type TranslationKey =
   | 'mobile.pearlDeck'
   | 'mobile.pearlValue'
   | 'mobile.rank'
+  | 'mobile.rankShort'
+  | 'mobile.actionsLabel'
   | 'mobile.yourTurnBadge'
   | 'mobile.activatedCount'
   | 'mobile.activatedTitle'
@@ -375,6 +377,8 @@ const de: Record<TranslationKey, string> = {
   'mobile.pearlDeck':             'Perlenstapel',
   'mobile.pearlValue':            'Perle {value}',
   'mobile.rank':                  'Rang {rank}/{total}',
+  'mobile.rankShort':             '#{rank}',
+  'mobile.actionsLabel':          'Aktionen',
   'mobile.yourTurnBadge':         'Am Zug',
   'mobile.activatedCount':        'aktiviert ×{count} ▸',
   'mobile.activatedTitle':        'Aktivierte Charaktere ({count})',
@@ -552,6 +556,8 @@ const enGB: Record<TranslationKey, string> = {
   'mobile.pearlDeck':             'Pearl deck',
   'mobile.pearlValue':            'Pearl {value}',
   'mobile.rank':                  'Rank {rank}/{total}',
+  'mobile.rankShort':             '#{rank}',
+  'mobile.actionsLabel':          'Actions',
   'mobile.yourTurnBadge':         'Your turn',
   'mobile.activatedCount':        'activated ×{count} ▸',
   'mobile.activatedTitle':        'Activated characters ({count})',
@@ -729,6 +735,8 @@ const fr: Record<TranslationKey, string> = {
   'mobile.pearlDeck':             'Pioche perles',
   'mobile.pearlValue':            'Perle {value}',
   'mobile.rank':                  'Rang {rank}/{total}',
+  'mobile.rankShort':             'n°{rank}',
+  'mobile.actionsLabel':          'Actions',
   'mobile.yourTurnBadge':         'À vous',
   'mobile.activatedCount':        'activées ×{count} ▸',
   'mobile.activatedTitle':        'Personnages activés ({count})',

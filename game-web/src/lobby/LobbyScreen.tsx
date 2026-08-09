@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import type { CSSProperties } from 'react';
 import { PortaleVonMolthar } from '@portale-von-molthar/shared';
 import type { NpcSlotConfig } from '@portale-von-molthar/shared';
 import { lobbyClient, PortaleClient } from './useLobbyClient';
@@ -203,8 +204,15 @@ export function LobbyScreen() {
   }
 
   if (view === 'in-game') {
+    // Task 7.1: only the creator gets the extra "Spiel beenden" button. The mobile
+    // status bar reserves horizontal space for these fixed buttons via this
+    // custom property (mobile.css `.mobile-status-bar` padding-right).
+    const inGameActionCount = playerID === '0' ? 2 : 1;
     return (
-      <div className="game-container">
+      <div
+        className="game-container"
+        style={{ '--pvm-ingame-action-count': inGameActionCount } as CSSProperties}
+      >
         <PortaleClient
           matchID={matchID}
           playerID={playerID}
