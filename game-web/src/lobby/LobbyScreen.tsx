@@ -141,7 +141,15 @@ export function LobbyScreen() {
     loadMatches();
   };
 
-  const handleCancelWaiting = () => {
+  const handleCancelWaiting = async () => {
+    // Give the seat back too. Without this the match keeps the creator's name on
+    // slot 0, stays in the open-games list forever and can never be joined to
+    // completion. boardgame.io deletes a match once its last player has left.
+    try {
+      await lobbyClient.leaveMatch(PortaleVonMolthar.name, matchID, { playerID, credentials });
+    } catch {
+      // Best effort — a failed leave must not trap the user in the waiting room
+    }
     // Task 4.3: Clear session when cancelling
     clearSession();
     setSavedSession(null);
@@ -190,12 +198,10 @@ export function LobbyScreen() {
   }
 
   if (view === 'waiting') {
-    const humanPlayerCount = totalPlayers - npcSlots.length;
     return (
       <WaitingRoom
         matchID={matchID}
         totalPlayers={totalPlayers}
-        humanPlayerCount={humanPlayerCount}
         withSpecialCards={withSpecialCards}
         onAllJoined={() => setView('in-game')}
         onCancel={handleCancelWaiting}

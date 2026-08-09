@@ -22,6 +22,7 @@ export type TranslationKey =
   // Waiting room
   | 'waiting.title'
   | 'waiting.description'
+  | 'waiting.joined'
   | 'waiting.cancel'
   | 'waiting.mode.base'
   | 'waiting.mode.special'
@@ -225,6 +226,7 @@ const de: Record<TranslationKey, string> = {
   'lobby.endGameConfirm':        'Spiel wirklich beenden? Das Spiel wird für alle Spieler beendet.',
   'waiting.title':               'Warte auf alle Spieler...',
   'waiting.description':         'Das Spiel startet automatisch, wenn alle {count} Spieler beigetreten sind.',
+  'waiting.joined':              '{joined} von {total} Plätzen belegt',
   'waiting.cancel':              'Abbrechen',
   'waiting.mode.base':           'Modus: Basisspiel',
   'waiting.mode.special':        'Modus: Mit Sonderkarten',
@@ -405,6 +407,7 @@ const enGB: Record<TranslationKey, string> = {
   'lobby.endGameConfirm':        'Really end the game? It will end for all players.',
   'waiting.title':               'Waiting for all players...',
   'waiting.description':         'The game starts automatically when all {count} players have joined.',
+  'waiting.joined':              '{joined} of {total} seats taken',
   'waiting.cancel':              'Cancel',
   'waiting.mode.base':           'Mode: Base Game',
   'waiting.mode.special':        'Mode: With Special Cards',
@@ -585,6 +588,7 @@ const fr: Record<TranslationKey, string> = {
   'lobby.endGameConfirm':        'Vraiment terminer la partie ? Elle sera terminée pour tous les joueurs.',
   'waiting.title':               'En attente de tous les joueurs...',
   'waiting.description':         'La partie démarre automatiquement quand tous les {count} joueurs ont rejoint.',
+  'waiting.joined':              '{joined} places sur {total} occupées',
   'waiting.cancel':              'Annuler',
   'waiting.mode.base':           'Mode : Jeu de base',
   'waiting.mode.special':        'Mode : Avec cartes spéciales',
