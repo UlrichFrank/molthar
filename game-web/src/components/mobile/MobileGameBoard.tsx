@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FINAL_ROUND_POWER_THRESHOLD } from '@portale-von-molthar/shared';
 import { DialogProvider } from '../../contexts/DialogContext';
 import { useGameBoardCore } from '../../hooks/useGameBoardCore';
 import type { GameBoardProps } from '../../hooks/useGameBoardCore';
@@ -49,7 +50,7 @@ function MobileGameBoardContent(props: GameBoardProps) {
 
       {G.finalRound && core.gameover === undefined && (() => {
         const leaders = Object.values(G.players ?? {})
-          .filter(p => p && p.powerPoints >= 12)
+          .filter(p => p && p.powerPoints >= FINAL_ROUND_POWER_THRESHOLD)
           .map(p => p!.name);
         return (
           <div className="mobile-banner-row">

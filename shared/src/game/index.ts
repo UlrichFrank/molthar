@@ -1,5 +1,6 @@
 import { INVALID_MOVE } from 'boardgame.io/core';
 import type { GameState, PearlCard, CharacterCard, PlayerState, ActivatedCharacter, PaymentSelection } from './types';
+import { FINAL_ROUND_POWER_THRESHOLD } from './types';
 import { calculateHandLimit, getExcessCardCount, validateCostPayment, hasUnnecessarySelection } from './costCalculation';
 import { getAllCards as getAllCardDataFromDatabase } from './cardDatabase';
 import { applyRedAbility, applyBlueAbility, deriveActiveAbilities } from './abilityHandlers';
@@ -415,8 +416,8 @@ export const PortaleVonMolthar = {
         }
       }
 
-      // Check if player reached 12+ power points to trigger final round
-      if (player.powerPoints >= 12 && !G.finalRoundNumber) {
+      // Check if player reached the power-point threshold to trigger final round
+      if (player.powerPoints >= FINAL_ROUND_POWER_THRESHOLD && !G.finalRoundNumber) {
         G.finalRoundNumber = G.roundNumber + 1;
       }
       return;
@@ -659,7 +660,7 @@ export const PortaleVonMolthar = {
         caller.activatedCharacters.push(activatedEntry);
       }
 
-      if (caller.powerPoints >= 12 && !G.finalRoundNumber) {
+      if (caller.powerPoints >= FINAL_ROUND_POWER_THRESHOLD && !G.finalRoundNumber) {
         G.finalRoundNumber = G.roundNumber + 1;
       }
       return;

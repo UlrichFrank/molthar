@@ -205,6 +205,7 @@ export type TranslationKey =
   | 'mobile.activatedTitle'
   | 'mobile.replacePearlSlots'
   | 'mobile.viewOpponentDetail'
+  | 'mobile.handCount'
   ;
 
 const de: Record<TranslationKey, string> = {
@@ -384,6 +385,7 @@ const de: Record<TranslationKey, string> = {
   'mobile.activatedTitle':        'Aktivierte Charaktere ({count})',
   'mobile.replacePearlSlots':     'Perlen tauschen',
   'mobile.viewOpponentDetail':    'Portal & aktivierte Karten ansehen',
+  'mobile.handCount':             'Hand: {count}',
 };
 
 const enGB: Record<TranslationKey, string> = {
@@ -563,6 +565,7 @@ const enGB: Record<TranslationKey, string> = {
   'mobile.activatedTitle':        'Activated characters ({count})',
   'mobile.replacePearlSlots':     'Swap pearls',
   'mobile.viewOpponentDetail':    'View portal & activated cards',
+  'mobile.handCount':             'Hand: {count}',
 };
 
 const fr: Record<TranslationKey, string> = {
@@ -742,6 +745,7 @@ const fr: Record<TranslationKey, string> = {
   'mobile.activatedTitle':        'Personnages activés ({count})',
   'mobile.replacePearlSlots':     'Échanger les perles',
   'mobile.viewOpponentDetail':    'Voir portail & cartes activées',
+  'mobile.handCount':             'Main : {count}',
 };
 
 export const translations: Record<Locale, Record<TranslationKey, string>> = { de, 'en-GB': enGB, fr };

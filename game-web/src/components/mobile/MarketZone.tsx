@@ -32,7 +32,11 @@ export function MarketZone({ G, core }: MarketZoneProps) {
               <button
                 key={`pearl-${i}`}
                 type="button"
-                className={'mobile-card-btn mobile-card-btn--pearl' + (card.isJoker ? ' mobile-card-btn--joker' : '')}
+                className={
+                  'mobile-card-btn mobile-card-btn--pearl'
+                  + (card.isJoker ? ' mobile-card-btn--joker' : '')
+                  + (core.canAct ? ' mobile-card-btn--actionable' : ' mobile-card-btn--inactive')
+                }
                 onClick={() => core.takePearlFromMarket(i)}
               >
                 <img src={pearlImageSrc(card)} alt={t('mobile.pearlValue', { value: card.value })} />
@@ -44,7 +48,10 @@ export function MarketZone({ G, core }: MarketZoneProps) {
 
           <button
             type="button"
-            className="mobile-card-btn mobile-card-btn--pearl mobile-card-btn--deck"
+            className={
+              'mobile-card-btn mobile-card-btn--pearl mobile-card-btn--deck'
+              + (core.canAct ? ' mobile-card-btn--actionable' : ' mobile-card-btn--inactive')
+            }
             onClick={() => core.takePearlFromDeck()}
             disabled={G.pearlDeck.length === 0}
           >
@@ -75,7 +82,10 @@ export function MarketZone({ G, core }: MarketZoneProps) {
 
           <button
             type="button"
-            className="mobile-card-btn mobile-card-btn--character mobile-card-btn--deck"
+            className={
+              'mobile-card-btn mobile-card-btn--character mobile-card-btn--deck'
+              + (core.canAct ? ' mobile-card-btn--actionable' : ' mobile-card-btn--inactive')
+            }
             onClick={() => core.takeCharacterFromDeck()}
             disabled={G.characterDeck.length === 0}
           >

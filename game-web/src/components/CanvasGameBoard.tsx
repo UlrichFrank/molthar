@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import type { GameState } from '@portale-von-molthar/shared';
+import { FINAL_ROUND_POWER_THRESHOLD } from '@portale-von-molthar/shared';
 import { buildCanvasRegions, hitTestRegions } from '../lib/canvasRegions';
 import type { CanvasRegion, NeighborOpponent, CanvasLabels } from '../lib/canvasRegions';
 import {
@@ -672,7 +673,7 @@ function CanvasGameBoardContent(props: GameBoardProps) {
         {/* Threshold-Indikator (2.1) + Final-Round-Banner (2.2) */}
         {G.finalRound && gameover === undefined && (() => {
           const leaders = Object.values(G.players ?? {})
-            .filter(p => p && p.powerPoints >= 12)
+            .filter(p => p && p.powerPoints >= FINAL_ROUND_POWER_THRESHOLD)
             .map(p => p!.name);
           return (
             <div style={{

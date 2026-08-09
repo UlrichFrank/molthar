@@ -318,15 +318,16 @@
   border-radius: 4px;
 }
 
-/* Fluid: the parent grid/flex track decides the width, aspect-ratio the height. */
+/* Fluid: the parent grid/flex track decides the width, aspect-ratio the height.
+   666×1030px card assets → 333/515 (exact, distortion-free with `object-fit: fill`). */
 .mobile-card-btn--character {
   width: 100%;
-  aspect-ratio: 59 / 92;
+  aspect-ratio: 333 / 515;
 }
 
 .mobile-card-btn--pearl {
   width: 100%;
-  aspect-ratio: 59 / 92;
+  aspect-ratio: 333 / 515;
 }
 
 .mobile-card-btn--deck img {
@@ -367,9 +368,29 @@
   min-width: 0;
 }
 
+/* Extra bottom space when the portal slots sit above further sheet content
+   (OpponentDetailSheet), not needed in the scroll-area PortalZone usage. */
+.mobile-portal-slots--sheet {
+  margin-bottom: 16px;
+}
+
+/* Column wrapper around a portal slot + its optional "Tauschen" button. */
+.mobile-portal-slot-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.mobile-portal-swap-btn {
+  padding: 2px 8px;
+  font-size: 0.65rem;
+  flex: 0 0 auto;
+}
+
 .mobile-card-btn--portal {
   width: 100%;
-  aspect-ratio: 59 / 92;
+  aspect-ratio: 333 / 515;
   border: 2px solid rgba(148, 163, 184, 0.3);
   border-radius: 6px;
 }
@@ -385,6 +406,15 @@
 
 .mobile-card-btn--actionable {
   box-shadow: 0 0 0 2px #22c55e;
+}
+
+/* Task review point 2: pearls + draw piles are wirkungslos taps without `canAct`
+   (see useGameBoardCore.takePearlFromMarket/takePearlFromDeck/takeCharacterFromDeck) —
+   dim them the same way disabled action buttons already are (opacity 0.4) instead
+   of inventing a new state color. Character-display cards stay untouched: they
+   always open a preview even without `canAct`. */
+.mobile-card-btn--inactive {
+  opacity: 0.4;
 }
 
 .mobile-portal-meta {
@@ -411,11 +441,15 @@
 }
 
 /* ── Hand dock ──────────────────────────────────────────────────────────── */
+/* Task review point 1: fanned out (overlapping) instead of a flat gapped row —
+   a flat row at handlimit 8-9 needs 9×48 + 8×4 = 464px and forces horizontal
+   scrolling on most phones; the fan needs ~9px overlap per card (~360px for 9
+   cards) so the whole hand is visible without swiping. `overflow-x: auto`
+   stays as a safety net for hands larger than that. */
 .mobile-hand-dock {
   flex: 0 0 auto;
   display: flex;
   align-items: flex-end;
-  gap: 4px;
   padding: 8px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -423,13 +457,30 @@
   border-top: 1px solid rgba(148, 163, 184, 0.2);
 }
 
+/* Mockup: `.hand-row.fan .pcard { margin-right: -6px; box-shadow: -3px 0 6px rgba(0,0,0,0.4); }`
+   at a 0.677 mockup scale — values below are that spec scaled ~1.5× to real size. */
 .mobile-card-btn--hand {
   width: 48px;
-  aspect-ratio: 59 / 92;
+  aspect-ratio: 333 / 515;
+  margin-right: -9px;
+  box-shadow: -4px 0 9px rgba(0, 0, 0, 0.4);
+}
+
+/* Last card must not reserve negative space nobody overlaps into. */
+.mobile-card-btn--hand:last-child {
+  margin-right: 0;
 }
 
 .mobile-card-btn--joker {
   box-shadow: 0 0 0 2px #c4b5fd;
+}
+
+/* Jokers stay recognizably set apart in the fan: more gap to the preceding card
+   than the regular overlap (was an inline `marginLeft: 6` style). Hand only —
+   the market pearls sit in a fixed-column grid, where a margin would shift the
+   whole row out of alignment. */
+.mobile-card-btn--hand.mobile-card-btn--joker {
+  margin-left: 6px;
 }
 
 /* ── Action bar ─────────────────────────────────────────────────────────── */
@@ -517,4 +568,30 @@
 .mobile-activated-grid .mobile-card-btn--portal {
   width: 100%;
   max-width: 84px;
+}
+
+/* ── Opponent detail sheet ──────────────────────────────────────────────── */
+/* Task review point 3: compact header — power points, diamonds, hand-card count —
+   mirrors what CanvasGameBoard/gameRender.ts show per opponent zone. Reuses the
+   status-bar's point/diamond text styling (`.mobile-status-detail-points/-diamonds`). */
+.mobile-opponent-sheet-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.mobile-opponent-sheet-hand-count {
+  color: #94a3b8;
+}
+
+.mobile-opponent-sheet-actions {
+  justify-content: center;
+}
+
+.mobile-opponent-sheet-close-btn {
+  flex: none;
+  padding: 0.6rem 2rem;
 }

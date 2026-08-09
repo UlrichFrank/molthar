@@ -11,7 +11,12 @@ interface OpponentDetailSheetProps {
   onClose: () => void;
 }
 
-/** Task 6.8: opponent's portal + activated characters, reachable from the status bar. */
+/**
+ * Task 6.8/review point 3: opponent's portal + activated characters, reachable
+ * from the status bar. The header mirrors what CanvasGameBoard/gameRender.ts show
+ * per opponent zone: power points, diamonds and hand-card count (count only —
+ * the cards themselves stay face-down).
+ */
 export function OpponentDetailSheet({ G, core, playerId, onClose }: OpponentDetailSheetProps) {
   const { t } = useTranslation();
   const player = G.players?.[playerId];
@@ -19,13 +24,21 @@ export function OpponentDetailSheet({ G, core, playerId, onClose }: OpponentDeta
   const name = core.resolvePlayerName(playerId, player.name);
   const portal = player.portal ?? [];
   const activated = player.activatedCharacters ?? [];
+  const handCount = player.hand?.length ?? 0;
+  const diamonds = player.diamondCards?.length ?? 0;
 
   return (
     <GameDialog onOverlayClick={onClose}>
       <GameDialogTitle>{name}</GameDialogTitle>
 
+      <div className="mobile-opponent-sheet-header">
+        <span className="mobile-status-detail-points">★{player.powerPoints}</span>
+        <span className="mobile-status-detail-diamonds">💎{diamonds}</span>
+        <span className="mobile-opponent-sheet-hand-count">{t('mobile.handCount', { count: handCount })}</span>
+      </div>
+
       <div className="mobile-section-title">{t('mobile.portal')}</div>
-      <div className="mobile-portal-slots" style={{ marginBottom: 16 }}>
+      <div className="mobile-portal-slots mobile-portal-slots--sheet">
         {[0, 1].map(i => {
           const entry = portal[i];
           return entry ? (
@@ -58,11 +71,10 @@ export function OpponentDetailSheet({ G, core, playerId, onClose }: OpponentDeta
       </div>
       {/* Fix: visible close button — at max-height: 85dvh, overlay-tap-to-close alone
           leaves only a thin strip to reach above the sheet. */}
-      <div className="game-dialog-actions" style={{ justifyContent: 'center' }}>
+      <div className="game-dialog-actions mobile-opponent-sheet-actions">
         <button
           type="button"
-          className="game-dialog-btn-neutral"
-          style={{ flex: 'none', padding: '0.6rem 2rem' }}
+          className="game-dialog-btn-neutral mobile-opponent-sheet-close-btn"
           onClick={onClose}
         >
           {t('common.close')}

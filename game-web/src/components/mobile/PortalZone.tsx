@@ -20,7 +20,7 @@ export function PortalZone({ core, onOpenActivatedGrid }: PortalZoneProps) {
           {[0, 1].map(i => {
             const entry = portal[i];
             return (
-              <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+              <div key={i} className="mobile-portal-slot-col">
                 {entry ? (
                   <button
                     type="button"
@@ -37,8 +37,7 @@ export function PortalZone({ core, onOpenActivatedGrid }: PortalZoneProps) {
                 {entry && core.canSwapPortal && (
                   <button
                     type="button"
-                    className="mobile-action-btn"
-                    style={{ padding: '2px 8px', fontSize: '0.65rem', flex: '0 0 auto' }}
+                    className="mobile-action-btn mobile-portal-swap-btn"
                     onClick={() => core.openPortalSwap(i)}
                   >
                     {t('canvas.swap')}
