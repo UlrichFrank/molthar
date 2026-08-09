@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import type { GameState, PlayerState } from '@portale-von-molthar/shared';
+import type { GameState } from '@portale-von-molthar/shared';
 import { buildCanvasRegions, hitTestRegions } from '../lib/canvasRegions';
 import type { CanvasRegion, NeighborOpponent, CanvasLabels } from '../lib/canvasRegions';
 import {
@@ -24,33 +24,16 @@ import {
 } from '../lib/cardLayoutConstants';
 import type { OpponentZoneData } from '../lib/gameRender';
 import { preloadAllImages } from '../lib/imageLoaderV2';
-import { ActivatedCharacterDetailView } from './ActivatedCharacterDetailView';
-import { DialogProvider, useDialog } from '../contexts/DialogContext';
-import { CharacterReplacementDialog } from './CharacterReplacementDialog';
-import { CharacterTakePreviewDialog } from './CharacterTakePreviewDialog';
-import { CharacterActivationDialog } from './CharacterActivationDialog';
-import { DiscardCardsDialog } from './DiscardCardsDialog';
-import { StealOpponentHandCardDialog } from './StealOpponentHandCardDialog';
-import { CharacterSwapDialog } from './CharacterSwapDialog';
-import { TakeBackPlayedPearlDialog } from './TakeBackPlayedPearlDialog';
-import { DiscardOpponentCharacterDialog } from './DiscardOpponentCharacterDialog';
+import { buildOpponentsPlayerIDs, getNeighborOpponents } from '../lib/opponentUtils';
+import { DialogProvider } from '../contexts/DialogContext';
+import { useGameBoardCore } from '../hooks/useGameBoardCore';
+import type { GameBoardProps } from '../hooks/useGameBoardCore';
+import { SharedGameDialogs } from './SharedGameDialogs';
 import { PlayerStatusBadge } from './PlayerStatusBadge';
 import { EndTurnButton } from './EndTurnButton';
 import { DeckReshuffleAnimation } from './DeckReshuffleAnimation';
-import { EndgameResultsDialog } from './EndgameResultsDialog';
-import { PlayerDisconnectDialog } from './PlayerDisconnectDialog';
 import '../styles/dialogs.css';
 import { useTranslation } from '../i18n/useTranslation';
-
-interface CanvasGameBoardProps {
-  G: GameState;
-  ctx: { phase?: string } & Record<string, unknown>;
-  moves: Record<string, (...args: unknown[]) => void>;
-  events?: Record<string, (...args: unknown[]) => void>;
-  playerID: string | null;
-  isActive: boolean;
-  matchData?: Array<{ id: number; name?: string }>;
-}
 
 const BASE_W = 1200;
 const BASE_H = 800;
@@ -89,51 +72,6 @@ function buildOpponentsArray(
   return [getOpponentData(1), getOpponentData(-2), getOpponentData(2), getOpponentData(-1)];
 }
 
-/** Returns player IDs for the four opponent zones [left, top-left, top-right, right], or null for empty slots. */
-function buildOpponentsPlayerIDs(G: GameState, myPlayerID: string): Array<string | null> {
-  const playerOrder = G.playerOrder || Object.keys(G.players || {});
-  const n = playerOrder.length;
-  const myIndex = playerOrder.indexOf(myPlayerID);
-
-  function getOpponentId(offset: number): string | null {
-    const idx = ((myIndex + offset) % n + n) % n;
-    if (idx === myIndex) return null;
-    return playerOrder[idx] ?? null;
-  }
-
-  if (n <= 1) return [null, null, null, null];
-  if (n === 2) return [getOpponentId(1), null, null, null];
-  if (n === 3) return [getOpponentId(1), null, null, getOpponentId(-1)];
-  if (n === 4) return [getOpponentId(1), getOpponentId(2), null, getOpponentId(-1)];
-  return [getOpponentId(1), getOpponentId(-2), getOpponentId(2), getOpponentId(-1)];
-}
-
-/** Returns the two direct neighbors (left = zoneIndex 0, right = zoneIndex 3) for irrlicht regions. */
-function getNeighborOpponents(G: GameState, myPlayerID: string): NeighborOpponent[] {
-  const playerOrder = G.playerOrder || Object.keys(G.players || {});
-  const n = playerOrder.length;
-  if (n < 2) return [];
-  const myIndex = playerOrder.indexOf(myPlayerID);
-
-  const result: NeighborOpponent[] = [];
-
-  const leftId = playerOrder[((myIndex + 1) % n + n) % n];
-  if (leftId && leftId !== myPlayerID) {
-    const player = G.players?.[leftId];
-    if (player) result.push({ playerId: leftId, portal: player.portal ?? [], zoneIndex: 0 });
-  }
-
-  if (n >= 3) {
-    const rightId = playerOrder[((myIndex - 1) % n + n) % n];
-    if (rightId && rightId !== myPlayerID) {
-      const player = G.players?.[rightId];
-      if (player) result.push({ playerId: rightId, portal: player.portal ?? [], zoneIndex: 3 });
-    }
-  }
-
-  return result;
-}
-
 interface ModelCoords { x: number; y: number }
 
 function useContainerSize<T extends HTMLElement>() {
@@ -159,7 +97,7 @@ function useContainerSize<T extends HTMLElement>() {
   return { ref, ...size };
 }
 
-export function CanvasGameBoard(props: CanvasGameBoardProps) {
+export function CanvasGameBoard(props: GameBoardProps) {
   return (
     <DialogProvider>
       <CanvasGameBoardContent {...props} />
@@ -167,57 +105,34 @@ export function CanvasGameBoard(props: CanvasGameBoardProps) {
   );
 }
 
-function CanvasGameBoardContent(props: CanvasGameBoardProps) {
-  const { G, ctx, moves, events, playerID, isActive, matchData } = props;
+function CanvasGameBoardContent(props: GameBoardProps) {
+  const { G, moves, isActive } = props;
 
   const { t } = useTranslation();
-
-  // Resolve real player name from boardgame.io match metadata (set in lobby via updatePlayer)
-  function resolvePlayerName(pid: string, fallback: string): string {
-    const id = parseInt(pid, 10);
-    return matchData?.find(p => p.id === id)?.name || fallback;
-  }
-  const dialog = useDialog();
+  const core = useGameBoardCore(props);
+  const {
+    resolvePlayerName, myPlayerID, me, phase, activePlayerID, activePlayer,
+    maxActions, actionCount, characterSlots, pearlSlots,
+    setActiveCharacterIndex,
+    setActiveOwnPortalSlot,
+    setPreviewAuslageCard,
+    setActiveOpponentCharacter,
+    setActiveOpponentPortalCard,
+    setPendingTakeCardFromDisplay,
+    setPendingTakeCardFromDeck,
+    rehandDone, hasChangeHandAbility, rehandCards,
+    gameover,
+  } = core;
+  const dialog = core.dialog;
   const { ref, w: viewportW, h: viewportH } = useContainerSize<HTMLDivElement>();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-  // ── Derived values ─────────────────────────────────────────────────────────
-  const myPlayerID = playerID || (G.playerOrder && G.playerOrder[0]) || Object.keys(G.players || {})[0];
-  const me = G.players?.[myPlayerID];
-  const phase = ctx.phase || 'takingActions';
-  const playerList = G.playerOrder || Object.keys(G.players || {});
-  const activePlayerID = (ctx.currentPlayer as string) || playerList[0];
-  const activePlayerIndex = playerList.indexOf(activePlayerID);
-  const activePlayer = G.players?.[activePlayerID];
-  const maxActions = typeof G.maxActions === 'number' ? G.maxActions : 3;
-  const actionCount = typeof G.actionCount === 'number' ? G.actionCount : 0;
-  const characterSlots = G.characterSlots || [];
-  const pearlSlots = G.pearlSlots || [];
-  const playerDiamonds = me?.diamondCards?.length ?? 0;
-  const playerPortal = me?.portal ?? [];
-  const playerHand = me?.hand ?? [];
-  const activatedCards = (me?.activatedCharacters ?? []).map(s => s.card);
 
   // ── CSS canvas size ─────────────────────────────────────────────────────────
   const aspect = BASE_W / BASE_H;
   const cssW = Math.min(viewportW, viewportH * aspect);
   const cssH = cssW / aspect;
 
-  // ── Disconnect detection (debounced 2s to avoid load-flicker) ──────────────
-  const [disconnectedPlayerName, setDisconnectedPlayerName] = useState<string | null>(null);
-  useEffect(() => {
-    const myId = parseInt(myPlayerID, 10);
-    const offlineEntry = matchData?.find(p => p.id !== myId && p.isConnected === false);
-    if (!offlineEntry) {
-      setDisconnectedPlayerName(null);
-      return;
-    }
-    const name = offlineEntry.name || `Spieler ${offlineEntry.id + 1}`;
-    const timer = setTimeout(() => setDisconnectedPlayerName(name), 2000);
-    return () => clearTimeout(timer);
-  }, [matchData, myPlayerID]);
-
-  // ── Pagination state for activated character grids ─────────────────────────
+  // ── Pagination state for activated character grids (canvas-only; mobile uses a scrollable sheet) ─
   const [ownActivatedPage, setOwnActivatedPage] = useState<0 | 1>(0);
   const [opponentActivatedPages, setOpponentActivatedPages] = useState<Record<string, 0 | 1>>({});
   const ownActivatedPageRef = useRef<0 | 1>(0);
@@ -225,34 +140,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
   // Keep refs in sync
   ownActivatedPageRef.current = ownActivatedPage;
   opponentActivatedPagesRef.current = opponentActivatedPages;
-
-  // ── Detail view state (stays in React) ─────────────────────────────────────
-  const [activeCharacterIndex, setActiveCharacterIndex] = useState<number | null>(null);
-  const activatedCharacters = me?.activatedCharacters ?? [];
-  const activeCharacter = activeCharacterIndex !== null && activeCharacterIndex < activatedCharacters.length
-    ? activatedCharacters[activeCharacterIndex]
-    : null;
-
-  const [activeOwnPortalSlot, setActiveOwnPortalSlot] = useState<number | null>(null);
-  const [previewAuslageCard, setPreviewAuslageCard] = useState<import('@portale-von-molthar/shared').CharacterCard | null>(null);
-  const [activeOpponentCharacter, setActiveOpponentCharacter] = useState<{ playerId: string; index: number } | null>(null);
-  const [activeOpponentPortalCard, setActiveOpponentPortalCard] = useState<{ playerId: string; slotIndex: number } | null>(null);
-
-  // ── Preview dialogs for taking character cards ──────────────────────────────
-  const [pendingTakeCardFromDisplay, setPendingTakeCardFromDisplay] = useState<{ card: import('@portale-von-molthar/shared').CharacterCard; slotIndex: number } | null>(null);
-  const [pendingTakeCardFromDeck, setPendingTakeCardFromDeck] = useState<{ card: import('@portale-von-molthar/shared').CharacterCard; faceDown: boolean } | null>(null);
-
-  // ── changeHandActions ───────────────────────────────────────────────────────
-  const [rehandDone, setRehandDone] = useState(false);
-  useEffect(() => { setRehandDone(false); }, [ctx.turn]);
-  const hasChangeHandAbility = me?.activeAbilities.some(a => a.type === 'changeHandActions') ?? false;
-
-  const activeOpponentCharacterData = activeOpponentCharacter
-    ? (G.players?.[activeOpponentCharacter.playerId]?.activatedCharacters?.[activeOpponentCharacter.index] ?? null)
-    : null;
-  const activeOpponentPortalCardData = activeOpponentPortalCard
-    ? (G.players?.[activeOpponentPortalCard.playerId]?.portal[activeOpponentPortalCard.slotIndex] ?? null)
-    : null;
 
   // ── Refs for rAF loop (avoids stale closures) ───────────────────────────────
   const canvasLabelsRef = useRef<CanvasLabels>({ swap: '', discardCards: '', freePearlReplace: '' });
@@ -664,52 +551,6 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
     }
   }
 
-  // ── Escape key for detail modal ───────────────────────────────────────────────
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (activeCharacterIndex !== null) setActiveCharacterIndex(null);
-        if (activeOwnPortalSlot !== null) setActiveOwnPortalSlot(null);
-        if (activeOpponentCharacter !== null) setActiveOpponentCharacter(null);
-        if (activeOpponentPortalCard !== null) setActiveOpponentPortalCard(null);
-        if (previewAuslageCard !== null) setPreviewAuslageCard(null);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeCharacterIndex, activeOwnPortalSlot, activeOpponentCharacter, activeOpponentPortalCard, previewAuslageCard]);
-
-  // ── Auto-open steal dialog when flag is set and we are the active player
-  useEffect(() => {
-    if (G.pendingStealOpponentHandCard && myPlayerID === activePlayerID && dialog.dialog.type !== 'steal-opponent-hand-card') {
-      dialog.openStealOpponentHandCardDialog();
-    }
-  }, [G.pendingStealOpponentHandCard, myPlayerID, activePlayerID, dialog.dialog.type]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ── Auto-open discard opponent character dialog when flag is set and we are the active player
-  useEffect(() => {
-    if (G.pendingDiscardOpponentCharacter && myPlayerID === activePlayerID && dialog.dialog.type !== 'discard-opponent-character') {
-      dialog.openDiscardOpponentCharacterDialog();
-    }
-  }, [G.pendingDiscardOpponentCharacter, myPlayerID, activePlayerID]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ── Auto-open take-back dialog when flag is set and we are the active player
-  useEffect(() => {
-    if (G.pendingTakeBackPlayedPearl && myPlayerID === activePlayerID && dialog.dialog.type !== 'take-back-played-pearl') {
-      dialog.openTakeBackPlayedPearlDialog();
-    }
-  }, [G.pendingTakeBackPlayedPearl, myPlayerID, activePlayerID]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ── Listen for terminateGame event from LobbyScreen (creator only) ───────────
-  useEffect(() => {
-    const handler = () => { moves.terminateGame?.(); };
-    window.addEventListener('pvm:terminateGame', handler);
-    return () => window.removeEventListener('pvm:terminateGame', handler);
-  }, [moves]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ── Gameover state — dialog handles the pvm:gameOver dispatch via countdown ───
-  const gameover = (ctx as any).gameover as { ranking: Array<{ playerId: string; name: string; powerPoints: number; diamonds: number }>; reason?: string } | undefined;
-
   // ── Render ────────────────────────────────────────────────────────────────────
   return (
     <div
@@ -763,7 +604,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
             />
             {isActive && actionCount >= maxActions && hasChangeHandAbility && !rehandDone && (
               <button
-                onClick={() => { moves.rehandCards?.(); setRehandDone(true); }}
+                onClick={rehandCards}
                 style={{
                   background: 'rgba(99, 102, 241, 0.9)',
                   border: '2px solid #6366f1',
@@ -900,208 +741,7 @@ function CanvasGameBoardContent(props: CanvasGameBoardProps) {
         )}
       </div>
 
-      {/* Preview dialogs for taking character cards */}
-      {pendingTakeCardFromDisplay && (
-        <CharacterTakePreviewDialog
-          card={pendingTakeCardFromDisplay.card}
-          faceDown={false}
-          onConfirm={() => {
-            moves.takeCharacterCard(pendingTakeCardFromDisplay.slotIndex);
-            setPendingTakeCardFromDisplay(null);
-          }}
-          onCancel={() => setPendingTakeCardFromDisplay(null)}
-        />
-      )}
-      {pendingTakeCardFromDeck && (
-        <CharacterTakePreviewDialog
-          card={pendingTakeCardFromDeck.card}
-          faceDown={pendingTakeCardFromDeck.faceDown}
-          onConfirm={() => {
-            moves.takeCharacterCard(-1);
-            setPendingTakeCardFromDeck(null);
-          }}
-          onCancel={() => setPendingTakeCardFromDeck(null)}
-        />
-      )}
-
-      {/* Dialog Modals */}
-      {dialog.dialog.type === 'replacement' && (
-        <CharacterReplacementDialog
-          newCard={dialog.dialog.newCharacter}
-          portalCards={dialog.dialog.portalCharacters}
-          canDiscard={dialog.dialog.canDiscard}
-          canCancel={dialog.dialog.canCancel}
-          onCancel={dialog.closeDialog}
-          onSelect={(replacedSlotIndex) => {
-            if (dialog.dialog.type === 'replacement') {
-              const characterIndex = (G.characterSlots || []).findIndex(
-                card => card?.id === dialog.dialog.newCharacter.id
-              );
-              // characterIndex === -1 means card came from the deck
-              if (characterIndex === -1 && me && me.portal.length < 2) {
-                moves.takeCharacterCard(-1);
-              } else {
-                moves.takeCharacterCard(characterIndex, replacedSlotIndex);
-              }
-            }
-            dialog.closeDialog();
-          }}
-          onDiscard={() => {
-            if (dialog.dialog.type === 'replacement') {
-              const characterIndex = (G.characterSlots || []).findIndex(
-                card => card?.id === dialog.dialog.newCharacter.id
-              );
-              moves.discardPickedCharacterCard(characterIndex);
-            }
-            dialog.closeDialog();
-          }}
-        />
-      )}
-
-      {dialog.dialog.type === 'activation' && me && (
-        <CharacterActivationDialog
-          availableCharacters={[{
-            card: dialog.dialog.character,
-            slotIndex: dialog.dialog.portalSlotIndex,
-          }]}
-          hand={me.hand}
-          diamonds={me.diamondCards?.length ?? 0}
-          activeAbilities={me.activeAbilities}
-          activatedCharacters={me.activatedCharacters}
-          usedPaymentAbilityTypes={G.usedPaymentAbilityTypes ?? []}
-          usedAbilitySourceCharacterIds={G.usedAbilitySourceCharacterIds ?? []}
-          onActivate={(portalSlotIndex, selections) => {
-            const ownerPlayerId = dialog.dialog.type === 'activation' ? dialog.dialog.ownerPlayerId : undefined;
-            if (ownerPlayerId) {
-              moves.activateSharedCharacter(ownerPlayerId, portalSlotIndex, selections);
-            } else {
-              moves.activatePortalCard(portalSlotIndex, selections);
-            }
-            dialog.closeDialog();
-          }}
-          onCancel={() => dialog.closeDialog()}
-        />
-      )}
-
-      {dialog.dialog.type === 'discard' && (
-        <DiscardCardsDialog
-          hand={dialog.dialog.hand}
-          excessCardCount={dialog.dialog.excessCardCount}
-          currentHandLimit={dialog.dialog.currentHandLimit}
-          onDiscard={(selectedCardIndices) => {
-            moves.discardCardsForHandLimit(selectedCardIndices);
-            dialog.closeDialog();
-          }}
-          onCancel={() => dialog.closeDialog()}
-        />
-      )}
-
-      {dialog.dialog.type === 'steal-opponent-hand-card' && me && (
-        <StealOpponentHandCardDialog
-          opponents={(G.playerOrder || [])
-            .filter(id => id !== myPlayerID)
-            .map(id => { const p = G.players?.[id]; return p ? { ...p, name: resolvePlayerName(id, p.name) } : undefined; })
-            .filter((p): p is PlayerState => p !== undefined && p.hand.length > 0)}
-          onSteal={(targetPlayerId, handCardIndex) => {
-            moves.resolveStealOpponentHandCard(targetPlayerId, handCardIndex);
-            dialog.closeDialog();
-          }}
-        />
-      )}
-
-      {dialog.dialog.type === 'discard-opponent-character' && (
-        <DiscardOpponentCharacterDialog
-          opponents={(() => {
-            const order = G.playerOrder || [];
-            const myIdx = order.indexOf(myPlayerID ?? '');
-            const rotated = myIdx >= 0
-              ? [...order.slice(myIdx + 1), ...order.slice(0, myIdx)]
-              : order;
-            return rotated
-              .filter(id => id !== myPlayerID)
-              .map(id => { const p = G.players?.[id]; return p ? { ...p, name: resolvePlayerName(id, p.name) } : undefined; })
-              .filter((p): p is PlayerState => p !== undefined && p.portal.length > 0);
-          })()}
-          onDiscard={(targetPlayerId, portalEntryId) => {
-            moves.resolveDiscardOpponentCharacter(targetPlayerId, portalEntryId);
-            dialog.closeDialog();
-          }}
-        />
-      )}
-
-      {dialog.dialog.type === 'take-back-played-pearl' && (
-        <TakeBackPlayedPearlDialog
-          playedCards={(G.playedRealPearlIds ?? [])
-            .map(id => (G.pearlDiscardPile ?? []).find(c => c.id === id))
-            .filter((c): c is import('@portale-von-molthar/shared').PearlCard => c !== undefined)}
-          onTakeBack={(pearlId) => {
-            moves.resolveReturnPearl(pearlId);
-            dialog.closeDialog();
-          }}
-          onDismiss={() => {
-            moves.dismissReturnPearlDialog();
-            dialog.closeDialog();
-          }}
-        />
-      )}
-
-      {dialog.dialog.type === 'swap-portal-character' && (
-        <CharacterSwapDialog
-          portalCard={dialog.dialog.portalCard}
-          portalSlotIndex={dialog.dialog.portalSlotIndex}
-          tableCards={dialog.dialog.tableCards}
-          onSwap={(tableSlotIndex) => {
-            if (dialog.dialog.type === 'swap-portal-character') {
-              moves.swapPortalCharacter(dialog.dialog.portalSlotIndex, tableSlotIndex);
-            }
-            dialog.closeDialog();
-          }}
-          onCancel={() => dialog.closeDialog()}
-        />
-      )}
-
-      {/* Activated Character Detail View Modal */}
-      <ActivatedCharacterDetailView
-        character={activeCharacter || null}
-        onClose={() => setActiveCharacterIndex(null)}
-      />
-      <ActivatedCharacterDetailView
-        character={activeOwnPortalSlot !== null ? (me?.portal[activeOwnPortalSlot] ?? null) : null}
-        onClose={() => setActiveOwnPortalSlot(null)}
-        rotated={false}
-      />
-      <ActivatedCharacterDetailView
-        character={activeOpponentCharacterData}
-        onClose={() => setActiveOpponentCharacter(null)}
-      />
-      <ActivatedCharacterDetailView
-        character={activeOpponentPortalCardData}
-        onClose={() => setActiveOpponentPortalCard(null)}
-        rotated={false}
-      />
-      {previewAuslageCard && (
-        <CharacterTakePreviewDialog
-          card={previewAuslageCard}
-          onCancel={() => setPreviewAuslageCard(null)}
-        />
-      )}
-
-      {/* Endgame Results Dialog */}
-      {gameover !== undefined && gameover.ranking && (
-        <EndgameResultsDialog
-          ranking={gameover.ranking.map(entry => ({
-            ...entry,
-            name: resolvePlayerName(entry.playerId, entry.name),
-          }))}
-          myPlayerId={myPlayerID}
-          reason={gameover.reason}
-        />
-      )}
-
-      {/* Disconnect Dialog */}
-      {disconnectedPlayerName !== null && (
-        <PlayerDisconnectDialog playerName={disconnectedPlayerName} />
-      )}
+      <SharedGameDialogs G={G} moves={moves} core={core} />
     </div>
   );
 }

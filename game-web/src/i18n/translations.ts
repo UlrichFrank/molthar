@@ -123,6 +123,7 @@ export type TranslationKey =
   | 'steal.cards'
   // Common
   | 'common.cancel'
+  | 'common.close'
   // Character swap dialog
   | 'swap.title'
   | 'swap.description'
@@ -188,6 +189,19 @@ export type TranslationKey =
   | 'ability.anyAdditionalCardActions.description'
   | 'ability.irrlicht.description'
   | 'ability.replacePearlSlotsBeforeFirstAction.description'
+  // Mobile board (Task 7.4)
+  | 'mobile.market'
+  | 'mobile.portal'
+  | 'mobile.hand'
+  | 'mobile.characterDeck'
+  | 'mobile.pearlDeck'
+  | 'mobile.pearlValue'
+  | 'mobile.rank'
+  | 'mobile.yourTurnBadge'
+  | 'mobile.activatedCount'
+  | 'mobile.activatedTitle'
+  | 'mobile.replacePearlSlots'
+  | 'mobile.viewOpponentDetail'
   ;
 
 const de: Record<TranslationKey, string> = {
@@ -295,6 +309,7 @@ const de: Record<TranslationKey, string> = {
   'steal.card':                  'Karte',
   'steal.cards':                 'Karten',
   'common.cancel':               'Abbrechen',
+  'common.close':                'Schließen',
   'swap.title':                  'Portal-Karte tauschen',
   'swap.description':            'Wähle eine Auslage-Karte zum Tauschen:',
   'swap.cancel':                 'Abbrechen',
@@ -351,6 +366,18 @@ const de: Record<TranslationKey, string> = {
   'ability.anyAdditionalCardActions.description':    'Dauerhaft: Diese Karte hat einen aufgedruckten Wildcard-Perlenwert',
   'ability.irrlicht.description':                    'Dauerhaft: Direkte Nachbarn können diese Karte mitaktivieren',
   'ability.replacePearlSlotsBeforeFirstAction.description': 'Dauerhaft: Einmal pro Zug vor der ersten Aktion alle Perlenkarten kostenlos tauschen',
+  'mobile.market':               'Markt',
+  'mobile.portal':                'Portal',
+  'mobile.hand':                  'Hand',
+  'mobile.characterDeck':         'Charakterstapel',
+  'mobile.pearlDeck':             'Perlenstapel',
+  'mobile.pearlValue':            'Perle {value}',
+  'mobile.rank':                  'Rang {rank}/{total}',
+  'mobile.yourTurnBadge':         'Am Zug',
+  'mobile.activatedCount':        'aktiviert ×{count} ▸',
+  'mobile.activatedTitle':        'Aktivierte Charaktere ({count})',
+  'mobile.replacePearlSlots':     'Perlen tauschen',
+  'mobile.viewOpponentDetail':    'Portal & aktivierte Karten ansehen',
 };
 
 const enGB: Record<TranslationKey, string> = {
@@ -458,6 +485,7 @@ const enGB: Record<TranslationKey, string> = {
   'steal.card':                  'card',
   'steal.cards':                 'cards',
   'common.cancel':               'Cancel',
+  'common.close':                'Close',
   'swap.title':                  'Swap Portal Card',
   'swap.description':            'Choose a display card to swap with:',
   'swap.cancel':                 'Cancel',
@@ -514,6 +542,18 @@ const enGB: Record<TranslationKey, string> = {
   'ability.anyAdditionalCardActions.description':    'Persistent: This card has a printed wildcard pearl value',
   'ability.irrlicht.description':                    'Persistent: Direct neighbours can co-activate this card',
   'ability.replacePearlSlotsBeforeFirstAction.description': 'Persistent: Once per turn, swap all pearl cards for free before your first action',
+  'mobile.market':               'Market',
+  'mobile.portal':                'Portal',
+  'mobile.hand':                  'Hand',
+  'mobile.characterDeck':         'Character deck',
+  'mobile.pearlDeck':             'Pearl deck',
+  'mobile.pearlValue':            'Pearl {value}',
+  'mobile.rank':                  'Rank {rank}/{total}',
+  'mobile.yourTurnBadge':         'Your turn',
+  'mobile.activatedCount':        'activated ×{count} ▸',
+  'mobile.activatedTitle':        'Activated characters ({count})',
+  'mobile.replacePearlSlots':     'Swap pearls',
+  'mobile.viewOpponentDetail':    'View portal & activated cards',
 };
 
 const fr: Record<TranslationKey, string> = {
@@ -621,6 +661,7 @@ const fr: Record<TranslationKey, string> = {
   'steal.card':                  'carte',
   'steal.cards':                 'cartes',
   'common.cancel':               'Annuler',
+  'common.close':                'Fermer',
   'swap.title':                  'Échanger une carte portail',
   'swap.description':            'Choisissez une carte de l\'affichage à échanger :',
   'swap.cancel':                 'Annuler',
@@ -677,6 +718,18 @@ const fr: Record<TranslationKey, string> = {
   'ability.anyAdditionalCardActions.description':    'Permanent : Cette carte a une valeur perle générique imprimée',
   'ability.irrlicht.description':                    'Permanent : Les voisins directs peuvent co-activer cette carte',
   'ability.replacePearlSlotsBeforeFirstAction.description': 'Permanent : Une fois par tour, échangez gratuitement toutes les cartes perle avant votre première action',
+  'mobile.market':               'Marché',
+  'mobile.portal':                'Portail',
+  'mobile.hand':                  'Main',
+  'mobile.characterDeck':         'Pioche personnages',
+  'mobile.pearlDeck':             'Pioche perles',
+  'mobile.pearlValue':            'Perle {value}',
+  'mobile.rank':                  'Rang {rank}/{total}',
+  'mobile.yourTurnBadge':         'À vous',
+  'mobile.activatedCount':        'activées ×{count} ▸',
+  'mobile.activatedTitle':        'Personnages activés ({count})',
+  'mobile.replacePearlSlots':     'Échanger les perles',
+  'mobile.viewOpponentDetail':    'Voir portail & cartes activées',
 };
 
 export const translations: Record<Locale, Record<TranslationKey, string>> = { de, 'en-GB': enGB, fr };

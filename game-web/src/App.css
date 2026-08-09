@@ -80,6 +80,41 @@
   position: relative;
 }
 
+.in-game-actions {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  /* Fix: must stay below .game-dialog-overlay (dialogs.css, z-index: 1000) so
+     open dialogs/bottom-sheets are never covered by the leave/terminate buttons. */
+  z-index: 900;
+}
+
+/* Task 1.4: keep these clear of the fixed mobile status bar (mobile.css) */
+@media (max-width: 767px) {
+  /* Task 1.4: icon-only buttons sharing the fixed status bar's row instead of
+     floating over board content — `.mobile-status-bar` reserves matching space
+     via padding-right. */
+  .in-game-actions {
+    top: calc(6px + env(safe-area-inset-top, 0px));
+    right: 6px;
+    gap: 6px;
+  }
+
+  .in-game-actions .leave-game-btn {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    font-size: 1rem;
+    line-height: 1;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
 .leave-game-btn {
   position: fixed;
   top: 1rem;
@@ -90,7 +125,8 @@
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  z-index: 1000;
+  /* Fix: must stay below .game-dialog-overlay (dialogs.css, z-index: 1000) — see .in-game-actions above. */
+  z-index: 900;
   font-weight: bold;
 }
 
