@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { GameDialog } from './GameDialog';
 import { useTranslation } from '../i18n/useTranslation';
 
 interface RankingEntry {
@@ -47,17 +48,8 @@ export function EndgameResultsDialog({ ranking, myPlayerId, reason }: EndgameRes
     ranking[0].diamonds === ranking[1].diamonds;
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 200,
-      background: 'rgba(0,0,0,0.8)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }}>
-      <div style={{
-        background: '#0f1e2e', border: '1px solid #334155',
-        borderRadius: 16, padding: '2rem 2.5rem',
-        minWidth: 320, maxWidth: 480, width: '90%',
-        display: 'flex', flexDirection: 'column', gap: '1.25rem',
-      }}>
+    <GameDialog>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         <h2 style={{ margin: 0, color: '#f1f5f9', fontSize: '1.4rem', textAlign: 'center' }}>
           {t('endgame.title')}
         </h2>
@@ -123,7 +115,7 @@ export function EndgameResultsDialog({ ranking, myPlayerId, reason }: EndgameRes
           </span>
         </div>
       </div>
-    </div>
+    </GameDialog>
   );
 }
 

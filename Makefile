@@ -255,6 +255,8 @@ deploy-remote:
 	@TAG=$${TAG:-latest}; \
 	echo "$(BLUE)Deploying IMAGE_TAG=$$TAG to $(DEPLOY_HOST):$(DEPLOY_PATH)...$(NC)"; \
 	ssh $(DEPLOY_HOST) "cd $(DEPLOY_PATH) && IMAGE_TAG=$$TAG docker compose pull && IMAGE_TAG=$$TAG docker compose up -d"
+	@echo "$(BLUE)Cleaning up unused images/containers/build cache on $(DEPLOY_HOST)...$(NC)"
+	@ssh $(DEPLOY_HOST) 'docker system prune -af'
 	@echo "$(GREEN)✓ Deployed$(NC)"
 
 deploy: deploy-build deploy-remote
@@ -268,7 +270,7 @@ deploy-logs:
 	ssh -t $(DEPLOY_HOST) 'cd $(DEPLOY_PATH) && docker compose logs -f --tail=100'
 
 deploy-status:
-	ssh $(DEPLOY_HOST) 'cd $(DEPLOY_PATH) && docker compose ps'
+	ssh $(DEPLOY_HOST) 'cd ~/deploy/traefik && docker compose ps && cd $(DEPLOY_PATH) && docker compose ps'
 
 deploy-restart:
 	ssh $(DEPLOY_HOST) 'cd $(DEPLOY_PATH) && docker compose restart'
@@ -282,4 +284,5 @@ deploy-init:
 	@ssh $(DEPLOY_HOST) 'test -d $(DEPLOY_PATH)' && echo "$(GREEN)✓ $(DEPLOY_PATH) exists$(NC)" || echo "$(RED)✗ scp -r deploy/molthar $(DEPLOY_HOST):~/deploy/$(NC)"
 	@ssh $(DEPLOY_HOST) 'test -f ~/deploy/traefik/.env' && echo "$(GREEN)✓ traefik/.env present$(NC)" || echo "$(RED)✗ create ~/deploy/traefik/.env from .env.example$(NC)"
 	@ssh $(DEPLOY_HOST) 'test -f $(DEPLOY_PATH)/.env' && echo "$(GREEN)✓ molthar/.env present$(NC)" || echo "$(RED)✗ create $(DEPLOY_PATH)/.env from .env.example$(NC)"
+	@ssh $(DEPLOY_HOST) 'cd ~/deploy/traefik && [ -n "$$(docker compose ps -q --status running)" ]' && echo "$(GREEN)✓ Traefik container running$(NC)" || echo "$(RED)✗ Traefik not running — ssh $(DEPLOY_HOST) 'cd ~/deploy/traefik && docker compose up -d'$(NC)"
 	@echo "$(BLUE)See deploy/README.md for full setup steps.$(NC)"

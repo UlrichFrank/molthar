@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import type { CSSProperties } from 'react';
 import { PortaleVonMolthar } from '@portale-von-molthar/shared';
 import type { NpcSlotConfig } from '@portale-von-molthar/shared';
 import { lobbyClient, PortaleClient } from './useLobbyClient';
@@ -9,6 +10,7 @@ import { CreateMatch } from './CreateMatch';
 import { saveSession, loadSession, clearSession } from './session';
 import { useTranslation } from '../i18n/useTranslation';
 import type { Locale } from '../i18n/translations';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 type LobbyView = 'lobby' | 'waiting' | 'in-game';
 
@@ -17,6 +19,7 @@ const LOCALE_LABELS: Record<Locale, string> = { de: 'DE', 'en-GB': 'EN', fr: 'FR
 
 export function LobbyScreen() {
   const { t, language, setLanguage } = useTranslation();
+  const isMobile = useIsMobile();
   const [view, setView] = useState<LobbyView>('lobby');
   const [playerName, setPlayerName] = useState('');
   const [matchID, setMatchID] = useState('');
@@ -201,16 +204,29 @@ export function LobbyScreen() {
   }
 
   if (view === 'in-game') {
+    // Task 7.1: only the creator gets the extra "Spiel beenden" button. The mobile
+    // status bar reserves horizontal space for these fixed buttons via this
+    // custom property (mobile.css `.mobile-status-bar` padding-right).
+    const inGameActionCount = playerID === '0' ? 2 : 1;
     return (
-      <div className="game-container">
+      <div
+        className="game-container"
+        style={{ '--pvm-ingame-action-count': inGameActionCount } as CSSProperties}
+      >
         <PortaleClient
           matchID={matchID}
           playerID={playerID}
           credentials={credentials}
         />
-        <div style={{ position: 'fixed', top: '1rem', right: '1rem', display: 'flex', gap: '0.5rem', zIndex: 1000 }}>
-          <button className="leave-game-btn" style={{ position: 'static' }} onClick={handleLeaveGame}>
-            {t('lobby.leaveGame')}
+        <div className="in-game-actions">
+          <button
+            className="leave-game-btn"
+            style={{ position: 'static' }}
+            onClick={handleLeaveGame}
+            aria-label={t('lobby.leaveGame')}
+            title={isMobile ? t('lobby.leaveGame') : undefined}
+          >
+            {isMobile ? '🚪' : t('lobby.leaveGame')}
           </button>
           {/* Task 7.1: "Spiel beenden" button only for creator (playerID "0") */}
           {playerID === '0' && (
@@ -218,8 +234,10 @@ export function LobbyScreen() {
               className="leave-game-btn"
               style={{ position: 'static', background: 'rgba(127,29,29,0.85)', borderColor: '#dc2626' }}
               onClick={handleTerminateGame}
+              aria-label={t('lobby.endGame')}
+              title={isMobile ? t('lobby.endGame') : undefined}
             >
-              {t('lobby.endGame')}
+              {isMobile ? '⏹' : t('lobby.endGame')}
             </button>
           )}
         </div>

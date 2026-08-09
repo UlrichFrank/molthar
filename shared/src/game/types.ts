@@ -2,6 +2,11 @@
 // Defines the game state, moves, and player information
 
 /**
+ * Power-point threshold that triggers the final round once a player reaches it.
+ */
+export const FINAL_ROUND_POWER_THRESHOLD = 12;
+
+/**
  * Pearl Card - Value 1-8
  * Some cards have a swap symbol
  */

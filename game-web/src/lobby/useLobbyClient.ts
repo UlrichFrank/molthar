@@ -3,7 +3,7 @@ import { Client } from 'boardgame.io/react';
 import { SocketIO } from 'boardgame.io/multiplayer';
 import { LobbyClient } from 'boardgame.io/client';
 import { PortaleVonMolthar } from '@portale-von-molthar/shared';
-import { CanvasGameBoard } from '../components/CanvasGameBoard';
+import { GameBoardSwitch } from '../components/GameBoardSwitch';
 
 // If VITE_SERVER_URL is set at build time, use it.
 // Otherwise derive from the current hostname so the same image works on any host
@@ -15,7 +15,7 @@ export const lobbyClient = new LobbyClient({ server: SERVER_URL });
 
 export const PortaleClient = Client({
   game: PortaleVonMolthar,
-  board: CanvasGameBoard as unknown as ComponentType<any>,
+  board: GameBoardSwitch as unknown as ComponentType<any>,
   numPlayers: 2,
   multiplayer: SocketIO({ server: SERVER_URL }),
   debug: process.env.NODE_ENV === 'development',

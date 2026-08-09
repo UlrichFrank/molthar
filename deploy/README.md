@@ -120,6 +120,8 @@ make deploy-logs         # Live-Logs
 make deploy-restart      # Container neustarten (ohne neues Image)
 ```
 
+Nach jedem Pull + Up räumt `make deploy` auf dem vServer automatisch mit `docker system prune -af` auf: alte (nicht mehr referenzierte) Images, gestoppte Container, ungenutzte Netzwerke und der komplette Build-Cache werden entfernt. Läuft, damit der vServer-Speicherplatz bei jedem Deploy nicht weiter zuwächst — betrifft nur ungenutzte Objekte, laufende Container (`backend`, `frontend`, `traefik`) und das Bind-Mount `~/deploy/molthar/data` bleiben unangetastet.
+
 ## Rollback
 
 Jeder `make deploy` pusht zwei Tags: `latest` und `git-<current-sha>`. Rollback:
@@ -140,10 +142,16 @@ Um zu sehen welche Tags verfügbar sind: https://github.com/UlrichFrank/molthar/
 
 **App reagiert nicht:**
 ```bash
-make deploy-status       # Container-Status
+make deploy-status       # Container-Status (Traefik + molthar)
 make deploy-logs         # Fehler in den Logs?
 make deploy-restart      # Neustart versuchen
 ```
+
+`deploy-status` und `deploy-init` prüfen auch, ob der Traefik-Container läuft. Wichtig: `make deploy`/`deploy-remote` starten **nur** den `molthar`-Stack — Traefik läuft als eigener Stack unter `~/deploy/traefik` und wird nie automatisch mitgestartet. Falls der Traefik-Container manuell entfernt wurde (z.B. durch `docker rm`/`docker system prune` direkt auf dem vServer), bleibt er weg, bis er explizit neu gestartet wird:
+```bash
+ssh vServer 'cd ~/deploy/traefik && docker compose up -d'
+```
+Backend/Frontend können dabei problemlos weiterlaufen (`deploy-status` zeigt sie als "Up"), obwohl von außen kein Traffic ankommt — sie exponieren keine Host-Ports und hängen komplett vom Traefik-Routing ab.
 
 **Traefik reagiert nicht (kein HTTPS, kein Redirect):**
 ```bash

@@ -175,10 +175,39 @@
   transform: scale(1.02);
 }
 
+/* Task 2.1/D5: bottom-sheet presentation below the 768px mobile breakpoint.
+   Content-orientated height is inherited from `.game-dialog`'s existing
+   `max-height` + `overflow-y: auto` — a short dialog never grows past its
+   content, a long one scrolls only internally (never the page behind it). */
+@media (max-width: 767px) {
+  .game-dialog-overlay {
+    align-items: flex-end;
+  }
+
+  .game-dialog {
+    max-width: 100%;
+    width: 100%;
+    max-height: 85dvh;
+    border-radius: 16px 16px 0 0;
+    border-width: 2px 0 0 0;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .game-dialog--wide {
+    max-width: 100%;
+  }
+}
+
 /* Responsive */
 @media (max-width: 600px) {
   .game-dialog {
-    padding: 1rem;
+    /* Task 2.1/D5 fix: `padding: 1rem` shorthand used to clobber the safe-area
+       padding-bottom set above (max-width: 767px) — every mobile viewport is
+       ≤600px, so the safe-area inset never applied. Longhand on the other three
+       sides leaves that rule in effect instead of duplicating its calc(). */
+    padding-top: 1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
   }
 
   .game-dialog--split {

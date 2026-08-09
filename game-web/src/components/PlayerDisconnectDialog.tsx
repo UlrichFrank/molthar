@@ -1,4 +1,4 @@
-import React from 'react';
+import { GameDialog } from './GameDialog';
 import { useTranslation } from '../i18n/useTranslation';
 
 interface PlayerDisconnectDialogProps {
@@ -8,15 +8,8 @@ interface PlayerDisconnectDialogProps {
 export function PlayerDisconnectDialog({ playerName }: PlayerDisconnectDialogProps) {
   const { t } = useTranslation();
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 300,
-      background: 'rgba(0,0,0,0.75)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }}>
+    <GameDialog>
       <div style={{
-        background: '#0f1e2e', border: '1px solid #334155',
-        borderRadius: 16, padding: '2rem 2.5rem',
-        minWidth: 280, maxWidth: 380,
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem',
         textAlign: 'center',
       }}>
@@ -36,6 +29,6 @@ export function PlayerDisconnectDialog({ playerName }: PlayerDisconnectDialogPro
           to { transform: rotate(360deg); }
         }
       `}</style>
-    </div>
+    </GameDialog>
   );
 }
