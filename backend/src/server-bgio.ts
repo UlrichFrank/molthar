@@ -1,6 +1,7 @@
-import { Server, Origins, FlatFile } from 'boardgame.io/server';
+import { Server, Origins } from 'boardgame.io/server';
 import { PortaleVonMolthar } from '@portale-von-molthar/shared';
 import { BotRunner } from './bot-runner';
+import { MatchStore } from './matchStore';
 
 /**
  * boardgame.io Server for Portale von Molthar
@@ -13,25 +14,13 @@ import { BotRunner } from './bot-runner';
  * - Lobby API for creating/joining games
  */
 
-/**
- * FlatFile adapter that automatically deletes matches terminated by the creator.
- * boardgame.io 0.50.2 has no onMatchEnd hook, so we intercept setMetadata instead.
- */
-class AutoCleanupFlatFile extends FlatFile {
-  async setMetadata(id: string, metadata: any): Promise<void> {
-    await super.setMetadata(id, metadata);
-    if (metadata?.gameover?.reason === 'terminated') {
-      await this.wipe(id);
-    }
-  }
-}
-
 const PORT = parseInt(process.env.PORT || '3001', 10);
 const HOST = process.env.HOST || '127.0.0.1';
+const MATCH_TTL_DAYS = parseInt(process.env.MATCH_TTL_DAYS || '1', 10);
 
 const server = Server({
   games: [PortaleVonMolthar],
-  db: new AutoCleanupFlatFile({ dir: './data' }),
+  db: new MatchStore({ dir: './data', ttlDays: MATCH_TTL_DAYS }),
 
   origins: [
     // Allow frontend to connect (dev server)

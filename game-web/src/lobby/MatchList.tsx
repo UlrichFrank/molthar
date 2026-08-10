@@ -4,6 +4,8 @@ import { useTranslation } from '../i18n/useTranslation';
 interface MatchListProps {
   matches: Match[];
   loadingMatches: boolean;
+  /** The last poll failed — the list below is stale, not necessarily empty. */
+  loadFailed: boolean;
   playerNameSet: boolean;
   onRefresh: () => void;
   onJoin: (match: Match) => void;
@@ -24,7 +26,7 @@ function formatMatchTime(createdAt: number): string {
   return `${date} ${time}`;
 }
 
-export function MatchList({ matches, loadingMatches, playerNameSet, onRefresh, onJoin }: MatchListProps) {
+export function MatchList({ matches, loadingMatches, loadFailed, playerNameSet, onRefresh, onJoin }: MatchListProps) {
   const { t } = useTranslation();
   return (
     <div className="lobby-section">
@@ -39,7 +41,9 @@ export function MatchList({ matches, loadingMatches, playerNameSet, onRefresh, o
           {loadingMatches ? '⏳' : '🔄'}
         </button>
       </h2>
-      {matches.length === 0 ? (
+      {loadFailed ? (
+        <p className="lobby-error">⚠️ {t('matches.loadFailed')}</p>
+      ) : matches.length === 0 ? (
         <p className="no-matches">{t('matches.noMatches')}</p>
       ) : (
         <ul className="match-list">

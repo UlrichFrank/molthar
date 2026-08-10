@@ -127,6 +127,24 @@ describe('pickPearlAction: keine nützliche Perle und Hand voll', () => {
     expect(action).not.toBeNull();
     expect(action).toMatchObject({ move: 'replacePearlSlots', args: [] });
   });
+
+  // Erneuern ändert nur die Auslage, nicht die Hand. Ohne Deckel darauf hat der
+  // Bot in echten Partien jede Aktion jedes Zuges mit Erneuern verbrannt —
+  // niemand punktete und die Partie endete nie.
+  it('erneuert höchstens einmal pro Zug und nimmt danach doch eine Perle', () => {
+    const portalCard = card([{ type: 'number', value: 8 }], 'card1');
+    const player = makePlayer({
+      portal: [{ card: portalCard, entryOrder: 0 }],
+      hand: [pearl(1), pearl(2), pearl(3), pearl(4), pearl(5)],
+    });
+    const pearlSlots: (PearlCard | null)[] = [pearl(2), pearl(3), null, null];
+    const G = makeGame(player, pearlSlots);
+    G.actionCount = 1;
+
+    const action = pickPearlAction(G, '0', 'greedy');
+
+    expect(action).toMatchObject({ move: 'takePearlCard' });
+  });
 });
 
 // ---------------------------------------------------------------------------

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { CSSProperties } from 'react';
 import { PortaleVonMolthar } from '@portale-von-molthar/shared';
 import type { NpcSlotConfig } from '@portale-von-molthar/shared';
-import { lobbyClient, PortaleClient } from './useLobbyClient';
+import { lobbyClient, PortaleClient, freeHumanSlots } from './useLobbyClient';
 import type { Match } from './useLobbyClient';
 import { WaitingRoom } from './WaitingRoom';
 import { MatchList } from './MatchList';
@@ -31,6 +31,7 @@ export function LobbyScreen() {
   const [npcSlots, setNpcSlots] = useState<NpcSlotConfig[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [loadingMatches, setLoadingMatches] = useState(false);
+  const [matchesFailed, setMatchesFailed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sessionChecked, setSessionChecked] = useState(false);
   const [savedSession, setSavedSession] = useState(loadSession);
@@ -39,11 +40,12 @@ export function LobbyScreen() {
     setLoadingMatches(true);
     try {
       const { matches: list } = await lobbyClient.listMatches(PortaleVonMolthar.name);
-      setMatches((list as Match[]).filter(m =>
-        m.players.some(p => p.name === undefined)
-      ));
+      setMatches((list as Match[]).filter(m => freeHumanSlots(m).length > 0));
+      setMatchesFailed(false);
     } catch {
-      // Polling errors are non-fatal
+      // A silently empty list is indistinguishable from "no games open", which
+      // is how a broken lobby endpoint went unnoticed for weeks. Say so.
+      setMatchesFailed(true);
     } finally {
       setLoadingMatches(false);
     }
@@ -125,7 +127,7 @@ export function LobbyScreen() {
   };
 
   const handleJoinMatch = (match: Match) => {
-    const freeSlot = match.players.find(p => p.name === undefined);
+    const freeSlot = freeHumanSlots(match)[0];
     if (!freeSlot) { setError(t('lobby.errorNoSlot')); return; }
     setWithSpecialCards(match.setupData?.withSpecialCards ?? false);
     joinMatch(match.matchID, String(freeSlot.id), match.players.length);
@@ -322,6 +324,7 @@ export function LobbyScreen() {
       <MatchList
         matches={matches}
         loadingMatches={loadingMatches}
+        loadFailed={matchesFailed}
         playerNameSet={!!playerName.trim()}
         onRefresh={loadMatches}
         onJoin={handleJoinMatch}

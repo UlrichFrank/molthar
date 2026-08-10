@@ -30,17 +30,42 @@ interface BotClient {
   unsubscribe: (() => void) | null;
   isThinking: boolean;
   reconnectTimer: ReturnType<typeof setTimeout> | null;
+  /** `_stateID` the last dispatched move was based on — used to spot rejections. */
+  lastDispatchStateID: number | null;
+  /** Consecutive moves the server refused. Resets as soon as one lands. */
+  rejectedMoves: number;
+  /** When `isThinking` was set, so a stuck flag can be broken open. */
+  thinkingSince: number | null;
 }
+
+/**
+ * A bot that stays "thinking" this long is not thinking, it is wedged. Nothing
+ * else can move while it holds the turn, so the flag gets cleared and the bot
+ * is asked again. Comfortably above the longest real think delay (2.5s).
+ */
+const MAX_THINKING_MS = 15000;
 
 interface MatchBots {
   bots: BotClient[];
+  /** Slots this match needs filled — kept so a partial attach can be retried. */
+  npcSlots: NpcSlotConfig[];
 }
 
 // ---------------------------------------------------------------------------
 // Credentials persistence
 // ---------------------------------------------------------------------------
 
-const CREDS_FILE = path.join(__dirname, '..', 'data-npc', 'credentials.json');
+/**
+ * A bot can only move in a seat it already holds by presenting the credential
+ * it got when joining — re-joining is impossible once the seat is taken. So
+ * this file has to outlive the container, which means it must sit on a mounted
+ * volume (see NPC_DATA_DIR in docker-compose). Lose it and every running match
+ * with an NPC is stuck on that NPC's turn forever.
+ */
+const CREDS_FILE = path.join(
+  process.env.NPC_DATA_DIR || path.join(__dirname, '..', 'data-npc'),
+  'credentials.json',
+);
 
 function loadCredentials(): Record<string, string> {
   try {
@@ -72,6 +97,10 @@ export class BotRunner {
   private serverUrl: string;
   private credentials: Record<string, string>;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
+  private watchdogTimer: ReturnType<typeof setInterval> | null = null;
+  private scanFailing = false;
+  /** Matches whose bots were torn down on gameover — never re-attach to those. */
+  private finishedMatches = new Set<string>();
 
   constructor(serverUrl: string) {
     this.serverUrl = serverUrl;
@@ -83,49 +112,105 @@ export class BotRunner {
   async start(): Promise<void> {
     await this.scanAndAttach();
     this.pollTimer = setInterval(() => {
-      this.scanAndAttach().catch(() => { /* non-fatal */ });
+      this.scanAndAttach().catch(err => console.error('[BotRunner] Scan failed:', err));
     }, 5000);
+    this.watchdogTimer = setInterval(() => this.pokeStalledBots(), 3000);
+  }
+
+  /**
+   * Bots normally act from the client subscription — but that only fires when
+   * the state actually changes. A move the server refuses changes nothing, so
+   * without this the bot would sit on its turn forever and the humans would
+   * wait for a player that is never going to move again.
+   */
+  private pokeStalledBots(): void {
+    for (const [matchID, { bots }] of [...this.activeMatches]) {
+      for (const bot of bots) {
+        const state = (bot.client as any).store?.getState();
+        if (!state || state.ctx?.gameover) continue;
+        if (state.ctx?.currentPlayer !== bot.playerID) continue;
+
+        if (bot.isThinking) {
+          const thinkingFor = Date.now() - (bot.thinkingSince ?? Date.now());
+          if (thinkingFor < MAX_THINKING_MS) continue;
+          console.warn(
+            `[BotRunner] ${bot.playerID} stuck mid-move for ${Math.round(thinkingFor / 1000)}s — resetting.`,
+          );
+          bot.isThinking = false;
+          bot.thinkingSince = null;
+        }
+
+        if (bot.lastDispatchStateID !== null && state._stateID === bot.lastDispatchStateID) {
+          bot.rejectedMoves++;
+        }
+        this.onStateChange(matchID, bot);
+      }
+    }
   }
 
   stop(): void {
     if (this.pollTimer) clearInterval(this.pollTimer);
-    for (const [matchID] of this.activeMatches) {
-      this.detachMatch(matchID);
+    if (this.watchdogTimer) clearInterval(this.watchdogTimer);
+    for (const [matchID] of [...this.activeMatches]) {
+      this.detachMatch(matchID, { finished: false });
     }
   }
 
   /** Scan all open matches and attach bots to any that have npcSlots. */
   async scanAndAttach(): Promise<void> {
+    let matches;
     try {
-      const { matches } = await this.lobbyClient.listMatches(PortaleVonMolthar.name);
-      for (const match of matches) {
-        if (this.activeMatches.has(match.matchID)) continue;
-        if ((match as any).gameover) continue;
+      ({ matches } = await this.lobbyClient.listMatches(PortaleVonMolthar.name));
+    } catch (err) {
+      // A permanently failing lobby endpoint means no NPC ever joins and every
+      // waiting room hangs — too important to swallow, too noisy to log on
+      // every 5s poll, so it is logged on state change only.
+      this.reportScanResult(err);
+      return;
+    }
+    this.reportScanResult(null);
 
-        const npcSlots = (match.setupData as any)?.npcSlots as NpcSlotConfig[] | undefined;
-        if (!npcSlots?.length) continue;
+    for (const match of matches) {
+      if ((match as any).gameover) continue;
+      if (this.finishedMatches.has(match.matchID)) continue;
 
-        await this.attachMatch(match.matchID, npcSlots);
-      }
-    } catch {
-      // Network errors during polling are non-fatal
+      const npcSlots = (match.setupData as any)?.npcSlots as NpcSlotConfig[] | undefined;
+      if (!npcSlots?.length) continue;
+
+      await this.attachMatch(match.matchID, npcSlots, match.players);
     }
   }
 
-  /** Join NPC slots (if not already joined) and start bot clients for a match. */
-  async attachMatch(matchID: string, npcSlots: NpcSlotConfig[]): Promise<void> {
-    if (this.activeMatches.has(matchID)) return;
-
-    const bots: BotClient[] = [];
+  /**
+   * Join NPC slots and start bot clients for a match. Safe to call repeatedly:
+   * slots whose join failed last time are retried on the next scan, so one
+   * failed join cannot leave a match short a player forever.
+   */
+  async attachMatch(
+    matchID: string,
+    npcSlots: NpcSlotConfig[],
+    seats?: { id: number; name?: string }[],
+  ): Promise<void> {
+    const entry = this.activeMatches.get(matchID) ?? { bots: [], npcSlots };
+    const attached = new Set(entry.bots.map(b => b.playerID));
 
     for (const slot of npcSlots) {
       const playerID = String(slot.playerIndex);
+      if (attached.has(playerID)) continue;
+
       const credKey = `${matchID}:${playerID}`;
+      // A credential is only good for a seat we actually hold. If the seat is
+      // still empty, a leftover credential is stale (e.g. carried over from a
+      // container that never completed the join) and every move made with it
+      // would be rejected — so drop it and join properly.
+      const seatIsEmpty = seats?.find(p => p.id === slot.playerIndex)?.name === undefined;
+      if (seatIsEmpty && this.credentials[credKey]) {
+        delete this.credentials[credKey];
+      }
 
       let credentials = this.credentials[credKey];
 
       if (!credentials) {
-        // Try to join the slot
         try {
           const result = await this.lobbyClient.joinMatch(PortaleVonMolthar.name, matchID, {
             playerID,
@@ -134,18 +219,28 @@ export class BotRunner {
           credentials = result.playerCredentials;
           this.credentials[credKey] = credentials;
           saveCredentials(this.credentials);
-        } catch {
-          // Slot might already be taken — skip silently
+        } catch (err) {
+          console.warn(`[BotRunner] Could not join slot ${playerID} of match ${matchID}, retrying:`, err);
           continue;
         }
       }
 
-      const bot = this.startBotClient(matchID, playerID, credentials, slot);
-      bots.push(bot);
+      entry.bots.push(this.startBotClient(matchID, playerID, credentials, slot));
     }
 
-    if (bots.length > 0) {
-      this.activeMatches.set(matchID, { bots });
+    if (entry.bots.length > 0) {
+      this.activeMatches.set(matchID, entry);
+    }
+  }
+
+  /** Log lobby-scan health, but only when it changes, to keep the log readable. */
+  private reportScanResult(err: unknown): void {
+    if (err && !this.scanFailing) {
+      this.scanFailing = true;
+      console.error('[BotRunner] Lobby scan failing — NPCs cannot join matches:', err);
+    } else if (!err && this.scanFailing) {
+      this.scanFailing = false;
+      console.log('[BotRunner] Lobby scan recovered.');
     }
   }
 
@@ -173,6 +268,9 @@ export class BotRunner {
       unsubscribe: null,
       isThinking: false,
       reconnectTimer: null,
+      lastDispatchStateID: null,
+      rejectedMoves: 0,
+      thinkingSince: null,
     };
 
     client.start();
@@ -202,47 +300,44 @@ export class BotRunner {
     // Not our turn
     if (ctx?.currentPlayer !== bot.playerID) return;
 
-    // Need to discard excess cards before normal actions
+    // The board moved on since our last dispatch, so that move was accepted.
+    if (bot.lastDispatchStateID !== null && state._stateID !== bot.lastDispatchStateID) {
+      bot.rejectedMoves = 0;
+    }
+
+    // A pending discard blocks every other move, endTurn included, so it has to
+    // be resolved first. `excess` can only be 0 here if the flag is stale — then
+    // discarding nothing clears it rather than leaving the turn wedged.
     if (G?.requiresHandDiscard) {
       const excess: number = G.excessCardCount ?? 0;
-      if (excess > 0) {
-        const player = G.players?.[bot.playerID];
-        if (player) {
-          // Discard lowest-value cards
-          const sortedIndices = [...player.hand]
-            .map((c: any, i: number) => ({ value: c.value as number, i }))
-            .sort((a: any, b: any) => a.value - b.value)
-            .slice(0, excess)
-            .map((x: any) => x.i as number);
+      const player = G.players?.[bot.playerID];
+      if (!player) return;
 
-          bot.isThinking = true;
-          this.delay(randomDelay(800, 1500)).then(() => {
-            (bot.client as any).moves?.discardCardsForHandLimit?.(sortedIndices);
-            bot.isThinking = false;
-          });
-        }
-      }
+      // Discard lowest-value cards
+      const sortedIndices = [...player.hand]
+        .map((c: any, i: number) => ({ value: c.value as number, i }))
+        .sort((a: any, b: any) => a.value - b.value)
+        .slice(0, excess)
+        .map((x: any) => x.i as number);
+
+      this.think(matchID, bot, randomDelay(800, 1500), currentState => {
+        if (!currentState.G?.requiresHandDiscard) return;
+        bot.lastDispatchStateID = currentState._stateID ?? null;
+        (bot.client as any).moves?.discardCardsForHandLimit?.(sortedIndices);
+      });
       return;
     }
 
     // Execute strategy
-    bot.isThinking = true;
     const delayMs = G?.actionCount === 0 ? randomDelay(1000, 2500) : randomDelay(800, 1500);
 
-    this.delay(delayMs).then(() => {
-      // Re-read state at dispatch time (could have changed during delay)
-      const currentState = (bot.client as any).store?.getState();
-      if (!currentState) { bot.isThinking = false; return; }
-
+    this.think(matchID, bot, delayMs, currentState => {
       const { G: currentG, ctx: currentCtx } = currentState as { G: any; ctx: any };
-      if (currentCtx?.currentPlayer !== bot.playerID || currentCtx?.gameover) {
-        bot.isThinking = false;
-        return;
-      }
+      if (currentCtx?.currentPlayer !== bot.playerID || currentCtx?.gameover) return;
 
       if (currentG?.actionCount >= currentG?.maxActions) {
+        bot.lastDispatchStateID = currentState._stateID ?? null;
         (bot.client as any).moves?.endTurn?.();
-        bot.isThinking = false;
         return;
       }
 
@@ -268,20 +363,39 @@ export class BotRunner {
       }
       // --- END DEBUG LOG ---
 
-      const decision = bot.strategy(currentG, currentCtx, bot.playerID);
+      // After three refused moves in a row the strategy is clearly stuck on this
+      // position. Ending the turn is always legal and hands play back to the
+      // humans — far better than sitting on the turn forever.
+      const decision = bot.rejectedMoves >= 3
+        ? { event: 'endTurn' as const }
+        : bot.strategy(currentG, currentCtx, bot.playerID);
+
+      if (bot.rejectedMoves >= 3) {
+        console.warn(
+          `[BotRunner] ${bot.playerID} had ${bot.rejectedMoves} moves refused in a row — ending turn.`,
+        );
+      }
       console.log(`  ➜ ${formatDecision(decision, currentG, bot.playerID)}`);
+
+      bot.lastDispatchStateID = currentState._stateID ?? null;
 
       if ('event' in decision) {
         (bot.client as any).events?.[decision.event]?.();
       } else {
         (bot.client as any).moves?.[decision.move]?.(...(decision.args as unknown[]));
       }
-
-      bot.isThinking = false;
     });
   }
 
-  detachMatch(matchID: string): void {
+  /**
+   * Tear down the bot clients of a match.
+   *
+   * `finished` distinguishes "the game is over" from "the server is shutting
+   * down". Only in the first case may the stored credentials go: they are what
+   * lets a bot re-enter its already-taken seat after a restart, and joinMatch
+   * would refuse to hand out new ones.
+   */
+  detachMatch(matchID: string, { finished = true }: { finished?: boolean } = {}): void {
     const matchBots = this.activeMatches.get(matchID);
     if (!matchBots) return;
 
@@ -289,9 +403,48 @@ export class BotRunner {
       bot.unsubscribe?.();
       if (bot.reconnectTimer) clearTimeout(bot.reconnectTimer);
       try { (bot.client as any).stop(); } catch { /* ignore */ }
+      if (finished) delete this.credentials[`${matchID}:${bot.playerID}`];
     }
 
     this.activeMatches.delete(matchID);
+
+    if (finished) {
+      this.finishedMatches.add(matchID);
+      saveCredentials(this.credentials);
+    }
+  }
+
+  /**
+   * Pause, then act on the freshest state.
+   *
+   * Two hazards this closes. A throw inside the callback used to leave
+   * `isThinking` set forever, and both the subscription and the watchdog skip a
+   * thinking bot — one bad move and the NPC never played again. And dispatching
+   * a move re-enters `onStateChange` synchronously, where the still-set flag
+   * makes it return; that notification is gone for good, so the follow-up
+   * (usually ending the turn) needs to be re-triggered afterwards.
+   */
+  private think(
+    matchID: string,
+    bot: BotClient,
+    delayMs: number,
+    act: (state: any) => void,
+  ): void {
+    bot.isThinking = true;
+    bot.thinkingSince = Date.now();
+
+    this.delay(delayMs).then(() => {
+      try {
+        const state = (bot.client as any).store?.getState();
+        if (state) act(state);
+      } catch (err) {
+        console.error(`[BotRunner] Move by ${bot.playerID} in match ${matchID} threw:`, err);
+      } finally {
+        bot.isThinking = false;
+        bot.thinkingSince = null;
+        setImmediate(() => this.onStateChange(matchID, bot));
+      }
+    });
   }
 
   private delay(ms: number): Promise<void> {
@@ -299,8 +452,15 @@ export class BotRunner {
   }
 }
 
+/**
+ * Bots pause before moving so play feels human. `NPC_THINK_FACTOR` scales that
+ * pause — the e2e suite sets it near zero to play whole games in seconds.
+ */
+const THINK_FACTOR = Math.max(0, parseFloat(process.env.NPC_THINK_FACTOR || '1'));
+
 function randomDelay(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+  const ms = Math.floor(Math.random() * (max - min + 1)) + min;
+  return Math.round(ms * THINK_FACTOR);
 }
 
 function formatCost(cost: any[]): string {
@@ -308,7 +468,8 @@ function formatCost(cost: any[]): string {
   return cost.map((c: any) => {
     switch (c.type) {
       case 'number':      return String(c.value);
-      case 'nTuple':      return `${c.n}×${c.value}`;
+      // Without a value an nTuple means "n cards of the same, any value".
+      case 'nTuple':      return c.value != null ? `${c.n}×${c.value}` : `${c.n}× gleiche`;
       case 'sumAnyTuple': return `∑${c.sum}`;
       case 'sumTuple':    return `∑${c.sum}(${c.n}×)`;
       case 'run':         return `Folge×${c.length}`;

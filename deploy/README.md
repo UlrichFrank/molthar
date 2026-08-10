@@ -113,8 +113,10 @@ Dann `https://molthar.apps.deinedomain.de` im Browser öffnen. Beim allerersten 
 
 ## Deploy-Workflow (Alltag)
 
+`make deploy` überträgt `deploy/molthar/docker-compose.yml` bei jedem Lauf mit auf den vServer — Änderungen an Volumes, Env-Variablen oder Traefik-Labels landen dadurch automatisch dort. Die `.env` auf dem Server wird nie angefasst.
+
 ```bash
-make deploy              # build (linux/amd64) + push + SSH pull + up
+make deploy              # compose sync + build (linux/amd64) + push + SSH pull + up
 make deploy-status       # welche Container laufen mit welchem Image?
 make deploy-logs         # Live-Logs
 make deploy-restart      # Container neustarten (ohne neues Image)
@@ -169,7 +171,8 @@ ssh vServer 'cd ~/deploy/traefik && docker compose restart'
 
 Sichere regelmäßig:
 - `~/deploy/traefik/acme.json` — enthält Let's Encrypt Certs (Rate-Limit beim Neuausstellen!)
-- `~/deploy/molthar/data/` — Container-Volume (aktuell leer, wird bei bgio-Persistenz relevant)
+- `~/deploy/molthar/data/` — alle Partien (boardgame.io-Persistenz)
+- `~/deploy/molthar/data-npc/` — NPC-Sitzplatz-Credentials; ohne sie hängen laufende Partien mit NPC nach einem Deploy
 - `~/deploy/{traefik,molthar}/.env` — Zugangsdaten
 
 ## Neue App unter `*.apps.<domain>` hinzufügen
@@ -182,6 +185,21 @@ Sichere regelmäßig:
 Kein Anfassen von `deploy/traefik/` nötig — Wildcard-Cert deckt neue Subdomain automatisch ab.
 
 ## Troubleshooting
+
+**"Offene Spiele" bleibt leer / NPCs treten nicht bei / Warteraum hängt:**
+
+Fast immer dieselbe Ursache: `GET /games/portale-von-molthar` antwortet mit 500. Der Endpoint versorgt sowohl die Spieleliste als auch den NPC-BotRunner — fällt er aus, sieht kein Gerät die Partien des anderen und kein NPC nimmt seinen Platz ein.
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' https://molthar-api.<domain>/games/portale-von-molthar
+make deploy-logs      # Backend-Logs: "[MatchStore]"- oder "[BotRunner]"-Zeilen?
+```
+
+Auslöser war früher eine beschädigte (meist 0 Byte große) Datei in `~/deploy/molthar/data/`, wenn der Container mitten im Schreiben gestoppt wurde. Das Backend schreibt inzwischen atomar und räumt beim Start selbst auf — ein Neustart genügt:
+
+```bash
+make deploy-restart
+```
 
 **"CORS error" im Browser:**
 - `EXTRA_ORIGINS` im Backend muss exakt die Frontend-URL enthalten (inkl. `https://`, kein Trailing-Slash)

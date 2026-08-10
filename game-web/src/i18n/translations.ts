@@ -45,6 +45,7 @@ export type TranslationKey =
   // Match list
   | 'matches.title'
   | 'matches.noMatches'
+  | 'matches.loadFailed'
   | 'matches.join'
   | 'matches.creator'
   | 'matches.participants'
@@ -247,6 +248,7 @@ const de: Record<TranslationKey, string> = {
   'create.npcStrategy.aggressive': 'Raubritter Ralf (Raubritter)',
   'matches.title':               'Offene Spiele',
   'matches.noMatches':           'Keine offenen Spiele vorhanden.',
+  'matches.loadFailed':          'Spieleliste nicht erreichbar — Server antwortet nicht.',
   'matches.join':                'Beitreten',
   'matches.creator':             'Erstellt von',
   'matches.participants':        'Spieler',
@@ -428,6 +430,7 @@ const enGB: Record<TranslationKey, string> = {
   'create.npcStrategy.aggressive': 'Raubritter Ralf (Raider)',
   'matches.title':               'Open Games',
   'matches.noMatches':           'No open games available.',
+  'matches.loadFailed':          'Cannot reach the game list — the server is not responding.',
   'matches.join':                'Join',
   'matches.creator':             'Created by',
   'matches.participants':        'Players',
@@ -609,6 +612,7 @@ const fr: Record<TranslationKey, string> = {
   'create.npcStrategy.aggressive': 'Raubritter Ralf (Raider)',
   'matches.title':               'Parties ouvertes',
   'matches.noMatches':           'Aucune partie ouverte disponible.',
+  'matches.loadFailed':          'Liste des parties inaccessible — le serveur ne répond pas.',
   'matches.join':                'Rejoindre',
   'matches.creator':             'Créé par',
   'matches.participants':        'Joueurs',

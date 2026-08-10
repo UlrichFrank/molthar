@@ -60,4 +60,9 @@ shared/dist
 game-web/dist
 backend/dist
 backend/data/
+# NPC seat credentials — runtime state, never commit
+backend/data-npc/
+# docker-compose bind mounts (compose runs from the repo root)
+/data/
+/data-npc/
 
