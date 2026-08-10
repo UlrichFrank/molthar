@@ -58,8 +58,16 @@ export function pickPearlAction(
   const handLimit = 5 + player.handLimitModifier;
   const handFull = player.hand.length >= handLimit;
 
-  if (handFull) {
-    // 4. Hand voll und keine nützliche Perle → Slots erneuern statt Müll nehmen
+  // 4. Hand voll und keine nützliche Perle → Slots erneuern statt Müll nehmen.
+  //
+  //    Aber höchstens einmal pro Zug: Slots erneuern ändert nur die Auslage,
+  //    nicht die eigene Hand. Ist die Hand voll und keine Portalkarte bezahlbar,
+  //    bleibt "nichts ist nützlich" nach dem Erneuern genauso wahr — der Bot
+  //    verbrennt dann Zug um Zug jede Aktion mit Erneuern, niemand punktet und
+  //    die Partie endet nie. Ab der zweiten Aktion nimmt er stattdessen die
+  //    beste sichtbare Perle; die erzwungene Handkarten-Abgabe rotiert die Hand
+  //    und macht Portalkarten wieder bezahlbar.
+  if (handFull && G.actionCount === 0) {
     return { move: 'replacePearlSlots', args: [] };
   }
 

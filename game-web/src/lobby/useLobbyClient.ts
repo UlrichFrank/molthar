@@ -3,6 +3,7 @@ import { Client } from 'boardgame.io/react';
 import { SocketIO } from 'boardgame.io/multiplayer';
 import { LobbyClient } from 'boardgame.io/client';
 import { PortaleVonMolthar } from '@portale-von-molthar/shared';
+import type { NpcSlotConfig } from '@portale-von-molthar/shared';
 import { GameBoardSwitch } from '../components/GameBoardSwitch';
 
 // If VITE_SERVER_URL is set at build time, use it.
@@ -30,7 +31,18 @@ export interface MatchPlayer {
 export interface Match {
   matchID: string;
   players: MatchPlayer[];
-  setupData?: { numPlayers?: number; withSpecialCards?: boolean };
+  setupData?: { numPlayers?: number; withSpecialCards?: boolean; npcSlots?: NpcSlotConfig[] };
   createdAt?: number;
   updatedAt?: number;
+}
+
+/**
+ * Seats a human may take: still empty and not reserved for an NPC. NPC seats
+ * are empty until the server-side BotRunner fills them a few seconds later —
+ * without this check a joining human takes the bot's seat, and the bot then has
+ * nowhere to sit.
+ */
+export function freeHumanSlots(match: Match): MatchPlayer[] {
+  const npcIndices = new Set((match.setupData?.npcSlots ?? []).map(s => s.playerIndex));
+  return match.players.filter(p => p.name === undefined && !npcIndices.has(p.id));
 }

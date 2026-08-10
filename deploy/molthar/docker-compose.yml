@@ -4,8 +4,12 @@ services:
     restart: unless-stopped
     environment:
       - EXTRA_ORIGINS=https://molthar.${APPS_DOMAIN:?APPS_DOMAIN required}
+      - NPC_DATA_DIR=/app/data-npc
     volumes:
       - ./data:/app/data
+      # NPC seat credentials. Without this mount every deploy locks the bots out
+      # of their own seats and running matches hang on the NPC's turn.
+      - ./data-npc:/app/data-npc
     networks:
       - web
     labels:

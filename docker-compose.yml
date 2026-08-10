@@ -7,6 +7,10 @@ services:
       - "${BACKEND_PORT:-3001}:${BACKEND_PORT:-3001}"
     environment:
       - PORT=${BACKEND_PORT:-3001}
+      - NPC_DATA_DIR=/app/data-npc
+    volumes:
+      - ./data:/app/data
+      - ./data-npc:/app/data-npc
     restart: unless-stopped
 
   frontend:

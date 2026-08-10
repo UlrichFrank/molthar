@@ -1,4 +1,4 @@
-.PHONY: help install dev build start stop clean test test-report \
+.PHONY: help install dev build start stop clean test test-report test-e2e \
         docker-build docker-build-backend docker-build-frontend docker-run docker-stop docker-logs docker-push \
         deploy deploy-build deploy-remote deploy-rollback deploy-logs deploy-status deploy-restart deploy-init
 
@@ -69,6 +69,7 @@ help:
 	@echo "  make test-shared    Run tests for shared package"
 	@echo "  make test-watch    Run tests in watch mode (shared)"
 	@echo "  make test-report    Generate test report for card validation"
+	@echo "  make test-e2e       Play real lobby/NPC games against a running backend"
 	@echo ""
 	@echo "$(GREEN)Cleanup:$(NC)"
 	@echo "  make stop           Stop all running services"
@@ -173,6 +174,14 @@ test-watch:
 	@echo "$(GREEN)Press Ctrl+C to exit watch mode$(NC)"
 	cd shared && pnpm test
 
+# End-to-end reliability loop: lobby → waiting room → full game incl. NPCs.
+# Needs a running backend (make backend). RUNS=n repeats every scenario n times.
+test-e2e:
+	@echo "$(BLUE)Running lobby/NPC end-to-end scenarios...$(NC)"
+	@curl -sf http://127.0.0.1:3001/games >/dev/null \
+		|| { echo "$(RED)✗ Backend not reachable on :3001 — run 'make backend' first$(NC)"; exit 1; }
+	cd backend && RUNS=$${RUNS:-3} node e2e/lobby-e2e.cjs
+
 # Generate detailed test report for card cost validation
 test-report:
 	@echo "$(BLUE)Generating test report...$(NC)"
@@ -252,6 +261,8 @@ deploy-build:
 	@echo "$(GREEN)✓ Pushed tags: latest, git-$(GIT_SHA)$(NC)"
 
 deploy-remote:
+	@echo "$(BLUE)Syncing compose file to $(DEPLOY_HOST)...$(NC)"
+	@scp -q deploy/molthar/docker-compose.yml $(DEPLOY_HOST):$(DEPLOY_PATH)/docker-compose.yml
 	@TAG=$${TAG:-latest}; \
 	echo "$(BLUE)Deploying IMAGE_TAG=$$TAG to $(DEPLOY_HOST):$(DEPLOY_PATH)...$(NC)"; \
 	ssh $(DEPLOY_HOST) "cd $(DEPLOY_PATH) && IMAGE_TAG=$$TAG docker compose pull && IMAGE_TAG=$$TAG docker compose up -d"
