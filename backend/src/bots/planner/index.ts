@@ -48,9 +48,6 @@ export interface PlannerParams {
   denyWeight: number;
   /** Extra action-equivalent bonus for red attack abilities. */
   redBonus: number;
-  /** Penalty (actions) per unused pearl in hand above this many — hand clutter. */
-  clutterFrom: number;
-  clutterCost: number;
   /** Cost multiplier for the second card of a plan (uncertainty discount). */
   secondCardWeight: number;
   /** Action cost per expected hand-limit overflow (forced discard ends the turn). */
@@ -59,6 +56,8 @@ export interface PlannerParams {
   refreshBias: number;
   /** Extra actions charged once when points must come from cards not yet visible. */
   restPenalty: number;
+  /** Weight of the in-turn follow-up gain (0 = off, 1 = full 2-ply). */
+  lookahead: number;
   /** Extra cost for discarding a portal card to make room (hysteresis against churn). */
   swapMargin: number;
 }
@@ -66,17 +65,16 @@ export interface PlannerParams {
 export const DEFAULT_PARAMS: PlannerParams = {
   temperature: 0,
   rate: 3.5,
-  diamondValue: 0.3,
-  abilityWeight: 1,
+  diamondValue: 0.1,
+  abilityWeight: 0.75,
   denyWeight: 0,
   redBonus: 0,
-  clutterFrom: 5,
-  clutterCost: 0,
-  secondCardWeight: 1,
-  overflowCost: 1.5,
-  refreshBias: 1.0,
-  restPenalty: 3,
-  swapMargin: 0,
+  secondCardWeight: 0.9,
+  overflowCost: 3,
+  refreshBias: 0.75,
+  restPenalty: 3.5,
+  lookahead: 0.5,
+  swapMargin: 0.5,
 };
 
 const BIG = 30;
@@ -462,7 +460,13 @@ export function buildPayments(G: GameState, playerID: string, card: CharacterCar
 // Action enumeration & evaluation
 // ---------------------------------------------------------------------------
 
-interface Option { action: BotAction; cost: number }
+interface Option {
+  action: BotAction;
+  cost: number;
+  /** Deterministic successor state (for in-turn lookahead) and the non-ETA part of cost. */
+  next?: SimState;
+  extra?: number;
+}
 
 function stateOf(G: GameState, me: PlayerState): SimState {
   return {
@@ -545,6 +549,7 @@ export function enumerateOptions(G: GameState, playerID: string, params: Planner
     const payments = buildPayments(G, playerID, entry.card);
     let bestPay: PaymentSelection[] | null = null;
     let bestCost = Infinity;
+    let bestNext: SimState | null = null;
     for (const pay of payments) {
       const hand = [...s.hand];
       for (const sel of pay) if (sel.source === 'hand') hand[me.hand[sel.handCardIndex!]!.value]!--;
@@ -554,10 +559,13 @@ export function enumerateOptions(G: GameState, playerID: string, params: Planner
       const next: SimState = { ...s, hand, portal, points, diamonds: s.diamonds - diamondCost + entry.card.diamonds };
       // Bank the ability/diamond value the plan credited to this card while it was pending.
       const c = eta(next, ctx) - abilityValue(entry.card, ctx, Math.max(0, FINAL_ROUND_POWER_THRESHOLD - points));
-      if (c < bestCost) { bestCost = c; bestPay = pay; }
+      if (c < bestCost) { bestCost = c; bestPay = pay; bestNext = next; }
     }
     // Tiny tie-break: activating early frees hand space at no cost.
-    if (bestPay) opts.push({ action: { move: 'activatePortalCard', args: [i, bestPay] }, cost: bestCost - 0.05 });
+    if (bestPay && bestNext) {
+      const extra = bestCost - 0.05 - eta(bestNext, ctx);
+      opts.push({ action: { move: 'activatePortalCard', args: [i, bestPay] }, cost: bestCost - 0.05, next: bestNext, extra });
+    }
   });
 
   // Take visible pearls.
@@ -565,9 +573,14 @@ export function enumerateOptions(G: GameState, playerID: string, params: Planner
     if (!card) return;
     const vis = [...s.vis];
     vis[card.value]!--;
+    const hand = [...s.hand];
+    hand[card.value]!++;
+    const d = deny(vis, s.display);
+    const overflow = histSize(hand) > ctx.handLimit;
     opts.push({
       action: { move: 'takePearlCard', args: [slot] },
-      cost: evalTakePearl(s, card.value, true, ctx) + deny(vis, s.display),
+      cost: evalTakePearl(s, card.value, true, ctx) + d,
+      ...(overflow ? {} : { next: { ...s, hand, vis }, extra: d }),
     });
   });
 
@@ -595,17 +608,56 @@ export function enumerateOptions(G: GameState, playerID: string, params: Planner
     const display = s.display.filter((_, k) => k !== idx);
     const d = deny(s.vis, display);
     if (s.portal.length < 2) {
-      opts.push({ action: { move: 'takeCharacterCard', args: [idx] }, cost: eta({ ...s, portal: [...s.portal, card], display }, ctx) + d });
+      const next = { ...s, portal: [...s.portal, card], display };
+      opts.push({ action: { move: 'takeCharacterCard', args: [idx] }, cost: eta(next, ctx) + d, next, extra: d });
     } else {
       for (let slot = 0; slot < 2; slot++) {
         const portal = [...s.portal];
         portal[slot] = card;
-        opts.push({ action: { move: 'takeCharacterCard', args: [idx, slot] }, cost: eta({ ...s, portal, display }, ctx) + d + params.swapMargin });
+        const next = { ...s, portal, display };
+        opts.push({ action: { move: 'takeCharacterCard', args: [idx, slot] }, cost: eta(next, ctx) + d + params.swapMargin, next, extra: d + params.swapMargin });
       }
     }
   });
 
+  // In-turn lookahead: a deterministic action may enable a better follow-up.
+  if (params.lookahead > 0 && ctx.actionsLeft >= 2) {
+    const ctx2 = { ...ctx, actionsLeft: ctx.actionsLeft - 1 };
+    for (const o of opts) {
+      if (!o.next) continue;
+      const follow = bestFollowUp(o.next, ctx2);
+      const base = eta(o.next, ctx);
+      if (follow < base) o.cost = (o.extra ?? 0) + base - params.lookahead * (base - follow);
+    }
+  }
+
   return opts;
+}
+
+/** Best ETA reachable with one more certain action from a simulated state. */
+function bestFollowUp(s: SimState, ctx: Ctx): number {
+  let best = Infinity;
+  const { h, x: x0 } = planHist(s.hand, ctx);
+  const x = { ...x0, diamonds: s.diamonds };
+  s.portal.forEach((card, i) => {
+    if (!canPayHist(card.cost, h, x)) return;
+    const core = coreFor(card.cost, h, x);
+    const points = s.points + card.powerPoints;
+    const next = { ...s, hand: subHist(s.hand, core), portal: s.portal.filter((_, k) => k !== i), points, diamonds: s.diamonds + card.diamonds - diamondCost(card.cost) };
+    best = Math.min(best, eta(next, ctx) - abilityValue(card, ctx, Math.max(0, FINAL_ROUND_POWER_THRESHOLD - points)));
+  });
+  for (let v = 1; v <= 8; v++) {
+    if (s.vis[v]! > 0) best = Math.min(best, evalTakePearl(s, v, true, ctx));
+  }
+  s.display.forEach((card, idx) => {
+    const display = s.display.filter((_, k) => k !== idx);
+    if (s.portal.length < 2) best = Math.min(best, eta({ ...s, portal: [...s.portal, card], display }, ctx));
+    else for (let slot = 0; slot < 2; slot++) {
+      const portal = [...s.portal]; portal[slot] = card;
+      best = Math.min(best, eta({ ...s, portal, display }, ctx) + ctx.params.swapMargin);
+    }
+  });
+  return best;
 }
 
 /** Deterministic quasi-random value from the pool distribution (stable across options). */

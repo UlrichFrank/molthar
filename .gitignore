@@ -66,3 +66,7 @@ backend/data-npc/
 /data/
 /data-npc/
 
+
+# NPC tuning scratch
+backend/tune-snapshot/
+backend/simulation-results/

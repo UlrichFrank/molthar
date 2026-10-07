@@ -64,6 +64,7 @@ const SPACE: Partial<Record<keyof PlannerParams, { step: number; min: number; ma
   refreshBias: { step: 0.25, min: -0.5, max: 3 },
   swapMargin: { step: 0.25, min: 0, max: 3 },
   secondCardWeight: { step: 0.1, min: 0.3, max: 1.5 },
+  restPenalty: { step: 0.5, min: 0, max: 6 },
   abilityWeight: { step: 0.25, min: 0, max: 3 },
   diamondValue: { step: 0.2, min: 0, max: 2 },
 };
