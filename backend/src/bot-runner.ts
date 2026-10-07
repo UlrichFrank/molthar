@@ -15,6 +15,7 @@ import { LobbyClient } from 'boardgame.io/client';
 import { PortaleVonMolthar, canPayCard } from '@portale-von-molthar/shared';
 import type { NpcSlotConfig } from '@portale-von-molthar/shared';
 import { createBot } from './bots/index';
+import { pickDiscardIndices } from './bots/planner';
 import type { BotStrategyFn } from './bots/index';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -313,12 +314,8 @@ export class BotRunner {
       const player = G.players?.[bot.playerID];
       if (!player) return;
 
-      // Discard lowest-value cards
-      const sortedIndices = [...player.hand]
-        .map((c: any, i: number) => ({ value: c.value as number, i }))
-        .sort((a: any, b: any) => a.value - b.value)
-        .slice(0, excess)
-        .map((x: any) => x.i as number);
+      // Keep the cards the planner still needs; drop the rest.
+      const sortedIndices = pickDiscardIndices(G, bot.playerID, excess);
 
       this.think(matchID, bot, randomDelay(800, 1500), currentState => {
         if (!currentState.G?.requiresHandDiscard) return;
