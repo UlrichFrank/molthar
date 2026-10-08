@@ -24,7 +24,7 @@
 
 ## 4. Server-Artefakte, Deploy und Docker-Abbau im Repo
 
-- [ ] 4.1 `deploy/traefik/` an den Server angleichen (`providers.file`, Mount `./dynamic`, `dynamic/.gitkeep`); verifizieren: `diff` gegen `ssh vServer cat ~/deploy/traefik/traefik.yml` bzw. `docker-compose.yml` zeigt keine Unterschiede
+- [x] 4.1 `deploy/traefik/` an den Server angleichen (`providers.file`, Mount `./dynamic`, `dynamic/.gitkeep`); verifizieren: `diff` gegen `ssh vServer cat ~/deploy/traefik/traefik.yml` bzw. `docker-compose.yml` zeigt keine Unterschiede
 - [ ] 4.2 `deploy/molthar/molthar.service` und `deploy/molthar/traefik-molthar.yml` anlegen (siehe Design 9/10); verifizieren: `systemd-analyze verify` auf dem Server (Datei nach `/tmp`) ohne Fehler, YAML per `traefik`-Container oder YAML-Lint ohne Fehler
 - [ ] 4.3 Makefile `deploy` (Build, Gateway-IP-Prüfung, Upload `.new`, Unit + Routing übertragen, Tausch `.prev`, Neustart, Health-Check), `deploy-rollback`, `deploy-status`, `deploy-logs`, `deploy-init` auf die neuen Voraussetzungen umbauen; verifizieren: `make -n deploy` zeigt die erwarteten Befehle; real in Gruppe 5
 - [ ] 4.4 Docker-Artefakte von Molthar entfernen (`Dockerfile`, `Dockerfile.frontend`, `docker-compose.yml`, `deploy/molthar/docker-compose.yml`, `deploy/molthar/.env.example`, `docker-*`-Targets, `.dockerignore` falls vorhanden); Traefik-Stack bleibt; verifizieren: `grep -rn "docker" Makefile CLAUDE.md README.md` zeigt nur noch Traefik-bezogene Stellen

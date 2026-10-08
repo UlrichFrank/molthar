@@ -1,0 +1,38 @@
+# Traefik dynamic configuration (file provider) for Portale von Molthar.
+# Installed to ~/deploy/traefik/dynamic/molthar.yml by `make deploy`;
+# Traefik picks up changes without a restart (providers.file.watch).
+#
+# Uses the existing wildcard certificate *.apps.diefranks.eu of the
+# "letsencrypt" resolver — same resolver and domain as before, so no new
+# certificate is requested.
+#
+# Never active together with the old Docker labels (routers molthar@docker /
+# molthar-api@docker): stop the containers before installing this file.
+http:
+  routers:
+    molthar:
+      rule: "Host(`molthar.apps.diefranks.eu`)"
+      entryPoints:
+        - websecure
+      service: molthar
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: "*.apps.diefranks.eu"
+    # Former API domain — pages loaded before the switch still use it
+    molthar-api:
+      rule: "Host(`molthar-api.apps.diefranks.eu`)"
+      entryPoints:
+        - websecure
+      service: molthar
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: "*.apps.diefranks.eu"
+
+  services:
+    molthar:
+      loadBalancer:
+        servers:
+          # Gateway of the Docker network "web" = host, where the binary listens
+          - url: "http://172.18.0.1:3002"
