@@ -33,15 +33,19 @@
 
 ## 5. Umstellung auf dem vServer (Schritte mit dem Nutzer abstimmen)
 
-- [ ] 5.1 Server vorbereiten ohne Unterbrechung: Systembenutzer `molthar`, `/opt/molthar`, Unit installieren (nicht starten), Binary hochladen, Probestart mit `HOST=127.0.0.1 PORT=3999` und Datenkopie in Temp-Verzeichnis; verifizieren: `/games/portale-von-molthar` listet die Partien, Prozess wieder beendet
-- [ ] 5.2 Container stoppen, `data` und `data-npc` nach `/var/lib/molthar/` kopieren (Eigentümer `molthar`), Dienst aktivieren und starten; verifizieren: `curl http://172.18.0.1:3002/games/portale-von-molthar` listet die übernommenen Partien, Log zeigt BotRunner ohne Fehler
-- [ ] 5.3 `molthar.yml` nach `~/deploy/traefik/dynamic/` legen (kein Traefik-Neustart); verifizieren: `https://molthar.apps.diefranks.eu/` und `https://molthar-api.apps.diefranks.eu/games` liefern 200 mit Zertifikat `*.apps.diefranks.eu`, `https://ausgebremst.apps.diefranks.eu/` weiterhin 200
-- [ ] 5.4 Erreichbarkeit nur über Traefik: `curl` von außen auf `<öffentliche-IP>:3002` schlägt fehl
-- [ ] 5.5 Automatischer Neustart: `kill -9` auf den Dienstprozess → binnen Sekunden `active`, `/` liefert 200
-- [ ] 5.6 `make deploy` und `make deploy-rollback` einmal real; verifizieren: nach Rollback läuft das vorherige Binary (Checksumme), Spielstände unverändert
-- [ ] 5.7 Aufräumen: `~/deploy/molthar` archivieren, Molthar-Images entfernen; verifizieren: `docker ps` zeigt nur Traefik, `df -h /` zeigt freigewordenen Platz; Nutzer auf das manuelle Löschen der ghcr.io-Pakete hinweisen
+- [x] 5.1 Server vorbereiten ohne Unterbrechung: Systembenutzer `molthar`, `/opt/molthar`, Unit installieren (nicht starten), Binary hochladen, Probestart mit `HOST=127.0.0.1 PORT=3999` und Datenkopie in Temp-Verzeichnis; verifizieren: `/games/portale-von-molthar` listet die Partien, Prozess wieder beendet
+- [x] 5.2 Container stoppen, `data` und `data-npc` nach `/var/lib/molthar/` kopieren (Eigentümer `molthar`), Dienst aktivieren und starten; verifizieren: `curl http://172.18.0.1:3002/games/portale-von-molthar` listet die übernommenen Partien, Log zeigt BotRunner ohne Fehler
+- [x] 5.3 `molthar.yml` nach `~/deploy/traefik/dynamic/` legen (kein Traefik-Neustart); verifizieren: `https://molthar.apps.diefranks.eu/` und `https://molthar-api.apps.diefranks.eu/games` liefern 200 mit Zertifikat `*.apps.diefranks.eu`, `https://ausgebremst.apps.diefranks.eu/` weiterhin 200
+  - Ergebnis: alle Anfragen über `molthar@file`/`molthar-api@file`, Zertifikat `*.apps.diefranks.eu` unverändert (notAfter 06.01.2027), kein Traefik-Neustart
+- [x] 5.4 Erreichbarkeit nur über Traefik: `curl` von außen auf `<öffentliche-IP>:3002` schlägt fehl
+- [x] 5.5 Automatischer Neustart: `kill -9` auf den Dienstprozess → binnen Sekunden `active`, `/` liefert 200
+- [x] 5.6 `make deploy` und `make deploy-rollback` einmal real; verifizieren: nach Rollback läuft das vorherige Binary (Checksumme), Spielstände unverändert
+  - Ergebnis: Deploy + Rollback inkl. Health-Check erfolgreich; `bun build` ist deterministisch, daher haben `molthar` und `molthar.prev` dieselbe Prüfsumme — geprüft wurde der Tausch, Spielstände unverändert (11 Dateien)
+- [x] 5.7 Aufräumen: `~/deploy/molthar` archivieren, Molthar-Images entfernen; verifizieren: `docker ps` zeigt nur Traefik, `df -h /` zeigt freigewordenen Platz; Nutzer auf das manuelle Löschen der ghcr.io-Pakete hinweisen
+  - Ergebnis: `~/deploy/molthar` → `~/deploy/molthar.docker-archiv-2026-10-08` (alte Daten für Notfall-Rollback), Images entfernt, Platte 3,1 → 3,7 GB frei; ghcr.io-Pakete `molthar-backend/-frontend` löscht der Nutzer manuell
 
 ## 6. Abnahme
 
-- [ ] 6.1 `make smoke URL=https://molthar.apps.diefranks.eu` gegen die Produktion: alle Szenarien bestanden
-- [ ] 6.2 Manueller Browser-Test (Desktop und Handy): Spiel mit NPC erstellen, Züge spielen, Seite neu laden und fortsetzen
+- [x] 6.1 `make smoke URL=https://molthar.apps.diefranks.eu` gegen die Produktion: alle Szenarien bestanden
+  - Ergebnis: 3/3 bestanden; RAM-Spitze des Dienstes 205 MB
+- [ ] 6.2 Manueller Browser-Test (Desktop und Handy): Spiel mit NPC erstellen, Züge spielen, Seite neu laden und fortsetzen (offen: durch den Nutzer)
