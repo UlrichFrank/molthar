@@ -70,3 +70,5 @@ backend/data-npc/
 # NPC tuning scratch
 backend/tune-snapshot/
 backend/simulation-results/
+# Generated asset manifest for the single binary (backend/scripts/gen-assets.ts)
+backend/src/embedded/assets.gen.ts

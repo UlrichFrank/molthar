@@ -59,12 +59,14 @@ interface MatchBots {
 /**
  * A bot can only move in a seat it already holds by presenting the credential
  * it got when joining — re-joining is impossible once the seat is taken. So
- * this file has to outlive the container, which means it must sit on a mounted
- * volume (see NPC_DATA_DIR in docker-compose). Lose it and every running match
- * with an NPC is stuck on that NPC's turn forever.
+ * this file has to outlive the server binary: in production NPC_DATA_DIR
+ * points to /var/lib/molthar/data-npc (see deploy/molthar/molthar.service).
+ * Lose it and every running match with an NPC is stuck on that NPC's turn
+ * forever. The default is relative to the working directory — inside the
+ * single binary __dirname is virtual.
  */
 const CREDS_FILE = path.join(
-  process.env.NPC_DATA_DIR || path.join(__dirname, '..', 'data-npc'),
+  process.env.NPC_DATA_DIR || path.join(process.cwd(), 'data-npc'),
   'credentials.json',
 );
 
