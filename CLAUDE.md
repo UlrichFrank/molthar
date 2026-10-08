@@ -92,6 +92,18 @@ cd game-web && pnpm lint                  # ESLint check
 cd game-web && pnpm format                # Prettier formatting
 ```
 
+### Single Binary (production artifact)
+```bash
+make binary-local         # dist/molthar for this machine (needs Bun ≥ 1.3)
+make binary               # dist/molthar-linux-x64 for the vServer (cross-compiled)
+make smoke URL=http://127.0.0.1:3002   # lobby + NPC games against a running server
+```
+The binary (`bun build --compile` of `backend/src/main-binary.ts`) contains server, NPC
+BotRunner, `assets/cards.json` and the Vite build of `game-web` (filtered by
+`backend/scripts/gen-assets.ts` — no `assets/raw/`, `*.af`, `Anleitung.jpg`). It runs under
+Bun; development and tests still run under Node. Config via env: `PORT`, `HOST`,
+`MATCHES_DIR`, `NPC_DATA_DIR`, `MATCH_TTL_DAYS`, `EXTRA_ORIGINS`.
+
 ### Cleanup
 ```bash
 make clean                # Remove build artifacts (dist/ folders)
@@ -149,6 +161,8 @@ When running `make dev`:
 - **Frontend:** http://localhost:5173
 - **Backend:** http://localhost:3001 (boardgame.io server)
 - Backend serves game state; frontend queries via HTTP/WebSocket
+- The frontend uses `VITE_SERVER_URL` from `game-web/.env.development` in dev; production
+  builds talk to their own origin (the single binary serves page + API on one port)
 
 ## Important Notes
 
@@ -179,7 +193,8 @@ When running `make dev`:
 After building:
 - **shared/dist/** — Compiled game logic and types (consumed by backend & frontend)
 - **backend/dist/** — Node.js server (run with `node dist/server-bgio.js`)
-- **game-web/dist/** — Static frontend bundle (deployable to CDN/Vercel)
+- **game-web/dist/** — Static frontend bundle (embedded into the single binary)
+- **dist/molthar**, **dist/molthar-linux-x64** — Single binary (`make binary-local` / `make binary`)
 
 The backend must be built before running `make backend` or `make dev`.
 

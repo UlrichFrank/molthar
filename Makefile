@@ -26,6 +26,8 @@ APPS_DOMAIN    ?= apps.diefranks.eu
 # Short git SHA — used as immutable image tag alongside 'latest'
 GIT_SHA        := $(shell git rev-parse --short HEAD)
 
+BINARY_FLAGS   := --compile
+
 # Colors for output
 BLUE := \033[0;34m
 GREEN := \033[0;32m
@@ -188,6 +190,35 @@ test-report:
 	@cd shared && npm run build >/dev/null 2>&1 || echo "Building shared package first..."
 	@cd shared && node scripts/generate-test-report.js
 	@echo "$(GREEN)✓ Report saved to shared/test-report.html$(NC)"
+
+# ── Single Binary ─────────────────────────────────────────────────────────────
+# Server, NPCs, card data and game page in one executable (bun build --compile).
+# The frontend is built without VITE_SERVER_URL, so it talks to its own origin.
+
+binary-frontend:
+	@echo "$(BLUE)Building shared, frontend and asset manifest...$(NC)"
+	cd shared && pnpm run build
+	cd game-web && env -u VITE_SERVER_URL pnpm run build
+	cd backend && bun scripts/gen-assets.ts
+
+# For the machine you are on (local tests)
+binary-local: binary-frontend
+	cd backend && bun build src/main-binary.ts $(BINARY_FLAGS) --outfile ../dist/molthar
+	@echo "$(GREEN)✓ dist/molthar$(NC)"
+
+# For the vServer (Linux x86-64), cross-compiled
+binary: binary-frontend
+	cd backend && bun build src/main-binary.ts $(BINARY_FLAGS) --target=bun-linux-x64 --outfile ../dist/molthar-linux-x64
+	@echo "$(GREEN)✓ dist/molthar-linux-x64$(NC)"
+
+# Real lobby clients and NPC games against a running server, e.g.
+#   make smoke URL=http://127.0.0.1:3002
+#   make smoke URL=https://molthar.$(APPS_DOMAIN)
+# The corruption scenario needs the server's data directory: local only (make test-e2e).
+smoke:
+	@test -n "$(URL)" || { echo "$(RED)Usage: make smoke URL=http://127.0.0.1:3002$(NC)"; exit 1; }
+	cd backend && pnpm run build >/dev/null
+	cd backend && SERVER=$(URL) ONLY=$${ONLY:-handy,npc,mixed} RUNS=$${RUNS:-1} node e2e/lobby-e2e.cjs
 
 # ── Docker ────────────────────────────────────────────────────────────────────
 
