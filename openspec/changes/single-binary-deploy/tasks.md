@@ -20,15 +20,16 @@
 - [x] 3.2 Make-Target `smoke URL=…` (startet `backend/e2e/lobby-e2e.cjs` mit `SERVER=$(URL)`, `ONLY=handy,npc,mixed`, `RUNS=1`); verifizieren: `make smoke URL=http://127.0.0.1:3002` gegen das lokale Binary endet mit „3/3 bestanden“
 - [x] 3.3 Neustart- und Übernahme-Test lokal: NPC-Partie starten, Binary während der Partie beenden und neu starten, Partie im Browser fortsetzen, NPC zieht weiter; zusätzlich eine Kopie von Server-`data` + `data-npc` (lesend per `scp` geholt) mit dem Binary laden und per `GET /games/portale-von-molthar` abrufen; Ergebnis in tasks.md notieren
   - Ergebnis 08.10.: zwei SIGTERM-Neustarts mitten in NPC-Partien (Szenarien `npc`, `mixed`) — beide Partien liefen bis zum Spielende weiter, BotRunner hat sich nach jedem Start wieder verbunden. Server-Kopie (11 Dateien, 2 beendete Partien, `credentials.json`) wird vollständig gelistet. Binary 112 MB (macOS) mit 83 eingebetteten Dateien / 40,9 MB; alle 56 vom Spiel genutzten Kartenbilder liefern 200.
-- [ ] 3.4 `CLAUDE.md` (Befehle, Ports, Laufzeit Bun im Binary) und `README.md` aktualisieren; verifizieren: alle dort genannten `make`-Targets existieren (`make -n <target>`)
+- [x] 3.4 `CLAUDE.md` (Befehle, Ports, Laufzeit Bun im Binary) und `README.md` aktualisieren; verifizieren: alle dort genannten `make`-Targets existieren (`make -n <target>`)
 
 ## 4. Server-Artefakte, Deploy und Docker-Abbau im Repo
 
 - [x] 4.1 `deploy/traefik/` an den Server angleichen (`providers.file`, Mount `./dynamic`, `dynamic/.gitkeep`); verifizieren: `diff` gegen `ssh vServer cat ~/deploy/traefik/traefik.yml` bzw. `docker-compose.yml` zeigt keine Unterschiede
-- [ ] 4.2 `deploy/molthar/molthar.service` und `deploy/molthar/traefik-molthar.yml` anlegen (siehe Design 9/10); verifizieren: `systemd-analyze verify` auf dem Server (Datei nach `/tmp`) ohne Fehler, YAML per `traefik`-Container oder YAML-Lint ohne Fehler
-- [ ] 4.3 Makefile `deploy` (Build, Gateway-IP-Prüfung, Upload `.new`, Unit + Routing übertragen, Tausch `.prev`, Neustart, Health-Check), `deploy-rollback`, `deploy-status`, `deploy-logs`, `deploy-init` auf die neuen Voraussetzungen umbauen; verifizieren: `make -n deploy` zeigt die erwarteten Befehle; real in Gruppe 5
-- [ ] 4.4 Docker-Artefakte von Molthar entfernen (`Dockerfile`, `Dockerfile.frontend`, `docker-compose.yml`, `deploy/molthar/docker-compose.yml`, `deploy/molthar/.env.example`, `docker-*`-Targets, `.dockerignore` falls vorhanden); Traefik-Stack bleibt; verifizieren: `grep -rn "docker" Makefile CLAUDE.md README.md` zeigt nur noch Traefik-bezogene Stellen
-- [ ] 4.5 `deploy/README.md` neu schreiben (Erstinstallation, Traefik-File-Provider, `acme.json`-Prüfung vor Traefik-Neustart, Deploy, Rollback, Logs, Backup von `/var/lib/molthar`); verifizieren: jeder Befehl wird in Gruppe 5 so ausgeführt
+- [x] 4.2 `deploy/molthar/molthar.service` und `deploy/molthar/traefik-molthar.yml` anlegen (siehe Design 9/10); verifizieren: `systemd-analyze verify` auf dem Server (Datei nach `/tmp`) ohne Fehler, YAML per `traefik`-Container oder YAML-Lint ohne Fehler
+  - Ergebnis: `systemd-analyze verify` meldet nur das noch fehlende `/opt/molthar/molthar`; Route per YAML-Parser gültig
+- [x] 4.3 Makefile `deploy` (Build, Gateway-IP-Prüfung, Upload `.new`, Unit + Routing übertragen, Tausch `.prev`, Neustart, Health-Check), `deploy-rollback`, `deploy-status`, `deploy-logs`, `deploy-init` auf die neuen Voraussetzungen umbauen; verifizieren: `make -n deploy` zeigt die erwarteten Befehle; real in Gruppe 5
+- [x] 4.4 Docker-Artefakte von Molthar entfernen (`Dockerfile`, `Dockerfile.frontend`, `docker-compose.yml`, `deploy/molthar/docker-compose.yml`, `deploy/molthar/.env.example`, `docker-*`-Targets, `.dockerignore`), `.github/workflows/release.yml` auf Binary-Release umstellen, `delete-packages.yml` (ghcr-Aufräumer) entfernen; Traefik-Stack bleibt; verifizieren: `grep -rn "docker" Makefile CLAUDE.md README.md` zeigt nur noch Traefik-bezogene Stellen
+- [x] 4.5 `deploy/README.md` neu schreiben (Erstinstallation, Traefik-File-Provider, `acme.json`-Prüfung vor Traefik-Neustart, Deploy, Rollback, Logs, Backup von `/var/lib/molthar`); verifizieren: jeder Befehl wird in Gruppe 5 so ausgeführt
 
 ## 5. Umstellung auf dem vServer (Schritte mit dem Nutzer abstimmen)
 

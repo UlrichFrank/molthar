@@ -7,7 +7,7 @@ Digitale Multiplayer-Umsetzung des Kartenspiels **Portale von Molthar**. Rundenb
 | Bereich | Technologie |
 |---------|-------------|
 | Frontend | React 18, TypeScript, Vite, Tailwind CSS |
-| Backend | Express.js, boardgame.io, Node.js 20+ |
+| Backend | boardgame.io (Koa), Node.js 20+ in der Entwicklung, Bun im Single Binary |
 | Multiplayer | boardgame.io (Socket.IO) |
 | Testing | Vitest, React Testing Library |
 | Paketmanager | pnpm Workspaces |
@@ -17,7 +17,7 @@ Digitale Multiplayer-Umsetzung des Kartenspiels **Portale von Molthar**. Rundenb
 ```
 molthar/
 ├── shared/        # Spiellogik, Typen, Kostenberechnung
-├── backend/       # Express + boardgame.io Server
+├── backend/       # boardgame.io-Server, NPC-BotRunner
 ├── game-web/      # React Frontend (Vite)
 ├── card-manager/  # Karten-Verwaltungswerkzeug
 └── assets/        # Kartenbilder und Ressourcen
@@ -31,6 +31,7 @@ molthar/
 
 - Node.js 20+
 - pnpm (`npm install -g pnpm`)
+- Bun ≥ 1.3 (nur für das Single Binary)
 
 ### Installation & Start
 
@@ -49,48 +50,34 @@ make help          # Alle verfügbaren Befehle anzeigen
 
 ---
 
-## Docker
+## Single Binary
 
-### Images lokal bauen
-
-```bash
-make docker-build        # Backend + Frontend Images bauen
-make docker-run          # Container starten (Backend :3001, Frontend :80)
-make docker-stop         # Container stoppen
-make docker-logs         # Logs verfolgen
-```
-
-Frontend: **http://localhost** · Backend: **http://localhost:3001**
-
-Sind die Standardports belegt, können sie überschrieben werden. Da `VITE_SERVER_URL` beim Build eingebrannt wird, müssen beide Images neu gebaut werden:
+Für den Betrieb wird alles — Spielserver, NPC-Gegner, Kartendaten und die gebaute Spielseite — mit `bun build --compile` zu **einer** ausführbaren Datei gebaut. Seite, Lobby-API und Socket.IO laufen über denselben Port.
 
 ```bash
-# Backend auf 3002, Frontend auf 8080
-BACKEND_PORT=3002 FRONTEND_PORT=8080 make docker-build
-BACKEND_PORT=3002 FRONTEND_PORT=8080 make docker-run
+make binary-local        # dist/molthar für diesen Rechner
+make binary              # dist/molthar-linux-x64 für den vServer
 ```
 
-### Images aus der GitHub Container Registry
+Lokal starten (Daten landen in `./data` und `./data-npc` des Arbeitsverzeichnisses):
 
-Fertig gebaute Images (AMD64 + ARM64) sind auf ghcr.io verfügbar:
+```bash
+PORT=3002 ./dist/molthar          # → http://localhost:3002
+make smoke URL=http://127.0.0.1:3002   # echte Lobby-/NPC-Partien dagegen spielen
+```
 
-```
-ghcr.io/ulrichfrank/molthar-backend:latest
-ghcr.io/ulrichfrank/molthar-frontend:latest
-```
+Konfiguration über Umgebungsvariablen: `PORT`, `HOST` (Bind-Adresse, Standard: alle Interfaces), `MATCHES_DIR`, `NPC_DATA_DIR`, `MATCH_TTL_DAYS`, `EXTRA_ORIGINS`.
 
 ---
 
 ## Production Deployment
 
-Für den Betrieb auf einem entfernten Server (Netcup vServer via SSH, HTTPS über Traefik + Let's Encrypt Wildcard-Cert) siehe **[`deploy/README.md`](./deploy/README.md)**.
-
-Kurzform nach abgeschlossenem Bootstrap:
+Auf dem vServer läuft das Binary als systemd-Dienst hinter Traefik (Wildcard-Zertifikat `*.apps.diefranks.eu`), siehe **[`deploy/README.md`](./deploy/README.md)**.
 
 ```bash
-make deploy                      # build + push + SSH pull + up
-make deploy-status               # laufende Container prüfen
-make deploy-rollback TAG=git-<sha>   # auf frühere Version zurück
+make deploy              # bauen, hochladen, neu starten, prüfen
+make deploy-status       # Dienststatus
+make deploy-rollback     # zurück auf das vorherige Binary
 ```
 
 ---
@@ -104,9 +91,7 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-Die GitHub Action (`release.yml`) erstellt automatisch:
-1. Ein GitHub Release mit generierten Release Notes
-2. Docker Images für `linux/amd64` und `linux/arm64` auf ghcr.io
+Die GitHub Action (`release.yml`) erstellt ein GitHub Release mit generierten Release Notes und hängt das Linux-Binary `molthar-linux-x64` an.
 
 ---
 
