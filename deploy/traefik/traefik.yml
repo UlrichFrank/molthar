@@ -23,6 +23,10 @@ providers:
   docker:
     exposedByDefault: false
     network: web
+  # Apps outside Docker (e.g. Ausgebremst as systemd service): one file per app
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true
 
 certificatesResolvers:
   letsencrypt:

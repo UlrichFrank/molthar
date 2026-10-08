@@ -1,214 +1,124 @@
 # Deployment: vServer mit Traefik
 
-Dieses Verzeichnis enthält die Infrastruktur, um die App als Container auf einem entfernten Server (Netcup vServer, SSH-Alias `vServer`) zu betreiben, mit Traefik als HTTPS-Reverse-Proxy und Wildcard-Zertifikat via Let's Encrypt.
+Molthar läuft auf dem vServer (Netcup, SSH-Alias `vServer`, Ubuntu 24.04 x86-64) als **ein einzelnes Binary** unter systemd. Davor steht der zentrale Traefik-Stack (Docker) mit dem Wildcard-Zertifikat `*.apps.diefranks.eu` (Let's Encrypt, DNS-01 über Netcup). Ausgebremst läuft nach demselben Muster daneben.
 
 ```
 deploy/
-├── traefik/            # Zentraler Reverse-Proxy (läuft einmal, für alle Apps)
-│   ├── docker-compose.yml
-│   ├── traefik.yml
+├── traefik/                  # Zentraler Reverse-Proxy (Docker, einmal für alle Apps)
+│   ├── docker-compose.yml    # mountet ./dynamic für den File-Provider
+│   ├── traefik.yml           # Docker-Provider + File-Provider (/etc/traefik/dynamic)
+│   ├── dynamic/              # auf dem Server: eine Routen-Datei pro App (molthar.yml, ausgebremst.yml)
 │   └── .env.example
-└── molthar/            # Dieser App-Stack (Backend + Frontend)
-    ├── docker-compose.yml
-    └── .env.example
+└── molthar/
+    ├── molthar.service       # systemd-Unit → /etc/systemd/system/molthar.service
+    └── traefik-molthar.yml   # Route → ~/deploy/traefik/dynamic/molthar.yml
 ```
 
-## Voraussetzungen
+| Was | Wo auf dem Server |
+|-----|-------------------|
+| Binary (+ `.prev` für Rollback) | `/opt/molthar/molthar` |
+| Spielstände | `/var/lib/molthar/data` |
+| NPC-Sitzplatz-Zugangsdaten | `/var/lib/molthar/data-npc` |
+| Bind-Adresse | `172.18.0.1:3002` (Gateway des Docker-Netzes `web`; Port 3001 gehört Ausgebremst) |
+| Logs | journald (`make deploy-logs`) |
+| Domains | `molthar.apps.diefranks.eu`, übergangsweise `molthar-api.apps.diefranks.eu` |
 
-- Netcup vServer erreichbar über SSH-Alias `vServer`
-- Eine Domain, deren DNS-Zone du in Netcup CCP verwaltest
-- GitHub Personal Access Token (PAT) mit `read:packages`-Scope für ghcr.io
+Die Bind-Adresse ist nur für Traefik (im Netz `web`) erreichbar, nicht aus dem Internet.
 
-## Erst-Bootstrap (einmalig, auf dem vServer)
-
-### 1. DNS in Netcup CCP anlegen
-
-- A-Record `apps.<domain>` → `<vServer-IP>`
-- A-Record `*.apps.<domain>` → `<vServer-IP>` (Wildcard, für weitere Apps)
-
-Prüfen: `dig apps.<domain> +short` und `dig irgendwas.apps.<domain> +short` müssen die vServer-IP zurückgeben.
-
-### 2. Netcup API aktivieren
-
-Netcup CCP → Stammdaten → Webservice/API → API-Zugang aktivieren. Notieren: Customer-Nr., API-Key, API-Passwort. Wird für die DNS-01 ACME-Challenge gebraucht.
-
-### 3. Docker auf vServer installieren
+## Alltag
 
 ```bash
-ssh vServer
-docker --version   # falls installiert, weiter mit Schritt 4
+make deploy              # Binary bauen (linux-x64) → hochladen → Neustart → Health-Check
+make deploy-rollback     # vorheriges Binary (.prev) wieder aktivieren
+make deploy-status       # systemctl status, Prüfsummen, Traefik-Container
+make deploy-logs         # journalctl -fu molthar
+make deploy-restart      # Dienst neu starten
+make smoke URL=https://molthar.apps.diefranks.eu   # echte Lobby-/NPC-Partien gegen Produktion
 ```
 
-Falls nicht installiert, offizielles Skript:
+`make deploy` prüft zuerst, ob das Gateway des Docker-Netzes `web` noch `172.18.0.1` ist, überträgt Binary, Unit und Route, behält das laufende Binary als `molthar.prev` und startet den Dienst neu. Spielstände und NPC-Zugangsdaten bleiben unberührt. Die Route lädt Traefik per `watch` ohne Neustart.
+
+Voraussetzung lokal: Bun ≥ 1.3 und pnpm (`make binary` cross-kompiliert vom Mac).
+
+## Erstinstallation
+
+### 1. DNS und Netcup-API (einmalig)
+
+- A-Records `apps.<domain>` und `*.apps.<domain>` → vServer-IP
+- Netcup CCP → Stammdaten → Webservice/API aktivieren (Customer-Nr., API-Key, API-Passwort für die DNS-01-Challenge)
+
+### 2. Docker und Traefik (nur noch für Traefik)
 
 ```bash
-curl -fsSL https://get.docker.com | sh
-```
-
-Compose-Plugin sollte inklusive sein: `docker compose version`.
-
-### 4. Verzeichnisse, Netzwerk, GHCR-Login
-
-```bash
-ssh vServer
-mkdir -p ~/deploy/traefik ~/deploy/molthar
-docker network create web
-docker login ghcr.io   # username: <github-user>, password: <PAT mit read:packages>
-```
-
-### 5. Traefik-Stack übertragen und starten
-
-Vom lokalen Repo aus:
-
-```bash
+ssh vServer 'docker --version || curl -fsSL https://get.docker.com | sh'
+ssh vServer 'docker network create web; mkdir -p ~/deploy/traefik/dynamic'
 scp -r deploy/traefik vServer:~/deploy/
+ssh vServer 'cd ~/deploy/traefik && cp .env.example .env && vi .env'   # Netcup-Zugangsdaten
+ssh vServer 'cd ~/deploy/traefik && touch acme.json && chmod 600 acme.json && docker compose up -d'
 ```
 
-Auf dem vServer:
+**Achtung bei einem bereits laufenden Traefik:** `deploy/traefik/` nur übertragen, wenn es mit dem Server übereinstimmt (`diff` vorher) — sonst gehen Routen anderer Apps verloren. Vor **jedem** Traefik-Neustart `acme.json` prüfen (siehe Backup).
+
+### 3. Molthar-Dienst
 
 ```bash
-ssh vServer
-cd ~/deploy/traefik
-cp .env.example .env
-vi .env            # ACME_EMAIL + Netcup-Credentials eintragen
-touch acme.json && chmod 600 acme.json
-docker compose up -d
-docker compose logs -f    # kontrollieren: kein Fehler nach ~2 Min
+ssh vServer 'useradd --system --no-create-home --shell /usr/sbin/nologin molthar; mkdir -p /opt/molthar'
+make deploy-init         # alle Häkchen grün?
+make deploy              # installiert Unit + Route, startet den Dienst
 ```
 
-### 6. App-Stack übertragen
+`StateDirectory=molthar` legt `/var/lib/molthar` mit Eigentümer `molthar` an.
 
-Vom lokalen Repo aus:
+## Umstellung von Docker (einmalig, 2026-10)
+
+Bis Oktober 2026 lief Molthar als Container `molthar-backend-1`/`molthar-frontend-1` aus `~/deploy/molthar`. Docker-Labels und File-Route für dieselbe Domain dürfen **nicht** gleichzeitig aktiv sein, daher diese Reihenfolge:
 
 ```bash
-scp -r deploy/molthar vServer:~/deploy/
+# 1. Binary + Unit hochladen, aber noch nicht starten
+make binary
+scp dist/molthar-linux-x64 vServer:/opt/molthar/molthar && ssh vServer 'chmod 755 /opt/molthar/molthar'
+scp deploy/molthar/molthar.service vServer:/etc/systemd/system/ && ssh vServer 'systemctl daemon-reload'
+
+# 2. Container stoppen, Daten übernehmen (data UND data-npc!), Dienst starten
+ssh vServer 'cd ~/deploy/molthar && docker compose down'
+ssh vServer 'mkdir -p /var/lib/molthar && cp -a ~/deploy/molthar/data ~/deploy/molthar/data-npc /var/lib/molthar/ && chown -R molthar:molthar /var/lib/molthar'
+ssh vServer 'systemctl enable --now molthar && curl -s http://172.18.0.1:3002/games/portale-von-molthar'
+
+# 3. Route aktivieren (kein Traefik-Neustart nötig)
+scp deploy/molthar/traefik-molthar.yml vServer:~/deploy/traefik/dynamic/molthar.yml
 ```
 
-Auf dem vServer:
-
-```bash
-ssh vServer
-cd ~/deploy/molthar
-cp .env.example .env
-vi .env            # APPS_DOMAIN=apps.deinedomain.de setzen
-```
-
-### 7. Bootstrap prüfen
-
-Vom lokalen Repo aus:
-
-```bash
-make deploy-init
-```
-
-Sollte grüne Häkchen für Docker, Compose, Netzwerk, Ordner und beide `.env`-Dateien liefern.
-
-### 8. Ersten Deploy auslösen
-
-```bash
-make deploy
-```
-
-Dann `https://molthar.apps.deinedomain.de` im Browser öffnen. Beim allerersten Aufruf kann die Cert-Ausstellung bis zu 2 Minuten dauern (Netcup DNS-Propagation).
-
-## Deploy-Workflow (Alltag)
-
-`make deploy` überträgt `deploy/molthar/docker-compose.yml` bei jedem Lauf mit auf den vServer — Änderungen an Volumes, Env-Variablen oder Traefik-Labels landen dadurch automatisch dort. Die `.env` auf dem Server wird nie angefasst.
-
-```bash
-make deploy              # compose sync + build (linux/amd64) + push + SSH pull + up
-make deploy-status       # welche Container laufen mit welchem Image?
-make deploy-logs         # Live-Logs
-make deploy-restart      # Container neustarten (ohne neues Image)
-```
-
-Nach jedem Pull + Up räumt `make deploy` auf dem vServer automatisch mit `docker system prune -af` auf: alte (nicht mehr referenzierte) Images, gestoppte Container, ungenutzte Netzwerke und der komplette Build-Cache werden entfernt. Läuft, damit der vServer-Speicherplatz bei jedem Deploy nicht weiter zuwächst — betrifft nur ungenutzte Objekte, laufende Container (`backend`, `frontend`, `traefik`) und das Bind-Mount `~/deploy/molthar/data` bleiben unangetastet.
-
-## Rollback
-
-Jeder `make deploy` pusht zwei Tags: `latest` und `git-<current-sha>`. Rollback:
-
-```bash
-make deploy-rollback TAG=git-<older-sha>
-```
-
-Zurück auf latest:
-
-```bash
-make deploy-rollback TAG=latest
-```
-
-Um zu sehen welche Tags verfügbar sind: https://github.com/UlrichFrank/molthar/pkgs/container/molthar-backend
+Rollback der Umstellung: `systemctl disable --now molthar`, `~/deploy/traefik/dynamic/molthar.yml` löschen, `cd ~/deploy/molthar && docker compose up -d` (die alten Daten liegen dort unverändert).
 
 ## Betriebs-Playbook
 
-**App reagiert nicht:**
+**Seite nicht erreichbar:**
 ```bash
-make deploy-status       # Container-Status (Traefik + molthar)
-make deploy-logs         # Fehler in den Logs?
-make deploy-restart      # Neustart versuchen
+make deploy-status       # läuft molthar? läuft Traefik?
+make deploy-logs
+ssh vServer 'curl -s -o /dev/null -w "%{http_code}\n" http://172.18.0.1:3002/games'   # direkt, ohne Traefik
 ```
+Antwortet der Dienst direkt, aber nicht über HTTPS, liegt es an Traefik: `ssh vServer 'cd ~/deploy/traefik && docker compose ps && docker compose logs --tail=100'`.
 
-`deploy-status` und `deploy-init` prüfen auch, ob der Traefik-Container läuft. Wichtig: `make deploy`/`deploy-remote` starten **nur** den `molthar`-Stack — Traefik läuft als eigener Stack unter `~/deploy/traefik` und wird nie automatisch mitgestartet. Falls der Traefik-Container manuell entfernt wurde (z.B. durch `docker rm`/`docker system prune` direkt auf dem vServer), bleibt er weg, bis er explizit neu gestartet wird:
-```bash
-ssh vServer 'cd ~/deploy/traefik && docker compose up -d'
-```
-Backend/Frontend können dabei problemlos weiterlaufen (`deploy-status` zeigt sie als "Up"), obwohl von außen kein Traffic ankommt — sie exponieren keine Host-Ports und hängen komplett vom Traefik-Routing ab.
+**Dienst startet nach einem Server-Neustart nicht:** Die Bind-Adresse existiert erst, wenn Docker das Netz `web` angelegt hat. Die Unit startet nach `docker.service` und versucht es mit `Restart=always` weiter — `journalctl -u molthar` zeigt dann kurz `EADDRNOTAVAIL`, danach läuft der Dienst.
 
-**Traefik reagiert nicht (kein HTTPS, kein Redirect):**
-```bash
-ssh vServer 'cd ~/deploy/traefik && docker compose ps'
-ssh vServer 'cd ~/deploy/traefik && docker compose logs --tail=100'
-ssh vServer 'cd ~/deploy/traefik && docker compose restart'
-```
+**"Offene Spiele" bleibt leer / NPCs treten nicht bei / Warteraum hängt:** Fast immer antwortet `GET /games/portale-von-molthar` mit 500. Der Endpoint versorgt Spieleliste und NPC-BotRunner. Der MatchStore schreibt atomar und räumt beschädigte Dateien beim Start selbst weg — `make deploy-restart` genügt meist. NPC-Partien hängen dauerhaft, wenn `/var/lib/molthar/data-npc/credentials.json` fehlt.
 
-**Cert-Erneuerung fehlgeschlagen (nach 90 Tagen):**
-- Netcup-API-Credentials prüfen (könnten rotiert worden sein)
-- `~/deploy/traefik/acme.json` inspizieren: `sudo cat ~/deploy/traefik/acme.json | jq '.letsencrypt.Certificates[].domain'`
-- Traefik-Logs zeigen ACME-Fehler mit Detail
+**"CORS error" im Browser:** `EXTRA_ORIGINS` in `molthar.service` muss exakt `https://molthar.apps.diefranks.eu` enthalten (Socket.IO prüft den Origin auch bei gleicher Domain).
+
+**Speicher:** `MemoryMax=400M` in der Unit; aktueller Verbrauch steht in `make deploy-status`.
+
+**ACME-Challenge / Zertifikat:**
+- Netcup-Zugangsdaten in `~/deploy/traefik/.env` prüfen; `delayBeforeCheck: 120` in `traefik.yml`
+- Let's Encrypt erlaubt 5 Fehlversuche pro Stunde; zum Debuggen Staging-CA verwenden
 
 ## Backup
 
-Sichere regelmäßig:
-- `~/deploy/traefik/acme.json` — enthält Let's Encrypt Certs (Rate-Limit beim Neuausstellen!)
-- `~/deploy/molthar/data/` — alle Partien (boardgame.io-Persistenz)
-- `~/deploy/molthar/data-npc/` — NPC-Sitzplatz-Credentials; ohne sie hängen laufende Partien mit NPC nach einem Deploy
-- `~/deploy/{traefik,molthar}/.env` — Zugangsdaten
+Regelmäßig sichern:
+- `/var/lib/molthar/data/` und `/var/lib/molthar/data-npc/` — Partien und NPC-Zugangsdaten
+- `~/deploy/traefik/acme.json` — Zertifikate. **Vor jedem Traefik-Neustart** prüfen, dass die Datei gültiges JSON ist (`ssh vServer 'python3 -m json.tool ~/deploy/traefik/acme.json >/dev/null && echo ok'`). Sie war von 23.09. bis 08.10.2026 unbemerkt abgeschnitten; Traefik hielt das Zertifikat nur im Speicher, und der nächste Neustart ließ alle `*.apps`-Seiten minutenlang ohne Zertifikat.
+- `~/deploy/traefik/.env` — Netcup-Zugangsdaten
 
-## Neue App unter `*.apps.<domain>` hinzufügen
+## Weitere App unter `*.apps.<domain>`
 
-1. Neuen Compose-Stack anlegen unter `deploy/<appname>/docker-compose.yml`
-2. Am externen Netzwerk `web` teilnehmen
-3. Traefik-Labels analog zu `deploy/molthar/docker-compose.yml` setzen (Hostname `<appname>.${APPS_DOMAIN}`)
-4. Auf vServer scp'en, `docker compose up -d`
-
-Kein Anfassen von `deploy/traefik/` nötig — Wildcard-Cert deckt neue Subdomain automatisch ab.
-
-## Troubleshooting
-
-**"Offene Spiele" bleibt leer / NPCs treten nicht bei / Warteraum hängt:**
-
-Fast immer dieselbe Ursache: `GET /games/portale-von-molthar` antwortet mit 500. Der Endpoint versorgt sowohl die Spieleliste als auch den NPC-BotRunner — fällt er aus, sieht kein Gerät die Partien des anderen und kein NPC nimmt seinen Platz ein.
-
-```bash
-curl -s -o /dev/null -w '%{http_code}\n' https://molthar-api.<domain>/games/portale-von-molthar
-make deploy-logs      # Backend-Logs: "[MatchStore]"- oder "[BotRunner]"-Zeilen?
-```
-
-Auslöser war früher eine beschädigte (meist 0 Byte große) Datei in `~/deploy/molthar/data/`, wenn der Container mitten im Schreiben gestoppt wurde. Das Backend schreibt inzwischen atomar und räumt beim Start selbst auf — ein Neustart genügt:
-
-```bash
-make deploy-restart
-```
-
-**"CORS error" im Browser:**
-- `EXTRA_ORIGINS` im Backend muss exakt die Frontend-URL enthalten (inkl. `https://`, kein Trailing-Slash)
-- Im `deploy/molthar/docker-compose.yml` steht `EXTRA_ORIGINS=https://molthar.${APPS_DOMAIN}` — prüfen dass `APPS_DOMAIN` in `.env` gesetzt ist
-
-**"exec format error" beim Container-Start:**
-- Image wurde ohne `--platform linux/amd64` gebaut. `make deploy` macht das automatisch.
-
-**ACME-Challenge schlägt fehl:**
-- Netcup DNS ist langsam; `delayBeforeCheck: 120` in `traefik.yml` sollte reichen
-- Netcup API-Credentials prüfen: Customer-Nr., Key, Passwort exakt aus CCP
-- Rate-Limit: Let's Encrypt erlaubt 5 fehlgeschlagene Requests pro Stunde. Bei viel Debugging Staging nutzen: `--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory`
+Als Binary/Dienst auf dem Host: auf einer freien Adresse/Port von `172.18.0.1` lauschen und eine Routen-Datei nach `~/deploy/traefik/dynamic/<app>.yml` legen (Vorlage: `molthar/traefik-molthar.yml`). Als Container: Netz `web` und Traefik-Labels. Das Wildcard-Zertifikat deckt neue Subdomains ab; `deploy/traefik/` muss nicht geändert werden.

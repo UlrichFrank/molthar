@@ -6,11 +6,10 @@ import { PortaleVonMolthar } from '@portale-von-molthar/shared';
 import type { NpcSlotConfig } from '@portale-von-molthar/shared';
 import { GameBoardSwitch } from '../components/GameBoardSwitch';
 
-// If VITE_SERVER_URL is set at build time, use it.
-// Otherwise derive from the current hostname so the same image works on any host
-// (dev: localhost:3001, Synology: 192.168.x.x:3001, etc.)
-export const SERVER_URL = import.meta.env.VITE_SERVER_URL
-  || `${window.location.protocol}//${window.location.hostname}:3001`;
+// The single binary serves page, lobby API and Socket.IO from one origin.
+// VITE_SERVER_URL overrides that for development, where Vite (5173) and the
+// backend (3001) run separately — see game-web/.env.development.
+export const SERVER_URL = import.meta.env.VITE_SERVER_URL || window.location.origin;
 
 export const lobbyClient = new LobbyClient({ server: SERVER_URL });
 

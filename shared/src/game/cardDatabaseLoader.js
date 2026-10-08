@@ -6,7 +6,12 @@
  * In Node.js (backend), we load them here at module import time
  */
 
-if (typeof window === 'undefined' && typeof require !== 'undefined') {
+if (typeof window === 'undefined' && typeof require !== 'undefined' && globalThis.__MOLTHAR_RAW_CARDS__) {
+  // Single binary: cards.json is embedded by backend/src/embedded/cards.ts
+  const { __setRawCards } = require('./cardDatabase');
+  __setRawCards(globalThis.__MOLTHAR_RAW_CARDS__);
+  console.log(`✓ Loaded ${globalThis.__MOLTHAR_RAW_CARDS__.length} character cards (embedded)`);
+} else if (typeof window === 'undefined' && typeof require !== 'undefined') {
   try {
     const fs = require('fs');
     const path = require('path');
