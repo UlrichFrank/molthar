@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react';
 import { PortaleVonMolthar } from '@portale-von-molthar/shared';
 import type { NpcSlotConfig } from '@portale-von-molthar/shared';
 import { lobbyClient, PortaleClient, freeHumanSlots } from './useLobbyClient';
+import { SpielothekLink } from './SpielothekLink';
 import type { Match } from './useLobbyClient';
 import { WaitingRoom } from './WaitingRoom';
 import { MatchList } from './MatchList';
@@ -255,6 +256,9 @@ export function LobbyScreen() {
 
   return (
     <div className="lobby-container">
+      <div style={{ marginBottom: '0.75rem' }}>
+        <SpielothekLink game="molthar" />
+      </div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
         <h1 style={{ margin: 0 }}>{t('app.title')}</h1>
         <div style={{ display: 'flex', gap: '0.25rem' }}>
