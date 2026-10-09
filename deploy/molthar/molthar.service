@@ -34,7 +34,7 @@ Environment=EXTRA_ORIGINS=https://molthar.apps.diefranks.eu
 Restart=always
 RestartSec=2
 TimeoutStopSec=10
-MemoryMax=400M
+MemoryMax=250M
 
 # Hardening (Bun's JIT needs writable+executable memory: no MemoryDenyWriteExecute)
 NoNewPrivileges=true
