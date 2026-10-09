@@ -19,7 +19,7 @@ import { assets } from './embedded/assets';
 
 const PORT = parseInt(process.env.PORT || '3001', 10);
 // Bind address; unset = all interfaces (development). In production the
-// service listens on the Docker gateway only, where Traefik reaches it.
+// service listens on 127.0.0.1 only, where Traefik reaches it.
 const HOST = process.env.HOST || undefined;
 const MATCH_TTL_DAYS = parseInt(process.env.MATCH_TTL_DAYS || '1', 10);
 const MATCHES_DIR = process.env.MATCHES_DIR || './data';
