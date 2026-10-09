@@ -4,15 +4,15 @@
 
 # ── vServer Deployment ────────────────────────────────────────────────────────
 # SSH alias (see ~/.ssh/config). Molthar runs as systemd service "molthar"
-# (single binary) behind the Traefik Docker stack in TRAEFIK_DIR.
+# (single binary) behind Traefik (systemd, config in TRAEFIK_DIR).
 DEPLOY_HOST    ?= vServer
 DEPLOY_DIR     ?= /opt/molthar
-TRAEFIK_DIR    ?= ~/deploy/traefik
+TRAEFIK_DIR    ?= /etc/traefik
 # Base domain for app subdomains
 APPS_DOMAIN    ?= apps.diefranks.eu
 APP_URL        ?= https://molthar.$(APPS_DOMAIN)
-# Gateway of the Docker network "web": the service binds here (see molthar.service)
-GATEWAY_IP     ?= 172.18.0.1
+# Loopback: only Traefik on the same host reaches the service (see molthar.service)
+BIND_IP        ?= 127.0.0.1
 SERVICE_PORT   ?= 3002
 # Short git SHA — shown after a deploy
 GIT_SHA        := $(shell git rev-parse --short HEAD)
@@ -216,9 +216,8 @@ deploy: binary deploy-upload
 	@echo "$(GREEN)✓ Deploy complete ($(GIT_SHA))$(NC)"
 
 deploy-upload:
-	@echo "$(BLUE)Checking gateway of Docker network web on $(DEPLOY_HOST)...$(NC)"
-	@ssh $(DEPLOY_HOST) 'test "$$(docker network inspect web --format "{{range .IPAM.Config}}{{.Gateway}}{{end}}")" = "$(GATEWAY_IP)"' \
-		|| { echo "$(RED)Gateway of network web is not $(GATEWAY_IP) — adjust GATEWAY_IP, the unit and the route file$(NC)"; exit 1; }
+	@ssh $(DEPLOY_HOST) 'systemctl is-active --quiet traefik' \
+		|| { echo "$(RED)Traefik is not running on $(DEPLOY_HOST) — make server-setup in the spielothek repo$(NC)"; exit 1; }
 	@echo "$(BLUE)Uploading binary, unit and route...$(NC)"
 	scp -q dist/molthar-linux-x64 $(DEPLOY_HOST):$(DEPLOY_DIR)/molthar.new
 	scp -q deploy/molthar/molthar.service $(DEPLOY_HOST):/etc/systemd/system/molthar.service
@@ -230,7 +229,7 @@ deploy-upload:
 	@$(MAKE) --no-print-directory deploy-check
 
 deploy-check:
-	@ssh $(DEPLOY_HOST) 'for i in $$(seq 1 30); do curl -sf -o /dev/null http://$(GATEWAY_IP):$(SERVICE_PORT)/games && exit 0; sleep 0.5; done; exit 1' \
+	@ssh $(DEPLOY_HOST) 'for i in $$(seq 1 30); do curl -sf -o /dev/null http://$(BIND_IP):$(SERVICE_PORT)/games && exit 0; sleep 0.5; done; exit 1' \
 		|| { echo "$(RED)Service does not answer — see make deploy-logs$(NC)"; exit 1; }
 	@curl -sf -o /dev/null $(APP_URL)/ || { echo "$(RED)$(APP_URL) does not answer via Traefik$(NC)"; exit 1; }
 	@echo "$(GREEN)✓ Service answers (local and via Traefik)$(NC)"
@@ -245,7 +244,7 @@ deploy-logs:
 	ssh -t $(DEPLOY_HOST) 'journalctl -u molthar -f -n 100'
 
 deploy-status:
-	ssh $(DEPLOY_HOST) 'systemctl status molthar --no-pager | head -12; sha256sum $(DEPLOY_DIR)/molthar*; cd $(TRAEFIK_DIR) && docker compose ps'
+	ssh $(DEPLOY_HOST) 'systemctl status molthar --no-pager | head -12; sha256sum $(DEPLOY_DIR)/molthar*; systemctl is-active traefik'
 
 deploy-restart:
 	ssh $(DEPLOY_HOST) 'systemctl restart molthar'
@@ -253,11 +252,8 @@ deploy-restart:
 
 deploy-init:
 	@echo "$(BLUE)Checking vServer prerequisites on $(DEPLOY_HOST)...$(NC)"
-	@ssh -o ConnectTimeout=5 $(DEPLOY_HOST) 'docker --version' >/dev/null 2>&1 && echo "$(GREEN)✓ Docker installed (Traefik)$(NC)" || { echo "$(RED)✗ Docker missing — see deploy/README.md$(NC)"; exit 1; }
-	@ssh $(DEPLOY_HOST) 'docker network ls --format "{{.Name}}" | grep -qx web' && echo "$(GREEN)✓ Network web exists$(NC)" || echo "$(RED)✗ Run: ssh $(DEPLOY_HOST) 'docker network create web'$(NC)"
-	@ssh $(DEPLOY_HOST) 'test -f $(TRAEFIK_DIR)/.env' && echo "$(GREEN)✓ traefik/.env present$(NC)" || echo "$(RED)✗ create $(TRAEFIK_DIR)/.env from .env.example$(NC)"
-	@ssh $(DEPLOY_HOST) 'grep -q "directory: /etc/traefik/dynamic" $(TRAEFIK_DIR)/traefik.yml' && echo "$(GREEN)✓ Traefik file provider configured$(NC)" || echo "$(RED)✗ Traefik file provider missing — see deploy/README.md$(NC)"
-	@ssh $(DEPLOY_HOST) 'cd $(TRAEFIK_DIR) && [ -n "$$(docker compose ps -q --status running)" ]' && echo "$(GREEN)✓ Traefik running$(NC)" || echo "$(RED)✗ Traefik not running$(NC)"
+	@ssh -o ConnectTimeout=5 $(DEPLOY_HOST) 'systemctl is-active --quiet traefik' && echo "$(GREEN)✓ Traefik running$(NC)" || { echo "$(RED)✗ Traefik not running — make server-setup in the spielothek repo$(NC)"; exit 1; }
+	@ssh $(DEPLOY_HOST) 'test -d $(TRAEFIK_DIR)/dynamic' && echo "$(GREEN)✓ $(TRAEFIK_DIR)/dynamic exists$(NC)" || echo "$(RED)✗ $(TRAEFIK_DIR)/dynamic missing — make server-setup in the spielothek repo$(NC)"
 	@ssh $(DEPLOY_HOST) 'id molthar' >/dev/null 2>&1 && echo "$(GREEN)✓ System user molthar$(NC)" || echo "$(RED)✗ useradd --system --no-create-home --shell /usr/sbin/nologin molthar$(NC)"
 	@ssh $(DEPLOY_HOST) 'test -d $(DEPLOY_DIR)' && echo "$(GREEN)✓ $(DEPLOY_DIR) exists$(NC)" || echo "$(RED)✗ mkdir -p $(DEPLOY_DIR)$(NC)"
 	@echo "$(BLUE)See deploy/README.md for full setup steps.$(NC)"
