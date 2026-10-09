@@ -72,3 +72,6 @@ backend/tune-snapshot/
 backend/simulation-results/
 # Generated asset manifest for the single binary (backend/scripts/gen-assets.ts)
 backend/src/embedded/assets.gen.ts
+
+# PWA icons (would match "Icon?" above on case-insensitive file systems)
+!game-web/public/icons/

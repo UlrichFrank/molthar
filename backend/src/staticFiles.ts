@@ -37,6 +37,7 @@ const CONTENT_TYPES: Record<string, string> = {
   '.webp': 'image/webp',
   '.ico': 'image/x-icon',
   '.woff2': 'font/woff2',
+  '.webmanifest': 'application/manifest+json; charset=utf-8',
 };
 
 /** Vite's hashed bundles (`/assets/index-AbC123xy.js`) never change under the same name. */
