@@ -9,6 +9,7 @@ import { WaitingRoom } from './WaitingRoom';
 import { MatchList } from './MatchList';
 import { CreateMatch } from './CreateMatch';
 import { saveSession, loadSession, clearSession } from './session';
+import { loadSpielname, saveSpielname } from './spielname';
 import { useTranslation } from '../i18n/useTranslation';
 import type { Locale } from '../i18n/translations';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -22,7 +23,7 @@ export function LobbyScreen() {
   const { t, language, setLanguage } = useTranslation();
   const isMobile = useIsMobile();
   const [view, setView] = useState<LobbyView>('lobby');
-  const [playerName, setPlayerName] = useState('');
+  const [playerName, setPlayerName] = useState(loadSpielname);
   const [matchID, setMatchID] = useState('');
   const [playerID, setPlayerID] = useState<string>('0');
   const [credentials, setCredentials] = useState('');
@@ -106,6 +107,7 @@ export function LobbyScreen() {
       setTotalPlayers(expectedTotal);
       // Task 4.2: Save session after successful join
       saveSession({ matchID: id, playerID: playerId, credentials: playerCredentials, playerName });
+      saveSpielname(playerName);
       setView('waiting');
     } catch {
       setError(t('lobby.errorJoinFailed'));
