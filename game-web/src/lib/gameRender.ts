@@ -10,7 +10,6 @@ import { drawTable, placeOnTable, seededRandom } from './tableStyle';
 import type { CanvasRegion } from './canvasRegions';
 import {
   BASE_W,
-  BASE_H,
   ZONE_TOP_H,
   MARGIN_H,
   ZONE_CENTER_H,

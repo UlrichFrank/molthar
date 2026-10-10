@@ -642,10 +642,10 @@ function CanvasGameBoardContent(props: GameBoardProps) {
           const pctY = (y: number) => `${(y / BASE_H) * 100}%`;
           const zoneStyles: Array<React.CSSProperties> = [
             { position: 'absolute', top: pctY(ZONE_TOP_H + 8), left: 6, zIndex: 100 },
-            { position: 'absolute', top: 8, left: pctX(MARGIN_H + 8), zIndex: 100 },
-            { position: 'absolute', top: 8, left: pctX(MARGIN_H + halfCenter + 8), zIndex: 100 },
+            { position: 'absolute', top: 8, left: pctX(MARGIN_H + halfCenter / 2), transform: 'translateX(-50%)', zIndex: 100 },
+            { position: 'absolute', top: 8, left: pctX(MARGIN_H + halfCenter * 1.5), transform: 'translateX(-50%)', zIndex: 100 },
             { position: 'absolute', top: pctY(ZONE_TOP_H + ZONE_CENTER_H - 70), right: 6, zIndex: 100 },
-            { position: 'absolute', top: 8, left: pctX(MARGIN_H + 8), zIndex: 100 },
+            { position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', zIndex: 100 },
           ];
           return opponentIds.map((playerId, zoneIdx) => {
             if (!playerId) return null;
