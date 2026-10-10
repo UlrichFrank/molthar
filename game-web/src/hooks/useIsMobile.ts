@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-const MOBILE_QUERY = '(max-width: 767px)';
+const MOBILE_QUERY = '(max-width: 767px), (orientation: portrait) and (max-width: 1100px), (orientation: landscape) and (max-height: 520px)';
 
 function supportsMatchMedia(): boolean {
   return typeof window !== 'undefined' && typeof window.matchMedia === 'function';

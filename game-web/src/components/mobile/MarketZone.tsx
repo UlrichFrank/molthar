@@ -16,15 +16,13 @@ interface MarketZoneProps {
  * "Markt · …" label, so a third title would only cost vertical space in the
  * scroll area without adding information.
  */
-export function MarketZone({ G, core }: MarketZoneProps) {
+export function PearlMarket({ G, core }: MarketZoneProps) {
   const { t } = useTranslation();
-  const characterSlots = G.characterSlots || [];
   const pearlSlots = G.pearlSlots || [];
 
   return (
-    <div className="mobile-zone mobile-market-zone">
+    <div className="mobile-zone" aria-label={t('mobile.marketPearls')}>
       <div>
-        <div className="mobile-section-title">{t('mobile.marketPearls')}</div>
         <div className="mobile-market-row mobile-market-row--pearls">
           {[0, 1, 2, 3].map(i => {
             const card = pearlSlots[i];
@@ -60,9 +58,17 @@ export function MarketZone({ G, core }: MarketZoneProps) {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
 
+export function CharacterMarket({ G, core }: MarketZoneProps) {
+  const { t } = useTranslation();
+  const characterSlots = G.characterSlots || [];
+
+  return (
+    <div className="mobile-char-market" aria-label={t('mobile.marketCharacters')}>
       <div>
-        <div className="mobile-section-title">{t('mobile.marketCharacters')}</div>
         <div className="mobile-market-row mobile-market-row--characters">
           {[0, 1].map(i => {
             const card = characterSlots[i];
