@@ -10,7 +10,7 @@ export interface GameBoardProps {
   events?: Record<string, (...args: unknown[]) => void>;
   playerID: string | null;
   isActive: boolean;
-  matchData?: Array<{ id: number; name?: string }>;
+  matchData?: Array<{ id: number; name?: string; isConnected?: boolean }>;
 }
 
 export interface GameOverState {

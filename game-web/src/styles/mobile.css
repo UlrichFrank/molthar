@@ -15,10 +15,12 @@
   --char-w: calc(var(--cw) * 1.7);
   --deck-w: var(--cw);
   --cw-w: calc((100vw - 2 * var(--pad) - 6 * var(--gap) - 8px) / 5.2);
-  --cw-h: calc((100dvh - 232px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) / 7.93);
+  --cw-h: calc((100dvh - 240px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) / 9.35);
   --cw: min(var(--cw-w), var(--cw-h), 150px);
   /* Height the fixed rows do not need (tall phones, width-limited --cw): handed to the opponents' cards. */
-  --spare: max(0px, calc(100dvh - 232px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 7.93 * var(--cw)));
+  --spare: max(0px, calc(100dvh - 240px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 9.35 * var(--cw)));
+  /* own portal slots grow into spare height, up to the market character size */
+  --portal-w: min(calc(var(--cw) * 1.7), calc(var(--cw) + var(--spare) * 0.3 / var(--card-ratio)));
   position: fixed;
   inset: 0;
   height: 100dvh;
@@ -170,7 +172,7 @@
 }
 
 /* Wide tiles (tablets): portal and activated fan share one row. */
-@container (min-width: 170px) {
+@container (min-width: 260px) {
   .mobile-opp-cards { flex-direction: row; align-items: flex-start; gap: 8px; }
   .mobile-opp-cards .mobile-opp-activated { flex: 1 1 0; }
 }
@@ -233,12 +235,13 @@
 
 .mobile-own-row {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
   min-width: 0;
 }
 
-.mobile-portal-slots { display: grid; grid-template-columns: repeat(2, var(--cw)); gap: var(--gap); }
+.mobile-portal-slots { display: grid; grid-template-columns: repeat(2, var(--portal-w, var(--cw))); gap: var(--gap); justify-content: center; }
 .mobile-portal-slot-col { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
 .mobile-portal-swap-btn { padding: 2px 6px; font-size: 0.6rem; flex: 0 0 auto; }
 
@@ -304,7 +307,7 @@
 .mobile-card-btn--actionable { box-shadow: 0 0 0 2px #22c55e; }
 .mobile-card-btn--inactive { opacity: 0.4; }
 
-.mobile-own-activated { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.mobile-own-activated { display: flex; align-items: center; gap: 8px; min-width: 0; width: 100%; }
 .mobile-own-activated .mobile-fan { flex: 1 1 0; min-height: calc(var(--cw) * 0.62 * var(--card-ratio)); }
 
 .mobile-activated-counter {
@@ -389,6 +392,7 @@
     --cw-w: calc((100vw - 112px - 200px - 40px) / 5.6);
     --cw-h: calc((100dvh - 36px) / 4.64);
     --cw: min(var(--cw-w), var(--cw-h), 150px);
+    --portal-w: var(--cw);
     display: grid;
     grid-template-columns: minmax(0, 1fr) calc(var(--cw) * 5.4 + 24px) 112px;
     grid-template-rows: auto 1fr auto;
@@ -408,9 +412,15 @@
     min-height: 0;
   }
   .mobile-opp { flex: 1 1 0; min-height: 0; }
+  /* Portal and activated share one row so a tile never needs more than a card's height
+     plus its header — otherwise 4 opponents on a 375px-high phone overlap each other. */
   .mobile-opp-cards {
-    --mini-w: min(calc((100cqw - 3px) / 2 - 3px), calc(var(--cw) * 0.6), calc(((100dvh - 24px) / var(--opp) - 26px) / var(--card-ratio)));
+    --mini-w: min(calc((100cqw - 3px) / 2 - 3px), calc(var(--cw) * 0.8), calc(((100dvh - 8px - (var(--opp) - 1) * var(--gap)) / var(--opp) - 28px) / var(--card-ratio)));
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 4px;
   }
+  .mobile-opp-cards .mobile-opp-activated { flex: 1 1 0; }
 
   .mobile-zone { grid-column: 2; grid-row: 1; align-self: start; }
   .mobile-char-market { grid-column: 2; grid-row: 2; align-self: start; justify-self: start; margin-top: 6px; }
@@ -444,8 +454,8 @@
 /* Tablet portrait: opponents get a second line with the activated cards themselves. */
 @media (min-width: 700px) and (orientation: portrait) {
   .mobile-board {
-    --cw-h: calc((100dvh - 262px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) / 7.93);
-    --spare: max(0px, calc(100dvh - 262px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 7.93 * var(--cw)));
+    --cw-h: calc((100dvh - 270px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) / 9.35);
+    --spare: max(0px, calc(100dvh - 270px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 9.35 * var(--cw)));
   }
   .mobile-opp-cards { flex-direction: column; align-items: stretch; gap: 3px; }
   .mobile-opp-thumbs { display: flex; }

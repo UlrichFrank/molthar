@@ -275,11 +275,8 @@ function CanvasGameBoardContent(props: GameBoardProps) {
   // ── Frame render (reads latest values from refs) ─────────────────────────────
   function renderFrame(drawCtx: CanvasRenderingContext2D, regions: CanvasRegion[]) {
     const G = gRef.current;
-    const phase = phaseRef.current;
     const myPlayerID = myPlayerIDRef.current;
     const isActive = isActiveRef.current;
-    const activePlayer = activePlayerRef.current;
-    const activePlayerID = activePlayerIDRef.current;
 
     const me = G.players?.[myPlayerID];
     const characterSlots = G.characterSlots ?? [];

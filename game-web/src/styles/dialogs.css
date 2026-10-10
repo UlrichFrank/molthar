@@ -224,3 +224,69 @@
     flex-direction: column;
   }
 }
+
+/* =====================================================
+   Activation dialog — everything on one screen on phones and iPads.
+   Portrait: character card beside its ability text, hand in one row,
+   payment abilities compact, buttons side by side.
+   Landscape phone: two columns (card + text | hand + abilities).
+   ===================================================== */
+@media (max-width: 767px), (orientation: landscape) and (max-height: 900px) {
+  .game-dialog.act-dialog {
+    max-height: calc(100dvh - 8px);
+    padding-top: 0.5rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    padding-bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
+  }
+
+  .act-dialog .game-dialog-title {
+    margin: 0 0 0.4rem;
+    padding-bottom: 0.3rem;
+    font-size: 1.05rem;
+  }
+
+  .act-body { display: flex; flex-direction: column; gap: 0.5rem; min-height: 0; }
+
+  .act-top { display: flex; gap: 0.6rem; align-items: flex-start; }
+  .act-dialog .act-char {
+    flex: 0 0 auto;
+    width: clamp(70px, 24vw, 104px);
+    padding: 2px;
+    display: block;
+  }
+  .act-dialog .act-char img { width: 100%; height: auto; max-height: none; }
+  .act-top > :last-child { flex: 1 1 0; min-width: 0; gap: 0.3rem; }
+  .act-top h3 { text-align: left !important; }
+  .act-top .p-3 { padding: 0.35rem 0.5rem; }
+  .act-top p { font-size: 0.78rem !important; line-height: 1.3 !important; }
+  .act-top span { margin-bottom: 0.1rem !important; font-size: 0.65rem !important; }
+
+  .act-main h3 { margin: 0.3rem 0 0.3rem !important; font-size: 0.85rem !important; }
+
+  /* Hand: one row, cards shrink to fit (up to ~9 cards), never wrap */
+  .act-dialog .game-dialog-card-grid {
+    grid-template-columns: repeat(auto-fit, minmax(0, 52px));
+    justify-content: start;
+    gap: 4px;
+    margin: 0.2rem 0;
+  }
+  .act-dialog .game-dialog-card-btn { width: 100%; }
+  .act-dialog .game-dialog-card-btn:hover { transform: none; }
+
+  .act-dialog .game-dialog-actions { flex-direction: row; gap: 0.5rem; margin-top: 0.4rem; }
+  .act-dialog .game-dialog-btn-confirm,
+  .act-dialog .game-dialog-btn-cancel { padding: 0.55rem 0.5rem; font-size: 0.95rem; border-radius: 10px; }
+  .act-dialog .game-dialog-btn-confirm { flex: 2 1 0; }
+  .act-dialog .game-dialog-btn-cancel { flex: 1 1 0; }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .act-dialog.game-dialog { max-width: min(900px, 98vw); }
+  .act-body { display: grid; grid-template-columns: minmax(0, 36%) minmax(0, 1fr); gap: 0.6rem; align-items: start; }
+  .act-dialog .act-char { width: clamp(50px, 9vw, 80px); }
+  .act-dialog .game-dialog-card-grid { grid-template-columns: repeat(auto-fit, minmax(0, 40px)); }
+  .act-main img[style] { height: 40px !important; }
+  .act-main > div > div[style*="margin-bottom"] { margin-bottom: 0.2rem !important; padding: 0.2rem 0.4rem !important; }
+}

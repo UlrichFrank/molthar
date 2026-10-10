@@ -5,9 +5,11 @@ interface GameDialogProps {
   children: React.ReactNode;
   variant?: 'default' | 'wide' | 'split';
   onOverlayClick?: () => void;
+  /** Extra class on the dialog box, for dialog-specific (mobile) layouts. */
+  className?: string;
 }
 
-export function GameDialog({ children, variant = 'default', onOverlayClick }: GameDialogProps) {
+export function GameDialog({ children, variant = 'default', onOverlayClick, className }: GameDialogProps) {
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (onOverlayClick && e.currentTarget === e.target) {
       onOverlayClick();
@@ -15,6 +17,7 @@ export function GameDialog({ children, variant = 'default', onOverlayClick }: Ga
   };
 
   const dialogClasses = ['game-dialog'];
+  if (className) dialogClasses.push(className);
   if (variant === 'wide') dialogClasses.push('game-dialog--wide');
   if (variant === 'split') {
     dialogClasses.push('game-dialog--wide');

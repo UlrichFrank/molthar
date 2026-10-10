@@ -61,9 +61,10 @@ export function SharedGameDialogs({ G, moves, core }: SharedGameDialogsProps) {
           canCancel={dialog.dialog.canCancel}
           onCancel={dialog.closeDialog}
           onSelect={(replacedSlotIndex) => {
-            if (dialog.dialog.type === 'replacement') {
+            const d = dialog.dialog;
+            if (d.type === 'replacement') {
               const characterIndex = (G.characterSlots || []).findIndex(
-                card => card?.id === dialog.dialog.newCharacter.id
+                card => card?.id === d.newCharacter.id
               );
               if (characterIndex === -1 && me && me.portal.length < 2) {
                 moves.takeCharacterCard(-1);
@@ -74,9 +75,10 @@ export function SharedGameDialogs({ G, moves, core }: SharedGameDialogsProps) {
             dialog.closeDialog();
           }}
           onDiscard={() => {
-            if (dialog.dialog.type === 'replacement') {
+            const d = dialog.dialog;
+            if (d.type === 'replacement') {
               const characterIndex = (G.characterSlots || []).findIndex(
-                card => card?.id === dialog.dialog.newCharacter.id
+                card => card?.id === d.newCharacter.id
               );
               moves.discardPickedCharacterCard(characterIndex);
             }
