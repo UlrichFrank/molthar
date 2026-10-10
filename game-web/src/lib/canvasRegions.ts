@@ -8,6 +8,7 @@
  */
 
 import type { GameState, ActivatedCharacter } from '@portale-von-molthar/shared';
+import { buildOpponentsPlayerIDs } from './opponentUtils';
 import {
   AUSLAGE_START_X, AUSLAGE_START_Y, CARD_W, CARD_H, CARD_GAP,
   SLOT_W, SLOT_H,
@@ -115,8 +116,8 @@ function animState(existing: CanvasRegion[], type: CanvasRegionType, id: number 
 export interface NeighborOpponent {
   playerId: string;
   portal: ActivatedCharacter[];
-  /** Zone index in getOpponentZones(): 0=left, 1=top-left, 2=top-right, 3=right */
-  zoneIndex: 0 | 1 | 2 | 3;
+  /** Zone index in getOpponentZones(): 0=left, 1=top-left, 2=top-right, 3=right, 4=top-center */
+  zoneIndex: 0 | 1 | 2 | 3 | 4;
 }
 
 /**
@@ -290,8 +291,12 @@ export function buildCanvasRegions(
 
   // --- Replace pearl slots button (below pearl deck) ---
   {
-    const REPLACE_BTN_H = 24;
-    const REPLACE_BTN_GAP = 4;
+    // Sits to the left of the pearl pile on the mat, so it never covers the pile or leaves the mat.
+    const REPLACE_BTN_H = 30;
+    const REPLACE_BTN_W = 132;
+    const REPLACE_BTN_GAP = 18;
+    const replaceBtnX = PEARL_DECK_X - DECK_CARD_H - REPLACE_BTN_GAP - REPLACE_BTN_W;
+    const replaceBtnY = PEARL_DECK_Y + (DECK_CARD_W - REPLACE_BTN_H) / 2;
     const actionCount = G.actionCount ?? 0;
     const maxActions = G.maxActions ?? 3;
     const hasFreeAbility = me?.activeAbilities?.some(a => a.type === 'replacePearlSlotsBeforeFirstAction') ?? false;
@@ -301,8 +306,8 @@ export function buildCanvasRegions(
       // Show free replace button (no action cost); hide normal button
       regions.push({
         type: 'ui-replace-pearl-slots-ability', id: 'ui-replace-pearl-slots-ability',
-        x: PEARL_DECK_X - DECK_CARD_H, y: PEARL_DECK_Y + DECK_CARD_W + REPLACE_BTN_GAP,
-        w: DECK_CARD_H, h: REPLACE_BTN_H,
+        x: replaceBtnX, y: replaceBtnY,
+        w: REPLACE_BTN_W, h: REPLACE_BTN_H,
         label: labels?.freePearlReplace ?? 'Gratis tauschen',
         enabled: true,
         ...animState(existing, 'ui-replace-pearl-slots-ability', 'ui-replace-pearl-slots-ability'),
@@ -311,8 +316,8 @@ export function buildCanvasRegions(
       // Show normal replace button (costs an action)
       regions.push({
         type: 'ui-replace-pearl-slots', id: 'ui-replace-pearl-slots',
-        x: PEARL_DECK_X - DECK_CARD_H, y: PEARL_DECK_Y + DECK_CARD_W + REPLACE_BTN_GAP,
-        w: DECK_CARD_H, h: REPLACE_BTN_H,
+        x: replaceBtnX, y: replaceBtnY,
+        w: REPLACE_BTN_W, h: REPLACE_BTN_H,
         label: labels?.swap ?? 'Tauschen',
         enabled: true,
         ...animState(existing, 'ui-replace-pearl-slots', 'ui-replace-pearl-slots'),
@@ -380,36 +385,11 @@ export function buildCanvasRegions(
 
   // --- Opponent activated characters (all opponents, all zones) ---
   {
-    const playerOrder = G.playerOrder || Object.keys(G.players || {});
-    const n = playerOrder.length;
-    const myIndex = playerOrder.indexOf(playerID);
-
-    function getOppAt(offset: number): { playerId: string; activatedCharacters: ActivatedCharacter[] } | null {
-      const idx = ((myIndex + offset) % n + n) % n;
-      if (idx === myIndex) return null;
-      const pid = playerOrder[idx];
-      if (!pid) return null;
-      const player = G.players?.[pid];
-      if (!player) return null;
-      return { playerId: pid, activatedCharacters: player.activatedCharacters ?? [] };
-    }
-
-    const opponentByZone: Array<{ playerId: string; activatedCharacters: ActivatedCharacter[] } | null> = [null, null, null, null];
-    if (n === 2) {
-      opponentByZone[0] = getOppAt(1);
-    } else if (n === 3) {
-      opponentByZone[0] = getOppAt(1);
-      opponentByZone[3] = getOppAt(-1);
-    } else if (n === 4) {
-      opponentByZone[0] = getOppAt(1);
-      opponentByZone[1] = getOppAt(2);
-      opponentByZone[3] = getOppAt(-1);
-    } else if (n >= 5) {
-      opponentByZone[0] = getOppAt(1);
-      opponentByZone[1] = getOppAt(-2);
-      opponentByZone[2] = getOppAt(2);
-      opponentByZone[3] = getOppAt(-1);
-    }
+    const seatIds = buildOpponentsPlayerIDs(G, playerID);
+    const opponentByZone: Array<{ playerId: string; activatedCharacters: ActivatedCharacter[] } | null> = seatIds.map(pid => {
+      const player = pid ? G.players?.[pid] : undefined;
+      return pid && player ? { playerId: pid, activatedCharacters: player.activatedCharacters ?? [] } : null;
+    });
 
     const zones = getOpponentZones();
     const hw = OPP_SCALED_W / 2;
@@ -421,7 +401,7 @@ export function buildCanvasRegions(
     const oppGridW = ACTIVATED_GRID_COLS * OPP_ACT_W + (ACTIVATED_GRID_COLS - 1) * OPP_ACT_GAP;
     const oppGridH = ACTIVATED_GRID_ROWS * OPP_ACT_H + (ACTIVATED_GRID_ROWS - 1) * OPP_ACT_GAP;
 
-    for (let zoneIndex = 0; zoneIndex < 4; zoneIndex++) {
+    for (let zoneIndex = 0; zoneIndex < opponentByZone.length; zoneIndex++) {
       const opp = opponentByZone[zoneIndex];
       if (!opp || opp.activatedCharacters.length === 0) continue;
       const { zone, rotationDeg } = zones[zoneIndex];

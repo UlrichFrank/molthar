@@ -22,7 +22,17 @@ import {
   ACTIVATED_GRID_COLS,
   ACTIVATED_CARD_W,
   ACTIVATED_CARD_GAP,
+  BASE_W,
+  BASE_H,
+  MARGIN_H,
+  ZONE_TOP_H,
+  ZONE_CENTER_H,
+  PORTAL_IMG_Y,
+  OPP_PORTAL_IMG_H,
 } from '../lib/cardLayoutConstants';
+
+/** Height reserved at the top of the screen for the fixed leave/end-game buttons, so no control overlaps the table. */
+const TOP_BAR_H = 52;
 import type { OpponentZoneData } from '../lib/gameRender';
 import { preloadAllImages } from '../lib/imageLoaderV2';
 import { buildOpponentsPlayerIDs, getNeighborOpponents } from '../lib/opponentUtils';
@@ -36,25 +46,15 @@ import { DeckReshuffleAnimation } from './DeckReshuffleAnimation';
 import '../styles/dialogs.css';
 import { useTranslation } from '../i18n/useTranslation';
 
-const BASE_W = 1200;
-const BASE_H = 800;
 
 function buildOpponentsArray(
   G: GameState,
   myPlayerID: string,
   opponentActivatedPages: Record<string, 0 | 1> = {},
 ): Array<import('../lib/gameRender').OpponentZoneData | null> {
-  const playerOrder = G.playerOrder || Object.keys(G.players || {});
-  const n = playerOrder.length;
-  const myIndex = playerOrder.indexOf(myPlayerID);
-
-  function getOpponentData(offset: number): import('../lib/gameRender').OpponentZoneData | null {
-    const idx = ((myIndex + offset) % n + n) % n;
-    if (idx === myIndex) return null;
-    const playerId = playerOrder[idx];
-    if (!playerId) return null;
-    const player = G.players?.[playerId];
-    if (!player) return null;
+  return buildOpponentsPlayerIDs(G, myPlayerID).map(playerId => {
+    const player = playerId ? G.players?.[playerId] : undefined;
+    if (!playerId || !player) return null;
     return {
       playerId,
       colorIndex: player.colorIndex ?? 1,
@@ -64,13 +64,7 @@ function buildOpponentsArray(
       handCount: player.hand?.length ?? 0,
       activatedPage: opponentActivatedPages[playerId] ?? 0,
     };
-  }
-
-  if (n <= 1) return [null, null, null, null];
-  if (n === 2) return [getOpponentData(1), null, null, null];
-  if (n === 3) return [getOpponentData(1), null, null, getOpponentData(-1)];
-  if (n === 4) return [getOpponentData(1), getOpponentData(2), null, getOpponentData(-1)];
-  return [getOpponentData(1), getOpponentData(-2), getOpponentData(2), getOpponentData(-1)];
+  });
 }
 
 interface ModelCoords { x: number; y: number }
@@ -85,7 +79,7 @@ function useContainerSize<T extends HTMLElement>() {
       const rect = ref.current?.getBoundingClientRect();
       if (!rect) return;
       const aspect = BASE_W / BASE_H;
-      const newW = Math.min(rect.width, rect.height * aspect);
+      const newW = Math.min(rect.width, (rect.height - TOP_BAR_H) * aspect);
       const newH = newW / aspect;
       setSize({ w: newW, h: newH });
     };
@@ -190,7 +184,7 @@ function CanvasGameBoardContent(props: GameBoardProps) {
       if (!pid) return;
       const player = G.players?.[pid];
       if (!player) return;
-      allOpponentPortals.push({ playerId: pid, portal: player.portal ?? [], zoneIndex: zoneIndex as 0 | 1 | 2 | 3 });
+      allOpponentPortals.push({ playerId: pid, portal: player.portal ?? [], zoneIndex: zoneIndex as 0 | 1 | 2 | 3 | 4 });
     });
     regionsRef.current = buildCanvasRegions(G, myPlayerID, isActive, regionsRef.current, allOpponentPortals, canvasLabelsRef.current, ownActivatedPage, opponentActivatedPages);
   }, [G, myPlayerID, isActive, ownActivatedPage, opponentActivatedPages]);
@@ -559,7 +553,9 @@ function CanvasGameBoardContent(props: GameBoardProps) {
       style={{
         position: 'fixed',
         inset: 0,
-        background: '#0a0f1e',
+        background: '#2a1b0f',
+        boxSizing: 'border-box',
+        paddingTop: TOP_BAR_H,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -591,10 +587,11 @@ function CanvasGameBoardContent(props: GameBoardProps) {
         {/* Own player status badge — centered on portal top edge */}
         {me && (
           <div style={{
-            position: 'absolute', top: '64.5%', left: '50%',
+            // Between the market mat and the own portal photo, so badge and buttons cover neither.
+            position: 'absolute', top: `${((PORTAL_IMG_Y - 52) / BASE_H) * 100}%`, left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 100,
-            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 10,
           }}>
             <PlayerStatusBadge
               playerState={me}
@@ -619,7 +616,6 @@ function CanvasGameBoardContent(props: GameBoardProps) {
                   whiteSpace: 'nowrap',
                   pointerEvents: 'auto',
                   transition: 'background 0.15s, border-color 0.15s',
-                  marginTop: 4,
                 }}
                 onMouseEnter={e => {
                   (e.currentTarget as HTMLButtonElement).style.background = 'rgba(79, 70, 229, 0.95)';
@@ -645,12 +641,23 @@ function CanvasGameBoardContent(props: GameBoardProps) {
         {/* Opponent status badges */}
         {(() => {
           const opponentIds = buildOpponentsPlayerIDs(G, myPlayerID);
-          // Zone positions as % of canvas container [left, top-left, top-right, right]
+          // Badge anchors per seat (SEAT_INDEX order: left, top-left, top-right, right, top-center),
+          // derived from the model-space seat geometry so they follow the layout constants.
+          const halfCenter = (BASE_W - 2 * MARGIN_H) / 2;
+          const pctX = (x: number) => `${(x / BASE_W) * 100}%`;
+          const pctY = (y: number) => `${(y / BASE_H) * 100}%`;
+          // Badges sit beside the portal photos, never on them: left/right seats above or below the photo
+          // (the face-down hand lies on the other side), top seats to the left of the photo.
+          const photoHalfW = (OPP_PORTAL_IMG_H * 1.56) / 2 + 10;
+          const topSeat = (centerX: number): React.CSSProperties => ({
+            position: 'absolute', top: 10, left: pctX(centerX - photoHalfW), transform: 'translateX(-100%)', zIndex: 100,
+          });
           const zoneStyles: Array<React.CSSProperties> = [
-            { position: 'absolute', top: '26%', left: 6, zIndex: 100 },
-            { position: 'absolute', top: 6, left: '17%', zIndex: 100 },
-            { position: 'absolute', top: 6, left: '50%', zIndex: 100 },
-            { position: 'absolute', top: '55%', right: 6, zIndex: 100 },
+            { position: 'absolute', top: pctY(ZONE_TOP_H + ZONE_CENTER_H - 46), left: 6, zIndex: 100 },
+            topSeat(MARGIN_H + halfCenter / 2),
+            topSeat(MARGIN_H + halfCenter * 1.5),
+            { position: 'absolute', top: pctY(ZONE_TOP_H + 8), right: 6, zIndex: 100 },
+            topSeat(BASE_W / 2),
           ];
           return opponentIds.map((playerId, zoneIdx) => {
             if (!playerId) return null;
