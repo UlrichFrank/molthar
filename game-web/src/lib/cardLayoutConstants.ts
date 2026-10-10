@@ -12,20 +12,20 @@
  */
 
 // === Model Canvas Dimensions ===
-export const BASE_W = 1200;
-export const BASE_H = 800;
+export const BASE_W = 1600;
+export const BASE_H = 900;
 
 // === Layout Zone Heights ===
 export const ZONE_TOP_H = 200; // Height of top zones (opponent area)
-export const MARGIN_H = ZONE_TOP_H; // Left/right margin width
-export const ZONE_CENTER_H = 310; // Height of center auslage zone
+export const MARGIN_H = 250; // Left/right seat width
+export const ZONE_CENTER_H = 370; // Height of center auslage zone
 export const ZONE_PLAYER_H = BASE_H - ZONE_TOP_H - ZONE_CENTER_H; // Height of player area
 
 // === Card Dimensions ===
 // All cards enlarged by 50% from original 59×92
-export const CARD_W = Math.round(59 * 1.5); // 89
-export const CARD_H = Math.round(92 * 1.5); // 138
-export const CARD_GAP = Math.round(10 * 1.5); // 15
+export const CARD_W = 112;
+export const CARD_H = Math.round(CARD_W * 92 / 59); // 175
+export const CARD_GAP = 22;
 
 // === Auslage (Marketplace) Positioning ===
 export const AUSLAGE_CENTER_X = MARGIN_H;
@@ -67,9 +67,9 @@ export const UI_PANEL_H = 55;
 // Positioned directly right of the 2nd portal slot with small gap
 export const ACTIVATED_GRID_X = SLOT_AREA_X + 2 * (SLOT_W + SLOT_GAP) + 10; // Right of 2nd portal slot with margin
 export const ACTIVATED_GRID_Y = PORTAL_Y; // Align with portal top
-export const ACTIVATED_CARD_W = Math.round(CARD_W * 0.90); // 80
-export const ACTIVATED_CARD_H = Math.round(CARD_H * 0.90); // 124
-export const ACTIVATED_CARD_GAP = Math.round(CARD_GAP * 0.90); // 14
+export const ACTIVATED_CARD_W = Math.round(CARD_W * 0.85);
+export const ACTIVATED_CARD_H = Math.round(CARD_H * 0.85);
+export const ACTIVATED_CARD_GAP = 12;
 export const ACTIVATED_GRID_COLS = 3;
 export const ACTIVATED_GRID_ROWS = 2;
 export const ACTIVATED_PAGE_SIZE = 6; // Cards per page (3×2 grid)
@@ -198,10 +198,33 @@ export function getPortalSlotPosition(slotIndex: number) {
   };
 }
 
+/** Seat positions around the table, seen from the local player at the bottom. */
+export type SeatId = 'left' | 'topLeft' | 'topRight' | 'right' | 'topCenter';
+
+/** Index of a seat in getOpponentZones() and in the opponent arrays built from it. */
+export const SEAT_INDEX: Record<SeatId, 0 | 1 | 2 | 3 | 4> = { left: 0, topLeft: 1, topRight: 2, right: 3, topCenter: 4 };
+
 /**
- * Returns the four opponent zone bounding boxes and their rotation in degrees.
- * Order: [left (90°), top-left (180°), top-right (180°), right (270°)]
- * Matches the layout used in drawOpponentPortals / buildOpponentsArray.
+ * Who sits where: `offset` is the clockwise distance from the local player in playerOrder.
+ * 2 players face each other; 3 sit as a triangle (two across the table); 4 add one at each side;
+ * 5 fill all four outer seats.
+ */
+export function getOpponentSeating(n: number): Array<{ offset: number; seat: SeatId }> {
+  if (n <= 1) return [];
+  if (n === 2) return [{ offset: 1, seat: 'topCenter' }];
+  if (n === 3) return [{ offset: 1, seat: 'topLeft' }, { offset: -1, seat: 'topRight' }];
+  if (n === 4) return [{ offset: 1, seat: 'left' }, { offset: 2, seat: 'topCenter' }, { offset: -1, seat: 'right' }];
+  return [
+    { offset: 1, seat: 'left' },
+    { offset: 2, seat: 'topLeft' },
+    { offset: -2, seat: 'topRight' },
+    { offset: -1, seat: 'right' },
+  ];
+}
+
+/**
+ * Returns the opponent seat bounding boxes and their rotation in degrees.
+ * Order matches SEAT_INDEX: [left (90°), top-left (180°), top-right (180°), right (270°), top-center (180°)].
  */
 export function getOpponentZones(): Array<{ zone: { x: number; y: number; w: number; h: number }; rotationDeg: number }> {
   const halfCenter = (BASE_W - 2 * MARGIN_H) / 2;
@@ -210,6 +233,7 @@ export function getOpponentZones(): Array<{ zone: { x: number; y: number; w: num
     { zone: { x: MARGIN_H,              y: 0,          w: halfCenter, h: ZONE_TOP_H },    rotationDeg: 180 },
     { zone: { x: MARGIN_H + halfCenter, y: 0,          w: halfCenter, h: ZONE_TOP_H },    rotationDeg: 180 },
     { zone: { x: BASE_W - MARGIN_H,     y: ZONE_TOP_H, w: MARGIN_H,   h: ZONE_CENTER_H }, rotationDeg: 270 },
+    { zone: { x: MARGIN_H,              y: 0,          w: BASE_W - 2 * MARGIN_H, h: ZONE_TOP_H }, rotationDeg: 180 },
   ];
 }
 

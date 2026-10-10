@@ -89,6 +89,7 @@ import {
   ACTIVATED_GRID_ROWS,
   OPP_SCALE,
   getPortalImageName,
+  getOpponentZones,
 } from './cardLayoutConstants';
 
 export interface DrawConfig {
@@ -784,19 +785,9 @@ export function drawOpponentPortals(
   opponents: Array<OpponentZoneData | null>,
   regions: import('./canvasRegions').CanvasRegion[] = [],
 ) {
-  const zoneLeft     = { x: 0,                                          y: ZONE_TOP_H, w: MARGIN_H,                    h: ZONE_CENTER_H };
-  const zoneTopLeft  = { x: MARGIN_H,                                   y: 0,          w: (BASE_W - 2 * MARGIN_H) / 2, h: ZONE_TOP_H };
-  const zoneTopRight = { x: MARGIN_H + (BASE_W - 2 * MARGIN_H) / 2,    y: 0,          w: (BASE_W - 2 * MARGIN_H) / 2, h: ZONE_TOP_H };
-  const zoneRight    = { x: BASE_W - MARGIN_H,                          y: ZONE_TOP_H, w: MARGIN_H,                    h: ZONE_CENTER_H };
+  const zones = getOpponentZones().map(({ zone, rotationDeg }) => ({ zone, deg: rotationDeg }));
 
-  const zones = [
-    { zone: zoneLeft,     deg: 90  },
-    { zone: zoneTopLeft,  deg: 180 },
-    { zone: zoneTopRight, deg: 180 },
-    { zone: zoneRight,    deg: 270 },
-  ];
-
-  const drawScrollInZone = (zone: typeof zoneLeft, deg: number) => {
+  const drawScrollInZone = (zone: { x: number; y: number; w: number; h: number }, deg: number) => {
     const maxDim = Math.min(zone.w, zone.h) * 0.95;
     const x = zone.x + zone.w / 2 - maxDim / 2;
     const y = zone.y + zone.h / 2 - maxDim / 2;

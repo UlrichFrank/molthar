@@ -22,6 +22,8 @@ import {
   ACTIVATED_GRID_COLS,
   ACTIVATED_CARD_W,
   ACTIVATED_CARD_GAP,
+  BASE_W,
+  BASE_H,
 } from '../lib/cardLayoutConstants';
 import type { OpponentZoneData } from '../lib/gameRender';
 import { preloadAllImages } from '../lib/imageLoaderV2';
@@ -36,25 +38,15 @@ import { DeckReshuffleAnimation } from './DeckReshuffleAnimation';
 import '../styles/dialogs.css';
 import { useTranslation } from '../i18n/useTranslation';
 
-const BASE_W = 1200;
-const BASE_H = 800;
 
 function buildOpponentsArray(
   G: GameState,
   myPlayerID: string,
   opponentActivatedPages: Record<string, 0 | 1> = {},
 ): Array<import('../lib/gameRender').OpponentZoneData | null> {
-  const playerOrder = G.playerOrder || Object.keys(G.players || {});
-  const n = playerOrder.length;
-  const myIndex = playerOrder.indexOf(myPlayerID);
-
-  function getOpponentData(offset: number): import('../lib/gameRender').OpponentZoneData | null {
-    const idx = ((myIndex + offset) % n + n) % n;
-    if (idx === myIndex) return null;
-    const playerId = playerOrder[idx];
-    if (!playerId) return null;
-    const player = G.players?.[playerId];
-    if (!player) return null;
+  return buildOpponentsPlayerIDs(G, myPlayerID).map(playerId => {
+    const player = playerId ? G.players?.[playerId] : undefined;
+    if (!playerId || !player) return null;
     return {
       playerId,
       colorIndex: player.colorIndex ?? 1,
@@ -64,13 +56,7 @@ function buildOpponentsArray(
       handCount: player.hand?.length ?? 0,
       activatedPage: opponentActivatedPages[playerId] ?? 0,
     };
-  }
-
-  if (n <= 1) return [null, null, null, null];
-  if (n === 2) return [getOpponentData(1), null, null, null];
-  if (n === 3) return [getOpponentData(1), null, null, getOpponentData(-1)];
-  if (n === 4) return [getOpponentData(1), getOpponentData(2), null, getOpponentData(-1)];
-  return [getOpponentData(1), getOpponentData(-2), getOpponentData(2), getOpponentData(-1)];
+  });
 }
 
 interface ModelCoords { x: number; y: number }
@@ -190,7 +176,7 @@ function CanvasGameBoardContent(props: GameBoardProps) {
       if (!pid) return;
       const player = G.players?.[pid];
       if (!player) return;
-      allOpponentPortals.push({ playerId: pid, portal: player.portal ?? [], zoneIndex: zoneIndex as 0 | 1 | 2 | 3 });
+      allOpponentPortals.push({ playerId: pid, portal: player.portal ?? [], zoneIndex: zoneIndex as 0 | 1 | 2 | 3 | 4 });
     });
     regionsRef.current = buildCanvasRegions(G, myPlayerID, isActive, regionsRef.current, allOpponentPortals, canvasLabelsRef.current, ownActivatedPage, opponentActivatedPages);
   }, [G, myPlayerID, isActive, ownActivatedPage, opponentActivatedPages]);
