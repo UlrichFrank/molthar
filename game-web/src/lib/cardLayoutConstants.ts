@@ -23,9 +23,9 @@ export const ZONE_PLAYER_H = BASE_H - ZONE_TOP_H - ZONE_CENTER_H; // Height of p
 
 // === Card Dimensions ===
 // All cards enlarged by 50% from original 59×92
-export const CARD_W = 112;
+export const CARD_W = 118;
 export const CARD_H = Math.round(CARD_W * 92 / 59); // 175
-export const CARD_GAP = 22;
+export const CARD_GAP = 26;
 
 // === Auslage (Marketplace) Positioning ===
 export const AUSLAGE_CENTER_X = MARGIN_H;
@@ -117,7 +117,7 @@ export const PORTAL_IMG_Y = Math.round(SLOT_AREA_Y + SLOT_H / 2 - PORTAL_IMG_H /
 // === Opponent Zone Scaling Constants ===
 // OPP_SCALE: base fit factor × 1.5 (50% larger than minimum-fit, intentionally overflows zone edges).
 // Base: min(ZONE_CENTER_H / PORTAL_W, MARGIN_H / ZONE_PLAYER_H) ≈ 0.387
-export const OPP_SCALE = Math.min(ZONE_CENTER_H / PORTAL_W, MARGIN_H / ZONE_PLAYER_H) * 2.0;
+export const OPP_SCALE = Math.min(ZONE_CENTER_H / PORTAL_W, MARGIN_H / ZONE_PLAYER_H) * 2.2;
 
 // Scaled virtual zone dimensions (matches the player zone at OPP_SCALE)
 export const OPP_SCALED_W = Math.round(PORTAL_W * OPP_SCALE);

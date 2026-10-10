@@ -24,6 +24,10 @@ import {
   ACTIVATED_CARD_GAP,
   BASE_W,
   BASE_H,
+  MARGIN_H,
+  ZONE_TOP_H,
+  ZONE_CENTER_H,
+  PORTAL_Y,
 } from '../lib/cardLayoutConstants';
 import type { OpponentZoneData } from '../lib/gameRender';
 import { preloadAllImages } from '../lib/imageLoaderV2';
@@ -545,7 +549,7 @@ function CanvasGameBoardContent(props: GameBoardProps) {
       style={{
         position: 'fixed',
         inset: 0,
-        background: '#0a0f1e',
+        background: '#2a1b0f',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -577,7 +581,7 @@ function CanvasGameBoardContent(props: GameBoardProps) {
         {/* Own player status badge — centered on portal top edge */}
         {me && (
           <div style={{
-            position: 'absolute', top: '64.5%', left: '50%',
+            position: 'absolute', top: `${((PORTAL_Y + 6) / BASE_H) * 100}%`, left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 100,
             display: 'flex', flexDirection: 'column', alignItems: 'center',
@@ -631,12 +635,17 @@ function CanvasGameBoardContent(props: GameBoardProps) {
         {/* Opponent status badges */}
         {(() => {
           const opponentIds = buildOpponentsPlayerIDs(G, myPlayerID);
-          // Zone positions as % of canvas container [left, top-left, top-right, right]
+          // Badge anchors per seat (SEAT_INDEX order: left, top-left, top-right, right, top-center),
+          // derived from the model-space seat geometry so they follow the layout constants.
+          const halfCenter = (BASE_W - 2 * MARGIN_H) / 2;
+          const pctX = (x: number) => `${(x / BASE_W) * 100}%`;
+          const pctY = (y: number) => `${(y / BASE_H) * 100}%`;
           const zoneStyles: Array<React.CSSProperties> = [
-            { position: 'absolute', top: '26%', left: 6, zIndex: 100 },
-            { position: 'absolute', top: 6, left: '17%', zIndex: 100 },
-            { position: 'absolute', top: 6, left: '50%', zIndex: 100 },
-            { position: 'absolute', top: '55%', right: 6, zIndex: 100 },
+            { position: 'absolute', top: pctY(ZONE_TOP_H + 8), left: 6, zIndex: 100 },
+            { position: 'absolute', top: 8, left: pctX(MARGIN_H + 8), zIndex: 100 },
+            { position: 'absolute', top: 8, left: pctX(MARGIN_H + halfCenter + 8), zIndex: 100 },
+            { position: 'absolute', top: pctY(ZONE_TOP_H + ZONE_CENTER_H - 70), right: 6, zIndex: 100 },
+            { position: 'absolute', top: 8, left: pctX(MARGIN_H + 8), zIndex: 100 },
           ];
           return opponentIds.map((playerId, zoneIdx) => {
             if (!playerId) return null;

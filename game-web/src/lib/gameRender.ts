@@ -5,7 +5,8 @@
  */
 
 import type { CharacterCard, PearlCard, ActivatedCharacter, GameState } from '@portale-von-molthar/shared';
-import { drawImageOrFallback } from './imageLoaderV2';
+import { drawImageOrFallback, getImage, getScaledDimensions } from './imageLoaderV2';
+import { drawTable, placeOnTable, seededRandom } from './tableStyle';
 import type { CanvasRegion } from './canvasRegions';
 import {
   BASE_W,
@@ -77,7 +78,6 @@ import {
   OPP_ACT_GAP,
   OPP_HAND_W,
   OPP_HAND_H,
-  OPP_HAND_REL_X,
   OPP_HAND_REL_Y,
   OPP_SLOT_REL_X,
   OPP_SLOT_REL_Y,
@@ -117,13 +117,107 @@ function drawEmptySlot(ctx: CanvasRenderingContext2D, x: number, y: number, labe
   ctx.fillText(label, x + CARD_W / 2, y + CARD_H / 2);
 }
 
-export function drawBackground(ctx: CanvasRenderingContext2D) {
-  // Dark game board background
-  ctx.fillStyle = '#0E1E2B';
-  ctx.fillRect(0, 0, BASE_W, BASE_H);
+/** Opaque portal photo laid on the table: rounded corners, drop shadow and a slight tilt. */
+function drawPortalImage(
+  ctx: CanvasRenderingContext2D,
+  filename: string,
+  x: number, y: number, w: number, h: number,
+  key: string,
+) {
+  const img = getImage(filename);
+  if (!img) {
+    drawImageOrFallback(ctx, filename, x, y, w, h);
+    return;
+  }
+  const { w: sw, h: sh } = getScaledDimensions(img, w, h);
+  placeOnTable(ctx, x + (w - sw) / 2, y + (h - sh) / 2, sw, sh, key, (lx, ly) => {
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(lx, ly, sw, sh, 10);
+    ctx.clip();
+    ctx.drawImage(img, lx, ly, sw, sh);
+    // gentle edge darkening so the photo sits in the felt
+    const edge = ctx.createLinearGradient(lx, ly, lx, ly + sh);
+    edge.addColorStop(0, 'rgba(0,0,0,0.18)');
+    edge.addColorStop(0.2, 'rgba(0,0,0,0)');
+    edge.addColorStop(0.8, 'rgba(0,0,0,0)');
+    edge.addColorStop(1, 'rgba(0,0,0,0.25)');
+    ctx.fillStyle = edge;
+    ctx.fillRect(lx, ly, sw, sh);
+    ctx.restore();
+    ctx.strokeStyle = 'rgba(255, 235, 190, 0.35)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(lx, ly, sw, sh, 10);
+    ctx.stroke();
+  }, { rotDeg: 0.7, offset: 1.5, radius: 10, shadow: 1.2 });
+}
 
-  // Try to draw Spielfläche as background (if available)
-  drawImageOrFallback(ctx, 'Spielflaeche.png', 0, 0, BASE_W, BASE_H);
+/**
+ * The market mat: a parchment/leather pad with embossed outlines for the six face-up slots and
+ * the two draw piles, so the cards visibly belong where they lie.
+ */
+function drawAuslageMat(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
+  const mw = Math.min(w - 28, 6 * CARD_W + 5 * CARD_GAP + 150);
+  const mx = x + (w - mw) / 2, my = y + 6, mh = h - 14;
+  placeOnTable(ctx, mx, my, mw, mh, 'auslage-mat', (lx, ly) => {
+    const ox = lx - mx, oy = ly - my; // shift from model space into the (jittered) local space
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(lx, ly, mw, mh, 16);
+    ctx.clip();
+
+    const paper = ctx.createLinearGradient(lx, ly, lx + mw * 0.3, ly + mh);
+    paper.addColorStop(0, '#d8bd96');
+    paper.addColorStop(0.5, '#cfae82');
+    paper.addColorStop(1, '#c19f74');
+    ctx.fillStyle = paper;
+    ctx.fillRect(lx, ly, mw, mh);
+
+    const rnd = seededRandom('auslage-paper');
+    for (let i = 0; i < 2600; i++) {
+      ctx.fillStyle = rnd() > 0.5 ? 'rgba(255,255,255,0.05)' : 'rgba(70,40,10,0.06)';
+      ctx.fillRect(lx + rnd() * mw, ly + rnd() * mh, 1 + rnd() * 2, 1 + rnd() * 2);
+    }
+    const glow = ctx.createRadialGradient(lx + mw / 2, ly + mh * 0.4, 20, lx + mw / 2, ly + mh * 0.4, mw * 0.6);
+    glow.addColorStop(0, 'rgba(255, 244, 214, 0.25)');
+    glow.addColorStop(1, 'rgba(60, 30, 5, 0.28)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(lx, ly, mw, mh);
+
+    // embossed outlines for card slots and the two piles
+    ctx.strokeStyle = 'rgba(70, 42, 14, 0.35)';
+    ctx.fillStyle = 'rgba(70, 42, 14, 0.07)';
+    ctx.lineWidth = 2;
+    const outline = (rx: number, ry: number, rw: number, rh: number) => {
+      ctx.beginPath();
+      ctx.roundRect(rx + ox - 5, ry + oy - 5, rw + 10, rh + 10, 9);
+      ctx.fill();
+      ctx.stroke();
+    };
+    for (let i = 0; i < 6; i++) outline(AUSLAGE_START_X + i * (CARD_W + CARD_GAP), AUSLAGE_START_Y, CARD_W, CARD_H);
+    outline(CHAR_DECK_X - DECK_CARD_H, CHAR_DECK_Y, DECK_CARD_H, DECK_CARD_W);
+    outline(PEARL_DECK_X - DECK_CARD_H, PEARL_DECK_Y, DECK_CARD_H, DECK_CARD_W);
+
+    // stitched border
+    ctx.setLineDash([7, 6]);
+    ctx.strokeStyle = 'rgba(70, 42, 14, 0.4)';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.roundRect(lx + 9, ly + 9, mw - 18, mh - 18, 11);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+    ctx.strokeStyle = 'rgba(40, 22, 6, 0.55)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(lx, ly, mw, mh, 16);
+    ctx.stroke();
+  }, { rotDeg: 0, offset: 0, radius: 16, shadow: 1.3 });
+}
+
+export function drawBackground(ctx: CanvasRenderingContext2D) {
+  drawTable(ctx);
 }
 
 /**
@@ -161,13 +255,15 @@ export function drawDeckStack(
     const offsetX = i * DECK_CARD_OFFSET;
     const offsetY = i * DECK_CARD_OFFSET;
     const isTopCard = i === visibleCards - 1;
-    if (isTopCard && peekedCard) {
-      // Draw face-up peeked card
-      drawImageOrFallback(ctx, peekedCard.imageName, offsetX, offsetY, DECK_CARD_W, DECK_CARD_H, peekedCard.name);
-    } else {
-      const backImage = deckType === 'character' ? 'Charakterkarte Hinten.png' : 'Perlenkarte Hinten.png';
-      drawImageOrFallback(ctx, backImage, offsetX, offsetY, DECK_CARD_W, DECK_CARD_H, 'Deck');
-    }
+    const backImage = deckType === 'character' ? 'Charakterkarte Hinten.png' : 'Perlenkarte Hinten.png';
+    // Every card of the pile lies slightly askew, like a pile that was shuffled by hand.
+    placeOnTable(ctx, offsetX, offsetY, DECK_CARD_W, DECK_CARD_H, `${deckType}-deck-${i}`, (lx, ly) => {
+      if (isTopCard && peekedCard) {
+        drawImageOrFallback(ctx, peekedCard.imageName, lx, ly, DECK_CARD_W, DECK_CARD_H, peekedCard.name);
+      } else {
+        drawImageOrFallback(ctx, backImage, lx, ly, DECK_CARD_W, DECK_CARD_H, 'Deck');
+      }
+    }, { rotDeg: isTopCard ? 1.2 : 2.8, offset: 2.2, shadow: i === 0 ? 1 : 0.35 });
   }
 
   // Glow on the top card (highest index = visually on top)
@@ -226,7 +322,7 @@ export function drawAuslage(
   const auslageH = ZONE_CENTER_H;
 
   // Draw Auslage background (fits within zone)
-  drawImageOrFallback(ctx, 'Auslage.png', centerX, auslageY, centerW, auslageH);
+  drawAuslageMat(ctx, centerX, auslageY, centerW, auslageH);
 
   // Draw cards on top
   const startX = centerX + (centerW - (6 * CARD_W + 5 * CARD_GAP)) / 2;
@@ -240,12 +336,14 @@ export function drawAuslage(
     if (!card) {
       drawEmptySlot(ctx, x, startY, `Char ${idx + 1}`);
     } else {
-      drawImageOrFallback(ctx, card.imageName, x, startY, CARD_W, CARD_H, card.name);
-      if (config.selectedCharacter === idx) {
-        ctx.strokeStyle = '#FFD700';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(x, startY, CARD_W, CARD_H);
-      }
+      placeOnTable(ctx, x, startY, CARD_W, CARD_H, `auslage-char-${idx}-${card.id}`, (lx, ly) => {
+        drawImageOrFallback(ctx, card.imageName, lx, ly, CARD_W, CARD_H, card.name);
+        if (config.selectedCharacter === idx) {
+          ctx.strokeStyle = '#FFD700';
+          ctx.lineWidth = 3;
+          ctx.strokeRect(lx, ly, CARD_W, CARD_H);
+        }
+      });
     }
   }
 
@@ -258,12 +356,14 @@ export function drawAuslage(
       drawEmptySlot(ctx, x, startY, `Pearl ${pearlIdx + 1}`);
     } else {
       const pearlImg = card.isJoker ? 'PerlenkarteJoker.png' : card.hasRefreshSymbol ? `Perlenkarte${card.value}-neu.png` : `Perlenkarte${card.value}.png`;
-      drawImageOrFallback(ctx, pearlImg, x, startY, CARD_W, CARD_H, String(card.value));
-      if (config.selectedPearl === pearlIdx) {
-        ctx.strokeStyle = '#FFD700';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(x, startY, CARD_W, CARD_H);
-      }
+      placeOnTable(ctx, x, startY, CARD_W, CARD_H, `auslage-pearl-${pearlIdx}-${card.id}`, (lx, ly) => {
+        drawImageOrFallback(ctx, pearlImg, lx, ly, CARD_W, CARD_H, String(card.value));
+        if (config.selectedPearl === pearlIdx) {
+          ctx.strokeStyle = '#FFD700';
+          ctx.lineWidth = 3;
+          ctx.strokeRect(lx, ly, CARD_W, CARD_H);
+        }
+      });
     }
   }
 
@@ -284,7 +384,7 @@ export function drawPlayerPortal(
   // Draw portal background based on player's chosen color
   // Height proportional to character card (ratio 1325:1030), vertically centered around slots
   const portalImg = getPortalImageName(colorIndex, isStartingPlayer);
-  drawImageOrFallback(ctx, portalImg, PORTAL_X, PORTAL_IMG_Y, PORTAL_W, PORTAL_IMG_H);
+  drawPortalImage(ctx, portalImg, PORTAL_X, PORTAL_IMG_Y, PORTAL_W, PORTAL_IMG_H, `portal-${colorIndex}`);
 
   // Diamonds (left side) — rendered as character card backs
   const DIAMOND_CARD_W = 28;
@@ -295,7 +395,9 @@ export function drawPlayerPortal(
   const gap = portal.diamonds > 6 ? 2 : DIAMOND_CARD_GAP;
   for (let i = 0; i < portal.diamonds; i++) {
     const x = diamondX + i * (DIAMOND_CARD_W + gap);
-    drawImageOrFallback(ctx, 'Charakterkarte Hinten.png', x, diamondY, DIAMOND_CARD_W, DIAMOND_CARD_H);
+    placeOnTable(ctx, x, diamondY, DIAMOND_CARD_W, DIAMOND_CARD_H, `diamond-${i}`, (lx, ly) => {
+      drawImageOrFallback(ctx, 'Charakterkarte Hinten.png', lx, ly, DIAMOND_CARD_W, DIAMOND_CARD_H);
+    }, { rotDeg: 9, offset: 2, shadow: 0.6, radius: 3 });
   }
 
   // Portal slots (center)
@@ -310,7 +412,9 @@ export function drawPlayerPortal(
     const y = slotAreaY;
 
     if (slot) {
-      drawImageOrFallback(ctx, slot.card.imageName, x, y, slotW, slotH, slot.card.name);
+      placeOnTable(ctx, x, y, slotW, slotH, `slot-${slot.card.id}`, (lx, ly) => {
+        drawImageOrFallback(ctx, slot.card.imageName, lx, ly, slotW, slotH, slot.card.name);
+      }, { rotDeg: 1.6, offset: 2.5 });
     }
   });
 
@@ -324,6 +428,10 @@ export function drawPlayerPortal(
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(angle);
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 12;
+    ctx.shadowOffsetX = 3;
+    ctx.shadowOffsetY = 5;
 
     const pearlImg = card.isJoker ? 'PerlenkarteJoker.png' : card.hasRefreshSymbol ? `Perlenkarte${card.value}-neu.png` : `Perlenkarte${card.value}.png`;
     drawImageOrFallback(ctx, pearlImg, -HAND_CARD_W / 2, -HAND_CARD_H / 2, HAND_CARD_W, HAND_CARD_H, String(card.value));
@@ -360,7 +468,9 @@ export function drawActivatedCharactersGrid(
     ctx.rotate(Math.PI);
     ctx.translate(-(cardX + w / 2), -(cardY + h / 2));
 
-    drawImageOrFallback(ctx, card.imageName, cardX, cardY, w, h, card.name);
+    placeOnTable(ctx, cardX, cardY, w, h, `activated-${card.id}`, (lx, ly) => {
+      drawImageOrFallback(ctx, card.imageName, lx, ly, w, h, card.name);
+    }, { rotDeg: 2.6, offset: 2.5 });
 
     ctx.restore();
   });
@@ -698,7 +808,7 @@ function drawOpponentZone(
 
   // 1. Portal background — correct aspect ratio (1325:1030), vertically centered around slots
   const portalImg = getPortalImageName(data.colorIndex, data.isStartingPlayer);
-  drawImageOrFallback(ctx, portalImg, -hw, -hh + OPP_PORTAL_IMG_REL_Y, OPP_SCALED_W, OPP_PORTAL_IMG_H, `P${data.colorIndex}`);
+  drawPortalImage(ctx, portalImg, -hw, -hh + OPP_PORTAL_IMG_REL_Y, OPP_SCALED_W, OPP_PORTAL_IMG_H, `opp-portal-${data.playerId ?? data.colorIndex}`);
 
   // 2. Portal slot cards — same relative position as in the player zone
   for (let i = 0; i < 2; i++) {
@@ -706,7 +816,9 @@ function drawOpponentZone(
     const slotY = -hh + OPP_SLOT_REL_Y;
     const entry = data.portal[i];
     if (entry) {
-      drawImageOrFallback(ctx, entry.card.imageName, slotX, slotY, OPP_SLOT_W, OPP_SLOT_H, entry.card.name);
+      placeOnTable(ctx, slotX, slotY, OPP_SLOT_W, OPP_SLOT_H, `slot-${entry.card.id}`, (lx, ly) => {
+        drawImageOrFallback(ctx, entry.card.imageName, lx, ly, OPP_SLOT_W, OPP_SLOT_H, entry.card.name);
+      }, { rotDeg: 1.6, offset: 1.5, shadow: 0.8 });
     }
   }
 
@@ -723,7 +835,9 @@ function drawOpponentZone(
     ctx.translate(actX + OPP_ACT_W / 2, actY + OPP_ACT_H / 2);
     ctx.rotate(Math.PI);
     ctx.translate(-(actX + OPP_ACT_W / 2), -(actY + OPP_ACT_H / 2));
-    drawImageOrFallback(ctx, card.card.imageName, actX, actY, OPP_ACT_W, OPP_ACT_H, card.card.name);
+    placeOnTable(ctx, actX, actY, OPP_ACT_W, OPP_ACT_H, `activated-${card.card.id}`, (lx, ly) => {
+      drawImageOrFallback(ctx, card.card.imageName, lx, ly, OPP_ACT_W, OPP_ACT_H, card.card.name);
+    }, { rotDeg: 2.6, offset: 1.5, shadow: 0.8 });
     ctx.restore();
   }
 
@@ -748,9 +862,14 @@ function drawOpponentZone(
 
   // 4. Hand cards — face-down stack, left side (from opponent's perspective)
   if (data.handCount > 0) {
-    const handX = -hw + OPP_HAND_REL_X;
+    // The face-down hand lies just left of the portal photo (not at the far end of the virtual zone).
+    const portalPhoto = getImage(portalImg);
+    const photoW = portalPhoto ? getScaledDimensions(portalPhoto, OPP_SCALED_W, OPP_PORTAL_IMG_H).w : OPP_SCALED_W;
+    const handX = -photoW / 2 - OPP_HAND_W - 14;
     const handY = -hh + OPP_HAND_REL_Y - OPP_HAND_H / 2;
-    drawImageOrFallback(ctx, 'Perlenkarte Hinten.png', handX, handY, OPP_HAND_W, OPP_HAND_H, '?');
+    placeOnTable(ctx, handX, handY, OPP_HAND_W, OPP_HAND_H, `opp-hand-${data.playerId ?? ''}`, (lx, ly) => {
+      drawImageOrFallback(ctx, 'Perlenkarte Hinten.png', lx, ly, OPP_HAND_W, OPP_HAND_H, '?');
+    }, { rotDeg: 3, offset: 1.5, shadow: 0.8 });
     // Count badge
     const badgeR = Math.max(5, Math.round(OPP_HAND_H * 0.15));
     const badgeCx = handX + OPP_HAND_W - badgeR;
@@ -801,7 +920,8 @@ export function drawOpponentPortals(
       const prevHover = regions.find(r => r.type === 'activated-page-arrow' && r.id === `${data.playerId}:prev`)?.hoverProgress ?? 0;
       const nextHover = regions.find(r => r.type === 'activated-page-arrow' && r.id === `${data.playerId}:next`)?.hoverProgress ?? 0;
       drawOpponentZone(ctx, zone, data, deg, page, prevHover, nextHover);
-    } else {
+    } else if (i === 0 || i === 3) {
+      // Empty side seats keep a rolled-up scroll lying on the table; empty top seats stay bare felt.
       drawScrollInZone(zone, deg);
     }
   });
