@@ -11,9 +11,12 @@ const dev=q.get('dev');const D=dev?[['custom',...dev.split(',').map(Number)]]:{
  phones:[['13 mini',375,812],['13/14',390,844],['15 Pro',393,852],['15 Pro Max',430,932]],
  ipads:[['iPad 10.2',810,1080],['iPad Pro 11',834,1194]],
  small:[['SE',375,667]]}[set];
-const rest=['view','n','act','hand'].map(k=>q.get(k)?`${k}=${q.get(k)}`:'').filter(Boolean).join('&');
+const params=new URLSearchParams();
+for(const k of ['view','n','act','hand']){const v=q.get(k); if(v) params.set(k,v);}
 const w=document.getElementById('w'); w.style.transform=`scale(${scale})`;
 for(const [name,a,b] of D){const [W,H]=land?[b,a]:[a,b];
  const f=document.createElement('figure');
- f.innerHTML=`<div>${name} ${W}x${H}</div><iframe width="${W}" height="${H}" src="/harness.html?${rest}"></iframe>`;w.appendChild(f);}
+ const label=document.createElement('div'); label.textContent=`${name} ${W}x${H}`;
+ const ifr=document.createElement('iframe'); ifr.width=String(W); ifr.height=String(H); ifr.src='/harness.html?'+params.toString();
+ f.append(label,ifr); w.appendChild(f);}
 </script></body></html>

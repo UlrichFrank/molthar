@@ -14,9 +14,12 @@
 }
 
 .game-dialog {
-  background: #1a1a2e;
-  border: 2px solid #16c784;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(226, 178, 60, 0.1), transparent 60%),
+    linear-gradient(175deg, #123d2e, var(--pvm-panel-solid));
+  border: 2px solid var(--pvm-gold);
   border-radius: 12px;
+  font-family: var(--pvm-serif);
   padding: 2rem;
   max-width: min(600px, 95vw);
   width: 100%;
@@ -25,7 +28,7 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: column;
-  color: #ccc;
+  color: var(--pvm-cream);
 }
 
 .game-dialog--wide {
@@ -40,11 +43,11 @@
 
 .game-dialog-title {
   margin: 0 0 1.5rem 0;
-  color: #16c784;
+  color: var(--pvm-gold);
   font-size: 1.6rem;
   font-weight: bold;
   text-align: center;
-  border-bottom: 2px solid #16c784;
+  border-bottom: 2px solid var(--pvm-gold-line);
   padding-bottom: 0.75rem;
 }
 
@@ -105,7 +108,8 @@
 .game-dialog-card-selected-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(76, 175, 80, 0.5);
+  background: rgba(226, 178, 60, 0.45);
+  box-shadow: inset 0 0 0 2px var(--pvm-gold);
 }
 
 .game-dialog-card-reserved-overlay {
@@ -131,47 +135,51 @@
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
   font-weight: bold;
-  border: 2px solid #333;
+  border: 1px solid #6e5014;
   border-radius: 12px;
+  font-family: var(--pvm-serif);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .game-dialog-btn-confirm {
-  background: #4CAF50;
-  color: white;
+  background: linear-gradient(180deg, #f1c95a, var(--pvm-gold-deep));
+  color: #2b1d08;
+  box-shadow: 0 3px 0 #6e5014;
 }
 
 .game-dialog-btn-confirm:hover:not(:disabled) {
-  background: #45a049;
+  filter: brightness(1.08);
   transform: scale(1.02);
 }
 
 .game-dialog-btn-confirm:disabled {
-  background: #ccc;
-  color: #666;
+  background: rgba(246, 236, 206, 0.18);
+  color: var(--pvm-cream-dim);
+  box-shadow: none;
   cursor: not-allowed;
   opacity: 0.6;
 }
 
 .game-dialog-btn-cancel {
-  background: #f44336;
-  color: white;
+  background: linear-gradient(180deg, #a8392b, var(--pvm-burgundy));
+  color: var(--pvm-cream);
+  border-color: #4e150d;
 }
 
 .game-dialog-btn-cancel:hover {
-  background: #da190b;
+  filter: brightness(1.12);
   transform: scale(1.02);
 }
 
 .game-dialog-btn-neutral {
-  background: #444;
-  color: white;
-  border-color: #666;
+  background: rgba(246, 236, 206, 0.12);
+  color: var(--pvm-cream);
+  border-color: var(--pvm-gold-line);
 }
 
 .game-dialog-btn-neutral:hover {
-  background: #555;
+  background: rgba(246, 236, 206, 0.2);
   transform: scale(1.02);
 }
 

@@ -42,11 +42,11 @@ export function PlayerStatusBadge({ playerState, playerName, actionCount, maxAct
           flexDirection: 'column',
           alignItems: 'center',
           gap: 3,
-          background: 'rgba(15, 23, 42, 0.88)',
+          background: 'rgba(8, 30, 22, 0.88)',
           border: isActiveTurn ? '1px solid #facc15' : '1px solid rgba(148, 163, 184, 0.35)',
           borderRadius: 6,
           padding: '4px 8px',
-          color: '#e2e8f0',
+          color: '#f6ecce',
           fontSize: '0.75rem',
           fontWeight: 600,
           cursor: 'pointer',
@@ -55,18 +55,18 @@ export function PlayerStatusBadge({ playerState, playerName, actionCount, maxAct
           transition: 'background 0.15s, border-color 0.15s',
         }}
         onMouseEnter={e => {
-          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(30, 41, 59, 0.95)';
+          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(14, 52, 38, 0.95)';
           (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(148, 163, 184, 0.6)';
         }}
         onMouseLeave={e => {
-          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(15, 23, 42, 0.88)';
+          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(8, 30, 22, 0.88)';
           (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(148, 163, 184, 0.35)';
         }}
       >
         {playerName && (
           <span style={{
             fontSize: '0.7rem',
-            color: '#cbd5e1',
+            color: '#c9bb94',
             whiteSpace: 'nowrap',
             display: 'block',
             textAlign: 'center',
@@ -77,12 +77,12 @@ export function PlayerStatusBadge({ playerState, playerName, actionCount, maxAct
 
         <span style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
           <span style={{ color: '#fde68a' }}>★ {playerState.powerPoints}</span>
-          <span style={{ color: 'rgba(148,163,184,0.5)' }}>|</span>
+          <span style={{ color: 'rgba(226,178,60,0.5)' }}>|</span>
           <span style={{ color: '#67e8f9' }}>💎 {playerState.diamondCards?.length ?? 0}</span>
 
           {showActionCounter && actionColors && (
             <>
-              <span style={{ color: 'rgba(148,163,184,0.5)' }}>|</span>
+              <span style={{ color: 'rgba(226,178,60,0.5)' }}>|</span>
               <span
                 data-testid="action-counter"
                 data-action-color={actionColors.color}
@@ -95,7 +95,7 @@ export function PlayerStatusBadge({ playerState, playerName, actionCount, maxAct
 
           {visibleAbilities.length > 0 && (
             <>
-              <span style={{ color: 'rgba(148,163,184,0.5)' }}>|</span>
+              <span style={{ color: 'rgba(226,178,60,0.5)' }}>|</span>
               <span style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                 {visibleAbilities.map((ability, i) => (
                   <span key={i} title={t(getAbilityDisplay(ability.type).nameKey)} style={{ fontSize: '0.7rem' }}>
@@ -103,7 +103,7 @@ export function PlayerStatusBadge({ playerState, playerName, actionCount, maxAct
                   </span>
                 ))}
                 {extraCount > 0 && (
-                  <span style={{ fontSize: '0.65rem', color: '#94a3b8' }}>+{extraCount}</span>
+                  <span style={{ fontSize: '0.65rem', color: '#c9bb94' }}>+{extraCount}</span>
                 )}
               </span>
             </>

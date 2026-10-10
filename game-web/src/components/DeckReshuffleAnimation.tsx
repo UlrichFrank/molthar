@@ -39,7 +39,7 @@ export function DeckReshuffleAnimation({ deckType, style, onDone }: DeckReshuffl
         gap: 6,
         padding: '10px 14px',
         borderRadius: 10,
-        background: 'rgba(15,23,42,0.88)',
+        background: 'rgba(8,30,22,0.9)',
         border: `2px solid ${color}`,
         boxShadow: `0 0 16px ${color}88`,
         pointerEvents: 'none',

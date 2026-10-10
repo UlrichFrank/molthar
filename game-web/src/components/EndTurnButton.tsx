@@ -15,11 +15,11 @@ export function EndTurnButton({ isActive, actionCount, maxActions, onEndTurn }: 
     <button
       onClick={onEndTurn}
       style={{
-        background: 'rgba(239, 68, 68, 0.9)',
-        border: '2px solid #ef4444',
+        background: 'linear-gradient(180deg, #a8392b, #8c2a1e)',
+        border: '1px solid #d96a5b',
         borderRadius: 8,
         padding: '6px 18px',
-        color: '#ffffff',
+        color: '#f6ecce',
         fontSize: '0.85rem',
         fontWeight: 700,
         cursor: 'pointer',
@@ -30,11 +30,11 @@ export function EndTurnButton({ isActive, actionCount, maxActions, onEndTurn }: 
         marginTop: 4,
       }}
       onMouseEnter={e => {
-        (e.currentTarget as HTMLButtonElement).style.background = 'rgba(220, 38, 38, 0.95)';
+        (e.currentTarget as HTMLButtonElement).style.filter = 'brightness(1.12)';
         (e.currentTarget as HTMLButtonElement).style.borderColor = '#dc2626';
       }}
       onMouseLeave={e => {
-        (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239, 68, 68, 0.9)';
+        (e.currentTarget as HTMLButtonElement).style.filter = '';
         (e.currentTarget as HTMLButtonElement).style.borderColor = '#ef4444';
       }}
     >

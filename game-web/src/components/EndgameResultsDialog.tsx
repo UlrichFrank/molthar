@@ -50,12 +50,12 @@ export function EndgameResultsDialog({ ranking, myPlayerId, reason }: EndgameRes
   return (
     <GameDialog>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-        <h2 style={{ margin: 0, color: '#f1f5f9', fontSize: '1.4rem', textAlign: 'center' }}>
+        <h2 style={{ margin: 0, color: '#f6ecce', fontSize: '1.4rem', textAlign: 'center' }}>
           {t('endgame.title')}
         </h2>
 
         {terminated && (
-          <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.875rem', textAlign: 'center' }}>
+          <p style={{ margin: 0, color: '#c9bb94', fontSize: '0.875rem', textAlign: 'center' }}>
             {t('endgame.terminated')}
           </p>
         )}
@@ -81,15 +81,15 @@ export function EndgameResultsDialog({ ranking, myPlayerId, reason }: EndgameRes
                   <td style={{ ...tdStyle, textAlign: 'center', fontSize: '1.1rem' }}>
                     {RANK_LABELS[i] ?? `${i + 1}.`}
                   </td>
-                  <td style={{ ...tdStyle, color: isWinner ? '#fde68a' : '#e2e8f0', fontWeight: isWinner ? 700 : 400 }}>
+                  <td style={{ ...tdStyle, color: isWinner ? '#e2b23c' : '#f6ecce', fontWeight: isWinner ? 700 : 400 }}>
                     {p.name}
-                    {isMe && <span style={{ marginLeft: 6, fontSize: '0.75rem', color: '#94a3b8' }}>{t('endgame.me')}</span>}
+                    {isMe && <span style={{ marginLeft: 6, fontSize: '0.75rem', color: '#c9bb94' }}>{t('endgame.me')}</span>}
                     {isWinner && !terminated && <span style={{ marginLeft: 6, fontSize: '0.75rem', color: '#fbbf24' }}>★</span>}
                   </td>
-                  <td style={{ ...tdStyle, textAlign: 'center', color: '#f1f5f9', fontWeight: 600 }}>
+                  <td style={{ ...tdStyle, textAlign: 'center', color: '#f6ecce', fontWeight: 600 }}>
                     {p.powerPoints}
                   </td>
-                  <td style={{ ...tdStyle, textAlign: 'center', color: '#7dd3fc' }}>
+                  <td style={{ ...tdStyle, textAlign: 'center', color: '#67e8f9' }}>
                     {p.diamonds}
                   </td>
                 </tr>
@@ -103,14 +103,14 @@ export function EndgameResultsDialog({ ranking, myPlayerId, reason }: EndgameRes
             onClick={handleLeave}
             style={{
               padding: '0.6rem 1.5rem',
-              background: '#1e40af', border: '1px solid #3b82f6',
-              borderRadius: 8, color: '#e0f2fe', fontSize: '0.95rem',
+              background: '#6b2418', border: '1px solid #d96a5b',
+              borderRadius: 8, color: '#f6ecce', fontSize: '0.95rem',
               fontWeight: 600, cursor: 'pointer',
             }}
           >
             {t('endgame.backToLobby')}
           </button>
-          <span style={{ color: '#64748b', fontSize: '0.8rem' }}>
+          <span style={{ color: '#a89a72', fontSize: '0.8rem' }}>
             {t('endgame.autoLeave', { countdown })}
           </span>
         </div>
@@ -120,7 +120,7 @@ export function EndgameResultsDialog({ ranking, myPlayerId, reason }: EndgameRes
 }
 
 const thStyle: React.CSSProperties = {
-  padding: '0.4rem 0.6rem', color: '#64748b',
+  padding: '0.4rem 0.6rem', color: '#a89a72',
   fontSize: '0.75rem', fontWeight: 600, textAlign: 'center',
 };
 const tdStyle: React.CSSProperties = {

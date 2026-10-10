@@ -20,3 +20,25 @@ body {
   background: linear-gradient(to bottom right, #0f172a, #1e293b);
   color: #f1f5f9;
 }
+
+/* Spiel-Look (grüner Filz, Pergament, Gold) — Tokens für alle DOM-Komponenten */
+:root {
+  --pvm-felt: #0f3d2e;
+  --pvm-panel: rgba(8, 30, 22, 0.88);
+  --pvm-panel-solid: #0d2a20;
+  --pvm-panel-soft: rgba(14, 52, 38, 0.65);
+  --pvm-gold: #e2b23c;
+  --pvm-gold-deep: #c58f1b;
+  --pvm-gold-line: rgba(226, 178, 60, 0.4);
+  --pvm-cream: #f6ecce;
+  --pvm-cream-dim: #c9bb94;
+  --pvm-burgundy: #8c2a1e;
+  --pvm-serif: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+}
+
+.pvm-btn-gold {
+  background: linear-gradient(180deg, #f1c95a, var(--pvm-gold-deep));
+  color: #2b1d08;
+  border: 1px solid #6e5014;
+  box-shadow: 0 2px 0 #6e5014;
+}

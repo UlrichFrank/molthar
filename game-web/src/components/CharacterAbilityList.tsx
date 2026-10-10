@@ -16,7 +16,7 @@ export const CharacterAbilityList: React.FC<CharacterAbilityListProps> = ({ card
 
   return (
     <div className="flex flex-col gap-2 w-full">
-      <h3 style={{ margin: 0, fontSize: '0.85rem', color: '#16c784', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', textAlign: 'center' }}>{t('detail.abilities')}</h3>
+      <h3 style={{ margin: 0, fontSize: '0.85rem', color: '#e2b23c', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', textAlign: 'center' }}>{t('detail.abilities')}</h3>
       {redAbilities.map(ability => {
         const display = getAbilityDisplay(ability.type);
         const desc = t(display.descriptionKey);
