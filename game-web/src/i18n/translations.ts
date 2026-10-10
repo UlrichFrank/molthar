@@ -153,6 +153,25 @@ export type TranslationKey =
   // Lobby session info
   | 'lobby.sessionInfo'
   | 'lobby.fallbackPlayerName'
+  | 'lobby.tagline'
+  | 'lobby.invited'
+  | 'lobby.takeSeat'
+  | 'lobby.nameFirst'
+  | 'lobby.inviteFull'
+  | 'lobby.inviteGone'
+  | 'lobby.youSit'
+  | 'lobby.openTables'
+  | 'waiting.seat'
+  | 'waiting.you'
+  | 'waiting.computer'
+  | 'waiting.free'
+  | 'waiting.present'
+  | 'waiting.inviteHint'
+  | 'waiting.share'
+  | 'waiting.copied'
+  | 'waiting.shareText'
+  | 'create.seatYou'
+  | 'create.hint'
   // Ability names
   | 'ability.threeExtraActions.name'
   | 'ability.nextPlayerOneExtraAction.name'
@@ -338,6 +357,25 @@ const de: Record<TranslationKey, string> = {
   'canvas.freePearlReplace':     '★ Gratis',
   'lobby.sessionInfo':           'Spiel {matchID} als {playerName}',
   'lobby.fallbackPlayerName':    'Spieler {n}',
+  'lobby.tagline': 'Sammle Perlen, öffne Portale, ruf die Helden.',
+  'lobby.invited': 'Du bist an den Tisch von {name} eingeladen.',
+  'lobby.takeSeat': 'Platz nehmen',
+  'lobby.nameFirst': 'Erst Namen eingeben',
+  'lobby.inviteFull': 'An diesem Tisch ist kein Platz mehr frei.',
+  'lobby.inviteGone': 'Diesen Tisch gibt es nicht mehr.',
+  'lobby.youSit': 'Du sitzt noch an einem Tisch.',
+  'lobby.openTables': 'Offene Tische',
+  'waiting.seat': 'Platz {n}',
+  'waiting.you': 'du',
+  'waiting.computer': 'Computer',
+  'waiting.free': 'frei',
+  'waiting.present': 'da',
+  'waiting.inviteHint': 'Schick diesen Link an deine Mitspieler:',
+  'waiting.share': 'Einladung teilen',
+  'waiting.copied': 'Link kopiert',
+  'waiting.shareText': 'Spiel mit mir die Portale von Molthar!',
+  'create.seatYou': 'Du',
+  'create.hint': 'Du sitzt auf Platz 1. Wer soll mitspielen?',
   'ability.threeExtraActions.name':              '+3 Aktionen',
   'ability.nextPlayerOneExtraAction.name':       '+1 Aktion für nächsten Spieler',
   'ability.discardOpponentCharacter.name':       'Portalkarte entfernen',
@@ -520,6 +558,25 @@ const enGB: Record<TranslationKey, string> = {
   'canvas.freePearlReplace':     '★ Free',
   'lobby.sessionInfo':           'Game {matchID} as {playerName}',
   'lobby.fallbackPlayerName':    'Player {n}',
+  'lobby.tagline': 'Gather pearls, open portals, call the heroes.',
+  'lobby.invited': 'You are invited to {name}\'s table.',
+  'lobby.takeSeat': 'Take a seat',
+  'lobby.nameFirst': 'Enter your name first',
+  'lobby.inviteFull': 'There is no free seat left at this table.',
+  'lobby.inviteGone': 'This table no longer exists.',
+  'lobby.youSit': 'You still have a seat at a table.',
+  'lobby.openTables': 'Open tables',
+  'waiting.seat': 'Seat {n}',
+  'waiting.you': 'you',
+  'waiting.computer': 'Computer',
+  'waiting.free': 'free',
+  'waiting.present': 'here',
+  'waiting.inviteHint': 'Send this link to your fellow players:',
+  'waiting.share': 'Share invitation',
+  'waiting.copied': 'Link copied',
+  'waiting.shareText': 'Play Portal of Heroes with me!',
+  'create.seatYou': 'You',
+  'create.hint': 'You take seat 1. Who else is playing?',
   'ability.threeExtraActions.name':              '+3 Actions',
   'ability.nextPlayerOneExtraAction.name':       '+1 Action for next player',
   'ability.discardOpponentCharacter.name':       'Remove portal card',
@@ -702,6 +759,25 @@ const fr: Record<TranslationKey, string> = {
   'canvas.freePearlReplace':     '★ Gratuit',
   'lobby.sessionInfo':           'Partie {matchID} en tant que {playerName}',
   'lobby.fallbackPlayerName':    'Joueur {n}',
+  'lobby.tagline': 'Rassemble des perles, ouvre des portails, appelle les héros.',
+  'lobby.invited': 'Tu es invité·e à la table de {name}.',
+  'lobby.takeSeat': 'Prendre place',
+  'lobby.nameFirst': 'Saisis d\'abord ton nom',
+  'lobby.inviteFull': 'Il n\'y a plus de place à cette table.',
+  'lobby.inviteGone': 'Cette table n\'existe plus.',
+  'lobby.youSit': 'Tu as encore une place à une table.',
+  'lobby.openTables': 'Tables ouvertes',
+  'waiting.seat': 'Place {n}',
+  'waiting.you': 'toi',
+  'waiting.computer': 'Ordinateur',
+  'waiting.free': 'libre',
+  'waiting.present': 'là',
+  'waiting.inviteHint': 'Envoie ce lien à tes coéquipiers :',
+  'waiting.share': 'Partager l\'invitation',
+  'waiting.copied': 'Lien copié',
+  'waiting.shareText': 'Joue au Portail des Héros avec moi !',
+  'create.seatYou': 'Toi',
+  'create.hint': 'Tu prends la place 1. Qui joue avec toi ?',
   'ability.threeExtraActions.name':              '+3 actions',
   'ability.nextPlayerOneExtraAction.name':       '+1 action pour le prochain joueur',
   'ability.discardOpponentCharacter.name':       'Retirer une carte portail',

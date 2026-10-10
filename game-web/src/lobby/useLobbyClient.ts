@@ -15,6 +15,7 @@ export const lobbyClient = new LobbyClient({ server: SERVER_URL });
 
 export const PortaleClient = Client({
   game: PortaleVonMolthar,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- boardgame.io's board props are not worth typing here
   board: GameBoardSwitch as unknown as ComponentType<any>,
   numPlayers: 2,
   multiplayer: SocketIO({ server: SERVER_URL }),
@@ -44,4 +45,8 @@ export interface Match {
 export function freeHumanSlots(match: Match): MatchPlayer[] {
   const npcIndices = new Set((match.setupData?.npcSlots ?? []).map(s => s.playerIndex));
   return match.players.filter(p => p.name === undefined && !npcIndices.has(p.id));
+}
+
+export function inviteLink(matchID: string): string {
+  return `${window.location.origin}/?match=${encodeURIComponent(matchID)}`;
 }
