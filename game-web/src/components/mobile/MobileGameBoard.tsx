@@ -5,8 +5,9 @@ import { useGameBoardCore } from '../../hooks/useGameBoardCore';
 import type { GameBoardProps } from '../../hooks/useGameBoardCore';
 import { SharedGameDialogs } from '../SharedGameDialogs';
 import { MobileStatusBar } from './MobileStatusBar';
-import { MarketZone } from './MarketZone';
-import { PortalZone } from './PortalZone';
+import { PearlMarket, CharacterMarket } from './MarketZone';
+import { PortalZone, OwnActivatedRow } from './PortalZone';
+import { OpponentStrip } from './OpponentStrip';
 import { HandDock } from './HandDock';
 import { ActionBar } from './ActionBar';
 import { ActivatedGridSheet } from './ActivatedGridSheet';
@@ -45,9 +46,10 @@ function MobileGameBoardContent(props: GameBoardProps) {
         actionCount={core.actionCount}
         maxActions={core.maxActions}
         resolvePlayerName={core.resolvePlayerName}
-        onOpenOpponentDetail={setOpponentDetailId}
       />
+      <OpponentStrip G={G} core={core} activePlayerID={core.activePlayerID} onOpenOpponentDetail={setOpponentDetailId} />
 
+      <div className="mobile-banner-stack">
       {G.finalRound && core.gameover === undefined && (() => {
         const leaders = Object.values(G.players ?? {})
           .filter(p => p && p.powerPoints >= FINAL_ROUND_POWER_THRESHOLD)
@@ -68,6 +70,7 @@ function MobileGameBoardContent(props: GameBoardProps) {
           <div className="mobile-banner mobile-banner--pearl-refresh">{t('game.pearlRefresh')}</div>
         </div>
       )}
+      </div>
       {G.isReshufflingPearlDeck && (
         <DeckReshuffleAnimation
           deckType="pearl"
@@ -83,9 +86,13 @@ function MobileGameBoardContent(props: GameBoardProps) {
         />
       )}
 
-      <div className="mobile-scroll">
-        <MarketZone G={G} core={core} />
-        <PortalZone core={core} onOpenActivatedGrid={() => setActivatedGridOpen(true)} />
+      <div className="mobile-table">
+        <PearlMarket G={G} core={core} />
+        <CharacterMarket G={G} core={core} />
+        <div className="mobile-own-row">
+          <PortalZone core={core} />
+          <OwnActivatedRow core={core} onOpenActivatedGrid={() => setActivatedGridOpen(true)} />
+        </div>
       </div>
 
       <HandDock core={core} />

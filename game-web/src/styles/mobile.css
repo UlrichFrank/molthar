@@ -1,9 +1,24 @@
 /* =====================================================
-   Mobile Hochkant Board — Task 1.3/4.x/D3
-   Column layout: fixed status bar / scroll (market+portal) / fixed hand dock / fixed action bar
+   Mobile board — everything visible at once, no scrolling.
+   Column: status / opponents / table (pearl market, character market + own
+   portal, own activated fan) / hand / actions.
+
+   One variable drives the card size: --cw (pearl width). It is the smaller of
+   what the width allows (market characters are 1.7 cw wide, the pearl row is
+   5 cw) and what the height allows (rows add up to ~7.9 cw plus ~232px (pearls 0.8, hand 0.7, opponents with a thumbnail line) of fixed chrome). Every other card derives from --cw.
    ===================================================== */
 
 .mobile-board {
+  --gap: 4px;
+  --pad: 8px;
+  --card-ratio: 1.5465; /* 515 / 333 */
+  --char-w: calc(var(--cw) * 1.7);
+  --deck-w: var(--cw);
+  --cw-w: calc((100vw - 2 * var(--pad) - 6 * var(--gap) - 8px) / 5.2);
+  --cw-h: calc((100dvh - 232px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) / 7.93);
+  --cw: min(var(--cw-w), var(--cw-h), 150px);
+  /* Height the fixed rows do not need (tall phones, width-limited --cw): handed to the opponents' cards. */
+  --spare: max(0px, calc(100dvh - 232px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 7.93 * var(--cw)));
   position: fixed;
   inset: 0;
   height: 100dvh;
@@ -15,104 +30,21 @@
   touch-action: manipulation;
 }
 
-/* ── Status bar (Variante C) ───────────────────────────────────────────────
-   Layout budget (worst case: German strings, opponent expanded and on turn):
-
-     usable = viewport − 8px left padding − right reserve
-     right reserve = buttonCount × 40px + 6px      (see --pvm-ingame-action-count)
-
-   ≤3 players  detail 170px + n×(6px gap + 28px avatar)
-   ≥4 players  detail 131px (name shrinks) + n×(5px gap + 26px avatar)
-
-   Everything is sized so that nothing overflows down to 360px with two fixed
-   action buttons; `overflow: hidden` below is a guard, not the layout mechanism.
-   ------------------------------------------------------------------------- */
+/* ── Own status bar ───────────────────────────────────────────────────── */
 .mobile-status-bar {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 8px;
+  padding: 5px var(--pad);
   padding-top: calc(5px + env(safe-area-inset-top, 0px));
-  /* Reserve room for the fixed icon buttons (App.css .in-game-actions).
-     Each button is 34px wide with a 6px gap and sits 6px from the right edge,
-     so `count × 40px` covers them exactly; +6px keeps content clear of them.
-     `--pvm-ingame-action-count` is set on `.game-container` (LobbyScreen). */
+  /* Keep clear of the fixed icon buttons (App.css .in-game-actions): count × 40px + 6px. */
   padding-right: calc(var(--pvm-ingame-action-count, 2) * 40px + 6px);
   background: rgba(15, 23, 42, 0.97);
   border-bottom: 1px solid rgba(148, 163, 184, 0.25);
-  /* Explicit on both axes: `overflow-x: hidden` alone makes overflow-y `auto`. */
+  min-height: 44px;
   overflow: hidden;
 }
 
-.mobile-status-bar--compact {
-  gap: 5px;
-}
-
-/* ── Compact avatars ───────────────────────────────────────────────────── */
-.mobile-status-avatar {
-  flex: 0 0 auto;
-  width: 28px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-}
-
-.mobile-status-bar--compact .mobile-status-avatar {
-  width: 26px;
-}
-
-.mobile-status-avatar-circle {
-  position: relative;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #0a0f1e;
-}
-
-.mobile-status-bar--compact .mobile-status-avatar-circle {
-  width: 22px;
-  height: 22px;
-  font-size: 0.65rem;
-}
-
-/* Gold ring via box-shadow so the identity marker costs no layout width. */
-.mobile-status-avatar--own .mobile-status-avatar-circle {
-  box-shadow: 0 0 0 2px #facc15, 0 0 6px 1px rgba(250, 204, 21, 0.5);
-}
-
-.mobile-status-avatar-turn-dot {
-  position: absolute;
-  top: -1px;
-  right: -1px;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: #22c55e;
-  border: 1.5px solid #0a0f1e;
-}
-
-/* In normal flow under the circle — an absolutely positioned badge would hang
-   out of the bar and be clipped by `overflow: hidden`. */
-.mobile-status-avatar-points {
-  font-size: 0.55rem;
-  line-height: 1.15;
-  font-weight: 700;
-  color: #fde68a;
-  white-space: nowrap;
-}
-
-/* ── Expanded detail box (two internal lines) ──────────────────────────── */
 .mobile-status-detail {
   flex: 1 1 auto;
   min-width: 0;
@@ -123,106 +55,42 @@
   border-radius: 8px;
   background: rgba(30, 41, 59, 0.7);
   border: 1px solid rgba(148, 163, 184, 0.3);
-  cursor: default;
+  font-size: 0.68rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
-.mobile-status-bar--compact .mobile-status-detail {
-  gap: 5px;
-}
-
-.mobile-status-detail--tappable {
-  cursor: pointer;
-}
-
-.mobile-status-detail--own {
-  border-color: #facc15;
-  box-shadow: 0 0 6px 1px rgba(250, 204, 21, 0.35);
-}
-
-.mobile-status-detail--turn {
-  border-color: #22c55e;
-  box-shadow: 0 0 6px 1px rgba(34, 197, 94, 0.35);
-}
+.mobile-status-detail--own { border-color: #facc15; }
+.mobile-status-detail--turn { border-color: #22c55e; box-shadow: 0 0 6px 1px rgba(34, 197, 94, 0.35); }
 
 .mobile-status-detail-circle {
   flex: 0 0 auto;
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #0a0f1e;
-}
-
-.mobile-status-bar--compact .mobile-status-detail-circle {
-  width: 24px;
-  height: 24px;
   font-size: 0.7rem;
-}
-
-.mobile-status-detail-info {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.mobile-status-detail-line {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  min-width: 0;
-}
-
-.mobile-status-bar--compact .mobile-status-detail-line {
-  gap: 4px;
+  color: #0a0f1e;
 }
 
 .mobile-status-detail-name {
   flex: 0 1 auto;
   min-width: 0;
-  font-size: 0.7rem;
-  line-height: 1.15;
-  font-weight: 700;
-  color: #e2e8f0;
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 6em;
-}
-
-.mobile-status-bar--compact .mobile-status-detail-name {
-  max-width: 4.5em;
+  max-width: 5.5em;
+  color: #e2e8f0;
 }
 
 .mobile-status-turn-badge {
   flex: 0 0 auto;
   font-size: 0.55rem;
-  line-height: 1.3;
-  font-weight: 700;
   color: #04160f;
   background: #34d399;
   border-radius: 999px;
   padding: 0 4px;
-  white-space: nowrap;
-}
-
-.mobile-status-detail-meta {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.62rem;
-  line-height: 1.15;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.mobile-status-bar--compact .mobile-status-detail-meta {
-  gap: 4px;
 }
 
 .mobile-status-detail-rank { color: #94a3b8; }
@@ -230,66 +98,149 @@
 .mobile-status-detail-diamonds { color: #67e8f9; }
 .mobile-status-detail-actions { color: #4ade80; }
 
-.mobile-status-detail-chevron {
+/* ── Opponents: one tile each, always visible ─────────────────────────── */
+.mobile-opponents {
   flex: 0 0 auto;
-  font-size: 0.7rem;
-  line-height: 1;
-  color: #64748b;
+  display: grid;
+  grid-template-columns: repeat(var(--opp), minmax(0, 1fr));
+  gap: var(--gap);
+  padding: 5px var(--pad) 0;
 }
 
-/* ── Scroll area: market + own portal ──────────────────────────────────── */
-.mobile-scroll {
-  flex: 1 1 auto;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  padding: 8px;
+.mobile-opp {
+  container-type: inline-size;
+  min-width: 0;
+  border-radius: 6px;
+  padding: 3px;
+  background: rgba(30, 41, 59, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.mobile-opp--turn { border-color: #22c55e; box-shadow: 0 0 5px 1px rgba(34, 197, 94, 0.4); }
+
+.mobile-opp-head {
+  all: unset;
+  box-sizing: border-box;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.58rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.mobile-opp-dot { flex: 0 0 auto; width: 7px; height: 7px; border-radius: 50%; }
+.mobile-opp-name { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.mobile-opp-hand { color: #94a3b8; }
+
+.mobile-opp-cards {
+  /* two portal cards fill the tile at most; one pearl width, plus any spare screen height */
+  --mini-w: min(calc((100cqw - 3px) / 2 - 3px), calc(var(--cw) * 1.0 + var(--spare) / 1.8), 120px); display: flex; flex-direction: column; gap: 3px; margin-top: 3px; }
+.mobile-opp-portal { display: flex; gap: 3px; }
+
+.mobile-opp-activated {
+  all: unset;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.mobile-section-title {
-  font-size: 0.65rem;
+  align-items: stretch;
+  gap: 3px;
+  min-width: 0;
+  font-size: 0.62rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #94a3b8;
-  margin: 0 0 4px 2px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+.mobile-opp-activated-line { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; min-height: 16px; }
+.mobile-opp-thumbs { --thumb-w: calc(var(--mini-w) * 0.55); display: flex; min-width: 0; }
+.mobile-opp-thumbs > .mobile-card-btn { width: var(--thumb-w); }
+.mobile-opp-thumbs > .mobile-card-btn + .mobile-card-btn {
+  margin-left: min(2px, calc((100% - var(--thumb-w)) / (var(--n) - 1) - var(--thumb-w)));
+  box-shadow: -2px 0 4px rgba(0, 0, 0, 0.5);
+}
+.mobile-opp-activated-count { color: #86efac; }
+.mobile-opp-chip { background: rgba(99, 102, 241, 0.35); border-radius: 4px; padding: 0 3px; color: #e2e8f0; white-space: nowrap; }
+
+/* Narrow tiles (5 players on a phone): drop the hand count, names need the room. */
+@container (max-width: 110px) {
+  .mobile-opp-hand { display: none; }
 }
 
-/* Zone wrapper: caps the fluid card rows so they don't get grotesque on wide
-   phones/small tablets. 440px ≈ the iPhone-14 content width (390 − 2×8 = 374px)
-   plus ~18% headroom; below that every row simply fills the viewport. */
-.mobile-zone {
+/* Wide tiles (tablets): portal and activated fan share one row. */
+@container (min-width: 170px) {
+  .mobile-opp-cards { flex-direction: row; align-items: flex-start; gap: 8px; }
+  .mobile-opp-cards .mobile-opp-activated { flex: 1 1 0; }
+}
+
+/* Mini cards: opponents' portal/activated. Width follows --cw so they grow with the screen. */
+.mobile-card-btn--mini {
+  width: var(--mini-w);
+  aspect-ratio: 333 / 515;
+  border-radius: 3px;
+  flex: 0 0 auto;
+}
+
+.mobile-card-btn--mini.mobile-card-btn--portal-empty { border: 1px dashed rgba(148, 163, 184, 0.3); }
+
+/* ── Overlapping fan (activated characters) ───────────────────────────────
+   --n cards; each overlaps just enough that the row fits its container:
+   margin-left = min(gap, (100% − cardWidth)/(n−1) − cardWidth). */
+.mobile-fan {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  min-width: 0;
   width: 100%;
-  max-width: 440px;
-  margin-inline: auto;
+  min-height: calc(var(--mini-w) * var(--card-ratio));
+  cursor: pointer;
 }
 
-/* Market rows are fixed-count grids — they must NEVER wrap, so the four market
-   pearls always stay together on one line (hot path) and the draw piles sit at
-   the end of their own row. Card width is derived from the row: pearls
-   (100% − 4×gap)/5 ≈ 70px @390px, characters (100% − 2×gap)/3 ≈ 121px @390px. */
+.mobile-fan > .mobile-card-btn + .mobile-card-btn {
+  margin-left: min(2px, calc((100% - var(--fan-w)) / (var(--n) - 1) - var(--fan-w)));
+  box-shadow: -2px 0 4px rgba(0, 0, 0, 0.5);
+}
+
+.mobile-fan--mini { --fan-w: var(--mini-w); }
+.mobile-own-activated .mobile-fan { --fan-w: calc(var(--cw) * 0.62); }
+.mobile-fan-empty { font-size: 0.6rem; color: #64748b; }
+
+/* ── Table ────────────────────────────────────────────────────────────── */
+.mobile-table {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  padding: 0 var(--pad);
+  overflow: hidden;
+}
+
+.mobile-zone { width: 100%; }
+
 .mobile-market-row {
   display: grid;
-  gap: 6px;
+  gap: var(--gap);
   align-items: start;
+  justify-content: center;
 }
 
-.mobile-market-row--pearls {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-}
+.mobile-market-row--pearls { grid-template-columns: repeat(5, calc(var(--cw) * 0.8)); }
+.mobile-market-row--characters { grid-template-columns: repeat(2, var(--char-w)) var(--deck-w); }
 
-.mobile-market-row--characters {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.mobile-market-zone {
+.mobile-own-row {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
+
+.mobile-portal-slots { display: grid; grid-template-columns: repeat(2, var(--cw)); gap: var(--gap); }
+.mobile-portal-slot-col { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
+.mobile-portal-swap-btn { padding: 2px 6px; font-size: 0.6rem; flex: 0 0 auto; }
 
 .mobile-card-btn {
   -webkit-appearance: none;
@@ -306,33 +257,30 @@
   flex: 0 0 auto;
 }
 
-.mobile-card-btn:disabled {
-  cursor: default;
-}
+.mobile-card-btn:disabled { cursor: default; }
 
 .mobile-card-btn img {
   width: 100%;
   height: 100%;
   object-fit: fill;
   display: block;
-  border-radius: 4px;
+  border-radius: inherit;
 }
 
-/* Fluid: the parent grid/flex track decides the width, aspect-ratio the height.
-   666×1030px card assets → 333/515 (exact, distortion-free with `object-fit: fill`). */
-.mobile-card-btn--character {
+/* 666×1030px card assets → 333/515 (exact, distortion-free with `object-fit: fill`). */
+.mobile-card-btn--character,
+.mobile-card-btn--pearl,
+.mobile-card-btn--portal,
+.mobile-card-btn--activated {
   width: 100%;
   aspect-ratio: 333 / 515;
 }
 
-.mobile-card-btn--pearl {
-  width: 100%;
-  aspect-ratio: 333 / 515;
-}
+.mobile-card-btn--activated { width: calc(var(--cw) * 0.62); border-radius: 3px; }
 
-.mobile-card-btn--deck img {
-  filter: brightness(0.85);
-}
+.mobile-card-btn--portal { border: 2px solid rgba(148, 163, 184, 0.3); border-radius: 6px; }
+
+.mobile-card-btn--deck img { filter: brightness(0.85); }
 
 .mobile-deck-count {
   position: absolute;
@@ -346,157 +294,77 @@
   border-radius: 3px;
 }
 
-.mobile-portal-section {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-}
-
-/* Own portal is the most important surface of the scroll area: the two slots
-   share the space left over by the meta column, capped at 224px → ~109px per
-   card @390px and ~104px @360px (was a fixed 72px). */
-.mobile-portal-slots {
-  display: flex;
-  gap: 6px;
-  flex: 1 1 224px;
-  min-width: 0;
-  max-width: 224px;
-}
-
-.mobile-portal-slots > * {
-  flex: 1 1 0;
-  min-width: 0;
-}
-
-/* Extra bottom space when the portal slots sit above further sheet content
-   (OpponentDetailSheet), not needed in the scroll-area PortalZone usage. */
-.mobile-portal-slots--sheet {
-  margin-bottom: 16px;
-}
-
-/* Column wrapper around a portal slot + its optional "Tauschen" button. */
-.mobile-portal-slot-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.mobile-portal-swap-btn {
-  padding: 2px 8px;
-  font-size: 0.65rem;
-  flex: 0 0 auto;
-}
-
-.mobile-card-btn--portal {
-  width: 100%;
-  aspect-ratio: 333 / 515;
-  border: 2px solid rgba(148, 163, 184, 0.3);
-  border-radius: 6px;
-}
-
 .mobile-card-btn--portal-empty {
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(148, 163, 184, 0.08);
-  color: #475569;
-  font-size: 1.4rem;
 }
 
-.mobile-card-btn--actionable {
-  box-shadow: 0 0 0 2px #22c55e;
-}
+.mobile-card-btn--actionable { box-shadow: 0 0 0 2px #22c55e; }
+.mobile-card-btn--inactive { opacity: 0.4; }
 
-/* Task review point 2: pearls + draw piles are wirkungslos taps without `canAct`
-   (see useGameBoardCore.takePearlFromMarket/takePearlFromDeck/takeCharacterFromDeck) —
-   dim them the same way disabled action buttons already are (opacity 0.4) instead
-   of inventing a new state color. Character-display cards stay untouched: they
-   always open a preview even without `canAct`. */
-.mobile-card-btn--inactive {
-  opacity: 0.4;
-}
-
-.mobile-portal-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-  font-size: 0.7rem;
-  color: #94a3b8;
-}
+.mobile-own-activated { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.mobile-own-activated .mobile-fan { flex: 1 1 0; min-height: calc(var(--cw) * 0.62 * var(--card-ratio)); }
 
 .mobile-activated-counter {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  flex: 0 0 auto;
   background: rgba(30, 41, 59, 0.8);
   border: 1px solid rgba(148, 163, 184, 0.3);
   border-radius: 8px;
-  padding: 6px 10px;
+  padding: 6px 8px;
   color: #e2e8f0;
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 700;
   cursor: pointer;
 }
 
-/* ── Hand dock ──────────────────────────────────────────────────────────── */
-/* Task review point 1: fanned out (overlapping) instead of a flat gapped row —
-   a flat row at handlimit 8-9 needs 9×48 + 8×4 = 464px and forces horizontal
-   scrolling on most phones; the fan needs ~9px overlap per card (~360px for 9
-   cards) so the whole hand is visible without swiping. `overflow-x: auto`
-   stays as a safety net for hands larger than that. */
+.mobile-section-title {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  margin: 0 0 4px 2px;
+}
+
+/* ── Hand dock: fanned so a full hand fits without swiping ───────────────── */
 .mobile-hand-dock {
   flex: 0 0 auto;
   display: flex;
   align-items: flex-end;
-  padding: 8px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  justify-content: center;
+  padding: 5px var(--pad);
   background: rgba(15, 23, 42, 0.92);
   border-top: 1px solid rgba(148, 163, 184, 0.2);
+  min-height: calc(var(--cw) * 0.7 * var(--card-ratio) + 10px);
 }
 
-/* Mockup: `.hand-row.fan .pcard { margin-right: -6px; box-shadow: -3px 0 6px rgba(0,0,0,0.4); }`
-   at a 0.677 mockup scale — values below are that spec scaled ~1.5× to real size. */
 .mobile-card-btn--hand {
-  width: 48px;
+  width: calc(var(--cw) * 0.7);
   aspect-ratio: 333 / 515;
-  margin-right: -9px;
+  margin-right: calc(var(--cw) * -0.16);
   box-shadow: -4px 0 9px rgba(0, 0, 0, 0.4);
 }
 
-/* Last card must not reserve negative space nobody overlaps into. */
-.mobile-card-btn--hand:last-child {
-  margin-right: 0;
-}
-
-.mobile-card-btn--joker {
-  box-shadow: 0 0 0 2px #c4b5fd;
-}
-
-/* Jokers stay recognizably set apart in the fan: more gap to the preceding card
-   than the regular overlap (was an inline `marginLeft: 6` style). Hand only —
-   the market pearls sit in a fixed-column grid, where a margin would shift the
-   whole row out of alignment. */
-.mobile-card-btn--hand.mobile-card-btn--joker {
-  margin-left: 6px;
-}
+.mobile-card-btn--hand:last-child { margin-right: 0; }
+.mobile-card-btn--joker { box-shadow: 0 0 0 2px #c4b5fd; }
+.mobile-card-btn--hand.mobile-card-btn--joker { margin-left: 6px; }
 
 /* ── Action bar ─────────────────────────────────────────────────────────── */
 .mobile-action-bar {
   flex: 0 0 auto;
   display: flex;
   gap: 8px;
-  padding: 8px;
-  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  padding: 6px var(--pad);
+  padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
   background: rgba(10, 15, 30, 0.98);
   border-top: 1px solid rgba(148, 163, 184, 0.2);
 }
 
 .mobile-action-btn {
   flex: 1 1 0;
-  padding: 10px 6px;
+  padding: 9px 6px;
   font-size: 0.78rem;
   font-weight: 700;
   border-radius: 8px;
@@ -507,17 +375,99 @@
   white-space: nowrap;
 }
 
-.mobile-action-btn--end-turn {
-  border-color: #ef4444;
-  background: rgba(239, 68, 68, 0.9);
+.mobile-action-btn--end-turn { border-color: #ef4444; background: rgba(239, 68, 68, 0.9); }
+.mobile-action-btn:disabled { opacity: 0.4; cursor: default; }
+
+/* ── Phone landscape (short viewport) ─────────────────────────────────────
+   Three columns: opponents | market + hand | status, own activated, actions.
+   `.mobile-table` dissolves (display: contents) so its rows join the grid.
+   Height budget: pearl + character row + hand = 4.64 cw, plus ~36px
+   of padding/gaps (the action buttons fit beside the hand). */
+@media (orientation: landscape) and (max-height: 520px) {
+  .mobile-board {
+    --char-w: calc(var(--cw) * 1.2);
+    --cw-w: calc((100vw - 112px - 200px - 40px) / 5.6);
+    --cw-h: calc((100dvh - 36px) / 4.64);
+    --cw: min(var(--cw-w), var(--cw-h), 150px);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) calc(var(--cw) * 5.4 + 24px) 112px;
+    grid-template-rows: auto 1fr auto;
+    column-gap: 6px;
+    padding: 4px max(6px, env(safe-area-inset-right)) 4px max(6px, env(safe-area-inset-left));
+  }
+
+  .mobile-table { display: contents; }
+
+  .mobile-opponents {
+    grid-column: 1;
+    grid-row: 1 / span 3;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    gap: var(--gap);
+    min-height: 0;
+  }
+  .mobile-opp { flex: 1 1 0; min-height: 0; }
+  .mobile-opp-cards {
+    --mini-w: min(calc((100cqw - 3px) / 2 - 3px), calc(var(--cw) * 0.6), calc(((100dvh - 24px) / var(--opp) - 26px) / var(--card-ratio)));
+  }
+
+  .mobile-zone { grid-column: 2; grid-row: 1; align-self: start; }
+  .mobile-char-market { grid-column: 2; grid-row: 2; align-self: start; justify-self: start; margin-top: 6px; }
+  .mobile-own-row { display: contents; }
+  .mobile-portal-slots { grid-column: 2; grid-row: 2; align-self: start; justify-self: end; margin-top: 6px; }
+  .mobile-hand-dock { grid-column: 2; grid-row: 3; border-radius: 6px; align-self: end; }
+
+  .mobile-status-bar {
+    grid-column: 3; grid-row: 1;
+    padding: 0; min-height: 0; background: none; border: none;
+    /* the fixed icon buttons sit top-right; leave their row free */
+    padding-top: 40px;
+    align-items: flex-start;
+  }
+  .mobile-status-detail { flex-wrap: wrap; row-gap: 2px; gap: 4px; }
+
+  .mobile-own-activated { grid-column: 3; grid-row: 2; flex-direction: column; align-items: stretch; align-self: start; margin-top: 6px; }
+  .mobile-own-activated .mobile-fan { --fan-w: calc(var(--cw) * 0.5); min-height: calc(var(--cw) * 0.5 * var(--card-ratio)); }
+  .mobile-own-activated .mobile-card-btn--activated { width: calc(var(--cw) * 0.5); }
+
+  .mobile-action-bar {
+    grid-column: 3; grid-row: 3;
+    flex-direction: column;
+    padding: 0; border: none; background: none;
+    gap: 4px;
+  }
+  .mobile-action-btn { padding: 7px 4px; font-size: 0.7rem; white-space: normal; }
 }
 
-.mobile-action-btn:disabled {
-  opacity: 0.4;
-  cursor: default;
+
+/* Tablet portrait: opponents get a second line with the activated cards themselves. */
+@media (min-width: 700px) and (orientation: portrait) {
+  .mobile-board {
+    --cw-h: calc((100dvh - 262px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) / 7.93);
+    --spare: max(0px, calc(100dvh - 262px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 7.93 * var(--cw)));
+  }
+  .mobile-opp-cards { flex-direction: column; align-items: stretch; gap: 3px; }
+  .mobile-opp-thumbs { display: flex; }
+}
+
+/* Phone landscape: the activated cards sit beside the portal, a little smaller. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .mobile-opp-thumbs { display: flex; --thumb-w: calc(var(--mini-w) * 0.8); }
 }
 
 /* ── Banners / indicators ──────────────────────────────────────────────── */
+/* Overlay just above the hand: banners must never take layout height from the
+   table, or the no-scroll budget breaks as soon as one appears. */
+.mobile-banner-stack {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--cw) * 0.7 * var(--card-ratio) + 76px + env(safe-area-inset-bottom, 0px));
+  pointer-events: none;
+  z-index: 5;
+}
+
 .mobile-banner-row {
   display: flex;
   flex-direction: column;

@@ -92,7 +92,7 @@
 }
 
 /* Task 1.4: keep these clear of the fixed mobile status bar (mobile.css) */
-@media (max-width: 767px) {
+@media (max-width: 767px), (orientation: portrait) and (max-width: 1100px), (orientation: landscape) and (max-height: 520px) {
   /* Task 1.4: icon-only buttons sharing the fixed status bar's row instead of
      floating over board content — `.mobile-status-bar` reserves matching space
      via padding-right, derived from `--pvm-ingame-action-count` (set on
