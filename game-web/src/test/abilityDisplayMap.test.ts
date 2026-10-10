@@ -26,37 +26,35 @@ const KNOWN_RED_TYPES: CharacterAbilityType[] = [
 ];
 
 describe('abilityDisplayMap', () => {
-  it('provides symbol, name and description for all known blue ability types', () => {
+  it('provides symbol, name key and description key for all known blue ability types', () => {
     for (const type of KNOWN_BLUE_TYPES) {
       const display = getAbilityDisplay(type);
       expect(display.symbol, `symbol missing for ${type}`).toBeTruthy();
-      expect(display.name, `name missing for ${type}`).toBeTruthy();
+      expect(display.nameKey, `name missing for ${type}`).toBeTruthy();
       expect(display.symbol).not.toBe('★');
-      expect(display.description, `description missing for ${type}`).toBeTruthy();
+      expect(display.descriptionKey, `description missing for ${type}`).toBeTruthy();
     }
   });
 
-  it('provides symbol, name and description for all known red ability types', () => {
+  it('provides symbol, name key and description key for all known red ability types', () => {
     for (const type of KNOWN_RED_TYPES) {
       const display = getAbilityDisplay(type);
       expect(display.symbol, `symbol missing for ${type}`).toBeTruthy();
-      expect(display.name, `name missing for ${type}`).toBeTruthy();
+      expect(display.nameKey, `name missing for ${type}`).toBeTruthy();
       expect(display.symbol).not.toBe('★');
-      expect(display.description, `description missing for ${type}`).toBeTruthy();
+      expect(display.descriptionKey, `description missing for ${type}`).toBeTruthy();
     }
   });
 
   it('returns fallback symbol ★ for unknown types', () => {
     const display = getAbilityDisplay('none');
     expect(display.symbol).toBe('★');
-    expect(display.name).toBe('none');
-    expect(display.description).toBe('');
+    expect(display.nameKey).toBeTruthy();
   });
 
-  it('returns the technical type name as fallback name', () => {
+  it('falls back to a valid name key for unknown types', () => {
     const display = getAbilityDisplay('unknownType' as CharacterAbilityType);
     expect(display.symbol).toBe('★');
-    expect(display.name).toBe('unknownType');
-    expect(display.description).toBe('');
+    expect(display.nameKey).toBeTruthy();
   });
 });

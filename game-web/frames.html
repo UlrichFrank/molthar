@@ -1,0 +1,22 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Frames</title>
+<style>body{margin:0;background:#333;color:#fff;font:11px sans-serif}
+#w{display:flex;gap:8px;padding:6px;align-items:flex-start;flex-wrap:wrap;transform-origin:0 0}
+figure{margin:0}iframe{border:0;display:block;background:#000}</style></head>
+<body><div id="w"></div>
+<script>
+const q=new URLSearchParams(location.search);
+const set=q.get('set')||'phones', land=q.get('land')==='1', scale=Number(q.get('scale')||1);
+const dev=q.get('dev');const D=dev?[['custom',...dev.split(',').map(Number)]]:{
+ phones:[['13 mini',375,812],['13/14',390,844],['15 Pro',393,852],['15 Pro Max',430,932]],
+ ipads:[['iPad 10.2',810,1080],['iPad Pro 11',834,1194]],
+ small:[['SE',375,667]]}[set];
+const params=new URLSearchParams();
+for(const k of ['view','n','act','hand']){const v=q.get(k); if(v) params.set(k,v);}
+const w=document.getElementById('w'); w.style.transform=`scale(${scale})`;
+for(const [name,a,b] of D){const [W,H]=land?[b,a]:[a,b];
+ const f=document.createElement('figure');
+ const label=document.createElement('div'); label.textContent=`${name} ${W}x${H}`;
+ const ifr=document.createElement('iframe'); ifr.width=String(W); ifr.height=String(H); ifr.src='/harness.html?'+params.toString();
+ f.append(label,ifr); w.appendChild(f);}
+</script></body></html>

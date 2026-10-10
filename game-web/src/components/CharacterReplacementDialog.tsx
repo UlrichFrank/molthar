@@ -37,7 +37,7 @@ export function CharacterReplacementDialog({ newCard, portalCards, onSelect, onD
         />
         <CharacterAbilityList card={newCard} />
 
-        <div className="text-[#16c784] text-2xl">↓</div>
+        <div className="text-[#e2b23c] text-2xl">↓</div>
 
         <div className="flex gap-6 justify-center">
           {portalCards.map((card, idx) => (

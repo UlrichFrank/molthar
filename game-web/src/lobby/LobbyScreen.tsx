@@ -263,7 +263,7 @@ export function LobbyScreen() {
           {playerID === '0' && (
             <button
               className="leave-game-btn"
-              style={{ position: 'static', background: 'rgba(127,29,29,0.85)', borderColor: '#dc2626' }}
+              style={{ position: 'static', background: 'rgba(140,42,30,0.92)', borderColor: '#d96a5b' }}
               onClick={handleTerminateGame}
               aria-label={t('lobby.endGame')}
               title={isMobile ? t('lobby.endGame') : undefined}

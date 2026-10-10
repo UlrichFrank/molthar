@@ -115,6 +115,7 @@ export function CharacterActivationDialog({
       .map((sel, i) => ({
         id: `virtual-${i}`,
         value: sel.value as PearlCard['value'],
+        hasRefreshSymbol: false,
         hasSwapSymbol: sel.source === 'hand' ? (hand[sel.handCardIndex ?? 0]?.hasSwapSymbol ?? false) : false,
       }));
     const availableDiamonds = diamonds + virtualDiamonds - diamondsReserved;
@@ -130,6 +131,7 @@ export function CharacterActivationDialog({
       .map((sel, i) => ({
         id: `virtual-${i}`,
         value: sel.value as PearlCard['value'],
+        hasRefreshSymbol: false,
         hasSwapSymbol: sel.source === 'hand' ? (hand[sel.handCardIndex ?? 0]?.hasSwapSymbol ?? false) : false,
       }));
     const availableDiamonds = diamonds + virtualDiamonds - diamondsReserved;
@@ -254,11 +256,13 @@ export function CharacterActivationDialog({
   const effectiveDiamonds = diamonds + virtualDiamonds;
 
   return (
-    <GameDialog>
+    <GameDialog className="act-dialog">
       <GameDialogTitle>{t('activation.title')}</GameDialogTitle>
 
+      <div className="act-body">
+      <div className="act-top">
       {/* Character to activate */}
-      <div className="flex flex-wrap justify-center gap-1.5 bg-white/10 p-1.5 rounded-lg sm:gap-2.5 sm:p-2">
+      <div className="act-char flex flex-wrap justify-center gap-1.5 bg-white/10 p-1.5 rounded-lg sm:gap-2.5 sm:p-2">
         {availableCharacters.map(({ card, slotIndex }) => (
           <img
             key={slotIndex}
@@ -270,7 +274,9 @@ export function CharacterActivationDialog({
       </div>
 
       {selectedCharacter && <CharacterAbilityList card={selectedCharacter} />}
+      </div>
 
+      <div className="act-main">
       {selectedCharacter && (
         <>
           {import.meta.env.VITE_DEBUG_COST === 'true' && (
@@ -697,6 +703,9 @@ export function CharacterActivationDialog({
           {t('activation.overpayment')}
         </p>
       )}
+
+      </div>
+      </div>
 
       <GameDialogActions
         confirmLabel={isValidPayment ? t('activation.activate') : t('activation.invalidPayment')}

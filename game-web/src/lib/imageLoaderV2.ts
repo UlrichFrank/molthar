@@ -141,7 +141,7 @@ export async function preloadAllImages(): Promise<void> {
   
   const promises = filenames.map((filename) => 
     loadImage(filename)
-      .catch((err) => {
+      .catch(() => {
         console.warn(`Warning: Failed to preload image: ${filename}`);
         // Continue loading other images even if one fails
       })
