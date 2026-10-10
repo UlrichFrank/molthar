@@ -291,8 +291,12 @@ export function buildCanvasRegions(
 
   // --- Replace pearl slots button (below pearl deck) ---
   {
-    const REPLACE_BTN_H = 24;
-    const REPLACE_BTN_GAP = 4;
+    // Sits to the left of the pearl pile on the mat, so it never covers the pile or leaves the mat.
+    const REPLACE_BTN_H = 30;
+    const REPLACE_BTN_W = 132;
+    const REPLACE_BTN_GAP = 18;
+    const replaceBtnX = PEARL_DECK_X - DECK_CARD_H - REPLACE_BTN_GAP - REPLACE_BTN_W;
+    const replaceBtnY = PEARL_DECK_Y + (DECK_CARD_W - REPLACE_BTN_H) / 2;
     const actionCount = G.actionCount ?? 0;
     const maxActions = G.maxActions ?? 3;
     const hasFreeAbility = me?.activeAbilities?.some(a => a.type === 'replacePearlSlotsBeforeFirstAction') ?? false;
@@ -302,8 +306,8 @@ export function buildCanvasRegions(
       // Show free replace button (no action cost); hide normal button
       regions.push({
         type: 'ui-replace-pearl-slots-ability', id: 'ui-replace-pearl-slots-ability',
-        x: PEARL_DECK_X - DECK_CARD_H, y: PEARL_DECK_Y + DECK_CARD_W + REPLACE_BTN_GAP,
-        w: DECK_CARD_H, h: REPLACE_BTN_H,
+        x: replaceBtnX, y: replaceBtnY,
+        w: REPLACE_BTN_W, h: REPLACE_BTN_H,
         label: labels?.freePearlReplace ?? 'Gratis tauschen',
         enabled: true,
         ...animState(existing, 'ui-replace-pearl-slots-ability', 'ui-replace-pearl-slots-ability'),
@@ -312,8 +316,8 @@ export function buildCanvasRegions(
       // Show normal replace button (costs an action)
       regions.push({
         type: 'ui-replace-pearl-slots', id: 'ui-replace-pearl-slots',
-        x: PEARL_DECK_X - DECK_CARD_H, y: PEARL_DECK_Y + DECK_CARD_W + REPLACE_BTN_GAP,
-        w: DECK_CARD_H, h: REPLACE_BTN_H,
+        x: replaceBtnX, y: replaceBtnY,
+        w: REPLACE_BTN_W, h: REPLACE_BTN_H,
         label: labels?.swap ?? 'Tauschen',
         enabled: true,
         ...animState(existing, 'ui-replace-pearl-slots', 'ui-replace-pearl-slots'),

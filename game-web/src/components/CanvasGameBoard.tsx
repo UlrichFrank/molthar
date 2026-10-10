@@ -27,8 +27,12 @@ import {
   MARGIN_H,
   ZONE_TOP_H,
   ZONE_CENTER_H,
-  PORTAL_Y,
+  PORTAL_IMG_Y,
+  OPP_PORTAL_IMG_H,
 } from '../lib/cardLayoutConstants';
+
+/** Height reserved at the top of the screen for the fixed leave/end-game buttons, so no control overlaps the table. */
+const TOP_BAR_H = 52;
 import type { OpponentZoneData } from '../lib/gameRender';
 import { preloadAllImages } from '../lib/imageLoaderV2';
 import { buildOpponentsPlayerIDs, getNeighborOpponents } from '../lib/opponentUtils';
@@ -75,7 +79,7 @@ function useContainerSize<T extends HTMLElement>() {
       const rect = ref.current?.getBoundingClientRect();
       if (!rect) return;
       const aspect = BASE_W / BASE_H;
-      const newW = Math.min(rect.width, rect.height * aspect);
+      const newW = Math.min(rect.width, (rect.height - TOP_BAR_H) * aspect);
       const newH = newW / aspect;
       setSize({ w: newW, h: newH });
     };
@@ -550,6 +554,8 @@ function CanvasGameBoardContent(props: GameBoardProps) {
         position: 'fixed',
         inset: 0,
         background: '#2a1b0f',
+        boxSizing: 'border-box',
+        paddingTop: TOP_BAR_H,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -581,10 +587,11 @@ function CanvasGameBoardContent(props: GameBoardProps) {
         {/* Own player status badge — centered on portal top edge */}
         {me && (
           <div style={{
-            position: 'absolute', top: `${((PORTAL_Y + 6) / BASE_H) * 100}%`, left: '50%',
+            // Between the market mat and the own portal photo, so badge and buttons cover neither.
+            position: 'absolute', top: `${((PORTAL_IMG_Y - 52) / BASE_H) * 100}%`, left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 100,
-            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 10,
           }}>
             <PlayerStatusBadge
               playerState={me}
@@ -609,7 +616,6 @@ function CanvasGameBoardContent(props: GameBoardProps) {
                   whiteSpace: 'nowrap',
                   pointerEvents: 'auto',
                   transition: 'background 0.15s, border-color 0.15s',
-                  marginTop: 4,
                 }}
                 onMouseEnter={e => {
                   (e.currentTarget as HTMLButtonElement).style.background = 'rgba(79, 70, 229, 0.95)';
@@ -640,12 +646,18 @@ function CanvasGameBoardContent(props: GameBoardProps) {
           const halfCenter = (BASE_W - 2 * MARGIN_H) / 2;
           const pctX = (x: number) => `${(x / BASE_W) * 100}%`;
           const pctY = (y: number) => `${(y / BASE_H) * 100}%`;
+          // Badges sit beside the portal photos, never on them: left/right seats above or below the photo
+          // (the face-down hand lies on the other side), top seats to the left of the photo.
+          const photoHalfW = (OPP_PORTAL_IMG_H * 1.56) / 2 + 10;
+          const topSeat = (centerX: number): React.CSSProperties => ({
+            position: 'absolute', top: 10, left: pctX(centerX - photoHalfW), transform: 'translateX(-100%)', zIndex: 100,
+          });
           const zoneStyles: Array<React.CSSProperties> = [
-            { position: 'absolute', top: pctY(ZONE_TOP_H + 8), left: 6, zIndex: 100 },
-            { position: 'absolute', top: 8, left: pctX(MARGIN_H + halfCenter / 2), transform: 'translateX(-50%)', zIndex: 100 },
-            { position: 'absolute', top: 8, left: pctX(MARGIN_H + halfCenter * 1.5), transform: 'translateX(-50%)', zIndex: 100 },
-            { position: 'absolute', top: pctY(ZONE_TOP_H + ZONE_CENTER_H - 70), right: 6, zIndex: 100 },
-            { position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', zIndex: 100 },
+            { position: 'absolute', top: pctY(ZONE_TOP_H + ZONE_CENTER_H - 46), left: 6, zIndex: 100 },
+            topSeat(MARGIN_H + halfCenter / 2),
+            topSeat(MARGIN_H + halfCenter * 1.5),
+            { position: 'absolute', top: pctY(ZONE_TOP_H + 8), right: 6, zIndex: 100 },
+            topSeat(BASE_W / 2),
           ];
           return opponentIds.map((playerId, zoneIdx) => {
             if (!playerId) return null;
