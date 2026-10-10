@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react';
 import { PortaleVonMolthar } from '@portale-von-molthar/shared';
 import type { NpcSlotConfig } from '@portale-von-molthar/shared';
 import { lobbyClient, PortaleClient, freeHumanSlots } from './useLobbyClient';
+import './lobby.css';
 import { SpielothekLink } from './SpielothekLink';
 import type { Match } from './useLobbyClient';
 import { WaitingRoom } from './WaitingRoom';
@@ -37,6 +38,7 @@ export function LobbyScreen() {
   const [error, setError] = useState<string | null>(null);
   const [sessionChecked, setSessionChecked] = useState(false);
   const [savedSession, setSavedSession] = useState(loadSession);
+  const [invite, setInvite] = useState<Match | null>(null);
 
   const loadMatches = useCallback(async () => {
     setLoadingMatches(true);
@@ -80,7 +82,22 @@ export function LobbyScreen() {
       .finally(() => {
         setSessionChecked(true);
       });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Invitation link: ?match=<id>
+  useEffect(() => {
+    if (!sessionChecked) return;
+    const id = new URLSearchParams(window.location.search).get('match');
+    if (!id) return;
+    const clear = () => window.history.replaceState(null, '', '/');
+    if (loadSession()?.matchID === id) { clear(); return; }
+    lobbyClient.getMatch(PortaleVonMolthar.name, id)
+      .then(m => {
+        if (freeHumanSlots(m as Match).length === 0) { setError(t('lobby.inviteFull')); clear(); }
+        else setInvite(m as Match);
+      })
+      .catch(() => { setError(t('lobby.inviteGone')); clear(); });
+  }, [sessionChecked]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!sessionChecked) return;
@@ -108,6 +125,8 @@ export function LobbyScreen() {
       // Task 4.2: Save session after successful join
       saveSession({ matchID: id, playerID: playerId, credentials: playerCredentials, playerName });
       saveSpielname(playerName);
+      setInvite(null);
+      if (window.location.search) window.history.replaceState(null, '', '/');
       setView('waiting');
     } catch {
       setError(t('lobby.errorJoinFailed'));
@@ -199,13 +218,14 @@ export function LobbyScreen() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!sessionChecked) {
-    return <div className="lobby-container"><p style={{ color: '#94a3b8' }}>{t('app.checkingConnection')}</p></div>;
+    return <div className="lb-root"><p className="lb-banner">{t('app.checkingConnection')}</p></div>;
   }
 
   if (view === 'waiting') {
     return (
       <WaitingRoom
         matchID={matchID}
+        playerID={playerID}
         totalPlayers={totalPlayers}
         withSpecialCards={withSpecialCards}
         onAllJoined={() => setView('in-game')}
@@ -256,85 +276,87 @@ export function LobbyScreen() {
     );
   }
 
+  const nameSet = !!playerName.trim();
   return (
-    <div className="lobby-container">
-      <div style={{ marginBottom: '0.75rem' }}>
-        <SpielothekLink game="molthar" />
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
-        <h1 style={{ margin: 0 }}>{t('app.title')}</h1>
-        <div style={{ display: 'flex', gap: '0.25rem' }}>
-          {LOCALES.map(locale => (
-            <button
-              key={locale}
-              onClick={() => setLanguage(locale)}
-              style={{
-                padding: '0.25rem 0.6rem',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                background: language === locale ? 'rgba(99,102,241,0.9)' : 'rgba(30,41,59,0.7)',
-                border: `1px solid ${language === locale ? '#6366f1' : '#475569'}`,
-                borderRadius: 6,
-                color: language === locale ? '#fff' : '#94a3b8',
-                cursor: 'pointer',
-              }}
-            >
-              {LOCALE_LABELS[locale]}
+    <div className="lb-root">
+      <main className="lb-page">
+        <header className="lb-header">
+          <div>
+            <SpielothekLink game="molthar" />
+            <h1 className="lb-title">{t('app.title')}</h1>
+            <p className="lb-tagline">{t('lobby.tagline')}</p>
+          </div>
+          <div className="lb-locales">
+            {LOCALES.map(locale => (
+              <button
+                key={locale}
+                className="lb-locale"
+                aria-pressed={language === locale}
+                onClick={() => setLanguage(locale)}
+              >
+                {LOCALE_LABELS[locale]}
+              </button>
+            ))}
+          </div>
+        </header>
+
+        {invite && (
+          <div className="lb-banner">
+            <span>{t('lobby.invited', { name: invite.players[0]?.name ?? '?' })}</span>
+            <button className="lb-btn lb-btn--small" disabled={!nameSet} onClick={() => handleJoinMatch(invite)}>
+              {nameSet ? t('lobby.takeSeat') : t('lobby.nameFirst')}
             </button>
-          ))}
-        </div>
-      </div>
+          </div>
+        )}
 
-      {error && <div className="lobby-error">⚠️ {error}</div>}
-
-      <div className="lobby-section">
-        <h2>{t('lobby.yourName')}</h2>
-        <input
-          type="text"
-          placeholder={t('lobby.namePlaceholder')}
-          value={playerName}
-          onChange={(e) => setPlayerName(e.target.value)}
-        />
-      </div>
-
-      {/* Task 6.1: Rejoin section when a session is saved */}
-      {savedSession && (
-        <div className="lobby-section">
-          <h2>{t('lobby.runningGames')}</h2>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>
-              {t('lobby.sessionInfo', { matchID: savedSession.matchID, playerName: savedSession.playerName })}
-            </span>
-            <button onClick={handleRejoin}>{t('lobby.rejoin')}</button>
-            <button
-              style={{ background: 'rgba(71,85,105,0.5)', borderColor: '#475569' }}
-              onClick={() => { clearSession(); setSavedSession(null); }}
-            >
+        {savedSession && (
+          <div className="lb-banner">
+            <span>{t('lobby.youSit')} ({t('lobby.sessionInfo', { matchID: savedSession.matchID, playerName: savedSession.playerName })})</span>
+            <button className="lb-btn lb-btn--small" onClick={handleRejoin}>{t('lobby.rejoin')}</button>
+            <button className="lb-btn lb-btn--small lb-btn--ghost" onClick={() => { clearSession(); setSavedSession(null); }}>
               {t('lobby.discard')}
             </button>
           </div>
+        )}
+
+        {error && <p className="lb-error">{error}</p>}
+
+        <section className="lb-panel">
+          <label className="lb-field">
+            <span>{t('lobby.yourName')}</span>
+            <input
+              className="lb-input"
+              type="text"
+              placeholder={t('lobby.namePlaceholder')}
+              value={playerName}
+              maxLength={20}
+              autoComplete="nickname"
+              onChange={(e) => setPlayerName(e.target.value)}
+            />
+          </label>
+        </section>
+
+        <div className="lb-grid">
+          <CreateMatch
+            numPlayers={numPlayers}
+            playerNameSet={nameSet}
+            withSpecialCards={withSpecialCards}
+            npcSlots={npcSlots}
+            onNumPlayersChange={setNumPlayers}
+            onWithSpecialCardsChange={setWithSpecialCards}
+            onNpcSlotsChange={setNpcSlots}
+            onCreate={createMatch}
+          />
+          <MatchList
+            matches={matches}
+            loadingMatches={loadingMatches}
+            loadFailed={matchesFailed}
+            playerNameSet={nameSet}
+            onRefresh={loadMatches}
+            onJoin={handleJoinMatch}
+          />
         </div>
-      )}
-
-      <CreateMatch
-        numPlayers={numPlayers}
-        playerNameSet={!!playerName.trim()}
-        withSpecialCards={withSpecialCards}
-        npcSlots={npcSlots}
-        onNumPlayersChange={setNumPlayers}
-        onWithSpecialCardsChange={setWithSpecialCards}
-        onNpcSlotsChange={setNpcSlots}
-        onCreate={createMatch}
-      />
-
-      <MatchList
-        matches={matches}
-        loadingMatches={loadingMatches}
-        loadFailed={matchesFailed}
-        playerNameSet={!!playerName.trim()}
-        onRefresh={loadMatches}
-        onJoin={handleJoinMatch}
-      />
+      </main>
     </div>
   );
 }
