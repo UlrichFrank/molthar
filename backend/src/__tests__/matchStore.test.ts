@@ -5,7 +5,12 @@ import { join } from 'path';
 import { MatchStore } from '../matchStore';
 
 function metadata() {
-  return { gameName: 'portale-von-molthar', players: {}, createdAt: 1, updatedAt: Date.now() };
+  return {
+    gameName: 'portale-von-molthar',
+    players: { 0: { id: 0, name: 'Anna', credentials: 'geheim' } },
+    createdAt: 1,
+    updatedAt: Date.now(),
+  };
 }
 
 describe('MatchStore', () => {
@@ -21,6 +26,8 @@ describe('MatchStore', () => {
     const { metadata: after } = await store.fetch('m1', { metadata: true });
 
     expect(after?.unlisted).toBe(true);
+    // No seats: old credentials must not work on a deleted match
+    expect(after?.players).toEqual({});
   });
 
   it('a match never listed stays missing', async () => {

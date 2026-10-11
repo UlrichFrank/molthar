@@ -142,12 +142,16 @@ export class MatchStore extends FlatFile {
    * `metadata.unlisted` unchecked. A match finished and deleted in between
    * (terminated matches are wiped at once) crashed it with a 500 — and with
    * it the open-games list and the BotRunner's scan. For a moment after a
-   * listing, a vanished match reads as unlisted instead, so the route skips it.
+   * listing, a vanished match reads as an unlisted stub instead, so the route
+   * skips it. The stub has no players: join, leave and rename look up the
+   * seat in it and answer 404, so no old credentials work and nothing writes
+   * the deleted match back.
    */
   async fetch(matchID: string, opts: any): Promise<any> {
     const result = await super.fetch(matchID, opts);
     if (opts?.metadata && !result.metadata && this.listed.has(matchID)) {
-      result.metadata = { ...this.listed.get(matchID), unlisted: true };
+      const { gameName, createdAt, updatedAt } = this.listed.get(matchID);
+      result.metadata = { gameName, createdAt, updatedAt, players: {}, unlisted: true };
     }
     return result;
   }
