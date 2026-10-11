@@ -231,7 +231,8 @@ deploy-upload:
 deploy-check:
 	@ssh $(DEPLOY_HOST) 'for i in $$(seq 1 30); do curl -sf -o /dev/null http://$(BIND_IP):$(SERVICE_PORT)/games && exit 0; sleep 0.5; done; exit 1' \
 		|| { echo "$(RED)Service does not answer — see make deploy-logs$(NC)"; exit 1; }
-	@curl -sf -o /dev/null $(APP_URL)/ || { echo "$(RED)$(APP_URL) does not answer via Traefik$(NC)"; exit 1; }
+	@# The game page needs a Spielothek login; the manifest stays open (forwardAuth)
+	@curl -sf -o /dev/null $(APP_URL)/manifest.webmanifest || { echo "$(RED)$(APP_URL) does not answer via Traefik$(NC)"; exit 1; }
 	@echo "$(GREEN)✓ Service answers (local and via Traefik)$(NC)"
 
 deploy-rollback:
