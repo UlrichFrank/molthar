@@ -94,7 +94,13 @@ async function addWebpTwins(images: string[]): Promise<void> {
   console.log(`assets.gen.ts: ${images.length} WebP versions (${converted} newly converted)`);
 }
 
-await addWebpTwins(listFiles().filter(file => RASTER.test(file)));
+/** Favicons and app icons stay PNG only: OS and home screens fetch them and expect PNG. */
+const isIcon = (file: string) => {
+  const url = toUrl(file);
+  return !url.includes('/') || url.startsWith('icons/');
+};
+
+await addWebpTwins(listFiles().filter(file => RASTER.test(file) && !isIcon(file)));
 const files = listFiles();
 
 const totalBytes = files.reduce((sum, file) => sum + statSync(file).size, 0);
