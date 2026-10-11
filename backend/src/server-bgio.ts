@@ -5,6 +5,7 @@ import { MatchStore } from './matchStore';
 import { patchWsTextFrames } from './wsTextFrames';
 import { serveStatic } from './staticFiles';
 import { assets } from './embedded/assets';
+import { getLeaderboard } from './leaderboard';
 
 /**
  * boardgame.io Server for Portale von Molthar
@@ -62,6 +63,14 @@ const server = Server({
 
 // Game page embedded into the single binary (empty in development — Vite
 // serves it). Registered before run() adds the lobby router, so it goes first.
+server.app.use(async (ctx: any, next: () => Promise<unknown>) => {
+  if (ctx.path === '/leaderboard' && ctx.method === 'GET') {
+    ctx.set('Access-Control-Allow-Origin', '*');
+    ctx.body = getLeaderboard();
+    return;
+  }
+  await next();
+});
 server.app.use(serveStatic(assets) as never);
 
 // server.run() only passes the port to listen(); add the bind address

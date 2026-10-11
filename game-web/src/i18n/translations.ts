@@ -154,6 +154,12 @@ export type TranslationKey =
   | 'lobby.sessionInfo'
   | 'lobby.fallbackPlayerName'
   | 'lobby.tagline'
+  | 'lobby.leaderboard'
+  | 'lobby.leaderboardEmpty'
+  | 'lobby.leaderboardFailed'
+  | 'lobby.lbWins'
+  | 'lobby.lbGames'
+  | 'lobby.lbBest'
   | 'lobby.invited'
   | 'lobby.takeSeat'
   | 'lobby.nameFirst'
@@ -358,6 +364,12 @@ const de: Record<TranslationKey, string> = {
   'lobby.sessionInfo':           'Spiel {matchID} als {playerName}',
   'lobby.fallbackPlayerName':    'Spieler {n}',
   'lobby.tagline': 'Sammle Perlen, öffne Portale, ruf die Helden.',
+  'lobby.leaderboard': 'Ewige Rangliste',
+  'lobby.leaderboardEmpty': 'Noch keine Spiele gewertet.',
+  'lobby.leaderboardFailed': 'Rangliste nicht erreichbar.',
+  'lobby.lbWins': 'Siege',
+  'lobby.lbGames': 'Spiele',
+  'lobby.lbBest': 'Best',
   'lobby.invited': 'Du bist an den Tisch von {name} eingeladen.',
   'lobby.takeSeat': 'Platz nehmen',
   'lobby.nameFirst': 'Erst Namen eingeben',
@@ -559,6 +571,12 @@ const enGB: Record<TranslationKey, string> = {
   'lobby.sessionInfo':           'Game {matchID} as {playerName}',
   'lobby.fallbackPlayerName':    'Player {n}',
   'lobby.tagline': 'Gather pearls, open portals, call the heroes.',
+  'lobby.leaderboard': 'All-time leaderboard',
+  'lobby.leaderboardEmpty': 'No games recorded yet.',
+  'lobby.leaderboardFailed': 'Leaderboard unavailable.',
+  'lobby.lbWins': 'Wins',
+  'lobby.lbGames': 'Games',
+  'lobby.lbBest': 'Best',
   'lobby.invited': 'You are invited to {name}\'s table.',
   'lobby.takeSeat': 'Take a seat',
   'lobby.nameFirst': 'Enter your name first',
@@ -760,6 +778,12 @@ const fr: Record<TranslationKey, string> = {
   'lobby.sessionInfo':           'Partie {matchID} en tant que {playerName}',
   'lobby.fallbackPlayerName':    'Joueur {n}',
   'lobby.tagline': 'Rassemble des perles, ouvre des portails, appelle les héros.',
+  'lobby.leaderboard': 'Classement général',
+  'lobby.leaderboardEmpty': 'Aucune partie enregistrée.',
+  'lobby.leaderboardFailed': 'Classement indisponible.',
+  'lobby.lbWins': 'Victoires',
+  'lobby.lbGames': 'Parties',
+  'lobby.lbBest': 'Record',
   'lobby.invited': 'Tu es invité·e à la table de {name}.',
   'lobby.takeSeat': 'Prendre place',
   'lobby.nameFirst': 'Saisis d\'abord ton nom',

@@ -9,6 +9,7 @@ import type { Match } from './useLobbyClient';
 import { WaitingRoom } from './WaitingRoom';
 import { MatchList } from './MatchList';
 import { CreateMatch } from './CreateMatch';
+import { Leaderboard } from './Leaderboard';
 import { saveSession, loadSession, clearSession } from './session';
 import { loadSpielname, saveSpielname } from './spielname';
 import { useTranslation } from '../i18n/useTranslation';
@@ -356,6 +357,8 @@ export function LobbyScreen() {
             onJoin={handleJoinMatch}
           />
         </div>
+
+        <Leaderboard />
       </main>
     </div>
   );

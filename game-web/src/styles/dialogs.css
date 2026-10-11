@@ -246,8 +246,10 @@
     padding-left: 0.75rem;
     padding-right: 0.75rem;
     padding-bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));
-    overflow-y: auto;
+    overflow: hidden;
   }
+
+  .act-dialog .game-dialog-title { flex: none; }
 
   .act-dialog .game-dialog-title {
     margin: 0 0 0.4rem;
@@ -255,7 +257,10 @@
     font-size: 1.05rem;
   }
 
-  .act-body { display: flex; flex-direction: column; gap: 0.5rem; min-height: 0; }
+  /* Body scrolls; the buttons stay pinned at the bottom and never overlap it */
+  .act-body { display: flex; flex-direction: column; gap: 0.5rem; flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+  .act-body > * { flex-shrink: 0; }
+  .act-top, .act-main { flex-shrink: 0; }
 
   .act-top { display: flex; gap: 0.6rem; align-items: flex-start; }
   .act-dialog .act-char {
@@ -283,7 +288,7 @@
   .act-dialog .game-dialog-card-btn { width: 100%; }
   .act-dialog .game-dialog-card-btn:hover { transform: none; }
 
-  .act-dialog .game-dialog-actions { flex-direction: row; gap: 0.5rem; margin-top: 0.4rem; }
+  .act-dialog .game-dialog-actions { flex: none; flex-direction: row; gap: 0.5rem; margin-top: 0.4rem; }
   .act-dialog .game-dialog-btn-confirm,
   .act-dialog .game-dialog-btn-cancel { padding: 0.55rem 0.5rem; font-size: 0.95rem; border-radius: 10px; }
   .act-dialog .game-dialog-btn-confirm { flex: 2 1 0; }
