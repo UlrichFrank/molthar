@@ -75,3 +75,6 @@ backend/src/embedded/assets.gen.ts
 
 # PWA icons (would match "Icon?" above on case-insensitive file systems)
 !game-web/public/icons/
+
+# Local tool data
+.abydos/
