@@ -8,12 +8,21 @@
  * what the game loads is embedded; the size limit catches anything new that
  * slips through.
  *
+ * Every embedded PNG/JPEG also gets a WebP twin (cwebp, quality 85); the
+ * server sends it to browsers that accept image/webp. Cards shrink from 1030
+ * to 880 px height: the largest view (280 CSS px in dialogs at 3× density)
+ * needs 840 — fewer pixels for the browser to decode. Board images keep their
+ * size: the portal spans 1100 of 1600 board units, on a retina desktop more
+ * than its 2050 px. Conversions are cached in backend/.cache/webp by content
+ * hash. Without cwebp the twins are skipped and only the originals are served.
+ *
  * Without a frontend build an empty manifest is written — the server then
  * only serves the API.
  *
  * Usage: bun scripts/gen-assets.ts
  */
-import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'fs';
+import { createHash } from 'crypto';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from 'fs';
 import { join, relative, sep } from 'path';
 
 const MAX_TOTAL_BYTES = 150 * 1024 * 1024;
@@ -33,6 +42,14 @@ const backendDir = join(import.meta.dir, '..');
 const distDir = join(backendDir, '..', 'game-web', 'dist');
 const outDir = join(backendDir, 'src', 'embedded');
 const outFile = join(outDir, 'assets.gen.ts');
+const webpCacheDir = join(backendDir, '.cache', 'webp');
+const WEBP_ARGS = ['-quiet', '-q', '85', '-m', '6', '-sharp_yuv', '-metadata', 'none'];
+const RASTER = /\.(png|jpe?g)$/i;
+const CARD = /\/(Charakterkarte|Perlenkarte)[^/]*$/;
+const CARD_HEIGHT = 880;
+
+const webpArgs = (file: string) =>
+  CARD.test(file) ? [...WEBP_ARGS, '-resize', '0', String(CARD_HEIGHT)] : WEBP_ARGS;
 
 function walk(dir: string): string[] {
   return readdirSync(dir).flatMap(name => {
@@ -44,9 +61,41 @@ function walk(dir: string): string[] {
 
 const toUrl = (file: string) => relative(distDir, file).split(sep).join('/');
 
-const files = existsSync(distDir)
-  ? walk(distDir).filter(file => !EXCLUDE.some(re => re.test(toUrl(file)))).sort()
-  : [];
+const listFiles = () =>
+  existsSync(distDir)
+    ? walk(distDir).filter(file => !EXCLUDE.some(re => re.test(toUrl(file)))).sort()
+    : [];
+
+/** Writes `<name>.webp` next to every PNG/JPEG, converting only what the cache lacks. */
+async function addWebpTwins(images: string[]): Promise<void> {
+  if (!Bun.which('cwebp')) {
+    console.warn('assets.gen.ts: cwebp not found (brew install webp) — no WebP versions');
+    return;
+  }
+  mkdirSync(webpCacheDir, { recursive: true });
+  let converted = 0;
+  const queue = [...images];
+  const worker = async () => {
+    for (let file = queue.shift(); file; file = queue.shift()) {
+      const args = webpArgs(file);
+      const hash = createHash('sha256').update(readFileSync(file)).update(args.join(' ')).digest('hex');
+      const cached = join(webpCacheDir, `${hash.slice(0, 32)}.webp`);
+      if (!existsSync(cached)) {
+        const tmp = `${cached}.tmp`;
+        const proc = Bun.spawn(['cwebp', ...args, file, '-o', tmp], { stderr: 'inherit' });
+        if ((await proc.exited) !== 0) throw new Error(`cwebp failed for ${file}`);
+        renameSync(tmp, cached);
+        converted++;
+      }
+      copyFileSync(cached, file.replace(RASTER, '.webp'));
+    }
+  };
+  await Promise.all(Array.from({ length: navigator.hardwareConcurrency || 4 }, worker));
+  console.log(`assets.gen.ts: ${images.length} WebP versions (${converted} newly converted)`);
+}
+
+await addWebpTwins(listFiles().filter(file => RASTER.test(file)));
+const files = listFiles();
 
 const totalBytes = files.reduce((sum, file) => sum + statSync(file).size, 0);
 const mb = (totalBytes / 1024 / 1024).toFixed(1);

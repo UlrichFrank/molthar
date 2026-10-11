@@ -118,11 +118,17 @@ export function useGameBoardCore(props: GameBoardProps) {
   }, [G.pendingTakeBackPlayedPearl, myPlayerID, activePlayerID]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Listen for terminateGame event from LobbyScreen (creator only) ───────────
+  // After the game is over there is nothing to terminate (the server refuses
+  // the move) — the button then just leaves to the lobby.
+  const isGameOver = !!(ctx as { gameover?: unknown }).gameover;
   useEffect(() => {
-    const handler = () => { moves.terminateGame?.(); };
+    const handler = () => {
+      if (isGameOver) window.dispatchEvent(new CustomEvent('pvm:gameOver'));
+      else moves.terminateGame?.();
+    };
     window.addEventListener('pvm:terminateGame', handler);
     return () => window.removeEventListener('pvm:terminateGame', handler);
-  }, [moves]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [moves, isGameOver]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Gameover state ────────────────────────────────────────────────────────
   const gameover = (ctx as { gameover?: GameOverState }).gameover;

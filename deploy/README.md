@@ -32,7 +32,7 @@ make smoke URL=https://molthar.apps.diefranks.eu   # echte Lobby-/NPC-Partien ge
 
 `make deploy` prüft zuerst, ob Traefik läuft, überträgt Binary, Unit und Route, behält das laufende Binary als `molthar.prev` und startet den Dienst neu. Spielstände und NPC-Zugangsdaten bleiben unberührt. Die Route lädt Traefik per `watch` ohne Neustart.
 
-Voraussetzung lokal: Bun ≥ 1.3 und pnpm (`make binary` cross-kompiliert vom Mac).
+Voraussetzung lokal: Bun ≥ 1.3, pnpm und `cwebp` (`brew install webp`; ohne fehlen die WebP-Fassungen der Bilder). `make binary` cross-kompiliert vom Mac.
 
 ## Erstinstallation
 
@@ -60,7 +60,7 @@ Antwortet der Dienst direkt, aber nicht über HTTPS, liegt es an Traefik: `ssh v
 
 **"CORS error" im Browser:** `EXTRA_ORIGINS` in `molthar.service` muss exakt `https://molthar.apps.diefranks.eu` enthalten (Socket.IO prüft den Origin auch bei gleicher Domain).
 
-**Speicher:** `MemoryMax=250M` in der Unit (der vServer hat 833 MiB RAM plus 2 GB Swap); aktueller Verbrauch steht in `make deploy-status`.
+**Speicher:** `MemoryMax=400M` in der Unit, Normalbetrieb ~100 MB (der vServer hat 833 MiB RAM plus 2 GB Swap); aktueller Verbrauch steht in `make deploy-status`.
 
 **ACME-Challenge / Zertifikat:**
 - Netcup-Zugangsdaten in `/etc/traefik/netcup.env` prüfen; `delayBeforeCheck: 120` in `/etc/traefik/traefik.yml`

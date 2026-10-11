@@ -37,6 +37,8 @@ interface BotClient {
   rejectedMoves: number;
   /** When `isThinking` was set, so a stuck flag can be broken open. */
   thinkingSince: number | null;
+  /** Set by detachMatch: the client is stopped, its socket gone. */
+  stopped: boolean;
 }
 
 /**
@@ -274,6 +276,7 @@ export class BotRunner {
       lastDispatchStateID: null,
       rejectedMoves: 0,
       thinkingSince: null,
+      stopped: false,
     };
 
     client.start();
@@ -287,7 +290,7 @@ export class BotRunner {
   }
 
   private onStateChange(matchID: string, bot: BotClient): void {
-    if (bot.isThinking) return;
+    if (bot.isThinking || bot.stopped) return;
 
     const state = (bot.client as any).store?.getState();
     if (!state) return;
@@ -309,18 +312,17 @@ export class BotRunner {
     }
 
     // A pending discard blocks every other move, endTurn included, so it has to
-    // be resolved first. `excess` can only be 0 here if the flag is stale — then
+    // be resolved first. `excessCardCount` can only be 0 here if the flag is stale — then
     // discarding nothing clears it rather than leaving the turn wedged.
     if (G?.requiresHandDiscard) {
-      const excess: number = G.excessCardCount ?? 0;
-      const player = G.players?.[bot.playerID];
-      if (!player) return;
-
-      // Keep the cards the planner still needs; drop the rest.
-      const sortedIndices = pickDiscardIndices(G, bot.playerID, excess);
+      if (!G.players?.[bot.playerID]) return;
 
       this.think(matchID, bot, randomDelay(800, 1500), currentState => {
-        if (!currentState.G?.requiresHandDiscard) return;
+        const currentG = currentState.G;
+        if (!currentG?.requiresHandDiscard || !currentG.players?.[bot.playerID]) return;
+        // Picked from the state at dispatch time: the hand may have changed
+        // during the pause, and indices into the old hand get refused.
+        const sortedIndices = pickDiscardIndices(currentG, bot.playerID, currentG.excessCardCount ?? 0);
         bot.lastDispatchStateID = currentState._stateID ?? null;
         (bot.client as any).moves?.discardCardsForHandLimit?.(sortedIndices);
       });
@@ -333,6 +335,10 @@ export class BotRunner {
     this.think(matchID, bot, delayMs, currentState => {
       const { G: currentG, ctx: currentCtx } = currentState as { G: any; ctx: any };
       if (currentCtx?.currentPlayer !== bot.playerID || currentCtx?.gameover) return;
+      // A move that draws at random only lands with the server's answer, often
+      // during this pause — and may leave a hand-limit discard pending, which
+      // refuses endTurn. Returning hands over to onStateChange, which discards.
+      if (currentG?.requiresHandDiscard) return;
 
       if (currentG?.actionCount >= currentG?.maxActions) {
         bot.lastDispatchStateID = currentState._stateID ?? null;
@@ -399,6 +405,7 @@ export class BotRunner {
     if (!matchBots) return;
 
     for (const bot of matchBots.bots) {
+      bot.stopped = true;
       bot.unsubscribe?.();
       if (bot.reconnectTimer) clearTimeout(bot.reconnectTimer);
       try { (bot.client as any).stop(); } catch { /* ignore */ }
@@ -433,6 +440,9 @@ export class BotRunner {
     bot.thinkingSince = Date.now();
 
     this.delay(delayMs).then(() => {
+      // Detached while pausing: the stopped client would throw on every move,
+      // and the retry below would loop on it forever.
+      if (bot.stopped) return;
       try {
         const state = (bot.client as any).store?.getState();
         if (state) act(state);
