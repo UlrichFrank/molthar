@@ -5,6 +5,10 @@
 # Uses the existing wildcard certificate *.apps.diefranks.eu of the
 # "letsencrypt" resolver — same resolver and domain as before, so no new
 # certificate is requested.
+#
+# Only for members of the Spielothek: the middleware spielothek-auth@file
+# (defined in the Spielothek's route file) asks apps.diefranks.eu before every
+# request and sends visitors without a session to its login page.
 http:
   routers:
     molthar:
@@ -12,6 +16,8 @@ http:
       entryPoints:
         - websecure
       service: molthar
+      middlewares:
+        - spielothek-auth@file
       tls:
         certResolver: letsencrypt
         domains:
@@ -22,6 +28,8 @@ http:
       entryPoints:
         - websecure
       service: molthar
+      middlewares:
+        - spielothek-auth@file
       tls:
         certResolver: letsencrypt
         domains:
