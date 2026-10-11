@@ -46,7 +46,17 @@ function load(): LeaderboardFile {
       if (name !== '__proto__') players[name] = entry;
     }
     return { players, counted: raw.counted ?? [] };
-  } catch {
+  } catch (err) {
+    // An unreadable file must not be overwritten by the next record: set it aside
+    if (fs.existsSync(DATA_FILE)) {
+      try {
+        const aside = `${DATA_FILE}.corrupt-${Date.now()}`;
+        fs.renameSync(DATA_FILE, aside);
+        console.warn(`[Leaderboard] ${DATA_FILE} unreadable (${err}); moved to ${aside}`);
+      } catch {
+        // nothing to set aside
+      }
+    }
     return { players: Object.create(null), counted: [] };
   }
 }
