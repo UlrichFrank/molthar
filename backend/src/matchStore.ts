@@ -25,6 +25,8 @@ import { recordMatch } from './leaderboard';
 
 const METADATA_SUFFIX = ':metadata';
 const STALE_SWEEP_INTERVAL_MS = 6 * 60 * 60 * 1000;
+/** How long listMatches' metadata stands in for a match deleted right after. */
+const LISTED_GRACE_MS = 2000;
 
 interface MatchStoreOptions {
   dir: string;
@@ -35,6 +37,8 @@ interface MatchStoreOptions {
 export class MatchStore extends FlatFile {
   private readonly dataDir: string;
   private readonly ttlDays: number;
+  /** Metadata read by recent listMatches calls, see fetch(). */
+  private readonly listed = new Map<string, any>();
 
   constructor({ dir, ttlDays = 0 }: MatchStoreOptions) {
     super({ dir });
@@ -107,6 +111,7 @@ export class MatchStore extends FlatFile {
         continue;
       }
       if (!metadata) continue;
+      this.rememberListed(matchID, metadata);
 
       if (opts.gameName && opts.gameName !== metadata.gameName) continue;
 
@@ -130,6 +135,28 @@ export class MatchStore extends FlatFile {
     }
 
     return matchIDs;
+  }
+
+  /**
+   * The lobby list route fetches each listed match's metadata again and reads
+   * `metadata.unlisted` unchecked. A match finished and deleted in between
+   * (terminated matches are wiped at once) crashed it with a 500 — and with
+   * it the open-games list and the BotRunner's scan. For a moment after a
+   * listing, a vanished match reads as unlisted instead, so the route skips it.
+   */
+  async fetch(matchID: string, opts: any): Promise<any> {
+    const result = await super.fetch(matchID, opts);
+    if (opts?.metadata && !result.metadata && this.listed.has(matchID)) {
+      result.metadata = { ...this.listed.get(matchID), unlisted: true };
+    }
+    return result;
+  }
+
+  private rememberListed(matchID: string, metadata: any): void {
+    this.listed.set(matchID, metadata);
+    setTimeout(() => {
+      if (this.listed.get(matchID) === metadata) this.listed.delete(matchID);
+    }, LISTED_GRACE_MS).unref();
   }
 
   /**
