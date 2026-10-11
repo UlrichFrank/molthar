@@ -21,6 +21,7 @@
 import { FlatFile } from 'boardgame.io/server';
 import * as fs from 'fs';
 import * as path from 'path';
+import { recordMatch } from './leaderboard';
 
 const METADATA_SUFFIX = ':metadata';
 const STALE_SWEEP_INTERVAL_MS = 6 * 60 * 60 * 1000;
@@ -139,6 +140,8 @@ export class MatchStore extends FlatFile {
     await super.setMetadata(id, metadata);
     if (metadata?.gameover?.reason === 'terminated') {
       await this.wipe(id);
+    } else if (metadata?.gameover?.ranking) {
+      recordMatch(id, metadata.gameover.ranking);
     }
   }
 

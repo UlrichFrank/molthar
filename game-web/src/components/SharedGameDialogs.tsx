@@ -228,7 +228,7 @@ export function SharedGameDialogs({ G, moves, core }: SharedGameDialogsProps) {
       )}
 
       {/* Disconnect Dialog */}
-      {core.disconnectedPlayerName !== null && (
+      {core.disconnectedPlayerName !== null && core.gameover === undefined && (
         <PlayerDisconnectDialog playerName={core.disconnectedPlayerName} />
       )}
     </>
