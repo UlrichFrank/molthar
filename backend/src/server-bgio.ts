@@ -36,9 +36,12 @@ if (typeof (globalThis as { Bun?: unknown }).Bun !== 'undefined') {
   patchWsTextFrames();
 }
 
+const store = new MatchStore({ dir: MATCHES_DIR, ttlDays: MATCH_TTL_DAYS });
+const botRunner = new BotRunner(SELF_URL);
+
 const server = Server({
   games: [PortaleVonMolthar],
-  db: new MatchStore({ dir: MATCHES_DIR, ttlDays: MATCH_TTL_DAYS }),
+  db: store,
 
   origins: [
     // Allow frontend to connect (dev server)
@@ -71,6 +74,30 @@ server.app.use(async (ctx: any, next: () => Promise<unknown>) => {
   }
   await next();
 });
+
+// Spielothek admins end abandoned matches. Traefik sets X-Spielothek-Rolle via
+// forwardAuth (a client-sent one is dropped); the Spielothek calls 127.0.0.1 directly.
+server.app.use(async (ctx: any, next: () => Promise<unknown>) => {
+  const m = /^\/admin\/partien\/([^/]+)$/.exec(ctx.path);
+  if (!m || ctx.method !== 'DELETE') {
+    await next();
+    return;
+  }
+  if (ctx.get('x-spielothek-rolle') !== 'admin') {
+    ctx.status = 403;
+    return;
+  }
+  const matchID = decodeURIComponent(m[1]);
+  const { metadata } = await store.fetch(matchID, { metadata: true });
+  if (!metadata || metadata.unlisted) {
+    ctx.status = 404;
+    return;
+  }
+  botRunner.detachMatch(matchID);
+  await store.wipe(matchID);
+  console.log(`Partie ${matchID} von der Spielothek beendet`);
+  ctx.status = 204;
+});
 server.app.use(serveStatic(assets) as never);
 
 // server.run() only passes the port to listen(); add the bind address
@@ -91,7 +118,6 @@ server.run(PORT, () => {
   }
 
   // Start NPC bot runner after a short delay to let the server fully initialise
-  const botRunner = new BotRunner(SELF_URL);
   setTimeout(() => {
     botRunner.start().catch((err: unknown) => {
       console.error('[BotRunner] Failed to start:', err);
