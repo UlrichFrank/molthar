@@ -12,8 +12,9 @@
  * With an empty manifest (development, where Vite serves the page) the
  * middleware does nothing.
  */
-import { promises as fs } from 'fs';
+import { createReadStream } from 'fs';
 import { extname } from 'path';
+import { Readable } from 'stream';
 
 /** Minimal Koa context — Koa itself is only a transitive dependency. */
 export interface StaticContext {
@@ -22,6 +23,7 @@ export interface StaticContext {
   status: number;
   body: unknown;
   type: string;
+  get(field: string): string;
   set(field: string, value: string): void;
 }
 
@@ -50,6 +52,8 @@ const REVALIDATE = 'no-cache';
 const HASHED_BUNDLE = /^\/assets\/[^/]+-[\w-]{8,}\.(js|css)$/;
 const IMAGE = /\.(png|jpe?g|webp|svg|ico)$/i;
 
+const RASTER = /\.(png|jpe?g)$/i;
+
 function isApiPath(path: string): boolean {
   return path === '/games' || path.startsWith('/games/');
 }
@@ -69,25 +73,27 @@ function decodePath(path: string): string | null {
   }
 }
 
+type BunFile = { stream(): ReadableStream<Uint8Array> };
+const bunFile = (globalThis as { Bun?: { file(path: string): BunFile } }).Bun?.file;
+
+/** fs streams cannot open files in the binary's "/$bunfs/", Bun.file can. */
+function openFile(path: string): Readable {
+  if (!bunFile) return createReadStream(path);
+  return Readable.fromWeb(bunFile(path).stream() as never);
+}
+
 /**
+ * Files are streamed from the binary on every request, not cached: a copy of
+ * all card images on the JS heap cost ~100 MB under the service's memory limit.
+ *
  * @param assets   URL path → readable file path (see embedded/assets.ts)
- * @param readFile reads a file completely (injectable for tests)
+ * @param open     opens a file as a stream (injectable for tests)
  */
 export function serveStatic(
   assets: Record<string, string>,
-  readFile: (path: string) => Promise<Uint8Array> = path => fs.readFile(path),
+  open: (path: string) => Readable = openFile,
 ) {
-  const cache = new Map<string, Uint8Array>();
   const hasPage = '/index.html' in assets;
-
-  const load = async (urlPath: string) => {
-    let data = cache.get(urlPath);
-    if (!data) {
-      data = await readFile(assets[urlPath]);
-      cache.set(urlPath, data);
-    }
-    return data;
-  };
 
   return async (ctx: StaticContext, next: () => Promise<unknown>): Promise<unknown> => {
     if (!hasPage || (ctx.method !== 'GET' && ctx.method !== 'HEAD') || isApiPath(ctx.path)) {
@@ -102,10 +108,17 @@ export function serveStatic(
       urlPath = '/index.html';
     }
 
+    // WebP twin from gen-assets.ts under the same URL: the page keeps asking
+    // for .png/.jpeg, browsers that accept WebP get the smaller file
+    const twin = urlPath.replace(RASTER, '.webp');
+    const hasTwin = twin !== urlPath && twin in assets;
+    if (hasTwin) ctx.set('Vary', 'Accept');
+    const file = hasTwin && ctx.get('Accept').includes('image/webp') ? twin : urlPath;
+
     ctx.status = 200;
-    ctx.type = CONTENT_TYPES[extname(urlPath).toLowerCase()] ?? 'application/octet-stream';
+    ctx.type = CONTENT_TYPES[extname(file).toLowerCase()] ?? 'application/octet-stream';
     ctx.set('Cache-Control', cacheControl(urlPath));
-    ctx.body = Buffer.from(await load(urlPath));
+    ctx.body = open(assets[file]);
     return undefined;
   };
 }

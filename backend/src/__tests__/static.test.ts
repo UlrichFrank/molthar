@@ -20,6 +20,8 @@ beforeAll(async () => {
     '/index.html': '<!doctype html><title>Molthar</title>',
     '/assets/index-AbC123xy.js': "console.log('game')",
     '/assets/Charakterkarte Hinten.png': 'PNG',
+    '/assets/Charakterkarte Hinten.webp': 'WEBP',
+    '/assets/Portal1.jpeg': 'JPEG',
     '/assets/cards.json': '[]',
   };
   const assets: Record<string, string> = {};
@@ -59,6 +61,30 @@ describe('serveStatic', () => {
     expect(res.status).toBe(200);
     expect(res.headers.get('content-type')).toBe('image/png');
     expect(res.headers.get('cache-control')).toBe('public, max-age=86400');
+  });
+
+  it('sends the WebP twin to browsers that accept it', async () => {
+    const res = await fetch(`${base}/assets/Charakterkarte%20Hinten.png`, {
+      headers: { Accept: 'image/avif,image/webp,*/*' },
+    });
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('image/webp');
+    expect(res.headers.get('vary')).toContain('Accept');
+    expect(await res.text()).toBe('WEBP');
+  });
+
+  it('sends the original to browsers without WebP', async () => {
+    const res = await fetch(`${base}/assets/Charakterkarte%20Hinten.png`, { headers: { Accept: 'image/png' } });
+    expect(res.headers.get('content-type')).toBe('image/png');
+    expect(res.headers.get('vary')).toContain('Accept');
+    expect(await res.text()).toBe('PNG');
+  });
+
+  it('serves images without twin unchanged', async () => {
+    const res = await fetch(`${base}/assets/Portal1.jpeg`, { headers: { Accept: 'image/webp' } });
+    expect(res.headers.get('content-type')).toBe('image/jpeg');
+    expect(res.headers.get('vary') ?? '').not.toContain('Accept');
+    expect(await res.text()).toBe('JPEG');
   });
 
   it('serves cards.json uncached', async () => {

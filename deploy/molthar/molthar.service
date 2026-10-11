@@ -31,7 +31,9 @@ Environment=EXTRA_ORIGINS=https://molthar.apps.diefranks.eu
 Restart=always
 RestartSec=2
 TimeoutStopSec=10
-MemoryMax=250M
+# Steady state ~100 MB; the old 250M cap was hit thousands of times when the
+# static-file cache held every card image, and the process swapped heavily.
+MemoryMax=400M
 
 # Hardening (Bun's JIT needs writable+executable memory: no MemoryDenyWriteExecute)
 NoNewPrivileges=true
